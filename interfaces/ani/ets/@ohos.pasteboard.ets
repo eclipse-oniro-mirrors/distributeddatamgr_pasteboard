@@ -181,12 +181,12 @@ export class SystemPasteboardImpl implements pasteboard.SystemPasteboard {
     }
     setData(data: pasteboard.PasteData): Promise<void> {
         console.println("promise => setData enter")
-        return new Promise<void>((resolve: (v: undefined) => void, reject: (error: Object) => void): void => {
+        return new Promise<void>((resolve: (v: PromiseLike<void>) => void, reject: (error: Error) => void): void => {
             let p = taskpool.execute(this.nativeSetData, data)
             p.then((e: NullishType): void => {
                 let r = e as number
                 console.println("promise => setData return:" + r)
-                resolve(undefined)
+                resolve(Promise.resolve())
             }).catch((e: Error): void => {
                 console.log("promise => set failed:", e)
                 reject(e)
@@ -210,13 +210,13 @@ export class SystemPasteboardImpl implements pasteboard.SystemPasteboard {
     }
     clearData(): Promise<void> {
         console.println("promise => clearData enter")
-        return new Promise<void>((resolve: (v: undefined) => void, reject: (error: Object) => void): void => {
+        return new Promise<void>((resolve: (v: PromiseLike<void>) => void, reject: (error: Error) => void): void => {
             let p = taskpool.execute((): number => {
                 this.nativeClearData()
                 return 0
             })
             p.then((e: NullishType): void => {
-                resolve(undefined)
+                resolve(Promise.resolve())
             }).catch((e: Error): void => {
                 console.log("promise => clear failed:", e)
                 reject(e)
