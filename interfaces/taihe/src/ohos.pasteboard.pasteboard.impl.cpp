@@ -569,46 +569,59 @@ public:
         }
     }
 
-    void OnUpdate(::taihe::callback_view<void()> callback, uintptr_t cb)
+    void OnUpdate(::taihe::callback_view<void()> callback)
     {
-        ani_object callbackObj = reinterpret_cast<ani_object>(cb);
-        ani_ref callbackRef;
-        ani_env *env = taihe::get_env();
-        if (env == nullptr) {
-            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Failed to register, get environment failed");
-            return;
-        }
-        if (ANI_OK != env->GlobalReference_Create(callbackObj, &callbackRef)) {
-            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Failed to register, create reference failed");
-            return;
-        }
-
-        OHOS::sptr<PasteboardTaiheObserver> observer = nullptr;
-        ani_boolean isEqual = false;
-        for (const auto &[refKey, observerValue] : observers_) {
-            env->Reference_StrictEquals(refKey, callbackRef, &isEqual);
-            if (isEqual) {
-                observer = observerValue;
-                break;
-            }
-        }
-
-        if (observer != nullptr) {
-            env->GlobalReference_Delete(callbackRef);
+        auto it = observers_.find(callback);
+        if (it != observers_.end()) {
             PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Already registered.");
             return;
         }
-
         auto callbackPtr = std::make_shared<::taihe::callback<void()>>(callback);
-        observer = OHOS::sptr<PasteboardTaiheObserver>::MakeSptr(callbackPtr);
-        if (observer == nullptr) {
-            env->GlobalReference_Delete(callbackRef);
-            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Malloc observer failed.");
+        if (callbackPtr == nullptr) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Malloc callback ptr failed.");
             return;
         }
-
+        auto observer = OHOS::sptr<PasteboardTaiheObserver>::MakeSptr(callbackPtr);
+        if (observer == nullptr) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Malloc observer ptr failed.");
+            return;
+        }
         PasteboardClient::GetInstance()->Subscribe(PasteboardObserverType::OBSERVER_LOCAL, observer);
-        observers_[callbackRef] = observer;
+        observers_[callback] = observer;
+    }
+
+    void OffUpdate(::taihe::optional_view<::taihe::callback_view<void()>> callback)
+    {
+        OHOS::sptr<PasteboardTaiheObserver> observer = nullptr;
+
+        if (cb.has_value()) {
+            ani_object callbackObj = reinterpret_cast<ani_object>(cb.value());
+            ani_ref callbackRef;
+            ani_env *env = taihe::get_env();
+            if (env == nullptr) {
+                PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Failed to register, get environment failed");
+                return;
+            }
+            if (ANI_OK != env->GlobalReference_Create(callbackObj, &callbackRef)) {
+                PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Failed to register, create reference failed");
+                return;
+            }
+            ani_boolean isEqual = false;
+            for (const auto &[refKey, observerValue] : observers_) {
+                env->Reference_StrictEquals(refKey, callbackRef, &isEqual);
+                if (isEqual) {
+                    observer = observerValue;
+                    break;
+                }
+            }
+            env->GlobalReference_Delete(callbackRef);
+            if (!isEqual) {
+                PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Unregister failed, please register first.");
+                return;
+            }
+        }
+
+        DeleteObserver(observer);
     }
 
     void OffUpdate(::taihe::optional_view<uintptr_t> cb)
@@ -978,7 +991,7 @@ public:
     }
 
 private:
-    static thread_local std::map<ani_ref, OHOS::sptr<PasteboardTaiheObserver>> observers_;
+    static thread_local std::unordered_map<::taihe::callback_view<void()>, OHOS::sptr<PasteboardTaiheObserver>> observers_;
     static std::mutex getDataParamsMtx_;
     static std::map<std::shared_ptr<GetDataParams>, ohos::pasteboard::pasteboard::GetDataParams> getDataParams_;
 private:
@@ -1014,7 +1027,7 @@ class ProgressSignalImpl {
     }
 };
 
-thread_local std::map<ani_ref, OHOS::sptr<PasteboardTaiheObserver>> SystemPasteboardImpl::observers_;
+thread_local std::unordered_map<::taihe::callback_view<void()>, OHOS::sptr<PasteboardTaiheObserver>> SystemPasteboardImpl::observers_;
 std::mutex SystemPasteboardImpl::getDataParamsMtx_;
 std::map<std::shared_ptr<GetDataParams>, ohos::pasteboard::pasteboard::GetDataParams>
     SystemPasteboardImpl::getDataParams_;
