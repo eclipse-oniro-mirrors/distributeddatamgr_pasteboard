@@ -119,6 +119,22 @@ HWTEST_F(ClipPluginTest, PublishServiceStateTest, TestSize.Level0)
 }
 
 /**
+ * @tc.name: ApplyAdvancedResourceTest
+ * @tc.desc: ApplyAdvancedResource
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(ClipPluginTest, ApplyAdvancedResourceTest001, TestSize.Level0)
+{
+    CustomClipPlugin clipPlugin;
+    std::string networkId = "testNetworkId";
+
+    int32_t result = clipPlugin.ApplyAdvancedResource(networkId);
+    ASSERT_EQ(0, result);
+}
+
+/**
  * @tc.name: CloseTest
  * @tc.desc: Close.
  * @tc.type: FUNC
