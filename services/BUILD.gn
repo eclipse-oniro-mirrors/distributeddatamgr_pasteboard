@@ -143,7 +143,6 @@ ohos_shared_library("pasteboard_service") {
     "common_event_service:cesfwk_innerkits",
     "data_share:datashare_consumer",
     "dataclassification:data_transit_mgr",
-    "device_manager:devicemanagersdk",
     "dfs_service:distributed_file_daemon_kit_inner",
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
