@@ -152,28 +152,6 @@ struct GetDataParams {
 }
 
 interface SystemPasteboard {
-
-    @!sts_inject_into_interface("""
-        on(type: string, callback: () => void): void;
-        off(type: string, callback?: () => void): void;
-    """)
-    @!sts_inject_into_class("""
-        on(type: string, cb: object) {
-            switch(type) {
-                case "update": return this.onUpdate(cb as () => void, cb);
-                default: throw new BusinessError(401, new Error("Parameter error. The value of type must be update."));
-            }
-        }
-        off(type: string, cb?: object) {
-            switch(type) {
-                case "update": return this.offUpdate(cb);
-                default: throw new BusinessError(401, new Error("Parameter error. The value of type must be update."));
-            }
-        }
-    """)
-    OnUpdate(callback: () => void, cb: Opaque);
-    OffUpdate(cb: Optional<Opaque>);
-
     OnUpdate(callback: () => void): void;
     OffUpdate(callback: Optional<() => void>): void;
 
