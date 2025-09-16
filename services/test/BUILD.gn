@@ -157,7 +157,6 @@ ohos_unittest("PasteServInterfaceTest") {
     "common_event_service:cesfwk_innerkits",
     "data_share:datashare_consumer",
     "dataclassification:data_transit_mgr",
-    "device_manager:devicemanagersdk",
     "dfs_service:distributed_file_daemon_kit_inner",
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
@@ -294,7 +293,6 @@ ohos_unittest("PasteServInterfaceMockTest") {
     "common_event_service:cesfwk_innerkits",
     "data_share:datashare_consumer",
     "dataclassification:data_transit_mgr",
-    "device_manager:devicemanagersdk",
     "dfs_service:distributed_file_daemon_kit_inner",
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
@@ -630,7 +628,7 @@ ohos_unittest("PasteboardDelayManagerTest") {
     "${pasteboard_service_path}/core/src/pasteboard_delay_manager.cpp",
     "unittest/src/pasteboard_delay_manager_test.cpp",
   ]
-
+  defines = []
   deps = [
     "${pasteboard_framework_path}:pasteboard_framework",
     "${pasteboard_innerkits_path}:pasteboard_data",
@@ -652,7 +650,6 @@ ohos_unittest("PasteboardDelayManagerTest") {
     "common_event_service:cesfwk_innerkits",
     "data_share:datashare_consumer",
     "dataclassification:data_transit_mgr",
-    "device_manager:devicemanagersdk",
     "dfs_service:distributed_file_daemon_kit_inner",
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
@@ -670,6 +667,10 @@ ohos_unittest("PasteboardDelayManagerTest") {
     "samgr:samgr_proxy",
     "udmf:udmf_client",
   ]
+  if (pasteboard_device_manager_part_enabled) {
+    external_deps += [ "device_manager:devicemanagersdk" ]
+    defines += [ "PB_DEVICE_MANAGER_ENABLE" ]
+  }
 }
 
 ohos_unittest("PasteServGetLocalDataTest") {
@@ -744,7 +745,6 @@ ohos_unittest("PasteServGetLocalDataTest") {
     "common_event_service:cesfwk_innerkits",
     "data_share:datashare_consumer",
     "dataclassification:data_transit_mgr",
-    "device_manager:devicemanagersdk",
     "dfs_service:distributed_file_daemon_kit_inner",
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
@@ -878,7 +878,6 @@ ohos_unittest("PasteServSubscribeTest") {
     "common_event_service:cesfwk_innerkits",
     "data_share:datashare_consumer",
     "dataclassification:data_transit_mgr",
-    "device_manager:devicemanagersdk",
     "dfs_service:distributed_file_daemon_kit_inner",
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
@@ -1012,7 +1011,6 @@ ohos_unittest("PasteServNotifyTest") {
     "common_event_service:cesfwk_innerkits",
     "data_share:datashare_consumer",
     "dataclassification:data_transit_mgr",
-    "device_manager:devicemanagersdk",
     "dfs_service:distributed_file_daemon_kit_inner",
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
@@ -1146,7 +1144,6 @@ ohos_unittest("PasteServSetDataTest") {
     "common_event_service:cesfwk_innerkits",
     "data_share:datashare_consumer",
     "dataclassification:data_transit_mgr",
-    "device_manager:devicemanagersdk",
     "dfs_service:distributed_file_daemon_kit_inner",
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
@@ -1280,7 +1277,6 @@ ohos_unittest("PasteServGetDataTest") {
     "common_event_service:cesfwk_innerkits",
     "data_share:datashare_consumer",
     "dataclassification:data_transit_mgr",
-    "device_manager:devicemanagersdk",
     "dfs_service:distributed_file_daemon_kit_inner",
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
