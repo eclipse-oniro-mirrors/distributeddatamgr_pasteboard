@@ -1,0 +1,103 @@
+# Copyright (C) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/config/components/ets_frontend/ets2abc_config.gni")
+import("//build/ohos.gni")
+import("//build/ohos/taihe_idl/taihe.gni")
+import("//foundation/distributeddatamgr/pasteboard/pasteboard.gni")
+
+config("taihe_config") {
+  include_dirs = [
+    "${pasteboard_framework_path}/include/common",
+    "${pasteboard_innerkits_path}/include",
+    "${pasteboard_interfaces_path}/kits/napi/include",
+    "${pasteboard_utils_path}/native/include",
+    "include",
+  ]
+}
+
+subsystem_name = "distributeddatamgr"
+part_name = "pasteboard"
+taihe_generated_file_path = "$taihe_file_path/out/$subsystem_name/$part_name"
+
+copy_taihe_idl("copy_pasteboard") {
+  sources = [ "idl/ohos.pasteboard.pasteboard.taihe" ]
+}
+
+ohos_taihe("run_pasteboard_taihe") {
+  taihe_generated_file_path = "$taihe_generated_file_path"
+  deps = [ ":copy_pasteboard" ]
+  outputs = [
+    "$taihe_generated_file_path/src/ohos.pasteboard.pasteboard.ani.cpp",
+    "$taihe_generated_file_path/src/ohos.pasteboard.pasteboard.abi.c",
+  ]
+}
+
+taihe_shared_library("pasteboard_taihe_native") {
+  taihe_generated_file_path = "$taihe_generated_file_path"
+  part_name = "$part_name"
+  subsystem_name = "$subsystem_name"
+  sources = get_target_outputs(":run_pasteboard_taihe")
+  public_configs = [ ":taihe_config" ]
+  sources += [
+    "src/ani_constructor.cpp",
+    "src/ohos.pasteboard.pasteboard.impl.cpp",
+    "src/pasteboard_taihe_observer.cpp",
+    "src/pasteboard_taihe_utils.cpp",
+  ]
+  deps = [
+    ":run_pasteboard_taihe",
+    "${pasteboard_framework_path}:pasteboard_framework",
+    "${pasteboard_root_path}/framework/innerkits:pasteboard_client",
+    "${pasteboard_root_path}/framework/innerkits:pasteboard_data",
+  ]
+  external_deps = [
+    "ability_base:want",
+    "ability_base:zuri",
+    "ability_runtime:ani_common",
+    "ability_runtime:napi_common",
+    "ability_runtime:runtime",
+    "c_utils:utils",
+    "ffrt:libffrt",
+    "hilog:libhilog",
+    "image_framework:image_taihe",
+    "ipc:ipc_core",
+    "napi:ace_napi",
+    "runtime_core:ani",
+    "runtime_core:ani_helpers",
+    "udmf:udmf_data_napi",
+  ]
+}
+
+generate_static_abc("pasteboard_taihe_ani") {
+  base_url = "$taihe_generated_file_path"
+  files = [ "$taihe_generated_file_path/@ohos.pasteboard.ets" ]
+  is_boot_abc = "True"
+  device_dst_file = "/system/framework/pasteboard_taihe_ani.abc"
+  dependencies = [ ":run_pasteboard_taihe" ]
+}
+
+ohos_prebuilt_etc("pasteboard_abc_etc") {
+  source = "$target_out_dir/pasteboard_taihe_ani.abc"
+  module_install_dir = "framework"
+  subsystem_name = "$subsystem_name"
+  part_name = "$part_name"
+  deps = [ ":pasteboard_taihe_ani" ]
+}
+
+group("pasteboard_taihe") {
+  deps = [
+    ":pasteboard_abc_etc",
+    ":pasteboard_taihe_native",
+  ]
+}

@@ -30,6 +30,7 @@ public:
     static void Destructor(napi_env env, void *nativeObject, void *finalize_hint);
     static napi_value GetSystemPasteboard(napi_env env, napi_callback_info info);
     static bool IsPasteData(napi_env env, napi_value in);
+    static napi_value CreateInstance(napi_env env, std::shared_ptr<MiscServices::PasteData> pasteData);
     std::shared_ptr<MiscServices::PasteData> value_ = nullptr;
 
 private:
@@ -71,6 +72,10 @@ private:
     static napi_value PasteStart(napi_env env, napi_callback_info info);
     static napi_value PasteComplete(napi_env env, napi_callback_info info);
 };
+
+extern "C" {
+    API_EXPORT napi_value GetEtsPasteData(napi_env env, std::shared_ptr<MiscServices::PasteData> pasteData);
+}
 } // namespace MiscServicesNapi
 } // namespace OHOS
 #endif
