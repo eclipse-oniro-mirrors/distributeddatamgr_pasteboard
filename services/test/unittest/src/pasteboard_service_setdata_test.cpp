@@ -14,14 +14,17 @@
  */
 
 #include <gtest/gtest.h>
+#include <thread>
 #include <unistd.h>
+
 #include "ipc_skeleton.h"
 #include "message_parcel_warp.h"
 #include "pasteboard_error.h"
 #include "pasteboard_hilog.h"
+#include "pasteboard_observer_stub.h"
 #include "pasteboard_service.h"
+#include "pasteboard_time.h"
 #include "paste_data_entry.h"
-#include <thread>
 
 using namespace testing;
 using namespace testing::ext;
@@ -37,10 +40,10 @@ const int32_t INT32_NEGATIVE_NUMBER = -1;
 constexpr int32_t SET_VALUE_SUCCESS = 1;
 const int INT_THREETHREETHREE = 333;
 const uint32_t MAX_RECOGNITION_LENGTH = 1000;
-const int32_t ACCOUNT_IDS_RANDOM = 1121;
-const uint32_t UINT32_ONE = 1;
 constexpr int64_t MIN_ASHMEM_DATA_SIZE = 32 * 1024;
 constexpr uint32_t EVENT_TIME_OUT = 2000;
+const int32_t ACCOUNT_IDS_RANDOM = 1121;
+const uint32_t UINT32_ONE = 1;
 const std::string TEST_ENTITY_TEXT =
     "清晨，从杭州市中心出发，沿着湖滨路缓缓前行。湖滨路是杭州市中心通往西湖的主要街道之一，两旁绿树成荫，湖光山色尽收眼"
     "底。你可以选择步行或骑行，感受微风拂面的惬意。湖滨路的尽头是南山路，这里有一片开阔的广场，是欣赏西湖全景的绝佳位置"
@@ -72,7 +75,7 @@ class MyTestEntityRecognitionObserver : public IEntityRecognitionObserver {
     }
 };
 
-class MyTestPasteboardChangedObserver : public IPasteboardChangedObserver {
+class MyTestPasteboardChangedObserver : public PasteboardObserverStub {
     void OnPasteboardChanged()
     {
         return;
@@ -80,10 +83,6 @@ class MyTestPasteboardChangedObserver : public IPasteboardChangedObserver {
     void OnPasteboardEvent(std::string bundleName, int32_t status)
     {
         return;
-    }
-    sptr<IRemoteObject> AsObject()
-    {
-        return nullptr;
     }
 };
 
@@ -344,7 +343,7 @@ HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataDelayDataTest002, TestSize.Le
 
 /**
  * @tc.name: SetPasteDataDelayDataTest003
- * @tc.desc: test Func SetPasteDataDelayData, fd is error, map failed, return INVALID_DATA_ERROR.
+ * @tc.desc: test Func SetPasteDataDelayData, fd is error, map failed, return INVALID_PARAM_ERROR.
  * @tc.type: FUNC
  */
 HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataDelayDataTest003, TestSize.Level0)
@@ -358,7 +357,7 @@ HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataDelayDataTest003, TestSize.Le
     EXPECT_NE(tempPasteboard, nullptr);
 
     int32_t result = tempPasteboard->SetPasteDataDelayData(dup(fd), rawDataSize, buffer, delayGetter);
-    EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::INVALID_DATA_ERROR));
+    EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::INVALID_PARAM_ERROR));
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetPasteDataDelayDataTest003 end");
 }
 
@@ -384,7 +383,7 @@ HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataDelayDataTest004, TestSize.Le
 
 /**
  * @tc.name: SetPasteDataDelayDataTest005
- * @tc.desc: test Func SetPasteDataDelayData, NOT goto map and buffer is empty, return ERR_OK.
+ * @tc.desc: test Func SetPasteDataDelayData, NOT goto map and buffer is empty, return INVALID_PARAM_ERROR.
  * @tc.type: FUNC
  */
 HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataDelayDataTest005, TestSize.Level0)
@@ -398,7 +397,7 @@ HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataDelayDataTest005, TestSize.Le
     EXPECT_NE(tempPasteboard, nullptr);
 
     int32_t result = tempPasteboard->SetPasteDataDelayData(dup(fd), rawDataSize, buffer, delayGetter);
-    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::INVALID_PARAM_ERROR));
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetPasteDataDelayDataTest005 end");
 }
 
@@ -462,6 +461,7 @@ HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataOnlyTest001, TestSize.Level0)
     int32_t result = service->SetPasteDataOnly(dup(fd), rawDataSize, buffer);
     EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::INVALID_PARAM_ERROR));
     mpw->writeRawDataFd_ = -1;
+    close(fd);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetPasteDataOnlyTest001 end");
 }
 
@@ -542,7 +542,7 @@ HWTEST_F(PasteboardServiceSetDataTest, SetCurrentDataTest001, TestSize.Level0)
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
 
-    tempPasteboard->SetCurrentData(event, pasteData);
+    tempPasteboard->SetCurrentData(event);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetCurrentDataTest001 end");
 }
 
