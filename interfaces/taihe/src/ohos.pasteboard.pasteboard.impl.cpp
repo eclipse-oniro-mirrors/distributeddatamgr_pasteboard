@@ -179,6 +179,16 @@ public:
             return;
         }
         std::string mimeType(type);
+        if (mimeType == "") {
+            taihe::set_business_error(static_cast<int>(JSErrorCode::INVALID_PARAMETERS),
+                "Parameter error. the first param should be object or string.");
+            return;
+        }
+        if (mimeType.size() > MIMETYPE_MAX_SIZE) {
+            taihe::set_business_error(static_cast<int>(JSErrorCode::INVALID_PARAMETERS),
+                "Parameter error. The length of mimeType cannot be greater than 1024 bytes.");
+            return;
+        }
         auto strategy = StrategyFactory::CreateStrategyForEntry(mimeType);
         if (strategy == nullptr) {
             PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Create strategy for entry failed");
@@ -801,17 +811,37 @@ public:
 
     uintptr_t GetUnifiedDataSync()
     {
-        return GetUnifiedDataImpl();
+        uintptr_t unifiedDataPtr = 0;
+        std::shared_ptr<OHOS::UDMF::UnifiedData> unifiedData = std::make_shared<OHOS::UDMF::UnifiedData>();
+        auto block = std::make_shared<OHOS::BlockObject<std::shared_ptr<int32_t>>>(SYNC_TIMEOUT);
+        std::thread thread([block, unifiedData]() {
+            auto ret = PasteboardClient::GetInstance()->GetUnifiedData(*unifiedData);
+            auto ptr = std::make_shared<int32_t>(ret);
+            block->SetValue(ptr);
+        });
+        thread.detach();
+        std::shared_ptr<int32_t> value = block->GetValue();
+        if (value == nullptr) {
+            taihe::set_business_error(static_cast<int>(JSErrorCode::REQUEST_TIME_OUT), "Request timed out.");
+            return unifiedDataPtr;
+        }
+        auto unifiedDataObj = OHOS::UDMF::AniConverter::WrapUnifiedData(taihe::get_env(), unifiedData);
+        if (unifiedDataObj != nullptr) {
+            unifiedDataPtr = reinterpret_cast<uintptr_t>(unifiedDataObj);
+        } else {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Wrap UnifiedData failed");
+        }
+        return unifiedDataPtr;
     }
 
     void SetUnifiedDataImpl(uintptr_t data)
     {
-        auto obj = reinterpret_cast<ani_object>(data);
-        if (obj == nullptr) {
+        auto unifiedDataObj = reinterpret_cast<ani_object>(data);
+        if (unifiedDataObj == nullptr) {
             PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Input ani_object is nullptr");
             return;
         }
-        auto unifiedData = OHOS::UDMF::AniConverter::UnwrapUnifiedData(taihe::get_env(), obj);
+        auto unifiedData = OHOS::UDMF::AniConverter::UnwrapUnifiedData(taihe::get_env(), unifiedDataObj);
         if (unifiedData == nullptr) {
             PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Unwrap UnifiedData failed");
             return;
@@ -826,7 +856,34 @@ public:
 
     void SetUnifiedDataSync(uintptr_t data)
     {
-        SetUnifiedDataImpl(data);
+        auto unifiedDataObj = reinterpret_cast<ani_object>(data);
+        if (unifiedDataObj == nullptr) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Input ani_object is nullptr");
+            return;
+        }
+        auto unifiedData = OHOS::UDMF::AniConverter::UnwrapUnifiedData(taihe::get_env(), unifiedDataObj);
+        if (unifiedData == nullptr) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Unwrap UnifiedData failed");
+            return;
+        }
+        auto block = std::make_shared<OHOS::BlockObject<std::shared_ptr<int32_t>>>(SYNC_TIMEOUT);
+        std::thread thread([block, unifiedData]() {
+            auto ret = PasteboardClient::GetInstance()->SetUnifiedData(*unifiedData);
+            auto ptr = std::make_shared<int32_t>(ret);
+            block->SetValue(ptr);
+        });
+        thread.detach();
+        std::shared_ptr<int32_t> value = block->GetValue();
+        if (value == nullptr) {
+            taihe::set_business_error(static_cast<int>(JSErrorCode::REQUEST_TIME_OUT), "Request timed out.");
+            return;
+        }
+        auto ret = *value;
+        if (ret == static_cast<int>(PasteboardError::PROHIBIT_COPY)) {
+            taihe::set_business_error(ret, "The system prohibits copying.");
+        } else if (ret == static_cast<int>(PasteboardError::TASK_PROCESSING)) {
+            taihe::set_business_error(ret, "Another setData is being processed.");
+        }
     }
 
     void SetAppShareOptions(ohos::pasteboard::pasteboard::ShareOption shareOptions)
@@ -1188,6 +1245,11 @@ ohos::pasteboard::pasteboard::PasteDataRecord CreateRecord(
     if (mimeTypeStr == "") {
         taihe::set_business_error(static_cast<int>(JSErrorCode::INVALID_PARAMETERS),
             "Parameter error. the first param should be object or string.");
+        return record;
+    }
+    if (mimeTypeStr.size() > MIMETYPE_MAX_SIZE) {
+        taihe::set_business_error(static_cast<int>(JSErrorCode::INVALID_PARAMETERS),
+            "Parameter error. The length of mimeType cannot be greater than 1024 bytes.");
         return record;
     }
     auto strategy = StrategyFactory::CreateStrategyForData(mimeTypeStr);
