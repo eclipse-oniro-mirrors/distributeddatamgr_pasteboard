@@ -1,0 +1,178 @@
+/*
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+@!namespace("@ohos.pasteboard", "pasteboard")
+
+@!sts_inject("""
+static { loadLibraryWithPermissionCheck("pasteboard_taihe_native.z", "@ohos.pasteboard") }
+""")
+
+@!sts_inject_into_module("import { BusinessError } from '@ohos.base';")
+
+@!sts_inject_into_module("import Want from '@ohos.app.ability.Want';")
+
+@!sts_inject_into_module("import image from '@ohos.multimedia.image';")
+
+@!sts_inject("const MIMETYPE_TEXT_HTML: String = 'text/html'")
+
+@!sts_inject("const MIMETYPE_TEXT_PLAIN: String = 'text/plain'")
+
+@!sts_inject("const MIMETYPE_TEXT_URI: String = 'text/uri'")
+
+enum ShareOption: i32 {
+    INAPP = 0,
+    LOCALDEVICE = 1
+}
+
+enum Pattern: i32 {
+    URL = 0,
+    NUMBER = 1,
+}
+
+union ValueType {
+    string: String;
+    arrayBuffer: @arraybuffer Array<u8>;
+    pixelMapOrWant: @sts_type("(image.PixelMap | Want)") Opaque;
+}
+
+struct PasteDataProperty {
+    shareOption: ShareOption;
+    @readonly timestamp: i64;
+    tag: String;
+}
+
+interface PasteDataRecord {      
+    @get("mimeType")
+    GetMimeType(): String;
+
+    @get("plainText")
+    GetPlainText(): String;
+
+    @get("uri")
+    GetUri(): String;
+
+    @get("pixelMap")
+    GetPixelMap(): @sts_type("image.PixelMap") Opaque;
+
+    @gen_promise("getData")
+    GetRecordValueByType(type: String): ValueType;
+
+    ToPlainText(): String;
+    GetRecordImpl(): i64;
+}
+function MakePasteDataRecord(): PasteDataRecord;
+
+interface PasteData {
+    @overload("addRecord")
+    AddRecord(record: PasteDataRecord);
+    @overload("addRecord")
+    CreateAndAddRecord(mimeType: String, value: ValueType);
+
+    GetMimeTypes(): Array<String>;
+    GetPrimaryHtml(): String;
+    GetPrimaryWant(): @sts_type("Want") Opaque;
+    GetPrimaryMimeType(): String;
+    GetPrimaryText(): String;
+    GetPrimaryUri(): String;
+    GetProperty(): PasteDataProperty;
+    SetProperty(property: PasteDataProperty): void;
+    GetRecord(index: i32): PasteDataRecord;
+    GetRecordCount(): i32;
+    GetTag(): String;
+
+    GetPasteDataImpl(): i64;
+}
+function CreatePasteData(): PasteData;
+
+interface SystemPasteboard {
+
+    @!sts_inject_into_interface("""
+        on(type: string, callback: () => void): void;
+        off(type: string, callback?: () => void): void;
+    """)
+    @!sts_inject_into_class("""
+        on(type: string, cb: object) {
+            switch(type) {
+                case "update": return this.onUpdate(cb as () => void, cb);
+                default: throw new BusinessError(401, new Error("Parameter error. The value of type must be update."));
+            }
+        }
+        off(type: string, cb?: object) {
+            switch(type) {
+                case "update": return this.offUpdate(cb);
+                default: throw new BusinessError(401, new Error("Parameter error. The value of type must be update."));
+            }
+        }
+    """)
+    OnUpdate(callback: () => void, cb: Opaque);
+    OffUpdate(cb: Optional<Opaque>);
+
+    @gen_async("clearData")
+    @gen_promise("clearData")
+    ClearDataImpl(): void;
+
+    @gen_async("getData")
+    @gen_promise("getData")
+    GetDataImpl(): PasteData;
+
+    @gen_async("hasData")
+    @gen_promise("hasData")
+    HasDataImpl(): bool;
+
+    @gen_async("setData")
+    @gen_promise("setData")
+    SetDataImpl(data: PasteData): void;
+
+    @gen_promise("getMimeTypes")
+    GetMimeTypesSync(): Array<String>;
+
+    GetDataSource(): String;
+    HasDataType(mimeType: String): bool;
+    ClearDataSync(): void;
+    GetDataSync(): PasteData;
+    HasDataSync(): bool;
+}
+function CreateSystemPasteboard(): SystemPasteboard;
+
+@overload("createData")
+function CreateDataByValue(mimeType: String, value: ValueType): PasteData;
+
+@overload("createData")
+function CreateDataByRecord(data: @record Map<String, ValueType>): PasteData;
+
+function GetSystemPasteboard(): SystemPasteboard;
+
+@!sts_inject("""
+export function pasteDataTransferStatic(input: Any): object {
+    return pasteDataTransferStaticImpl(ESValue.wrap(input));
+}
+export function pasteDataTransferDynamic(input: object): Any {
+    return pasteDataTransferDynamicImpl(input as PasteData);
+}
+export function pasteDataRecordTransferStatic(input: Any): object {
+    return pasteDataRecordTransferStaticImpl(ESValue.wrap(input));
+}
+export function pasteDataRecordTransferDynamic(input: object): Any {
+    return pasteDataRecordTransferDynamicImpl(input as PasteDataRecord);
+}
+""")
+
+function PasteDataTransferStaticImpl(input: @sts_type("ESValue") Opaque): PasteData;
+
+function PasteDataTransferDynamicImpl(input: PasteData): @sts_type("Any") Opaque;
+
+function PasteDataRecordTransferStaticImpl(input: @sts_type("ESValue") Opaque): PasteDataRecord;
+
+function PasteDataRecordTransferDynamicImpl(input: PasteDataRecord): @sts_type("Any") Opaque;

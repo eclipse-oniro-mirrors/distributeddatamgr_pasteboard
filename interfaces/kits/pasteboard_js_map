@@ -37,6 +37,8 @@
             *JSgetSystemPasteboard*;
             *JSFillInstance*;
             *OnPasteboardChanged*;
+            *GetEtsPasteData*;
+            *GetEtsPasteDataRecord*;
         };
     local:
         *;
