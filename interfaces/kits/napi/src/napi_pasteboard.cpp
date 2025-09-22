@@ -587,21 +587,22 @@ napi_value PasteboardNapi::JSgetSystemPasteboard(napi_env env, napi_callback_inf
 
 napi_value PasteboardNapi::PasteBoardInit(napi_env env, napi_value exports)
 {
-    napi_property_descriptor desc[] = { DECLARE_NAPI_FUNCTION("createHtmlData", JScreateHtmlData),
-        DECLARE_NAPI_FUNCTION("createWantData", JScreateWantData),
-        DECLARE_NAPI_FUNCTION("createPlainTextData", JScreatePlainTextData),
-        DECLARE_NAPI_FUNCTION("createPixelMapData", JScreatePixelMapData),
-        DECLARE_NAPI_FUNCTION("createUriData", JScreateUriData),
-        DECLARE_NAPI_FUNCTION("createData", JSCreateData),
-        DECLARE_NAPI_FUNCTION("createDelayData", JSCreateData),
-        DECLARE_NAPI_FUNCTION("createHtmlTextRecord", JScreateHtmlTextRecord),
-        DECLARE_NAPI_FUNCTION("createWantRecord", JScreateWantRecord),
-        DECLARE_NAPI_FUNCTION("createPlainTextRecord", JScreatePlainTextRecord),
-        DECLARE_NAPI_FUNCTION("createPixelMapRecord", JScreatePixelMapRecord),
-        DECLARE_NAPI_FUNCTION("createUriRecord", JScreateUriRecord),
-        DECLARE_NAPI_FUNCTION("createRecord", JSCreateRecord),
-        DECLARE_NAPI_FUNCTION("createDelayRecord", JSCreateRecord),
-        DECLARE_NAPI_FUNCTION("getSystemPasteboard", JSgetSystemPasteboard),
+    napi_property_descriptor desc[] = {
+        DECLARE_NAPI_WRITABLE_FUNCTION("createHtmlData", JScreateHtmlData),
+        DECLARE_NAPI_WRITABLE_FUNCTION("createWantData", JScreateWantData),
+        DECLARE_NAPI_WRITABLE_FUNCTION("createPlainTextData", JScreatePlainTextData),
+        DECLARE_NAPI_WRITABLE_FUNCTION("createPixelMapData", JScreatePixelMapData),
+        DECLARE_NAPI_WRITABLE_FUNCTION("createUriData", JScreateUriData),
+        DECLARE_NAPI_WRITABLE_FUNCTION("createData", JSCreateData),
+        DECLARE_NAPI_WRITABLE_FUNCTION("createDelayData", JSCreateData),
+        DECLARE_NAPI_WRITABLE_FUNCTION("createHtmlTextRecord", JScreateHtmlTextRecord),
+        DECLARE_NAPI_WRITABLE_FUNCTION("createWantRecord", JScreateWantRecord),
+        DECLARE_NAPI_WRITABLE_FUNCTION("createPlainTextRecord", JScreatePlainTextRecord),
+        DECLARE_NAPI_WRITABLE_FUNCTION("createPixelMapRecord", JScreatePixelMapRecord),
+        DECLARE_NAPI_WRITABLE_FUNCTION("createUriRecord", JScreateUriRecord),
+        DECLARE_NAPI_WRITABLE_FUNCTION("createRecord", JSCreateRecord),
+        DECLARE_NAPI_WRITABLE_FUNCTION("createDelayRecord", JSCreateRecord),
+        DECLARE_NAPI_WRITABLE_FUNCTION("getSystemPasteboard", JSgetSystemPasteboard),
         DECLARE_NAPI_GETTER("ShareOption", JScreateShareOption),
         DECLARE_NAPI_GETTER("Pattern", JScreatePattern),
         DECLARE_NAPI_GETTER("FileConflictOptions", JScreateFileConflictOptions),
@@ -611,7 +612,8 @@ napi_value PasteboardNapi::PasteBoardInit(napi_env env, napi_value exports)
         DECLARE_NAPI_PROPERTY("MIMETYPE_TEXT_HTML", CreateNapiString(env, MIMETYPE_TEXT_HTML)),
         DECLARE_NAPI_PROPERTY("MIMETYPE_TEXT_WANT", CreateNapiString(env, MIMETYPE_TEXT_WANT)),
         DECLARE_NAPI_PROPERTY("MIMETYPE_TEXT_PLAIN", CreateNapiString(env, MIMETYPE_TEXT_PLAIN)),
-        DECLARE_NAPI_PROPERTY("MIMETYPE_TEXT_URI", CreateNapiString(env, MIMETYPE_TEXT_URI)) };
+        DECLARE_NAPI_PROPERTY("MIMETYPE_TEXT_URI", CreateNapiString(env, MIMETYPE_TEXT_URI)),
+    };
 
     NAPI_CALL(env, napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc));
 
