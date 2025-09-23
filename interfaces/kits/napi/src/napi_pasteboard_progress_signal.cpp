@@ -72,7 +72,7 @@ napi_value ProgressSignalNapi::ProgressSignalNapiInit(napi_env env, napi_value e
 {
     napi_status status = napi_ok;
     napi_property_descriptor descriptors[] = {
-        DECLARE_NAPI_FUNCTION("cancel", Cancel),
+        DECLARE_NAPI_WRITABLE_FUNCTION("cancel", Cancel),
     };
 
     napi_value constructor;
