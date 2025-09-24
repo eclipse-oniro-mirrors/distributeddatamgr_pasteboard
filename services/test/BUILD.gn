@@ -362,6 +362,7 @@ ohos_unittest("PasteboardDialogNormalTest") {
   configs = [ ":module_private_config" ]
   external_deps = [
     "ability_base:want",
+    "ability_runtime:ability_connect_callback_stub",
     "ability_runtime:ability_manager",
     "c_utils:utils",
     "googletest:gtest_main",
@@ -381,6 +382,7 @@ ohos_unittest("PasteboardDialogAbnormalTest") {
   configs = [ ":module_private_config" ]
   external_deps = [
     "ability_base:want",
+    "ability_runtime:ability_connect_callback_stub",
     "ability_runtime:ability_manager",
     "c_utils:utils",
     "googletest:gtest_main",
