@@ -597,6 +597,9 @@ bool PasteDataRecord::DecodeTLV(ReadOnlyBuffer &buffer)
     uri_ = nullptr;
     pixelMap_ = nullptr;
     want_ = nullptr;
+    if (mimeType_.empty()) {
+        mimeType_ = GetMimeType();
+    }
     return true;
 }
 
