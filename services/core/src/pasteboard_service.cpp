@@ -1878,13 +1878,24 @@ int32_t PasteboardService::GrantUriPermission(const std::vector<Uri> &grantUris,
     if (isNeedPersistance && !isRemoteData) {
         permFlag |= AAFwk::Want::FLAG_AUTH_WRITE_URI_PERMISSION | AAFwk::Want::FLAG_AUTH_PERSISTABLE_URI_PERMISSION;
     }
+
+    int32_t permissionCode = 0;
+    int32_t userId = GetCurrentAccountId();
+    auto [hasData, data] = clips_.Find(userId);
+    uint32_t srcTokenId = (hasData && data) ? data->GetTokenId() : 0;
+
     while (length > offset) {
         if (length - offset < PasteData::URI_BATCH_SIZE) {
             count = length - offset;
         }
         auto sendValues = std::vector<Uri>(grantUris.begin() + offset, grantUris.begin() + offset + count);
-        int32_t permissionCode = AAFwk::UriPermissionManagerClient::GetInstance().GrantUriPermissionPrivileged(
-            sendValues, permFlag, targetBundleName, appIndex);
+        if (isRemoteData) {
+            permissionCode = AAFwk::UriPermissionManagerClient::GetInstance().GrantUriPermissionPrivileged(
+                sendValues, permFlag, targetBundleName, appIndex);
+        } else {
+            permissionCode = AAFwk::UriPermissionManagerClient::GetInstance().GrantUriPermission(
+                sendValues, permFlag, targetBundleName, appIndex, srcTokenId);
+        }
         hasGranted = hasGranted || (permissionCode == 0);
         ret = permissionCode == 0 ? ret : permissionCode;
         PASTEBOARD_HILOGD(PASTEBOARD_MODULE_SERVICE, "permissionCode is %{public}d", permissionCode);
