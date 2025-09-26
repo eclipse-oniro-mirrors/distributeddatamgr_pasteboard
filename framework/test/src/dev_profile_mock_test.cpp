@@ -57,15 +57,12 @@ HWTEST_F(DevProfileMockTest, GetDeviceStatusTest001, TestSize.Level0)
     NiceMock<DistributedDeviceProfile::DeviceProfileClientMock> dpMock;
     EXPECT_CALL(dpMock, GetCharacteristicProfile)
         .WillRepeatedly(testing::Return(static_cast<int32_t>(PasteboardError::NO_TRUST_DEVICE_ERROR)));
-    std::string bundleName = "com.example.myApplication";
-    bool res = DMAdapter::GetInstance().Initialize(bundleName);
     EXPECT_CALL(*deviceManagerMock_, GetUdidByNetworkId(testing::_, testing::_, testing::_))
         .Times(1)
         .WillRepeatedly([](auto, auto, std::string &udid) {
             udid = "testUdid";
             return 0;
         });
-    DMAdapter::GetInstance().pkgName_ = "com.exapmle.myApplicationdm_adaper";
     bool enabledStatus = false;
     auto networkId = DMAdapter::GetInstance().GetLocalNetworkId();
     int32_t ret = DevProfile::GetInstance().GetDeviceStatus(networkId, enabledStatus);
@@ -89,7 +86,7 @@ HWTEST_F(DevProfileMockTest, GetDeviceStatusTest002, TestSize.Level0)
             udid = "testUdid";
             return 0;
         });
-    DMAdapter::GetInstance().pkgName_ = "com.exapmle.myApplicationdm_adaper";
+    
     bool enabledStatus = false;
     auto networkId = DMAdapter::GetInstance().GetLocalNetworkId();
     int32_t ret = DevProfile::GetInstance().GetDeviceStatus(networkId, enabledStatus);
@@ -115,7 +112,7 @@ HWTEST_F(DevProfileMockTest, PutDeviceStatus001, TestSize.Level0)
             udid = "testUdid";
             return 0;
         });
-    DMAdapter::GetInstance().pkgName_ = "com.exapmle.myApplicationdm_adaper";
+    
     bool enabledStatus = true;
     DevProfile::GetInstance().PutDeviceStatus(enabledStatus);
     EXPECT_TRUE(true);
@@ -138,7 +135,7 @@ HWTEST_F(DevProfileMockTest, PutDeviceStatus002, TestSize.Level0)
             udid = "testUdid";
             return 0;
         });
-    DMAdapter::GetInstance().pkgName_ = "com.exapmle.myApplicationdm_adaper";
+    
     bool enabledStatus = true;
     DevProfile::GetInstance().PutDeviceStatus(enabledStatus);
     EXPECT_TRUE(true);
@@ -161,7 +158,7 @@ HWTEST_F(DevProfileMockTest, PutDeviceStatus003, TestSize.Level0)
             udid = "testUdid";
             return 0;
         });
-    DMAdapter::GetInstance().pkgName_ = "com.exapmle.myApplicationdm_adaper";
+    
     bool enabledStatus = true;
     DevProfile::GetInstance().PutDeviceStatus(enabledStatus);
     EXPECT_TRUE(true);
@@ -184,7 +181,7 @@ HWTEST_F(DevProfileMockTest, GetDeviceVersionTest001, TestSize.Level0)
             udid = "testUdid";
             return 0;
         });
-    DMAdapter::GetInstance().pkgName_ = "com.exapmle.myApplicationdm_adaper";
+    
     uint32_t versionId;
     std::string bundleName = "com.dev.profile";
     DevProfile::GetInstance().proxy_ = nullptr;
@@ -210,7 +207,7 @@ HWTEST_F(DevProfileMockTest, GetDeviceVersionTest002, TestSize.Level0)
             udid = "testUdid";
             return 0;
         });
-    DMAdapter::GetInstance().pkgName_ = "com.exapmle.myApplicationdm_adaper";
+    
     uint32_t versionId;
     std::string bundleName = "com.dev.profile";
     DevProfile::GetInstance().GetDeviceVersion(bundleName, versionId);
@@ -237,7 +234,7 @@ HWTEST_F(DevProfileMockTest, GetDeviceVersionTest003, TestSize.Level0)
             udid = "testUdid";
             return 0;
         });
-    DMAdapter::GetInstance().pkgName_ = "com.exapmle.myApplicationdm_adaper";
+    
     uint32_t versionId;
     std::string bundleName = "com.dev.profile";
     DevProfile::GetInstance().GetDeviceVersion(bundleName, versionId);
@@ -264,7 +261,7 @@ HWTEST_F(DevProfileMockTest, GetDeviceVersionTest004, TestSize.Level0)
             udid = "testUdid";
             return 0;
         });
-    DMAdapter::GetInstance().pkgName_ = "com.exapmle.myApplicationdm_adaper";
+    
     uint32_t versionId;
     std::string bundleName = "com.dev.profile";
     DevProfile::GetInstance().GetDeviceVersion(bundleName, versionId);
@@ -291,7 +288,7 @@ HWTEST_F(DevProfileMockTest, GetDeviceVersionTest005, TestSize.Level0)
             udid = "testUdid";
             return 0;
         });
-    DMAdapter::GetInstance().pkgName_ = "com.exapmle.myApplicationdm_adaper";
+    
     uint32_t versionId;
     std::string bundleName = "com.dev.profile";
     DevProfile::GetInstance().GetDeviceVersion(bundleName, versionId);
@@ -318,7 +315,7 @@ HWTEST_F(DevProfileMockTest, GetDeviceVersionTest006, TestSize.Level0)
             udid = "testUdid";
             return 0;
         });
-    DMAdapter::GetInstance().pkgName_ = "com.exapmle.myApplicationdm_adaper";
+    
     uint32_t versionId;
     std::string bundleName = "com.dev.profile";
     DevProfile::GetInstance().GetDeviceVersion(bundleName, versionId);

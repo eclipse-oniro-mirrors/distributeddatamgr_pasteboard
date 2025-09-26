@@ -208,7 +208,7 @@ int32_t PasteBoardCopyFile::CopyFileData(PasteData &pasteData, std::shared_ptr<G
             }
             HandleProgress(recordProcessedIndex, info, percentage, dataParams);
         };
-        ret = Storage::DistributedFile::FileCopyManager::GetInstance()->Copy(srcUri, copyInfo->destUri, listener);
+        ret = Storage::DistributedFile::FileCopyManager::GetInstance().Copy(srcUri, copyInfo->destUri, listener);
         if (!ShouldKeepRecord(ret, copyInfo->destUri, record)) {
             pasteData.RemoveRecordAt(index);
         } else {
@@ -267,7 +267,7 @@ void PasteBoardCopyFile::HandleProgress(int32_t index, const CopyInfo &info, uin
         PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "Cancel copy.");
         std::thread([info]() {
             canCancel_.store(false);
-            auto ret = Storage::DistributedFile::FileCopyManager::GetInstance()->Cancel(info.srcUri, info.destUri);
+            auto ret = Storage::DistributedFile::FileCopyManager::GetInstance().Cancel(info.srcUri, info.destUri);
             if (ret != ERRNO_NOERR) {
                 canCancel_.store(true);
                 PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CLIENT, "Cancel failed. errno=%{public}d", ret);

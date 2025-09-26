@@ -468,12 +468,12 @@ napi_value PasteDataRecordNapi::GetRecordData(napi_env env, napi_callback_info i
 napi_value PasteDataRecordNapi::PasteDataRecordInit(napi_env env, napi_value exports)
 {
     napi_property_descriptor properties[] = {
-        DECLARE_NAPI_FUNCTION("convertToText", ConvertToText),
-        DECLARE_NAPI_FUNCTION("convertToTextV9", ConvertToTextV9),
-        DECLARE_NAPI_FUNCTION("toPlainText", ToPlainText),
-        DECLARE_NAPI_FUNCTION("addEntry", AddEntry),
-        DECLARE_NAPI_FUNCTION("getValidTypes", GetValidTypes),
-        DECLARE_NAPI_FUNCTION("getData", GetRecordData)
+        DECLARE_NAPI_WRITABLE_FUNCTION("convertToText", ConvertToText),
+        DECLARE_NAPI_WRITABLE_FUNCTION("convertToTextV9", ConvertToTextV9),
+        DECLARE_NAPI_WRITABLE_FUNCTION("toPlainText", ToPlainText),
+        DECLARE_NAPI_WRITABLE_FUNCTION("addEntry", AddEntry),
+        DECLARE_NAPI_WRITABLE_FUNCTION("getValidTypes", GetValidTypes),
+        DECLARE_NAPI_WRITABLE_FUNCTION("getData", GetRecordData)
     };
 
     napi_status status = napi_ok;

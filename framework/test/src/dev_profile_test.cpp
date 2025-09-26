@@ -70,8 +70,8 @@ HWTEST_F(DevProfileTest, GetDeviceVersionTest002, TestSize.Level0)
 {
 #ifdef PB_DEVICE_INFO_MANAGER_ENABLE
     uint32_t versionId;
-    std::string bundleName = "com.dev.profile";
-    bool res = DMAdapter::GetInstance().Initialize(bundleName);
+    std::string bundleName = "pasteboard_dm_adapter";
+    bool res = DMAdapter::GetInstance().Initialize();
     DevProfile::GetInstance().proxy_ = nullptr;
     DevProfile::GetInstance().subscribeUdidList_.clear();
     DevProfile::GetInstance().GetDeviceVersion(bundleName, versionId);
@@ -150,8 +150,7 @@ HWTEST_F(DevProfileTest, GetDeviceStatusTest002, TestSize.Level0)
 HWTEST_F(DevProfileTest, PutDeviceStatus001, TestSize.Level0)
 {
 #ifdef PB_DEVICE_INFO_MANAGER_ENABLE
-    std::string bundleName = "com.example.myApplication";
-    bool res = DMAdapter::GetInstance().Initialize(bundleName);
+    bool res = DMAdapter::GetInstance().Initialize();
     bool enabledStatus = true;
     DevProfile::GetInstance().proxy_ = nullptr;
     DevProfile::GetInstance().subscribeUdidList_.clear();
@@ -172,8 +171,8 @@ HWTEST_F(DevProfileTest, PutDeviceStatus001, TestSize.Level0)
 HWTEST_F(DevProfileTest, SubscribeProfileEventTest001, TestSize.Level0)
 {
 #ifdef PB_DEVICE_INFO_MANAGER_ENABLE
-    std::string bundleName = "com.pro.proEvent";
-    bool res = DMAdapter::GetInstance().Initialize(bundleName);
+    std::string bundleName = "pasteboard_dm_adapter";
+    bool res = DMAdapter::GetInstance().Initialize();
     DevProfile::GetInstance().SubscribeProfileEvent(bundleName);
     EXPECT_TRUE(true);
 #else
@@ -191,8 +190,8 @@ HWTEST_F(DevProfileTest, SubscribeProfileEventTest001, TestSize.Level0)
 HWTEST_F(DevProfileTest, SubscribeProfileEventTest002, TestSize.Level0)
 {
 #ifdef PB_DEVICE_INFO_MANAGER_ENABLE
-    std::string bundleName = "com.pro.proEvent";
-    bool res = DMAdapter::GetInstance().Initialize(bundleName);
+    std::string bundleName = "pasteboard_dm_adapter";
+    bool res = DMAdapter::GetInstance().Initialize();
     DevProfile::GetInstance().SubscribeProfileEvent(bundleName);
     DevProfile::GetInstance().SendSubscribeInfos();
     DevProfile::GetInstance().SubscribeProfileEvent(bundleName);
@@ -212,8 +211,8 @@ HWTEST_F(DevProfileTest, SubscribeProfileEventTest002, TestSize.Level0)
 HWTEST_F(DevProfileTest, UnSubscribeProfileEventTest001, TestSize.Level0)
 {
 #ifdef PB_DEVICE_INFO_MANAGER_ENABLE
-    std::string bundleName = "com.pro.proEvent";
-    bool res = DMAdapter::GetInstance().Initialize(bundleName);
+    std::string bundleName = "pasteboard_dm_adapter";
+    bool res = DMAdapter::GetInstance().Initialize();
     DevProfile::GetInstance().UnSubscribeProfileEvent(bundleName);
     EXPECT_TRUE(true);
 #else
@@ -231,8 +230,8 @@ HWTEST_F(DevProfileTest, UnSubscribeProfileEventTest001, TestSize.Level0)
 HWTEST_F(DevProfileTest, UnSubscribeProfileEventTest002, TestSize.Level0)
 {
 #ifdef PB_DEVICE_INFO_MANAGER_ENABLE
-    std::string bundleName = "com.pro.proEvent";
-    bool res = DMAdapter::GetInstance().Initialize(bundleName);
+    std::string bundleName = "pasteboard_dm_adapter";
+    bool res = DMAdapter::GetInstance().Initialize();
     DevProfile::GetInstance().SubscribeProfileEvent(bundleName);
     DevProfile::GetInstance().UnSubscribeProfileEvent(bundleName);
     EXPECT_TRUE(true);

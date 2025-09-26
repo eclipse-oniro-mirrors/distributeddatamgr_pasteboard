@@ -66,7 +66,7 @@ public:
         virtual void OnReady(const std::string &device) = 0;
     };
     static DMAdapter &GetInstance();
-    bool Initialize(const std::string &pkgName);
+    bool Initialize();
     void DeInitialize();
     const std::string &GetLocalDeviceUdid();
     const std::string GetLocalNetworkId();
@@ -85,14 +85,13 @@ public:
     void Unregister(DMObserver *observer);
 
 private:
-    static constexpr const char *NAME_EX = "dm_adapter";
     static constexpr const char *DEVICE_INVALID_NAME = "unknown";
+    static constexpr const char *PKG_NAME = "pasteboard_dm_adapter";
     DMAdapter();
     ~DMAdapter();
     DMAdapter(const DMAdapter& other) = delete;
     DMAdapter& operator=(const DMAdapter& other) = delete;
 
-    std::string pkgName_;
     const std::string invalidDeviceUdid_{};
     const std::string invalidNetworkId_{};
     const std::string invalidUdid_{};
@@ -100,11 +99,13 @@ private:
     std::string localDeviceUdid_{};
     ConcurrentMap<DMObserver *, DMObserver *> observers_;
 #ifdef PB_DEVICE_MANAGER_ENABLE
-    shared_ptr<DmStateObserver> dmStateObserver_;
-    shared_ptr<DmDeath> dmDeathObserver_;
+    std::shared_ptr<DmStateObserver> GetDmStateObserver();
+
+    std::shared_ptr<DmStateObserver> dmStateObserver_ = nullptr;
+    std::shared_ptr<DmDeath> dmDeathObserver_ = nullptr;
     std::shared_mutex dmMutex_;
+    std::mutex observerMutex_;
     std::vector<DmDeviceInfo> devices_;
-    std::atomic<bool> isNeedInit_ = true;
     std::atomic<int32_t> deviceType_ = DmDeviceType::DEVICE_TYPE_UNKNOWN;
 #endif
 };
