@@ -32,10 +32,10 @@ DmStateObserver::DmStateObserver(const std::function<void(const DmDeviceInfo &)>
 
 void DmStateObserver::OnDeviceOnline(const DmDeviceInfo &deviceInfo)
 {
-    if (online_ == nullptr || deviceInfo.authForm != IDENTICAL_ACCOUNT) {
-        return;
-    }
     std::thread thread([=] {
+        if (online_ == nullptr || deviceInfo.authForm != IDENTICAL_ACCOUNT) {
+            return;
+        }
         PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "device on:%{public}.6s", deviceInfo.networkId);
         online_(deviceInfo);
     });
@@ -44,10 +44,10 @@ void DmStateObserver::OnDeviceOnline(const DmDeviceInfo &deviceInfo)
 
 void DmStateObserver::OnDeviceOffline(const DmDeviceInfo &deviceInfo)
 {
-    if (offline_ == nullptr) {
-        return;
-    }
     std::thread thread([=] {
+        if (offline_ == nullptr) {
+            return;
+        }
         PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "device off:%{public}.6s", deviceInfo.networkId);
         offline_(deviceInfo);
     });
@@ -56,37 +56,34 @@ void DmStateObserver::OnDeviceOffline(const DmDeviceInfo &deviceInfo)
 
 void DmStateObserver::OnDeviceChanged(const DmDeviceInfo &deviceInfo)
 {
-    // authForm not valid use networkId
-    PASTEBOARD_CHECK_AND_RETURN_LOGE(online_ != nullptr, PASTEBOARD_MODULE_SERVICE, "online_ is null");
-    if (DeviceManager::GetInstance().IsSameAccount(deviceInfo.networkId)) {
-        std::thread thread([=] {
-            PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "device config changed:%{public}.6s", deviceInfo.networkId);
-            online_(deviceInfo);
-        });
-        thread.detach();
-    }
+    std::thread thread([=] {
+        // authForm not valid use networkId
+        PASTEBOARD_CHECK_AND_RETURN_LOGE(online_ != nullptr, PASTEBOARD_MODULE_SERVICE, "online_ is null");
+        if (DeviceManager::GetInstance().IsSameAccount(deviceInfo.networkId)) {
+            
+                PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "device config changed:%{public}.6s", deviceInfo.networkId);
+                online_(deviceInfo);
+            
+        }
+    });
+    thread.detach();
 }
 
 void DmStateObserver::OnDeviceReady(const DmDeviceInfo &deviceInfo)
-{
-    if (onReady_ == nullptr || deviceInfo.authForm != IDENTICAL_ACCOUNT) {
-        return;
-    }
+{ 
     std::thread thread([=] {
+        if (onReady_ == nullptr || deviceInfo.authForm != IDENTICAL_ACCOUNT) {
+            return;
+        }
         PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "device onReady:%{public}.6s", deviceInfo.networkId);
         onReady_(deviceInfo);
     });
     thread.detach();
 }
 
-DmDeath::DmDeath(std::shared_ptr<DmStateObserver> observer, std::string pkgName)
-    : observer_(observer), pkgName_(std::move(pkgName))
-{
-}
 void DmDeath::OnRemoteDied()
 {
-    DeviceManager::GetInstance().InitDeviceManager(pkgName_, shared_from_this());
-    DeviceManager::GetInstance().RegisterDevStateCallback(pkgName_, "", observer_);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "device manager died");
 }
 
 DMAdapter::DMAdapter() {}
@@ -105,30 +102,41 @@ DMAdapter &DMAdapter::GetInstance()
 bool DMAdapter::Initialize(const std::string &pkgName)
 {
 #ifdef PB_DEVICE_MANAGER_ENABLE
-    auto stateObserver = std::make_shared<DmStateObserver>(
-        [this](const DmDeviceInfo &deviceInfo) {
-            observers_.ForEachCopies([&deviceInfo](auto &key, auto &value) {
-                DMAdapter::GetInstance().SetDevices();
-                value->Online(deviceInfo.networkId);
-                return false;
-            });
-        },
-        [this](const DmDeviceInfo &deviceInfo) {
-            observers_.ForEachCopies([&deviceInfo](auto &key, auto &value) {
-                value->OnReady(deviceInfo.networkId);
-                return false;
-            });
-        },
-        [this](const DmDeviceInfo &deviceInfo) {
-            observers_.ForEachCopies([&deviceInfo](auto &key, auto &value) {
-                DMAdapter::GetInstance().SetDevices();
-                value->Offline(deviceInfo.networkId);
-                return false;
-            });
-        });
+    if (isNeedInit_ == false) {
+        return false;
+    }
     pkgName_ = pkgName + NAME_EX;
-    auto deathObserver = std::make_shared<DmDeath>(stateObserver, pkgName_);
-    deathObserver->OnRemoteDied();
+    if (dmDeathObserver_ == nullptr) {
+        dmDeathObserver_ = std::make_shared<DmDeath>();
+    }
+    int32_t initResult = DeviceManager::GetInstance().InitDeviceManager(pkgName_, dmDeathObserver_);
+    if (dmStateObserver_ == nullptr) {
+        dmStateObserver_ = std::make_shared<DmStateObserver>(
+            [this](const DmDeviceInfo &deviceInfo) {
+                observers_.ForEachCopies([&deviceInfo](auto &key, auto &value) {
+                    DMAdapter::GetInstance().SetDevices();
+                    value->Online(deviceInfo.networkId);
+                    return false;
+                });
+            },
+            [this](const DmDeviceInfo &deviceInfo) {
+                observers_.ForEachCopies([&deviceInfo](auto &key, auto &value) {
+                    value->OnReady(deviceInfo.networkId);
+                    return false;
+                });
+            },
+            [this](const DmDeviceInfo &deviceInfo) {
+                observers_.ForEachCopies([&deviceInfo](auto &key, auto &value) {
+                    DMAdapter::GetInstance().SetDevices();
+                    value->Offline(deviceInfo.networkId);
+                    return false;
+                });
+            });
+    }
+    int32_t registerResult = DeviceManager::GetInstance().RegisterDevStateCallback(pkgName_, "", dmStateObserver_);
+    if (initResult == DM_OK && registerResult == DM_OK) {
+        isNeedInit_ = false;
+    }
     SetDevices();
 #endif
     return false;
@@ -136,9 +144,8 @@ bool DMAdapter::Initialize(const std::string &pkgName)
 
 void DMAdapter::DeInitialize()
 {
-    auto &deviceManager = DeviceManager::GetInstance();
-    deviceManager.UnRegisterDevStateCallback(pkgName_);
-    deviceManager.UnInitDeviceManager(pkgName_);
+    DeviceManager::GetInstance().UnRegisterDevStateCallback(pkgName_);
+    DeviceManager::GetInstance().UnInitDeviceManager(pkgName_);
 }
 
 const std::string &DMAdapter::GetLocalDeviceUdid()

@@ -47,14 +47,11 @@ private:
     std::function<void(const DmDeviceInfo &)> offline_;
 };
 
-class DmDeath : public DmInitCallback, public std::enable_shared_from_this<DmDeath> {
+class DmDeath : public DmInitCallback {
 public:
-    DmDeath(std::shared_ptr<DmStateObserver> observer, std::string pkgName);
+    DmDeath() = default;
+    ~DmDeath() = default;
     void OnRemoteDied() override;
-
-private:
-    std::shared_ptr<DmStateObserver> observer_;
-    std::string pkgName_;
 };
 #endif
 
@@ -103,8 +100,11 @@ private:
     std::string localDeviceUdid_{};
     ConcurrentMap<DMObserver *, DMObserver *> observers_;
 #ifdef PB_DEVICE_MANAGER_ENABLE
+    shared_ptr<DmStateObserver> dmStateObserver_;
+    shared_ptr<DmDeath> dmDeathObserver_;
     std::shared_mutex dmMutex_;
     std::vector<DmDeviceInfo> devices_;
+    std::atomic<bool> isNeedInit_ = true;
     std::atomic<int32_t> deviceType_ = DmDeviceType::DEVICE_TYPE_UNKNOWN;
 #endif
 };
