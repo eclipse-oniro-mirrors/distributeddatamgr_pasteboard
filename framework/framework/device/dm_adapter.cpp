@@ -32,10 +32,10 @@ DmStateObserver::DmStateObserver(const std::function<void(const DmDeviceInfo &)>
 
 void DmStateObserver::OnDeviceOnline(const DmDeviceInfo &deviceInfo)
 {
-    if (online_ == nullptr || deviceInfo.authForm != IDENTICAL_ACCOUNT) {
-        return;
-    }
     std::thread thread([=] {
+        if (online_ == nullptr || deviceInfo.authForm != IDENTICAL_ACCOUNT) {
+            return;
+        }
         PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "device on:%{public}.6s", deviceInfo.networkId);
         online_(deviceInfo);
     });
@@ -44,10 +44,10 @@ void DmStateObserver::OnDeviceOnline(const DmDeviceInfo &deviceInfo)
 
 void DmStateObserver::OnDeviceOffline(const DmDeviceInfo &deviceInfo)
 {
-    if (offline_ == nullptr) {
-        return;
-    }
     std::thread thread([=] {
+        if (offline_ == nullptr) {
+            return;
+        }
         PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "device off:%{public}.6s", deviceInfo.networkId);
         offline_(deviceInfo);
     });
@@ -56,10 +56,10 @@ void DmStateObserver::OnDeviceOffline(const DmDeviceInfo &deviceInfo)
 
 void DmStateObserver::OnDeviceChanged(const DmDeviceInfo &deviceInfo)
 {
-    // authForm not valid use networkId
-    PASTEBOARD_CHECK_AND_RETURN_LOGE(online_ != nullptr, PASTEBOARD_MODULE_SERVICE, "online_ is null");
     if (DeviceManager::GetInstance().IsSameAccount(deviceInfo.networkId)) {
         std::thread thread([=] {
+            // authForm not valid use networkId
+            PASTEBOARD_CHECK_AND_RETURN_LOGE(online_ != nullptr, PASTEBOARD_MODULE_SERVICE, "online_ is null");
             PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "device config changed:%{public}.6s", deviceInfo.networkId);
             online_(deviceInfo);
         });
@@ -69,24 +69,20 @@ void DmStateObserver::OnDeviceChanged(const DmDeviceInfo &deviceInfo)
 
 void DmStateObserver::OnDeviceReady(const DmDeviceInfo &deviceInfo)
 {
-    if (onReady_ == nullptr || deviceInfo.authForm != IDENTICAL_ACCOUNT) {
-        return;
-    }
     std::thread thread([=] {
+        if (onReady_ == nullptr || deviceInfo.authForm != IDENTICAL_ACCOUNT) {
+            return;
+        }
         PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "device onReady:%{public}.6s", deviceInfo.networkId);
         onReady_(deviceInfo);
     });
     thread.detach();
 }
 
-DmDeath::DmDeath(std::shared_ptr<DmStateObserver> observer, std::string pkgName)
-    : observer_(observer), pkgName_(std::move(pkgName))
-{
-}
 void DmDeath::OnRemoteDied()
 {
-    DeviceManager::GetInstance().InitDeviceManager(pkgName_, shared_from_this());
-    DeviceManager::GetInstance().RegisterDevStateCallback(pkgName_, "", observer_);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "device manager died");
+    DMAdapter::GetInstance().Initialize();
 }
 
 DMAdapter::DMAdapter() {}
@@ -102,10 +98,27 @@ DMAdapter &DMAdapter::GetInstance()
     return instance;
 }
 
-bool DMAdapter::Initialize(const std::string &pkgName)
+bool DMAdapter::Initialize()
 {
 #ifdef PB_DEVICE_MANAGER_ENABLE
-    auto stateObserver = std::make_shared<DmStateObserver>(
+    auto observer = GetDmStateObserver();
+    if (dmDeathObserver_ == nullptr) {
+        dmDeathObserver_ = std::make_shared<DmDeath>();
+    }
+    DeviceManager::GetInstance().InitDeviceManager(PKG_NAME, dmDeathObserver_);
+    DeviceManager::GetInstance().RegisterDevStateCallback(PKG_NAME, "", observer);
+    SetDevices();
+#endif
+    return false;
+}
+
+std::shared_ptr<DmStateObserver> DMAdapter::GetDmStateObserver()
+{
+    std::lock_guard lock(observerMutex_);
+    if (dmStateObserver_ != nullptr) {
+        return dmStateObserver_;
+    }
+    dmStateObserver_ = std::make_shared<DmStateObserver>(
         [this](const DmDeviceInfo &deviceInfo) {
             observers_.ForEachCopies([&deviceInfo](auto &key, auto &value) {
                 DMAdapter::GetInstance().SetDevices();
@@ -126,19 +139,13 @@ bool DMAdapter::Initialize(const std::string &pkgName)
                 return false;
             });
         });
-    pkgName_ = pkgName + NAME_EX;
-    auto deathObserver = std::make_shared<DmDeath>(stateObserver, pkgName_);
-    deathObserver->OnRemoteDied();
-    SetDevices();
-#endif
-    return false;
+    return dmStateObserver_;
 }
 
 void DMAdapter::DeInitialize()
 {
-    auto &deviceManager = DeviceManager::GetInstance();
-    deviceManager.UnRegisterDevStateCallback(pkgName_);
-    deviceManager.UnInitDeviceManager(pkgName_);
+    DeviceManager::GetInstance().UnRegisterDevStateCallback(PKG_NAME);
+    DeviceManager::GetInstance().UnInitDeviceManager(PKG_NAME);
 }
 
 const std::string &DMAdapter::GetLocalDeviceUdid()
@@ -150,11 +157,11 @@ const std::string &DMAdapter::GetLocalDeviceUdid()
     }
 
     DmDeviceInfo info;
-    int32_t ret = DeviceManager::GetInstance().GetLocalDeviceInfo(pkgName_, info);
+    int32_t ret = DeviceManager::GetInstance().GetLocalDeviceInfo(PKG_NAME, info);
     if (ret != 0) {
         return invalidDeviceUdid_;
     }
-    DeviceManager::GetInstance().GetUdidByNetworkId(pkgName_, info.networkId, localDeviceUdid_);
+    DeviceManager::GetInstance().GetUdidByNetworkId(PKG_NAME, info.networkId, localDeviceUdid_);
     if (!localDeviceUdid_.empty()) {
         return localDeviceUdid_;
     }
@@ -179,7 +186,7 @@ const std::string DMAdapter::GetLocalNetworkId()
 {
 #ifdef PB_DEVICE_MANAGER_ENABLE
     DmDeviceInfo info;
-    int32_t ret = DeviceManager::GetInstance().GetLocalDeviceInfo(pkgName_, info);
+    int32_t ret = DeviceManager::GetInstance().GetLocalDeviceInfo(PKG_NAME, info);
     auto networkId = std::string(info.networkId);
     PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "ret: %{public}d, networkId:%{public}.5s", ret, networkId.c_str());
     if (ret == 0 && !networkId.empty()) {
@@ -207,7 +214,7 @@ std::string DMAdapter::GetUdidByNetworkId(const std::string &networkId)
 {
 #ifdef PB_DEVICE_MANAGER_ENABLE
     std::string udid;
-    int32_t ret = DeviceManager::GetInstance().GetUdidByNetworkId(pkgName_, networkId, udid);
+    int32_t ret = DeviceManager::GetInstance().GetUdidByNetworkId(PKG_NAME, networkId, udid);
     if (ret == 0 && !udid.empty()) {
         return udid;
     }

@@ -65,7 +65,7 @@ HWTEST_F(DistributedModuleConfigMockTest, GetEnabledStatusTest001, TestSize.Leve
             udid = "testUdid";
             return 0;
         });
-    DMAdapter::GetInstance().pkgName_ = "com.exapmle.myApplicationdm_adaper";
+    
     DistributedModuleConfig config;
     int32_t ret = config.GetEnabledStatus();
     ASSERT_EQ(static_cast<int32_t>(PasteboardError::LOCAL_SWITCH_NOT_TURNED_ON), ret);
@@ -103,7 +103,7 @@ HWTEST_F(DistributedModuleConfigMockTest, GetEnabledStatusTest002, TestSize.Leve
             udid = "invalidUdid";
             return 0;
         });
-    DMAdapter::GetInstance().pkgName_ = "com.exapmle.myApplicationdm_adaper";
+    
     std::string networkId = "invalidNetworkId";
     std::string testName = "testDeviceName";
     DmDeviceInfo info;
@@ -140,7 +140,7 @@ HWTEST_F(DistributedModuleConfigMockTest, GetEnabledStatusTest003, TestSize.Leve
             udid = "testUdid";
             return 0;
         });
-    DMAdapter::GetInstance().pkgName_ = "com.exapmle.myApplicationdm_adaper";
+    
     std::string networkId = DMAdapter::GetInstance().GetLocalNetworkId();
     std::string testName = "testDeviceName";
     DmDeviceInfo info;
@@ -176,7 +176,7 @@ HWTEST_F(DistributedModuleConfigMockTest, Notify001, TestSize.Level0)
             udid = "testUdid";
             return 0;
         });
-    DMAdapter::GetInstance().pkgName_ = "com.exapmle.myApplicationdm_adaper";
+    
     std::string networkId = DMAdapter::GetInstance().GetLocalNetworkId();
     std::string testName = "testDeviceName";
     DmDeviceInfo info;
@@ -213,7 +213,7 @@ HWTEST_F(DistributedModuleConfigMockTest, Notify002, TestSize.Level0)
             udid = "testUdid";
             return 0;
         });
-    DMAdapter::GetInstance().pkgName_ = "com.exapmle.myApplicationdm_adaper";
+    
     std::string networkId = DMAdapter::GetInstance().GetLocalNetworkId();
     std::string testName = "testDeviceName";
     DmDeviceInfo info;
@@ -254,7 +254,7 @@ HWTEST_F(DistributedModuleConfigMockTest, GetRemoteDeviceMinVersion001, TestSize
             udid = "testUdid";
             return 0;
         });
-    DMAdapter::GetInstance().pkgName_ = "com.exapmle.myApplicationdm_adaper";
+    
     std::string networkId = DMAdapter::GetInstance().GetLocalNetworkId();
     std::string testName = "testDeviceName";
     DmDeviceInfo info;
@@ -290,7 +290,7 @@ HWTEST_F(DistributedModuleConfigMockTest, GetRemoteDeviceMinVersion002, TestSize
             udid = "testUdid";
             return 0;
         });
-    DMAdapter::GetInstance().pkgName_ = "com.exapmle.myApplicationdm_adaper";
+    
     std::string networkId = DMAdapter::GetInstance().GetLocalNetworkId();
     std::string testName = "testDeviceName";
     DmDeviceInfo info;
@@ -326,7 +326,7 @@ HWTEST_F(DistributedModuleConfigMockTest, GetRemoteDeviceMinVersion003, TestSize
             udid = "testUdid";
             return 0;
         });
-    DMAdapter::GetInstance().pkgName_ = "com.exapmle.myApplicationdm_adaper";
+    
     std::string networkId = DMAdapter::GetInstance().GetLocalNetworkId();
     std::string testName = "testDeviceName";
     DmDeviceInfo info;
@@ -362,7 +362,7 @@ HWTEST_F(DistributedModuleConfigMockTest, GetRemoteDeviceMinVersion004, TestSize
             udid = "testUdid";
             return 0;
         });
-    DMAdapter::GetInstance().pkgName_ = "com.exapmle.myApplicationdm_adaper";
+    
     std::string networkId = DMAdapter::GetInstance().GetLocalNetworkId();
     std::string testName = "testDeviceName";
     DmDeviceInfo info;

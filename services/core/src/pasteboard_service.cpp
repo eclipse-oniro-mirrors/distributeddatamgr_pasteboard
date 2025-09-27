@@ -373,8 +373,7 @@ void PasteboardService::SetCriticalTimer()
 
 void PasteboardService::OnAddDeviceManager()
 {
-    auto appInfo = GetAppInfo(IPCSkeleton::GetCallingTokenID());
-    DMAdapter::GetInstance().Initialize(appInfo.bundleName);
+    DMAdapter::GetInstance().Initialize();
 }
 
 void PasteboardService::OnAddMemoryManager()

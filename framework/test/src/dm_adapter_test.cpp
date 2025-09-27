@@ -363,8 +363,7 @@ HWTEST_F(DMAdapterTest, GetNetworkIds001, TestSize.Level0)
  */
 HWTEST_F(DMAdapterTest, GetLocalDeviceUdid001, TestSize.Level0)
 {
-    std::string bundleName = "com.example.myapplication";
-    bool res = DMAdapter::GetInstance().Initialize(bundleName);
+    bool res = DMAdapter::GetInstance().Initialize();
     ASSERT_FALSE(res);
     std::string device = "deviceTestName";
     auto fromDevice = DMAdapter::GetInstance().GetDeviceName(device);
@@ -382,8 +381,7 @@ HWTEST_F(DMAdapterTest, GetLocalDeviceUdid001, TestSize.Level0)
  */
 HWTEST_F(DMAdapterTest, GetLocalDeviceUdid002, TestSize.Level0)
 {
-    std::string bundleName = "com.example.myapplication";
-    bool res = DMAdapter::GetInstance().Initialize(bundleName);
+    bool res = DMAdapter::GetInstance().Initialize();
     std::string device = "deviceTestName";
     auto fromDevice = DMAdapter::GetInstance().GetDeviceName(device);
     DmDeviceInfo info;
@@ -423,7 +421,6 @@ HWTEST_F(DMAdapterTest, GetLocalDeviceUdid004, TestSize.Level0)
 {
 #ifdef PB_DEVICE_MANAGER_ENABLE
     DMAdapter::GetInstance().localDeviceUdid_ = "";
-    DMAdapter::GetInstance().pkgName_ = "testpkgName";
     auto &udid = DMAdapter::GetInstance().GetLocalDeviceUdid();
     ASSERT_TRUE(udid.empty());
 #else
@@ -440,8 +437,7 @@ HWTEST_F(DMAdapterTest, GetLocalDeviceUdid004, TestSize.Level0)
  */
 HWTEST_F(DMAdapterTest, GetLocalNetworkId, TestSize.Level0)
 {
-    std::string bundleName = "com.example.myapplication";
-    bool res = DMAdapter::GetInstance().Initialize(bundleName);
+    bool res = DMAdapter::GetInstance().Initialize();
     ASSERT_FALSE(res);
     auto networkId = DMAdapter::GetInstance().GetLocalNetworkId();
     ASSERT_FALSE(networkId.empty());
@@ -490,8 +486,7 @@ HWTEST_F(DMAdapterTest, GetRemoteDeviceInfo, TestSize.Level0)
 HWTEST_F(DMAdapterTest, GetRemoteDeviceInfo002, TestSize.Level0)
 {
 #ifdef PB_DEVICE_MANAGER_ENABLE
-    std::string bundleName = "com.example.myapplication";
-    bool res = DMAdapter::GetInstance().Initialize(bundleName);
+    bool res = DMAdapter::GetInstance().Initialize();
     std::string networkId = DMAdapter::GetInstance().GetLocalNetworkId();
     std::string testName = "testDeviceName";
     DmDeviceInfo info;
@@ -517,8 +512,7 @@ HWTEST_F(DMAdapterTest, GetRemoteDeviceInfo002, TestSize.Level0)
 HWTEST_F(DMAdapterTest, GetRemoteDeviceInfo003, TestSize.Level0)
 {
 #ifdef PB_DEVICE_MANAGER_ENABLE
-    std::string bundleName = "com.example.myapplication";
-    bool res = DMAdapter::GetInstance().Initialize(bundleName);
+    bool res = DMAdapter::GetInstance().Initialize();
     std::string networkId = DMAdapter::GetInstance().GetLocalNetworkId();
     std::string testName = "testDeviceName";
     DmDeviceInfo info;
@@ -595,8 +589,7 @@ HWTEST_F(DMAdapterTest, IsSameAccount002, TestSize.Level0)
 HWTEST_F(DMAdapterTest, IsSameAccount003, TestSize.Level0)
 {
 #ifdef PB_DEVICE_MANAGER_ENABLE
-    std::string bundleName = "com.example.myapplication";
-    bool res = DMAdapter::GetInstance().Initialize(bundleName);
+    bool res = DMAdapter::GetInstance().Initialize();
     std::string networkId = DMAdapter::GetInstance().GetLocalNetworkId();
     std::string testName = "testDeviceName";
     DmDeviceInfo info;
@@ -685,8 +678,7 @@ HWTEST_F(DMAdapterTest, GetDeviceName002, TestSize.Level0)
 HWTEST_F(DMAdapterTest, GetDeviceName003, TestSize.Level0)
 {
 #ifdef PB_DEVICE_MANAGER_ENABLE
-    std::string bundleName = "com.example.myapplication";
-    bool res = DMAdapter::GetInstance().Initialize(bundleName);
+    bool res = DMAdapter::GetInstance().Initialize();
     std::string networkId = DMAdapter::GetInstance().GetLocalNetworkId();
     std::string expectedDeviceName = "testDeviceName";
     DmDeviceInfo info;
@@ -711,8 +703,7 @@ HWTEST_F(DMAdapterTest, GetDeviceName003, TestSize.Level0)
 HWTEST_F(DMAdapterTest, GetDeviceName004, TestSize.Level0)
 {
 #ifdef PB_DEVICE_MANAGER_ENABLE
-    std::string bundleName = "com.example.myapplication";
-    bool res = DMAdapter::GetInstance().Initialize(bundleName);
+    bool res = DMAdapter::GetInstance().Initialize();
     std::string networkId = DMAdapter::GetInstance().GetLocalNetworkId();
     std::string testName = "testDeviceName";
     DmDeviceInfo info;
