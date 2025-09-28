@@ -74,6 +74,31 @@ enum class ErrorCode {
     ERROR_SYSTEM_API_EXCEED = 10000001
 };
 
+// ============================ 实体识别引擎 ============================
+
+// 实体类型定义
+enum class EntityType {
+    PERSON,        // 人名
+    LOCATION,      // 地点
+    ORGANIZATION,  // 组织机构
+    PHONE,         // 电话号码
+    EMAIL,         // 邮箱地址
+    URL,           // 网址
+    DATE,          // 日期
+    TIME,          // 时间
+    MONEY,         // 金额
+    ID_CARD,       // 身份证号
+    BANK_CARD,     // 银行卡号
+    LICENSE_PLATE, // 车牌号
+    POSTAL_CODE,   // 邮政编码
+    IP_ADDRESS,    // IP地址
+    HASHTAG,       // 话题标签
+    MENTION,       // @提及
+    PRODUCT,       // 产品名称
+    EVENT,         // 事件名称
+    UNKNOWN        // 未知类型
+};
+
 // 剪贴板数据类型
 enum class ContentType { TEXT = 0, URI = 1, PIXELMAP = 2 };
 
@@ -88,10 +113,7 @@ private:
 public:
     PasteData() : type_(ContentType::TEXT), timestamp_(std::time(nullptr)) { }
 
-    explicit PasteData(const std:: &text)
-        : textContent_(text),
-          type_(ContentType::TEXT),
-          timestamp_(std::time(nullptr))
+    explicit PasteData(const std::&text) : textContent_(text), type_(ContentType::TEXT), timestamp_(std::time(nullptr))
     {
         mimeType_ = "text/plain";
     }
@@ -261,31 +283,6 @@ private:
     }
 };
 
-// ============================ 实体识别引擎 ============================
-
-// 实体类型定义
-enum class EntityType {
-    PERSON,        // 人名
-    LOCATION,      // 地点
-    ORGANIZATION,  // 组织机构
-    PHONE,         // 电话号码
-    EMAIL,         // 邮箱地址
-    URL,           // 网址
-    DATE,          // 日期
-    TIME,          // 时间
-    MONEY,         // 金额
-    ID_CARD,       // 身份证号
-    BANK_CARD,     // 银行卡号
-    LICENSE_PLATE, // 车牌号
-    POSTAL_CODE,   // 邮政编码
-    IP_ADDRESS,    // IP地址
-    HASHTAG,       // 话题标签
-    MENTION,       // @提及
-    PRODUCT,       // 产品名称
-    EVENT,         // 事件名称
-    UNKNOWN        // 未知类型
-};
-
 // 实体识别结果
 struct Entity {
     std::string text;                              // 实体文本
@@ -306,9 +303,8 @@ struct Entity {
         std::stringstream ss;
         ss << "Entity{text='" << text << "', type=" << static_cast<int>(type) << ", pos=[" << startPos << "-" << endPos
            << "]"
-           << ", confidence=" << std::fixed << std::setprecision(MAX_POS_CTRL_TWO)
-           << confidence << ", normalized='" << normalized
-           << "'}";
+           << ", confidence=" << std::fixed << std::setprecision(MAX_POS_CTRL_TWO) << confidence << ", normalized='"
+           << normalized << "'}";
         return ss.str();
     }
 };
@@ -494,8 +490,8 @@ private:
 
     void InitializeOrganizationDictionary()
     {
-        std::vector<std::string> organizations = { "XX技术有限公司", "XX科技", "XX大学",
-            "北京大学", "人民医院", "XX银行" };
+        std::vector<std::string> organizations = { "XX技术有限公司", "XX科技", "XX大学", "北京大学", "人民医院",
+            "XX银行" };
         AddDictionaryEntries(EntityType::ORGANIZATION, organizations);
     }
 
@@ -617,8 +613,8 @@ private:
                 if (pos >= MAX_POS_CTRL_TWO) { // 至少有两个字符的前缀
                     int start = std::max(0, static_cast<int>(pos) - MAX_POS_CTRL_FOUR); // 最多4个字符的前缀
                     std::string potentialLocation = text.substr(start, pos - start + suffix.length());
-                    entities.emplace_back(potentialLocation, EntityType::LOCATION, start, pos + suffix.length(),
-                                          LOCATION_POS_ZERO_EGIHT);
+                    entities.emplace_back(
+                        potentialLocation, EntityType::LOCATION, start, pos + suffix.length(), LOCATION_POS_ZERO_EGIHT);
                 }
                 pos += suffix.length();
             }
@@ -638,7 +634,7 @@ private:
                     int start = std::max(0, static_cast<int>(pos) - MAX_POS_CTRL_SIX); // 最多6个字符的前缀
                     std::string potentialOrg = text.substr(start, pos - start + suffix.length());
                     entities.emplace_back(potentialOrg, EntityType::ORGANIZATION, start, pos + suffix.length(),
-                                          BASE_CONFIDENCE_INC_SEVEN_FIVE);
+                        BASE_CONFIDENCE_INC_SEVEN_FIVE);
                 }
                 pos += suffix.length();
             }
@@ -660,8 +656,8 @@ private:
                 size_t entityStart = pos + keyword.first.length();
                 if (entityStart < text.length()) {
                     // 简化的上下文识别逻辑
-                    entities.emplace_back(keyword.first, keyword.second, pos, pos + keyword.first.length(),
-                                          CONFIDENCE_ZEORO_SEVEN);
+                    entities.emplace_back(
+                        keyword.first, keyword.second, pos, pos + keyword.first.length(), CONFIDENCE_ZEORO_SEVEN);
                 }
                 pos += keyword.first.length();
             }
@@ -692,7 +688,7 @@ private:
     {
         entities.erase(std::remove_if(entities.begin(), entities.end(),
                                     this](const Entity &entity) {
-                                        return entity.confidence < config_.confidenceThreshold;
+            return entity.confidence < config_.confidenceThreshold;
                                     }),
                     entities.end());
     }
@@ -838,9 +834,8 @@ private:
     std::vector<std::function<void(const std::vector<OHOS::MiscServices::Entity> &)>> callbacks_;
 
 public:
-    ClipboardEntityRecognitionManager()
-        : clipboardService_(OHOS::MiscServices::ClipboardService::GetInstance()),
-          isMonitoring_(false)
+    ClipboardEntityRecognitionManager() :
+        clipboardService_(OHOS::MiscServices::ClipboardService::GetInstance()), isMonitoring_(false)
     {
         cout << "[Clipboard NER] 实体识别管理器初始化" << std::endl;
     }
@@ -1040,9 +1035,7 @@ void DemonstrateClipboardEntityRecognition()
     });
 
     // 测试数据
-    std::vector<std::string> testTexts = {
-        "此处调用剪贴板GetData()接口获取数据"
-    };
+    std::vector<std::string> testTexts = { "此处调用剪贴板GetData()接口获取数据" };
 
     // 单次识别演示
     std::cout << "\n1. 单次识别演示:" << std::endl;
