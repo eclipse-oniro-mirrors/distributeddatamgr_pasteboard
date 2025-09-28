@@ -37,15 +37,14 @@ int32_t ClipboardCounter::SetData(PasteData &data)
     }
 
     int32_t ret = pasteboardClient->SetData(data);
-
-    // 2. 如果操作成功，则增加计数
-    if (ret == 0) { // 假设 0 表示成功
+    if (ret == 0) {
+        // 2. 如果操作成功，则增加计数
         setDataCount_++;
         HILOGI("SetData called successfully. Current count: %{public}llu",
             static_cast<unsigned long long>(GetSetDataCount()));
 
         // 3. (可选) 将计数持久化到文件或数据库，防止应用重启后丢失
-        // SaveCountToFile();
+        SaveCountToFile();
     } else {
         HILOGE("PasteboardClient->SetData failed, ret = %{public}d", ret);
     }
