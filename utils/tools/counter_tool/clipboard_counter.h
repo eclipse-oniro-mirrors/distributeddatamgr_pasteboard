@@ -15,19 +15,19 @@
 #ifndef CLIPBOARD_COUNTER_H
 #define CLIPBOARD_COUNTER_H
 
-#include <string>
-#include "pasteboard_common.h" // 鸿蒙剪贴板公共头文件
 #include "pasteboard_client.h" // 鸿蒙剪贴板客户端头文件
+#include "pasteboard_common.h" // 鸿蒙剪贴板公共头文件
+#include <string>
 
 namespace OHOS {
 namespace MiscServices {
 class ClipboardCounter {
 public:
     // 获取单例实例
-    static ClipboardCounter& GetInstance();
+    static ClipboardCounter &GetInstance();
 
     // 封装的 SetData 方法，替代官方的 PasteboardClient::GetInstance()->SetData(...)
-    int32_t SetData(PasteData& data);
+    int32_t SetData(PasteData &data);
 
     // 获取 SetData 的调用次数
     uint64_t GetSetDataCount() const;
@@ -40,10 +40,10 @@ private:
     ~ClipboardCounter() = default;
 
     // 删除拷贝构造函数和赋值操作符
-    ClipboardCounter(const ClipboardCounter&) = delete;
-    ClipboardCounter& operator=(const ClipboardCounter&) = delete;
+    ClipboardCounter(const ClipboardCounter &) = delete;
+    ClipboardCounter &operator=(const ClipboardCounter &) = delete;
 
-    std::atomic<uint64_t> setDataCount_ {0}; // 使用原子操作保证线程安全
+    std::atomic<uint64_t> setDataCount_ { 0 }; // 使用原子操作保证线程安全
 };
 
 } // namespace MiscServices
