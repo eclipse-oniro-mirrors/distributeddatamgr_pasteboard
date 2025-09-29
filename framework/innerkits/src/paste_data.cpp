@@ -38,6 +38,7 @@ enum TAG_PASTEBOARD : uint16_t {
     TAG_DELAY_RECORD_FLAG,
     TAG_DATA_ID,
     TAG_RECORD_ID,
+    TAG_USER_ID,
 };
 enum TAG_PROPERTY : uint16_t {
     TAG_ADDITIONS = TAG_BUFF + 1,
@@ -72,7 +73,7 @@ PasteData::PasteData()
 PasteData::~PasteData() {}
 
 PasteData::PasteData(const PasteData &data)
-    : rawDataSize_(data.rawDataSize_), valid_(data.valid_), isDraggedData_(data.isDraggedData_),
+    : rawDataSize_(data.rawDataSize_), userId_(data.userId_), valid_(data.valid_), isDraggedData_(data.isDraggedData_),
       isLocalPaste_(data.isLocalPaste_), isDelayData_(data.isDelayData_), isDelayRecord_(data.isDelayRecord_),
       dataId_(data.dataId_), recordId_(data.recordId_), originAuthority_(data.originAuthority_), pasteId_(data.pasteId_)
 { // LCOV_EXCL_START
@@ -115,6 +116,7 @@ PasteData &PasteData::operator=(const PasteData &data)
     }
     this->recordId_ = data.GetRecordId();
     this->rawDataSize_ = data.rawDataSize_;
+    this->userId_ = data.userId_;
     return *this;
 } // LCOV_EXCL_STOP
 
@@ -548,6 +550,7 @@ bool PasteData::EncodeTLV(WriteOnlyBuffer &buffer) const
     ret = ret && buffer.Write(TAG_DELAY_RECORD_FLAG, isDelayRecord_);
     ret = ret && buffer.Write(TAG_DATA_ID, dataId_);
     ret = ret && buffer.Write(TAG_RECORD_ID, recordId_);
+    ret = ret && buffer.Write(TAG_USER_ID, userId_);
     return ret;
 }
 
@@ -577,6 +580,8 @@ bool PasteData::DecodeTLV(ReadOnlyBuffer &buffer)
             ret = buffer.ReadValue(dataId_, head);
         } else if (head.tag == TAG_RECORD_ID) {
             ret = buffer.ReadValue(recordId_, head);
+        } else if (head.tag == TAG_USER_ID) {
+            ret = buffer.ReadValue(userId_, head);
         } else {
             ret = buffer.Skip(head.len);
         }
@@ -598,6 +603,7 @@ size_t PasteData::CountTLV() const
     expectSize += TLVCountable::Count(pasteId_);
     expectSize += TLVCountable::Count(isDelayRecord_);
     expectSize += TLVCountable::Count(dataId_);
+    expectSize += TLVCountable::Count(userId_);
     expectSize += TLVCountable::Count(recordId_);
     return expectSize;
 }

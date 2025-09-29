@@ -279,6 +279,13 @@ public:
     void Clear();
 
     /**
+     * ClearByUser
+     * @description Clear Current pasteboard data by user.
+     * @return void.
+     */
+    void ClearByUser(int32_t uesrId);
+
+    /**
      * SetPasteData
      * @description set paste data to the pasteboard.
      * @param pasteData the object of the PasteData.

@@ -35,6 +35,7 @@ const std::vector<IPasteboardServiceIpcCode> CODE_LIST = {
     IPasteboardServiceIpcCode::COMMAND_SET_PASTE_DATA_DELAY_DATA,
     IPasteboardServiceIpcCode::COMMAND_SET_PASTE_DATA_ENTRY_DATA,
     IPasteboardServiceIpcCode::COMMAND_CLEAR,
+    IPasteboardServiceIpcCode::COMMAND_CLEAR_BY_USER,
     IPasteboardServiceIpcCode::COMMAND_SYNC_DELAYED_DATA,
     IPasteboardServiceIpcCode::COMMAND_SUBSCRIBE_OBSERVER,
     IPasteboardServiceIpcCode::COMMAND_RESUBSCRIBE_OBSERVER,
@@ -288,6 +289,11 @@ public:
     }
 
     int32_t Clear() override
+    {
+        return 0;
+    }
+
+    int32_t ClearByUser(int32_t uesrId) override
     {
         return 0;
     }

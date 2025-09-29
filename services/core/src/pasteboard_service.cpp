@@ -427,6 +427,22 @@ int32_t PasteboardService::Clear()
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "userId invalid.");
         return static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR);
     }
+    return ClearInner(userId, appInfo);
+}
+
+int32_t PasteboardService::ClearByUser(int32_t userId)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "enter, clips_.Size=%{public}zu", clips_.Size());
+    auto appInfo = GetAppInfo(IPCSkeleton::GetCallingTokenID());
+    auto callingUid = IPCSkeleton::GetCallingUid();
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(appInfo.tokenType == ATokenTypeEnum::TOKEN_NATIVE,
+        static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR), PASTEBOARD_MODULE_SERVICE,
+        "call uid is %{public}d, userId is %{public}d", callingUid, userId);
+    return ClearInner(userId, appInfo);
+}
+
+int32_t PasteboardService::ClearByUser(int32_t userId, const AppInfo &appInfo)
+{
     RADAR_REPORT(DFX_CLEAR_PASTEBOARD, DFX_MANUAL_CLEAR, DFX_SUCCESS);
     auto it = clips_.Find(userId);
     if (it.first) {
@@ -1875,6 +1891,7 @@ int32_t PasteboardService::GrantUriPermission(const std::vector<Uri> &grantUris,
     bool isNeedPersistance = OHOS::system::GetBoolParameter("const.pasteboard.uri_persistable_permission", false);
     auto permFlag = AAFwk::Want::FLAG_AUTH_READ_URI_PERMISSION;
     if (isNeedPersistance && !isRemoteData) {
+        PASTEBOARD_HILOGD(PASTEBOARD_MODULE_SERVICE, "NeedPersistance, permFlag is %{public}d", permFlag);
         permFlag |= AAFwk::Want::FLAG_AUTH_WRITE_URI_PERMISSION | AAFwk::Want::FLAG_AUTH_PERSISTABLE_URI_PERMISSION;
     }
 
@@ -2033,6 +2050,7 @@ int32_t PasteboardService::SaveData(PasteData &pasteData, int64_t dataSize,
     }
     setPasteDataUId_ = IPCSkeleton::GetCallingUid();
     RemovePasteData(appInfo);
+    pasteData.userId_ = appInfo.userId;
     SetPasteDataInfo(pasteData, appInfo);
     PasteboardWebController::GetInstance().SetWebviewPasteData(pasteData,
         std::make_pair(appInfo.bundleName, appInfo.appIndex));
@@ -2930,6 +2948,7 @@ bool PasteboardService::IsNeedThaw()
     }
     return true;
 }
+
 void PasteboardService::NotifyObservers(std::string bundleName, int32_t userId, PasteboardEventStatus status)
 {
     auto [hasPid, pid] = imeMap_.Find(userId);
@@ -2949,13 +2968,15 @@ void PasteboardService::NotifyObservers(std::string bundleName, int32_t userId, 
                 }
             }
         }
+        std::string notifyInfo =
+            (status == PasteboardEventStatus::PASTEBOARD_CLEAR) ? std::to_string(userId) : bundleName;
         for (auto &observers : observerEventMap_) {
             if (observers.second == nullptr) {
                 PASTEBOARD_HILOGW(PASTEBOARD_MODULE_SERVICE, "observerEventMap_.second is nullptr");
                 continue;
             }
             for (const auto &observer : *(observers.second)) {
-                observer->OnPasteboardEvent(bundleName, static_cast<int32_t>(status));
+                observer->OnPasteboardEvent(notifyInfo, static_cast<int32_t>(status));
             }
         }
     });
