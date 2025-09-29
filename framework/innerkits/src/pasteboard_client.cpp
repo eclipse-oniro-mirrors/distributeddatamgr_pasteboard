@@ -265,6 +265,16 @@ void PasteboardClient::Clear()
     return;
 }
 
+void PasteboardClient::ClearByUser(int32_t userId)
+{
+    PASTEBOARD_HILOGD(PASTEBOARD_MODULE_CLIENT, "ClearByUser start.");
+    auto proxyService = GetPasteboardService();
+    PASTEBOARD_CHECK_AND_RETURN_LOGE(proxyService != nullptr, PASTEBOARD_MODULE_CLIENT, "proxyService is nullptr");
+    proxyService->ClearByUser(userId);
+    PASTEBOARD_HILOGD(PASTEBOARD_MODULE_CLIENT, "ClearByUser end.");
+    return;
+}
+
 void PasteboardClient::CloseSharedMemFd(int fd)
 {
     if (fd >= 0) {

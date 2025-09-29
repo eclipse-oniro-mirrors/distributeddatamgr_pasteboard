@@ -119,6 +119,7 @@ public:
     int32_t CallbackEnter(uint32_t code) override;
     int32_t CallbackExit(uint32_t code, int32_t result) override;
     virtual int32_t Clear() override;
+    virtual int32_t ClearByUser(int32_t userId) override;
     virtual int32_t GetRecordValueByType(uint32_t dataId, uint32_t recordId, int64_t &rawDataSize,
         std::vector<uint8_t> &buffer, int &fd) override;
     virtual int32_t GetPasteData(int &fd, int64_t &size, std::vector<uint8_t> &rawData,
@@ -222,6 +223,7 @@ private:
     void SetInputMethodPid(int32_t userId, pid_t callPid);
     void ClearInputMethodPidByPid(int32_t userId, pid_t callPid);
     void ClearInputMethodPid(void);
+    int32_t ClearInner(int32_t userId, const AppInfo &appInfo);
     bool IsSystemAppByFullTokenID(uint64_t tokenId);
     FocusedAppInfo GetFocusedAppInfo(void) const;
     int32_t GetDataTokenId(PasteData &pasteData);

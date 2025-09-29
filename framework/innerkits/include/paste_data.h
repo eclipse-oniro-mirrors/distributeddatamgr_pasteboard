@@ -147,6 +147,7 @@ public:
     static constexpr int32_t INVALID_TOKEN_ID = -1;
     int64_t rawDataSize_ = 0;
     std::string deviceId_;
+    int32_t userId_ = -1;
 
 private:
     bool valid_ = true;
