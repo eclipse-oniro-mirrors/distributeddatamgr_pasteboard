@@ -835,7 +835,8 @@ private:
 
 public:
     ClipboardEntityRecognitionManager() :
-        clipboardService_(OHOS::MiscServices::ClipboardService::GetInstance()), isMonitoring_(false)
+        clipboardService_(OHOS::MiscServices::ClipboardService::GetInstance()),
+        isMonitoring_(false)
     {
         cout << "[Clipboard NER] 实体识别管理器初始化" << std::endl;
     }
