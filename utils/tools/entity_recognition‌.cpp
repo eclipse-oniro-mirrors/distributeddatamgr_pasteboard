@@ -834,18 +834,6 @@ private:
     std::vector<std::function<void(const std::vector<OHOS::MiscServices::Entity> &)>> callbacks_;
 
 public:
-    ClipboardEntityRecognitionManager() :
-        clipboardService_(OHOS::MiscServices::ClipboardService::GetInstance()),
-        isMonitoring_(false)
-    {
-        cout << "[Clipboard NER] 实体识别管理器初始化" << std::endl;
-    }
-
-    ~ClipboardEntityRecognitionManager()
-    {
-        StopMonitoring();
-    }
-
     // 开始监控剪贴板
     void StartMonitoring()
     {
