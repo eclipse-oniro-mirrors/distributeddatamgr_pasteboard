@@ -603,8 +603,8 @@ size_t PasteData::CountTLV() const
     expectSize += TLVCountable::Count(pasteId_);
     expectSize += TLVCountable::Count(isDelayRecord_);
     expectSize += TLVCountable::Count(dataId_);
-    expectSize += TLVCountable::Count(userId_);
     expectSize += TLVCountable::Count(recordId_);
+    expectSize += TLVCountable::Count(userId_);
     return expectSize;
 }
 

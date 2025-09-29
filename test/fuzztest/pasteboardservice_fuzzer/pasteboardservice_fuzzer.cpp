@@ -295,6 +295,7 @@ public:
 
     int32_t ClearByUser(int32_t uesrId) override
     {
+        (void)uesrId;
         return 0;
     }
 

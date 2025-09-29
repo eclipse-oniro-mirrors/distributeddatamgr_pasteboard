@@ -434,10 +434,9 @@ int32_t PasteboardService::ClearByUser(int32_t userId)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "enter, clips_.Size=%{public}zu", clips_.Size());
     auto appInfo = GetAppInfo(IPCSkeleton::GetCallingTokenID());
-    auto callingUid = IPCSkeleton::GetCallingUid();
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(appInfo.tokenType == ATokenTypeEnum::TOKEN_NATIVE,
         static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR), PASTEBOARD_MODULE_SERVICE,
-        "call uid is %{public}d, userId is %{public}d", callingUid, userId);
+        "userId is %{public}d", userId);
     return ClearInner(userId, appInfo);
 }
 
