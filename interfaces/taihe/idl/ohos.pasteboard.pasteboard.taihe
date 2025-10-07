@@ -97,6 +97,8 @@ interface PasteData {
 function CreatePasteData(): PasteData;
 
 interface SystemPasteboard {
+    OnRemoteUpdate(callback: () => void): void;
+    OffRemoteUpdate(callback: Optional<() => void>): void;
 
     @!sts_inject_into_interface("""
         on(type: string, callback: () => void): void;

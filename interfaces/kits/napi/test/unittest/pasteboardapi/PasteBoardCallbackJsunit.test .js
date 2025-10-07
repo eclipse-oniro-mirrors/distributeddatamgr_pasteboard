@@ -1126,4 +1126,88 @@ describe('PasteBoardJSTest', function () {
   function contentChanges() {
     console.info('#EVENT: The content is changed in the pasteboard');
   }
+
+  /**
+   * @tc.name      pasteboard_callback_test24
+   * @tc.desc      onRemoteUpdate test
+   * @tc.type      Function
+   * @tc.require   AR000H5GKU
+   */
+  it('pasteboard_callback_test24', 0, async function (done) {
+    const systemPasteboard = pasteboard.getSystemPasteboard();
+    systemPasteboard.clear((err, data) => {
+      if (err) {
+        console.error('f_test24: systemPasteboard.clear callback error:' + err);
+        return;
+      }
+      systemPasteboard.onRemoteUpdate(contentChanges);
+      const textData16 = 'Hello World!';
+      const pasteData = pasteboard.createPlainTextData(textData16);
+      systemPasteboard.setPasteData(pasteData, (err, data) => {
+        if (err) {
+          console.error('f_test24: systemPasteboard.setPasteData callback error:' + err);
+          return;
+        }
+        systemPasteboard.hasPasteData((err, data) => {
+          if (err) {
+            console.error('f_test24: systemPasteboard.hasPasteData callback error:' + err);
+            return;
+          }
+          expect(data === true).assertEqual(true);
+          systemPasteboard.getPasteData((err, data) => {
+            if (err) {
+              console.error('f_test24: systemPasteboard.getPasteData callback error:' + err);
+              return;
+            }
+            expect(data.getRecordCount() == 1).assertEqual(true);
+            expect(data.removeRecordAt(0)).assertEqual(true);
+            expect(data.getRecordCount() == 0).assertEqual(true);
+            done();
+          });
+        });
+      });
+    });
+  });
+
+  /**
+   * @tc.name      pasteboard_callback_test17
+   * @tc.desc      offRemoteUpdate test
+   * @tc.type      Function
+   * @tc.require   AR000H5GKU
+   */
+  it('pasteboard_callback_test25', 0, async function (done) {
+    const systemPasteboard = pasteboard.getSystemPasteboard();
+    systemPasteboard.clear((err, data) => {
+      if (err) {
+        console.error('f_test25: systemPasteboard.clear callback error:' + err);
+        return;
+      }
+      systemPasteboard.offRemoteUpdate(contentChanges);
+      const textData17 = 'Hello World!';
+      const pasteData = pasteboard.createPlainTextData(textData17);
+      systemPasteboard.setPasteData(pasteData, (err, data) => {
+        if (err) {
+          console.error('f_test25: systemPasteboard.setPasteData callback error:' + err);
+          return;
+        }
+        systemPasteboard.hasPasteData((err, data) => {
+          if (err) {
+            console.error('f_test25: systemPasteboard.hasPasteData callback error:' + err);
+            return;
+          }
+          expect(data).assertEqual(true);
+          systemPasteboard.getPasteData((err, data) => {
+            if (err) {
+              console.error('f_test25: systemPasteboard.getPasteData callback error:' + err);
+              return;
+            }
+            expect(data.getRecordCount()).assertEqual(1);
+            expect(data.removeRecordAt(0)).assertEqual(true);
+            expect(data.getRecordCount()).assertEqual(0);
+            done();
+          });
+        });
+      });
+    });
+  });
 });

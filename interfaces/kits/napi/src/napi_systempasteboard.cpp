@@ -25,7 +25,8 @@ namespace OHOS {
 namespace MiscServicesNapi {
 static thread_local napi_ref g_systemPasteboard = nullptr;
 static thread_local napi_ref g_systemPasteboard_instance = nullptr;
-thread_local std::map<napi_ref, sptr<PasteboardObserverInstance>> SystemPasteboardNapi::observers_;
+thread_local std::map<napi_ref, sptr<PasteboardObserverInstance>> SystemPasteboardNapi::localObservers_;
+thread_local std::map<napi_ref, sptr<PasteboardObserverInstance>> SystemPasteboardNapi::remoteObservers_;
 std::shared_ptr<PasteboardDelayGetterInstance> SystemPasteboardNapi::delayGetter_;
 std::mutex SystemPasteboardNapi::delayMutex_;
 constexpr int ARGC_TYPE_SET1 = 1;
@@ -199,10 +200,10 @@ napi_value SystemPasteboardNapi::On(napi_env env, napi_callback_info info)
     }
 
     napi_value jsCallback = argv[1];
-    auto observer = GetObserver(env, jsCallback);
+    auto observer = GetObserver(env, jsCallback, localObservers_);
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(observer == nullptr, result, PASTEBOARD_MODULE_JS_NAPI, "observer exist");
 
-    AddObserver(env, jsCallback);
+    AddObserver(env, jsCallback, localObservers_, PasteboardObserverType::OBSERVER_LOCAL);
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "SystemPasteboardNapi on() is end!");
     return result;
 }
@@ -229,13 +230,64 @@ napi_value SystemPasteboardNapi::Off(napi_env env, napi_callback_info info)
         if (!CheckArgsType(env, argv[1], napi_function, "Parameter error. The type of callback must be function.")) {
             return result;
         }
-        observer = GetObserver(env, argv[1]);
+        observer = GetObserver(env, argv[1], localObservers_);
         PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(observer != nullptr, result,
             PASTEBOARD_MODULE_JS_NAPI, "observer not find");
     }
 
-    DeleteObserver(env, observer);
+    DeleteObserver(env, observer, localObservers_, PasteboardObserverType::OBSERVER_LOCAL);
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "SystemPasteboardNapi off () is called!");
+    return result;
+}
+
+napi_value SystemPasteboardNapi::OnRemoteUpdate(napi_env env, napi_callback_info info)
+{
+    PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "SystemPasteboardNapi OnRemoteUpdate() is called!");
+    napi_value result = nullptr;
+    napi_get_undefined(env, &result);
+
+    size_t argc = MAX_ARGS;
+    napi_value argv[MAX_ARGS] = { 0 };
+    napi_value thisVar = 0;
+    void *data = nullptr;
+    NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
+    if (argc != 1 ||
+        !CheckArgsType(env, argv[0], napi_function, "Parameter error. The type of callback must be function.")) {
+            return result;
+    }
+    napi_value jsCallback = argv[0];
+    auto observer = GetObserver(env, jsCallback, remoteObservers_);
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(observer == nullptr, result, PASTEBOARD_MODULE_JS_NAPI, "observer exist");
+
+    AddObserver(env, jsCallback, remoteObservers_, PasteboardObserverType::OBSERVER_REMOTE);
+    PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "SystemPasteboardNapi OnRemoteUpdate() is end!");
+    return result;
+}
+
+napi_value SystemPasteboardNapi::OffRemoteUpdate(napi_env env, napi_callback_info info)
+{
+    PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "SystemPasteboardNapi OffRemoteUpdate () is called!");
+    napi_value result = nullptr;
+    napi_get_undefined(env, &result);
+
+    size_t argc = MAX_ARGS;
+    napi_value argv[MAX_ARGS] = { 0 };
+    napi_value thisVar = 0;
+    void *data = nullptr;
+    NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, &data));
+    sptr<PasteboardObserverInstance> observer = nullptr;
+    if (argc > 1 || (argc == 1 &&
+        !CheckArgsType(env, argv[0], napi_function, "Parameter error. The type of callback must be function."))) {
+        return result;
+    }
+    if (argc == 1) {
+        observer = GetObserver(env, argv[0], remoteObservers_);
+        PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(observer != nullptr, result,
+            PASTEBOARD_MODULE_JS_NAPI, "observer not find");
+    }
+
+    DeleteObserver(env, observer, remoteObservers_, PasteboardObserverType::OBSERVER_REMOTE);
+    PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "SystemPasteboardNapi OffRemoteUpdate () is called!");
     return result;
 }
 
@@ -1262,6 +1314,8 @@ napi_value SystemPasteboardNapi::SystemPasteboardInit(napi_env env, napi_value e
     napi_property_descriptor descriptors[] = {
         DECLARE_NAPI_WRITABLE_FUNCTION("on", On),
         DECLARE_NAPI_WRITABLE_FUNCTION("off", Off),
+        DECLARE_NAPI_WRITABLE_FUNCTION("onRemoteUpdate", OnRemoteUpdate),
+        DECLARE_NAPI_WRITABLE_FUNCTION("offRemoteUpdate", OffRemoteUpdate),
         DECLARE_NAPI_WRITABLE_FUNCTION("clear", Clear),
         DECLARE_NAPI_WRITABLE_FUNCTION("getPasteData", GetPasteData),
         DECLARE_NAPI_WRITABLE_FUNCTION("hasPasteData", HasPasteData),
@@ -1373,9 +1427,10 @@ napi_status SystemPasteboardNapi::NewInstance(napi_env env, napi_value &instance
     return napi_ok;
 }
 
-sptr<PasteboardObserverInstance> SystemPasteboardNapi::GetObserver(napi_env env, napi_value jsCallback)
+sptr<PasteboardObserverInstance> SystemPasteboardNapi::GetObserver(
+    napi_env env, napi_value jsCallback, std::map<napi_ref, sptr<PasteboardObserverInstance>> &observerMap)
 {
-    for (const auto &[refKey, observerValue] : observers_) {
+    for (const auto &[refKey, observerValue] : observerMap) {
         napi_value callback = nullptr;
         napi_get_reference_value(env, refKey, &callback);
         bool isEqual = false;
@@ -1387,7 +1442,8 @@ sptr<PasteboardObserverInstance> SystemPasteboardNapi::GetObserver(napi_env env,
     return nullptr;
 }
 
-void SystemPasteboardNapi::AddObserver(napi_env env, napi_value jsCallback)
+void SystemPasteboardNapi::AddObserver(napi_env env, napi_value jsCallback,
+    std::map<napi_ref, sptr<PasteboardObserverInstance>> &observerMap, MiscServices::PasteboardObserverType type)
 {
     PasteboardNapiScope scope(env);
 
@@ -1418,38 +1474,39 @@ void SystemPasteboardNapi::AddObserver(napi_env env, napi_value jsCallback)
         return;
     }
 
-    bool ret = PasteboardClient::GetInstance()->Subscribe(PasteboardObserverType::OBSERVER_LOCAL, observer);
+    bool ret = PasteboardClient::GetInstance()->Subscribe(type, observer);
     if (!ret) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "subscribe observer failed");
     }
 
-    observers_[ref] = observer;
+    observerMap[ref] = observer;
 }
 
-void SystemPasteboardNapi::DeleteObserver(napi_env env, const sptr<PasteboardObserverInstance> &observer)
+void SystemPasteboardNapi::DeleteObserver(napi_env env, const sptr<PasteboardObserverInstance> &observer,
+    std::map<napi_ref, sptr<PasteboardObserverInstance>> &observerMap, MiscServices::PasteboardObserverType type)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_JS_NAPI, "observer == null: %{public}d, size: %{public}zu",
-        observer == nullptr, observers_.size());
+        observer == nullptr, observerMap.size());
     std::vector<sptr<PasteboardObserverInstance>> observers;
     std::vector<napi_ref> refs;
-    for (auto it = observers_.begin(); it != observers_.end();) {
+    for (auto it = observerMap.begin(); it != observerMap.end();) {
         if (it->second == observer) {
             refs.push_back(it->first);
             observers.push_back(observer);
-            it = observers_.erase(it);
+            it = observerMap.erase(it);
             break;
         }
         if (observer == nullptr) {
             refs.push_back(it->first);
             observers.push_back(it->second);
-            it = observers_.erase(it);
+            it = observerMap.erase(it);
         } else {
             it++;
         }
     }
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "delete observer size: %{public}zu", observers.size());
     for (auto &delObserver : observers) {
-        PasteboardClient::GetInstance()->Unsubscribe(PasteboardObserverType::OBSERVER_LOCAL, delObserver);
+        PasteboardClient::GetInstance()->Unsubscribe(type, delObserver);
     }
     for (auto &ref : refs) {
         napi_delete_reference(env, ref);
