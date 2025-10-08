@@ -14,14 +14,17 @@
  */
 
 #include <gtest/gtest.h>
+#include <thread>
 #include <unistd.h>
+
 #include "ipc_skeleton.h"
 #include "message_parcel_warp.h"
 #include "pasteboard_error.h"
 #include "pasteboard_hilog.h"
+#include "pasteboard_observer_stub.h"
 #include "pasteboard_service.h"
+#include "pasteboard_time.h"
 #include "paste_data_entry.h"
-#include <thread>
 
 using namespace testing;
 using namespace testing::ext;

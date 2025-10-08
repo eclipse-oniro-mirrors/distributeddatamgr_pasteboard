@@ -14,14 +14,17 @@
  */
 
 #include <gtest/gtest.h>
+#include <thread>
 #include <unistd.h>
+
 #include "ipc_skeleton.h"
 #include "message_parcel_warp.h"
 #include "pasteboard_error.h"
 #include "pasteboard_hilog.h"
+#include "pasteboard_observer_stub.h"
 #include "pasteboard_service.h"
+#include "pasteboard_time.h"
 #include "paste_data_entry.h"
-#include <thread>
 
 using namespace testing;
 using namespace testing::ext;
@@ -37,10 +40,10 @@ const int32_t INT32_NEGATIVE_NUMBER = -1;
 constexpr int32_t SET_VALUE_SUCCESS = 1;
 const int INT_THREETHREETHREE = 333;
 const uint32_t MAX_RECOGNITION_LENGTH = 1000;
-const int32_t ACCOUNT_IDS_RANDOM = 1121;
-const uint32_t UINT32_ONE = 1;
 constexpr int64_t MIN_ASHMEM_DATA_SIZE = 32 * 1024;
 constexpr uint32_t EVENT_TIME_OUT = 2000;
+const int32_t ACCOUNT_IDS_RANDOM = 1121;
+const uint32_t UINT32_ONE = 1;
 const std::string TEST_ENTITY_TEXT =
     "清晨，从杭州市中心出发，沿着湖滨路缓缓前行。湖滨路是杭州市中心通往西湖的主要街道之一，两旁绿树成荫，湖光山色尽收眼"
     "底。你可以选择步行或骑行，感受微风拂面的惬意。湖滨路的尽头是南山路，这里有一片开阔的广场，是欣赏西湖全景的绝佳位置"
@@ -72,7 +75,7 @@ class MyTestEntityRecognitionObserver : public IEntityRecognitionObserver {
     }
 };
 
-class MyTestPasteboardChangedObserver : public IPasteboardChangedObserver {
+class MyTestPasteboardChangedObserver : public PasteboardObserverStub {
     void OnPasteboardChanged()
     {
         return;
@@ -80,10 +83,6 @@ class MyTestPasteboardChangedObserver : public IPasteboardChangedObserver {
     void OnPasteboardEvent(std::string bundleName, int32_t status)
     {
         return;
-    }
-    sptr<IRemoteObject> AsObject()
-    {
-        return nullptr;
     }
 };
 
@@ -327,7 +326,8 @@ HWTEST_F(PasteboardServiceTest, IsCtrlVProcessTest002, TestSize.Level0)
     tempPasteboard->windowPid_ = callingPid;
     tempPasteboard->actionTime_ = static_cast<uint64_t>(
         duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count());
-    std::shared_ptr<BlockObject<int32_t>> block = std::make_shared<BlockObject<int32_t>>(100, 0);
+    std::shared_ptr<BlockObject<int32_t>> block = std::make_shared<BlockObject<int32_t>>(2000, SET_VALUE_SUCCESS);
+    block->SetValue(SET_VALUE_SUCCESS);
     tempPasteboard->blockMap_.insert(std::make_pair(callingPid, block));
     auto result = tempPasteboard->IsCtrlVProcess(callingPid, isFocused);
     EXPECT_EQ(result, true);
@@ -1545,7 +1545,7 @@ HWTEST_F(PasteboardServiceTest, OnRemoteDiedTest003, TestSize.Level0)
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnRemoteDiedTest003 start");
     PasteboardService service;
     pid_t pid = 2;
-    auto tempPasteboard = std::make_shared<PasteboardService::PasteboardDeathRecipient>(service, nullptr, pid);
+    auto tempPasteboard = std::make_shared<PasteboardService::PasteboardDeathRecipient>(service, pid);
     EXPECT_NE(tempPasteboard, nullptr);
 
     tempPasteboard->OnRemoteDied(nullptr);
@@ -2592,8 +2592,9 @@ HWTEST_F(PasteboardServiceTest, IsDataAgedTest004, TestSize.Level0)
     EXPECT_NE(tempPasteboard, nullptr);
 
     auto userId = tempPasteboard->GetCurrentAccountId();
-    auto curTime = static_cast<uint64_t>(duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count());
-    auto copyTime = curTime - ONE_HOUR_MILLISECONDS - ONE_HOUR_MILLISECONDS;
+    auto curTime = static_cast<uint64_t>(PasteboardTime::GetBootTimeMs());
+    auto copyTime = curTime - 2;
+    tempPasteboard->agedTime_ = 1;
     tempPasteboard->copyTime_.InsertOrAssign(userId, copyTime);
 
     bool ret = tempPasteboard->IsDataAged();
@@ -2634,11 +2635,12 @@ HWTEST_F(PasteboardServiceTest, IsDataAgedTest006, TestSize.Level0)
     EXPECT_NE(tempPasteboard, nullptr);
 
     auto userId = tempPasteboard->GetCurrentAccountId();
-    auto curTime = static_cast<uint64_t>(duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count());
-    auto copyTime = curTime - ONE_HOUR_MILLISECONDS - ONE_HOUR_MILLISECONDS;
+    auto curTime = static_cast<uint64_t>(PasteboardTime::GetBootTimeMs());
+    auto copyTime = curTime - 2;
     tempPasteboard->copyTime_.InsertOrAssign(userId, copyTime);
 
     PasteData pasteData;
+    tempPasteboard->agedTime_ = 1;
     tempPasteboard->clips_.InsertOrAssign(userId, std::make_shared<PasteData>(pasteData));
 
     bool ret = tempPasteboard->IsDataAged();
@@ -4330,5 +4332,21 @@ HWTEST_F(PasteboardServiceTest, ClearAgedDataTest001, TestSize.Level0)
     result = tempPasteboard->clips_.Find(userId);
     EXPECT_FALSE(result.first);
 }
+
+/**
+ * @tc.name: SetCurrentDistributedDataTest001
+ * @tc.desc: test Func SetCurrentDistributedData
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceTest, SetCurrentDistributedDataTest001, TestSize.Level0)
+{
+    PasteData pasteData;
+    ClipPlugin::GlobalEvent event{};
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+    tempPasteboard->SetCurrentDistributedData(pasteData, event);
+}
+
+
 } // namespace MiscServices
 } // namespace OHOS
