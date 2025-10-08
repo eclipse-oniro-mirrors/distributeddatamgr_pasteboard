@@ -107,6 +107,7 @@ constexpr int64_t MIN_ASHMEM_DATA_SIZE = 32 * 1024;
 constexpr int32_t E_OK_OPERATION = 0;
 constexpr int32_t SET_VALUE_SUCCESS = 1;
 constexpr uid_t ANCO_SERVICE_BROKER_UID = 5557;
+constexpr float RECALCULATE_DATA_SIZE = 0.9;
 
 const bool G_REGISTER_RESULT = SystemAbility::MakeAndRegisterAbility(new PasteboardService());
 } // namespace
@@ -1087,7 +1088,7 @@ bool PasteboardService::WriteRawData(const void *data, int64_t size, int &serFd)
 {
     MessageParcelWarp messageData;
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(data != nullptr, false, PASTEBOARD_MODULE_SERVICE, "data is null");
-    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(0 < size && size <= messageData.GetRawDataSize(), false,
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(0 < size && size <= MessageParcelWarp::GetRawDataSize(), false,
         PASTEBOARD_MODULE_SERVICE, "size invalid, size:%{public}" PRId64, size);
 
     int fd = AshmemCreate("WriteRawData Ashmem", size);
@@ -2047,13 +2048,23 @@ int32_t PasteboardService::SaveData(PasteData &pasteData, int64_t dataSize,
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "userId invalid.");
         return static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR);
     }
-    setPasteDataUId_ = IPCSkeleton::GetCallingUid();
-    RemovePasteData(appInfo);
     pasteData.userId_ = appInfo.userId;
     SetPasteDataInfo(pasteData, appInfo);
+    bool hasSplited = PasteboardWebController::GetInstance().SplitWebviewPasteData(pasteData);
     PasteboardWebController::GetInstance().SetWebviewPasteData(pasteData,
         std::make_pair(appInfo.bundleName, appInfo.appIndex));
     PasteboardWebController::GetInstance().CheckAppUriPermission(pasteData);
+    if (hasSplited || dataSize > static_cast<int64_t>(MessageParcelWarp::GetRawDataSize() * RECALCULATE_DATA_SIZE)) {
+        int64_t newDataSize = static_cast<int64_t>(pasteData.Count());
+        if (newDataSize >= MessageParcelWarp::GetRawDataSize()) {
+            setting_.store(false);
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "invalid data size, dataSize=%{public}" PRId64, newDataSize);
+            return static_cast<int32_t>(PasteboardError::INVALID_DATA_SIZE);
+        }
+        pasteData.rawDataSize_ = newDataSize;
+    }
+    setPasteDataUId_ = IPCSkeleton::GetCallingUid();
+    RemovePasteData(appInfo);
     clips_.InsertOrAssign(appInfo.userId, std::make_shared<PasteData>(pasteData));
     IncreaseChangeCount(appInfo.userId);
     RadarReportInfo radarReportInfo;
@@ -2437,10 +2448,10 @@ int32_t PasteboardService::SetPasteData(int fd, int64_t rawDataSize, const std::
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "fd=%{public}d, agedTime_ = %{public}d,"
         "rawDataSize=%{public}" PRId64, fd, agedTime_.load(), rawDataSize);
     SetCriticalTimer();
-    if (rawDataSize <= 0 || rawDataSize > messageData.GetRawDataSize()) {
+    if (rawDataSize <= 0 || rawDataSize > MessageParcelWarp::GetRawDataSize()) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "Invalid raw data size:%{public}" PRId64, rawDataSize);
         CloseSharedMemFd(fd);
-        return static_cast<int32_t>(PasteboardError::INVALID_PARAM_ERROR);
+        return static_cast<int32_t>(PasteboardError::INVALID_DATA_SIZE);
     }
     PasteData pasteData{};
     bool result = false;
@@ -2457,7 +2468,6 @@ int32_t PasteboardService::SetPasteData(int fd, int64_t rawDataSize, const std::
     if (DisposableManager::GetInstance().TryProcessDisposableData(pasteData, delayGetter, entryGetter)) {
         return ERR_OK;
     }
-    PasteboardWebController::GetInstance().SplitWebviewPasteData(pasteData);
     ret = SaveData(pasteData, rawDataSize, delayGetter, entryGetter);
     if (entityObserverMap_.Size() != 0 && pasteData.HasMimeType(MIMETYPE_TEXT_PLAIN)) {
         RecognizePasteData(pasteData);
