@@ -489,10 +489,10 @@ int32_t PasteboardClient::ProcessPasteData(T &data, int64_t rawDataSize, int fd,
         return ret;
     }
     MessageParcelWarp messageReply;
-    if (rawDataSize <= 0 || rawDataSize > messageReply.GetRawDataSize()) {
+    if (rawDataSize <= 0 || rawDataSize > MessageParcelWarp::GetRawDataSize()) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CLIENT, "Invalid raw data size:%{public}" PRId64, rawDataSize);
         CloseSharedMemFd(fd);
-        return ret;
+        return static_cast<int32_t>(PasteboardError::INVALID_DATA_SIZE);
     }
     bool result = false;
     MessageParcel parcelData;
@@ -726,7 +726,7 @@ int32_t PasteboardClient::WritePasteData(PasteData &pasteData, std::vector<uint8
     if (tlvSize > MIN_ASHMEM_DATA_SIZE) {
         if (!messageData.WriteRawData(parcelPata, pasteDataTlv.data(), pasteDataTlv.size())) {
             PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CLIENT, "Failed to WriteRawData");
-            return static_cast<int32_t>(PasteboardError::SERIALIZATION_ERROR);
+            return static_cast<int32_t>(PasteboardError::INVALID_DATA_SIZE);
         }
         fd = messageData.GetWriteDataFd();
         pasteDataTlv.clear();

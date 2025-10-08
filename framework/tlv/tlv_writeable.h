@@ -32,6 +32,8 @@ public:
     virtual bool EncodeTLV(WriteOnlyBuffer &buffer) const = 0;
 
     API_EXPORT bool Encode(std::vector<uint8_t> &buffer, bool isRemote = false) const;
+
+    API_EXPORT size_t Count(bool isRemote = false) const;
 };
 
 class WriteOnlyBuffer : public TLVBuffer {
