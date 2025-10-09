@@ -489,7 +489,7 @@ int32_t PasteboardClient::ProcessPasteData(T &data, int64_t rawDataSize, int fd,
         return ret;
     }
     MessageParcelWarp messageReply;
-    if (rawDataSize <= 0 || rawDataSize > MessageParcelWarp::GetRawDataSize()) {
+    if (rawDataSize <= 0 || rawDataSize > messageReply.GetRawDataSize()) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CLIENT, "Invalid raw data size:%{public}" PRId64, rawDataSize);
         CloseSharedMemFd(fd);
         return static_cast<int32_t>(PasteboardError::INVALID_DATA_SIZE);
@@ -716,17 +716,20 @@ void PasteboardClient::CreateGetterAgent(sptr<PasteboardDelayGetterClient> &dela
 int32_t PasteboardClient::WritePasteData(PasteData &pasteData, std::vector<uint8_t> &buffer, int &fd,
     int64_t &tlvSize, MessageParcelWarp &messageData, MessageParcel &parcelPata)
 {
+    tlvSize = static_cast<int64_t>(pasteData.Count());
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(0 < tlvSize && tlvSize <= MessageParcelWarp::GetRawDataSize(),
+        static_cast<int32_t>(PasteboardError::INVALID_DATA_SIZE), PASTEBOARD_MODULE_CLIENT,
+        "invalid data size, dataSize=%{public}" PRId64, tlvSize);
     std::vector<uint8_t> pasteDataTlv(0);
-    bool result = pasteData.Encode(pasteDataTlv);
+    bool result = pasteData.Encode(tlvSize, pasteDataTlv);
     if (!result) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CLIENT, "paste data encode failed.");
         return static_cast<int32_t>(PasteboardError::SERIALIZATION_ERROR);
     }
-    tlvSize = static_cast<int64_t>(pasteDataTlv.size());
     if (tlvSize > MIN_ASHMEM_DATA_SIZE) {
         if (!messageData.WriteRawData(parcelPata, pasteDataTlv.data(), pasteDataTlv.size())) {
             PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CLIENT, "Failed to WriteRawData");
-            return static_cast<int32_t>(PasteboardError::INVALID_DATA_SIZE);
+            return static_cast<int32_t>(PasteboardError::SERIALIZATION_ERROR);
         }
         fd = messageData.GetWriteDataFd();
         pasteDataTlv.clear();

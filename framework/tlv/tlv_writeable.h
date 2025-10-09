@@ -33,6 +33,8 @@ public:
 
     API_EXPORT bool Encode(std::vector<uint8_t> &buffer, bool isRemote = false) const;
 
+    API_EXPORT bool Encode(size_t len, std::vector<uint8_t> &buffer, bool isRemote = false) const;
+
     API_EXPORT size_t Count(bool isRemote = false) const;
 };
 
