@@ -1088,7 +1088,7 @@ bool PasteboardService::WriteRawData(const void *data, int64_t size, int &serFd)
 {
     MessageParcelWarp messageData;
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(data != nullptr, false, PASTEBOARD_MODULE_SERVICE, "data is null");
-    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(0 < size && size <= MessageParcelWarp::GetRawDataSize(), false,
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(0 < size && size <= messageData.GetRawDataSize(), false,
         PASTEBOARD_MODULE_SERVICE, "size invalid, size:%{public}" PRId64, size);
 
     int fd = AshmemCreate("WriteRawData Ashmem", size);
@@ -2056,7 +2056,7 @@ int32_t PasteboardService::SaveData(PasteData &pasteData, int64_t dataSize,
     PasteboardWebController::GetInstance().CheckAppUriPermission(pasteData);
     if (hasSplited || dataSize > static_cast<int64_t>(MessageParcelWarp::GetRawDataSize() * RECALCULATE_DATA_SIZE)) {
         int64_t newDataSize = static_cast<int64_t>(pasteData.Count());
-        if (newDataSize >= MessageParcelWarp::GetRawDataSize()) {
+        if (newDataSize > MessageParcelWarp::GetRawDataSize()) {
             setting_.store(false);
             PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "invalid data size, dataSize=%{public}" PRId64, newDataSize);
             return static_cast<int32_t>(PasteboardError::INVALID_DATA_SIZE);
@@ -2448,7 +2448,7 @@ int32_t PasteboardService::SetPasteData(int fd, int64_t rawDataSize, const std::
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "fd=%{public}d, agedTime_ = %{public}d,"
         "rawDataSize=%{public}" PRId64, fd, agedTime_.load(), rawDataSize);
     SetCriticalTimer();
-    if (rawDataSize <= 0 || rawDataSize > MessageParcelWarp::GetRawDataSize()) {
+    if (rawDataSize <= 0 || rawDataSize > messageData.GetRawDataSize()) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "Invalid raw data size:%{public}" PRId64, rawDataSize);
         CloseSharedMemFd(fd);
         return static_cast<int32_t>(PasteboardError::INVALID_DATA_SIZE);

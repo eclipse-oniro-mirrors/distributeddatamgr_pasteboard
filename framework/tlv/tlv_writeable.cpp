@@ -42,6 +42,15 @@ size_t TLVWriteable::Count(bool isRemote) const
     return CountTLV();
 }
 
+bool TLVWriteable::Encode(size_t len, std::vector<uint8_t> &buffer, bool isRemote) const
+{
+    g_isRemoteEncode = isRemote;
+    WriteOnlyBuffer buff(len);
+    bool ret = EncodeTLV(buff);
+    buffer = std::move(buff.data_);
+    return ret;
+}
+
 bool WriteOnlyBuffer::Write(uint16_t type, std::monostate value)
 {
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(HasExpectBuffer(sizeof(TLVHead)), false,
