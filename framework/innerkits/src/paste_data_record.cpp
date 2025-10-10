@@ -842,7 +842,7 @@ std::vector<std::string> PasteDataRecord::GetValidMimeTypes(const std::vector<st
 std::vector<std::string> PasteDataRecord::GetValidTypes(const std::vector<std::string> &types) const
 { // LCOV_EXCL_START
     std::vector<std::string> res;
-    auto allTypes = GetUdtTypes();
+    auto allTypes = GetUtdTypes();
     for (auto const &type : types) {
         if (allTypes.find(type) != allTypes.end()) {
             res.emplace_back(type);
@@ -878,7 +878,7 @@ uint32_t PasteDataRecord::RemoveEmptyEntry()
     return removeCnt;
 } // LCOV_EXCL_STOP
 
-std::set<std::string> PasteDataRecord::GetUdtTypes() const
+std::set<std::string> PasteDataRecord::GetUtdTypes() const
 { // LCOV_EXCL_START
     std::set<std::string> types;
     if (!mimeType_.empty()) {

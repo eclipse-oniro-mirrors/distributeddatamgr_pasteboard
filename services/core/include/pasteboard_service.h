@@ -136,6 +136,7 @@ public:
     virtual int32_t IsRemoteData(bool &funcResult) override;
     virtual int32_t GetMimeTypes(std::vector<std::string> &funcResult) override;
     virtual int32_t HasDataType(const std::string &mimeType, bool &funcResult) override;
+    virtual int32_t HasUtdType(const std::string &utdType, bool &funcResult) override;
     virtual int32_t DetectPatterns(
         const std::vector<Pattern> &patternsToCheck, std::vector<Pattern>& funcResult) override;
     virtual int32_t GetDataSource(std::string &bundleNme) override;
@@ -412,6 +413,7 @@ private:
     void OnRemoveDeviceProfile();
     void ReportUeCopyEvent(PasteData &pasteData, int64_t dataSize, int32_t result);
     bool HasDataType(const std::string &mimeType);
+    bool HasUtdType(const std::string &utdType);
     bool HasPasteData();
     bool IsRemoteData();
     int32_t GetRecordValueByType(uint32_t dataId, uint32_t recordId, PasteDataEntry &value);

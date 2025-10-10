@@ -70,6 +70,7 @@ public:
 
     bool isConvertUriFromRemote = false;
     std::string GetMimeType() const;
+    std::set<std::string> GetUtdTypes() const;
     std::set<std::string> GetMimeTypes() const;
     std::shared_ptr<std::string> GetHtmlTextV0() const;
     std::shared_ptr<std::string> GetHtmlText();
@@ -142,7 +143,6 @@ public:
 private:
     std::string GetPassUri();
     void AddUriEntry();
-    std::set<std::string> GetUdtTypes() const;
     bool DecodeItem1(uint16_t tag, ReadOnlyBuffer &buffer, TLVHead &head);
     bool DecodeItem2(uint16_t tag, ReadOnlyBuffer &buffer, TLVHead &head);
     std::shared_ptr<PasteDataEntry> Remote2Local() const;

@@ -38,6 +38,23 @@ static bool IsSubscriberValid(OH_PasteboardObserver *observer)
     return observer != nullptr && observer->cid == SUBSCRIBER_STRUCT_ID;
 }
 
+static bool IsMimeType(const char* type)
+{
+    static const char* mimeTypes[] = {
+        MIMETYPE_PIXELMAP,
+        MIMETYPE_TEXT_HTML,
+        MIMETYPE_TEXT_PLAIN,
+        MIMETYPE_TEXT_URI,
+        MIMETYPE_TEXT_WANT
+    };
+    for (const char* mimeType : mimeTypes) {
+        if (strcmp(type, mimeType) == 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
 static PASTEBOARD_ErrCode GetMappedCode(int32_t code)
 {
     auto iter = errCodeMap.find(static_cast<PasteboardError>(code));
@@ -214,7 +231,10 @@ bool OH_Pasteboard_HasType(OH_Pasteboard *pasteboard, const char *type)
     if (!IsPasteboardValid(pasteboard) || type == nullptr) {
         return false;
     }
-    return PasteboardClient::GetInstance()->HasDataType(std::string(type));
+    if (IsMimeType(type)) {
+        return PasteboardClient::GetInstance()->HasDataType(std::string(type));
+    }
+    return PasteboardClient::GetInstance()->HasUtdType(std::string(type));
 }
 
 bool OH_Pasteboard_HasData(OH_Pasteboard *pasteboard)

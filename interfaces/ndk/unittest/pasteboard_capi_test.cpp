@@ -547,7 +547,7 @@ HWTEST_F(PasteboardCapiTest, OH_Pasteboard_HasType001, TestSize.Level1)
     OH_Pasteboard_SetData(pasteboard, setData);
     char type[] = "general.plain-text";
     bool res = OH_Pasteboard_HasType(pasteboard, type);
-    EXPECT_FALSE(res);
+    EXPECT_TRUE(res);
     
     OH_Pasteboard_Destroy(pasteboard);
 }
@@ -588,6 +588,192 @@ HWTEST_F(PasteboardCapiTest, OH_Pasteboard_HasType002, TestSize.Level1)
 
     res = OH_Pasteboard_HasType(pasteboard, "text/html");
     EXPECT_TRUE(res);
+
+    OH_Pasteboard_Destroy(pasteboard);
+}
+
+/**
+ * @tc.name: OH_Pasteboard_HasType003
+ * @tc.desc: OH_Pasteboard_HasType test mutil entry
+ * @tc.type: FUNC
+ * @tc.require: AROOOH5R5G
+ */
+HWTEST_F(PasteboardCapiTest, OH_Pasteboard_HasType003, TestSize.Level1)
+{
+    OH_Pasteboard* pasteboard = OH_Pasteboard_Create();
+    ASSERT_TRUE(pasteboard);
+    OH_UdmfData* setData = OH_UdmfData_Create();
+    ASSERT_TRUE(setData);
+    OH_UdmfRecord* record = OH_UdmfRecord_Create();
+    ASSERT_TRUE(record);
+
+    OH_UdsPlainText* plainText = OH_UdsPlainText_Create();
+    ASSERT_TRUE(plainText);
+    char content[] = "hello world";
+    OH_UdsPlainText_SetContent(plainText, content);
+    OH_UdmfRecord_AddPlainText(record, plainText);
+    OH_UdmfData_AddRecord(setData, record);
+
+    OH_Pasteboard_SetData(pasteboard, setData);
+
+    bool res = OH_Pasteboard_HasType(pasteboard, PASTEBOARD_MIMETYPE_TEXT_PLAIN);
+    EXPECT_TRUE(res);
+
+    res = OH_Pasteboard_HasType(pasteboard, PASTEBOARD_MIMETYPE_TEXT_URI);
+    EXPECT_FALSE(res);
+
+    res = OH_Pasteboard_HasType(pasteboard, PASTEBOARD_MIMETYPE_TEXT_HTML);
+    EXPECT_FALSE(res);
+
+    res = OH_Pasteboard_HasType(pasteboard, PASTEBOARD_MIMETYPE_PIXELMAP);
+    EXPECT_FALSE(res);
+
+    res = OH_Pasteboard_HasType(pasteboard, PASTEBOARD_MIMETYPE_TEXT_WANT);
+    EXPECT_FALSE(res);
+
+    OH_Pasteboard_Destroy(pasteboard);
+}
+
+/**
+ * @tc.name: OH_Pasteboard_HasType004
+ * @tc.desc: OH_Pasteboard_HasType test mutil entry
+ * @tc.type: FUNC
+ * @tc.require: AROOOH5R5G
+ */
+HWTEST_F(PasteboardCapiTest, OH_Pasteboard_HasType004, TestSize.Level1)
+{
+    OH_Pasteboard* pasteboard = OH_Pasteboard_Create();
+    ASSERT_TRUE(pasteboard);
+    OH_UdmfData* setData = OH_UdmfData_Create();
+    ASSERT_TRUE(setData);
+    OH_UdmfRecord* record = OH_UdmfRecord_Create();
+    ASSERT_TRUE(record);
+
+    OH_UdsHtml* htmlText = OH_UdsHtml_Create();
+    ASSERT_TRUE(htmlText);
+    char html[] = "<div class='disabled'>hello</div>";
+    OH_UdsHtml_SetContent(htmlText, html);
+    OH_UdmfRecord_AddHtml(record, htmlText);
+    OH_UdmfData_AddRecord(setData, record);
+
+    OH_Pasteboard_SetData(pasteboard, setData);
+
+    bool res = OH_Pasteboard_HasType(pasteboard, PASTEBOARD_MIMETYPE_TEXT_PLAIN);
+    EXPECT_FALSE(res);
+
+    res = OH_Pasteboard_HasType(pasteboard, PASTEBOARD_MIMETYPE_TEXT_URI);
+    EXPECT_FALSE(res);
+
+    res = OH_Pasteboard_HasType(pasteboard, PASTEBOARD_MIMETYPE_TEXT_HTML);
+    EXPECT_TRUE(res);
+
+    res = OH_Pasteboard_HasType(pasteboard, PASTEBOARD_MIMETYPE_PIXELMAP);
+    EXPECT_FALSE(res);
+
+    res = OH_Pasteboard_HasType(pasteboard, PASTEBOARD_MIMETYPE_TEXT_WANT);
+    EXPECT_FALSE(res);
+
+    OH_Pasteboard_Destroy(pasteboard);
+}
+
+/**
+ * @tc.name: OH_Pasteboard_HasType005
+ * @tc.desc: OH_Pasteboard_HasType test mutil entry
+ * @tc.type: FUNC
+ * @tc.require: AROOOH5R5G
+ */
+HWTEST_F(PasteboardCapiTest, OH_Pasteboard_HasType005, TestSize.Level1)
+{
+    OH_Pasteboard* pasteboard = OH_Pasteboard_Create();
+    ASSERT_TRUE(pasteboard);
+    OH_UdmfData* setData = OH_UdmfData_Create();
+    ASSERT_TRUE(setData);
+    OH_UdmfRecord* record = OH_UdmfRecord_Create();
+    ASSERT_TRUE(record);
+
+    OH_UdsPlainText* plainText = OH_UdsPlainText_Create();
+    ASSERT_TRUE(plainText);
+    char content[] = "hello world";
+    OH_UdsPlainText_SetContent(plainText, content);
+    OH_UdmfRecord_AddPlainText(record, plainText);
+    OH_UdmfData_AddRecord(setData, record);
+
+    OH_Pasteboard_SetData(pasteboard, setData);
+    char udmf_plainText[] = "general.plain-text";
+    char udmf_html[] = "general.html";
+    char udmf_Hyperlink[] = "general.hyperlink";
+    char udmf_uri[] = "general.file-uri";
+    char udmf_want[] = "openharmony.want";
+    char udmf_pixelmap[] = "openharmony.pixel-map";
+
+    bool res = OH_Pasteboard_HasType(pasteboard, udmf_plainText);
+    EXPECT_TRUE(res);
+
+    res = OH_Pasteboard_HasType(pasteboard, udmf_html);
+    EXPECT_FALSE(res);
+
+    res = OH_Pasteboard_HasType(pasteboard, udmf_Hyperlink);
+    EXPECT_FALSE(res);
+
+    res = OH_Pasteboard_HasType(pasteboard, udmf_uri);
+    EXPECT_FALSE(res);
+
+    res = OH_Pasteboard_HasType(pasteboard, udmf_want);
+    EXPECT_FALSE(res);
+
+    res = OH_Pasteboard_HasType(pasteboard, udmf_pixelmap);
+    EXPECT_FALSE(res);
+
+    OH_Pasteboard_Destroy(pasteboard);
+}
+
+/**
+ * @tc.name: OH_Pasteboard_HasType006
+ * @tc.desc: OH_Pasteboard_HasType test mutil entry
+ * @tc.type: FUNC
+ * @tc.require: AROOOH5R5G
+ */
+HWTEST_F(PasteboardCapiTest, OH_Pasteboard_HasType006, TestSize.Level1)
+{
+    OH_Pasteboard* pasteboard = OH_Pasteboard_Create();
+    ASSERT_TRUE(pasteboard);
+    OH_UdmfData* setData = OH_UdmfData_Create();
+    ASSERT_TRUE(setData);
+    OH_UdmfRecord* record = OH_UdmfRecord_Create();
+    ASSERT_TRUE(record);
+
+    OH_UdsHtml* htmlText = OH_UdsHtml_Create();
+    ASSERT_TRUE(htmlText);
+    char html[] = "<div class='disabled'>hello</div>";
+    OH_UdsHtml_SetContent(htmlText, html);
+    OH_UdmfRecord_AddHtml(record, htmlText);
+    OH_UdmfData_AddRecord(setData, record);
+
+    OH_Pasteboard_SetData(pasteboard, setData);
+    char udmf_plainText[] = "general.plain-text";
+    char udmf_html[] = "general.html";
+    char udmf_Hyperlink[] = "general.hyperlink";
+    char udmf_uri[] = "general.file-uri";
+    char udmf_want[] = "openharmony.want";
+    char udmf_pixelmap[] = "openharmony.pixel-map";
+
+    bool res = OH_Pasteboard_HasType(pasteboard, udmf_plainText);
+    EXPECT_FALSE(res);
+
+    res = OH_Pasteboard_HasType(pasteboard, udmf_html);
+    EXPECT_TRUE(res);
+
+    res = OH_Pasteboard_HasType(pasteboard, udmf_Hyperlink);
+    EXPECT_FALSE(res);
+
+    res = OH_Pasteboard_HasType(pasteboard, udmf_uri);
+    EXPECT_FALSE(res);
+
+    res = OH_Pasteboard_HasType(pasteboard, udmf_want);
+    EXPECT_FALSE(res);
+
+    res = OH_Pasteboard_HasType(pasteboard, udmf_pixelmap);
+    EXPECT_FALSE(res);
 
     OH_Pasteboard_Destroy(pasteboard);
 }

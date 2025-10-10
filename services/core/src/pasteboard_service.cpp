@@ -2195,6 +2195,59 @@ bool PasteboardService::HasDataType(const std::string &mimeType)
     return HasLocalDataType(mimeType);
 }
 
+int32_t PasteboardService::HasUtdType(const std::string &utdType, bool &funcResult)
+{
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(!utdType.empty(), false, PASTEBOARD_MODULE_SERVICE, "parameter is invalid");
+    funcResult = HasUtdType(utdType);
+    return ERR_OK;
+}
+
+bool PasteboardService::HasUtdType(const std::string &utdType)
+{
+    auto tokenId = IPCSkeleton::GetCallingTokenID();
+    auto appInfo = GetAppInfo(tokenId);
+    auto userId = appInfo.userId;
+    auto screenStatus = GetCurrentScreenStatus();
+    PasteData data;
+    if (screenStatus == ScreenEvent::ScreenUnlocked) {
+        auto [distRet, distEvt] = GetValidDistributeEvent(userId);
+        if (distRet == static_cast<int32_t>(PasteboardError::E_OK)) {
+            int32_t syncTime = 0;
+            if (GetRemoteData(userId, distEvt, data, syncTime) != static_cast<int32_t>(PasteboardError::E_OK)) {
+                return false;
+            }
+            return data.HasUtdType(utdType);
+        }
+    }
+    auto it = clips_.Find(userId);
+    if (!it.first) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "can not find data. userId: %{public}d, utdType: %{public}s",
+            userId, utdType.c_str());
+        return false;
+    }
+    if (it.second == nullptr) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "data is nullptr. userId: %{public}d, utdType: %{public}s",
+            userId, utdType.c_str());
+        return false;
+    }
+    auto ret = IsDataValid(*(it.second), tokenId);
+    if (ret != static_cast<int32_t>(PasteboardError::E_OK)) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE,
+            "pasteData is invalid, tokenId is %{public}d, userId: %{public}d,"
+            "utdType: %{public}s, ret is %{public}d",
+            tokenId, userId, utdType.c_str(), ret);
+        return false;
+    }
+    if (it.second->GetScreenStatus() > screenStatus) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE,
+            "current screen is %{public}d, set data screen is %{public}d."
+            "userId: %{public}d, utdType: %{public}s",
+            screenStatus, it.second->GetScreenStatus(), userId, utdType.c_str());
+        return false;
+    }
+    return it.second->HasUtdType(utdType);
+}
+
 int32_t PasteboardService::DetectPatterns(const std::vector<Pattern> &patternsToCheck,
     std::vector<Pattern> &funcResult)
 {
