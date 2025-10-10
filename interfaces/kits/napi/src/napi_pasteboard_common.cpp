@@ -424,7 +424,8 @@ napi_status ConvertEntryValue(napi_env env, napi_value *result, std::string &mim
         size_t len = dataArray.size();
         NAPI_CALL_BASE(env, napi_create_arraybuffer(env, len, &data, result), napi_generic_failure);
         if (memcpy_s(data, len, reinterpret_cast<const void *>(dataArray.data()), len) != 0) {
-            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "memcpy_s failed");
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "memcpy customData %{public}s failed, size=%{public}zu",
+                mimeType.c_str(), len);
             return napi_generic_failure;
         }
         return napi_ok;
