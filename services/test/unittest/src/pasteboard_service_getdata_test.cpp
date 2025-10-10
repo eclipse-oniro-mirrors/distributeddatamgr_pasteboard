@@ -888,6 +888,26 @@ HWTEST_F(PasteboardServiceGetDataTest, GetRemoteEntryValueTest001, TestSize.Leve
 }
 
 /**
+ * @tc.name: GetRemoteEntryValueTest002
+ * @tc.desc: GetRemoteEntryValueTest002
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceGetDataTest, GetRemoteEntryValueTest002, TestSize.Level0)
+{
+    std::shared_ptr<PasteboardService> tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+    std::string remoteDeviceId = "remoteDeviceId";
+    auto tokenId = IPCSkeleton::GetCallingTokenID();
+    auto appInfo = tempPasteboard->GetAppInfo(tokenId);
+    PasteData data;
+    PasteDataRecord record;
+    PasteDataEntry entry;
+
+    int32_t ret = tempPasteboard->GetRemoteEntryValue(appInfo, data, record, entry);
+    EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::PLUGIN_IS_NULL));
+}
+
+/**
  * @tc.name: GetRecordValueByTypeTest001
  * @tc.desc: test Func GetRecordValueByType
  * @tc.type: FUNC
@@ -909,26 +929,6 @@ HWTEST_F(PasteboardServiceGetDataTest, GetRecordValueByTypeTest001, TestSize.Lev
     int32_t result = tempPasteboard->GetRecordValueByType(dataId, recordId, rawDataSize, buffer, fd);
     EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::INVALID_PARAM_ERROR));
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetRecordValueByTypeTest001 end");
-}
-
-/**
- * @tc.name: GetRemoteEntryValueTest002
- * @tc.desc: GetRemoteEntryValueTest002
- * @tc.type: FUNC
- */
-HWTEST_F(PasteboardServiceGetDataTest, GetRemoteEntryValueTest002, TestSize.Level0)
-{
-    std::shared_ptr<PasteboardService> tempPasteboard = std::make_shared<PasteboardService>();
-    EXPECT_NE(tempPasteboard, nullptr);
-    std::string remoteDeviceId = "remoteDeviceId";
-    auto tokenId = IPCSkeleton::GetCallingTokenID();
-    auto appInfo = tempPasteboard->GetAppInfo(tokenId);
-    PasteData data;
-    PasteDataRecord record;
-    PasteDataEntry entry;
-    
-    int32_t ret = tempPasteboard->GetRemoteEntryValue(appInfo, data, record, entry);
-    EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::PLUGIN_IS_NULL));
 }
 
 } // namespace MiscServices
