@@ -241,7 +241,7 @@ napi_status NapiDataUtils::SetValue(napi_env env, const std::vector<uint8_t> &in
     }
 
     if (memcpy_s(data, in.size(), in.data(), in.size()) != EOK) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "memcpy_s not EOK");
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "memcpy uint8 vector failed, size=%{public}zu", in.size());
         return napi_invalid_arg;
     }
     status = napi_create_typedarray(env, napi_uint8_array, in.size(), buffer, 0, &out);
@@ -429,7 +429,8 @@ napi_status NapiDataUtils::SetValue(napi_env env, const std::shared_ptr<UDMF::Ob
             size_t len = array.size();
             NAPI_CALL_BASE(env, napi_create_arraybuffer(env, len, &data, &valueNapi), napi_generic_failure);
             if (memcpy_s(data, len, reinterpret_cast<const void *>(array.data()), len) != 0) {
-                PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "memcpy_s failed");
+                PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "memcpy udmf %{public}s failed, size=%{public}zu",
+                    key.c_str(), len);
                 return napi_generic_failure;
             }
         } else {
