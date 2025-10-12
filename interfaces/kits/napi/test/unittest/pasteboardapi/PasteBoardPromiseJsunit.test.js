@@ -1977,4 +1977,50 @@ describe('PasteBoardJSTest', function () {
   function contentChanges() {
     console.info('#EVENT: The content is changed in the pasteboard');
   }
+
+  /**
+   * @tc.name      pasteboard_promise_test65
+   * @tc.desc      打开远端内容变化通知功能
+   * @tc.type      Function
+   * @tc.require   AR000H5I1D
+   */
+  it('pasteboard_promise_test65', 0, async function (done) {
+    const systemPasteboard = pasteboard.getSystemPasteboard();
+    await systemPasteboard.clearData();
+    systemPasteboard.onRemoteUpdate(contentChanges);
+    const textData65 = 'Hello World!';
+    const pasteData = pasteboard.createPlainTextData(textData65);
+    await systemPasteboard.setPasteData(pasteData);
+    const res66 = await systemPasteboard.hasPasteData();
+    expect(res66).assertEqual(true);
+    systemPasteboard.getPasteData().then((data) => {
+      expect(data.getRecordCount()).assertEqual(1);
+      expect(data.removeRecordAt(0)).assertEqual(true);
+      expect(data.getRecordCount()).assertEqual(0);
+      done();
+    });
+  });
+
+  /**
+   * @tc.name      pasteboard_promise_test66
+   * @tc.desc      关闭远端内容变化通知功能：向剪贴板数据增加、删除等html数据项
+   * @tc.type      Function
+   * @tc.require   AR000HEECD
+   */
+  it('pasteboard_promise_test66', 0, async function (done) {
+    const systemPasteboard = pasteboard.getSystemPasteboard();
+    await systemPasteboard.clearData();
+    systemPasteboard.offRemoteUpdate(contentChanges);
+    const htmlText66 = '<html><head></head><body>Hello World!</body></html>';
+    const pasteData = pasteboard.createHtmlData(htmlText66);
+    await systemPasteboard.setPasteData(pasteData);
+    const res66 = await systemPasteboard.hasPasteData();
+    expect(res66).assertEqual(true);
+    systemPasteboard.getPasteData().then((data) => {
+      expect(data.getRecordCount()).assertEqual(1);
+      expect(data.removeRecordAt(0)).assertEqual(true);
+      expect(data.getRecordCount()).assertEqual(0);
+      done();
+    });
+  });
 });

@@ -37,6 +37,7 @@
 
 using namespace OHOS::MiscServices;
 using EntryValueMap = std::map<std::string, std::shared_ptr<EntryValue>>;
+using ObserverList = std::vector<std::pair<::taihe::callback_view<void()>, OHOS::sptr<PasteboardTaiheObserver>>>;
 using CreatePasteDataFn = napi_value (*)(napi_env, std::shared_ptr<PasteData>);
 using CreateRecordFn = napi_value (*)(napi_env, std::shared_ptr<PasteDataRecord>);
 namespace pasteboardTaihe = ohos::pasteboard::pasteboard;
@@ -442,6 +443,60 @@ public:
         DeleteObserver(observer);
     }
 
+    void OnRemoteUpdate(::taihe::callback_view<void()> callback)
+    {
+        auto it = std::find_if(remoteObservers_.begin(), remoteObservers_.end(),
+            [&callback](std::pair<::taihe::callback_view<void()>, OHOS::sptr<PasteboardTaiheObserver>> item) {
+                return callback == item.first;
+            });
+        if (it != remoteObservers_.end()) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Already registered.");
+            return;
+        }
+
+        auto callbackPtr = std::make_shared<::taihe::callback<void()>>(callback);
+        if (callbackPtr == nullptr) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Malloc callback ptr failed.");
+            return;
+        }
+        auto observer = OHOS::sptr<PasteboardTaiheObserver>::MakeSptr(callbackPtr);
+        if (observer == nullptr) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Malloc observer ptr failed.");
+            return;
+        }
+
+        bool ret = PasteboardClient::GetInstance()->Subscribe(PasteboardObserverType::OBSERVER_REMOTE, observer);
+        if (!ret) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Subscribe failed.");
+        }
+        remoteObservers_.push_back(std::make_pair(callback, observer));
+    }
+
+    void OffRemoteUpdate(::taihe::optional_view<::taihe::callback<void()>> callback)
+    {
+        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_JS_ANI, "callback declared: %{public}d, size: %{public}zu",
+            callback.has_value(), remoteObservers_.size());
+        if (callback.has_value()) {
+            ::taihe::callback_view<void()> func = callback.value();
+            auto it = std::find_if(remoteObservers_.begin(), remoteObservers_.end(),
+                [&func](std::pair<::taihe::callback_view<void()>, OHOS::sptr<PasteboardTaiheObserver>> item) {
+                    return func == item.first;
+                });
+            if (it == remoteObservers_.end()) {
+                PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "callback not found.");
+                return;
+            }
+            PasteboardClient::GetInstance()->Unsubscribe(PasteboardObserverType::OBSERVER_REMOTE, it->second);
+            remoteObservers_.erase(it);
+            return;
+        }
+        for (const auto& item : remoteObservers_) {
+            PasteboardClient::GetInstance()->Unsubscribe(PasteboardObserverType::OBSERVER_REMOTE, item.second);
+        }
+        remoteObservers_.clear();
+        remoteObservers_.shrink_to_fit();
+    }
+
     taihe::string GetDataSource()
     {
         auto block =
@@ -622,8 +677,10 @@ public:
 
 private:
     static thread_local std::map<ani_ref, OHOS::sptr<PasteboardTaiheObserver>> observers_;
+    static thread_local ObserverList remoteObservers_;
 };
 thread_local std::map<ani_ref, OHOS::sptr<PasteboardTaiheObserver>> SystemPasteboardImpl::observers_;
+thread_local ObserverList SystemPasteboardImpl::remoteObservers_;
 
 pasteboardTaihe::PasteDataRecord MakePasteDataRecord()
 {

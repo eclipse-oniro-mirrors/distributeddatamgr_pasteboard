@@ -262,6 +262,8 @@ public:
 private:
     static napi_value On(napi_env env, napi_callback_info info);
     static napi_value Off(napi_env env, napi_callback_info info);
+    static napi_value OnRemoteUpdate(napi_env env, napi_callback_info info);
+    static napi_value OffRemoteUpdate(napi_env env, napi_callback_info info);
     static napi_value Clear(napi_env env, napi_callback_info info);
     static napi_value GetPasteData(napi_env env, napi_callback_info info);
     static napi_value SetPasteData(napi_env env, napi_callback_info info);
@@ -281,9 +283,12 @@ private:
     static napi_value SetDataSync(napi_env env, napi_callback_info info);
     static napi_value HasDataSync(napi_env env, napi_callback_info info);
     static bool CheckArgsOfOnAndOff(napi_env env, bool checkArgsCount, napi_value *argv, size_t argc);
-    static sptr<PasteboardObserverInstance> GetObserver(napi_env env, napi_value jsCallback);
-    static void AddObserver(napi_env env, napi_value jsCallback);
-    static void DeleteObserver(napi_env env, const sptr<PasteboardObserverInstance> &observer);
+    static sptr<PasteboardObserverInstance> GetObserver(
+        napi_env env, napi_value jsCallback, std::map<napi_ref, sptr<PasteboardObserverInstance>> &observerMap);
+    static void AddObserver(napi_env env, napi_value jsCallback,
+        std::map<napi_ref, sptr<PasteboardObserverInstance>> &observerMap, MiscServices::PasteboardObserverType type);
+    static void DeleteObserver(napi_env env, const sptr<PasteboardObserverInstance> &observer,
+        std::map<napi_ref, sptr<PasteboardObserverInstance>> &observerMap, MiscServices::PasteboardObserverType type);
     static void GetDataCommon(std::shared_ptr<GetContextInfo> &context);
     static void SetDataCommon(std::shared_ptr<SetContextInfo> &context);
 
@@ -313,7 +318,8 @@ private:
     std::shared_ptr<PasteDataNapi> value_;
     std::shared_ptr<MiscServices::PasteData> pasteData_;
     napi_env env_;
-    static thread_local std::map<napi_ref, sptr<PasteboardObserverInstance>> observers_;
+    static thread_local std::map<napi_ref, sptr<PasteboardObserverInstance>> localObservers_;
+    static thread_local std::map<napi_ref, sptr<PasteboardObserverInstance>> remoteObservers_;
     static std::shared_ptr<PasteboardDelayGetterInstance> delayGetter_;
 
     static std::recursive_mutex listenerMutex_;
