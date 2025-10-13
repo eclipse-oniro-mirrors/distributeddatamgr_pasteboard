@@ -114,7 +114,7 @@ bool WriteOnlyBuffer::Write(uint16_t type, const std::string &value)
     if (!value.empty()) {
         auto err = memcpy_s(tlvHead->value, value.size(), value.c_str(), value.size());
         PASTEBOARD_CHECK_AND_RETURN_RET_LOGE((err == EOK), false, PASTEBOARD_MODULE_COMMON,
-            "copy string failed, type=%{public}hu", type);
+            "copy string failed, type=%{public}hu, size=%{public}zu", type, value.size());
     }
 
     cursor_ += sizeof(TLVHead) + value.size();
@@ -135,7 +135,8 @@ bool WriteOnlyBuffer::Write(uint16_t type, const RawMem &value)
         auto err = memcpy_s(data_.data() + cursor_, total_ - cursor_,
             reinterpret_cast<const void *>(value.buffer), value.bufferLen);
         PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(err == EOK, false, PASTEBOARD_MODULE_COMMON,
-            "copy RawMem failed, type=%{public}hu", type);
+            "copy RawMem failed, type=%{public}hu, tgtSize=%{public}zu, srcSize=%{public}zu",
+            type, total_ - cursor_, value.bufferLen);
     }
 
     cursor_ += value.bufferLen;
@@ -294,7 +295,8 @@ bool WriteOnlyBuffer::Write(uint16_t type, const std::vector<uint8_t> &value)
     if (!value.empty()) {
         auto err = memcpy_s(data_.data() + cursor_, total_ - cursor_, value.data(), value.size());
         PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(err == EOK, false, PASTEBOARD_MODULE_COMMON,
-            "copy uint8 vector failed, type=%{public}hu", type);
+            "copy uint8 vector failed, type=%{public}hu, tgtSize=%{public}zu, srcSize=%{public}zu",
+            type, total_ - cursor_, value.size());
     }
     cursor_ += value.size();
     return true;
