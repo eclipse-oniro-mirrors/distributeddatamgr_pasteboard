@@ -260,7 +260,7 @@ HWTEST_F(PasteboardServiceCheckTest, IsDataAgedTest004, TestSize.Level0)
     EXPECT_NE(tempPasteboard, nullptr);
 
     auto userId = tempPasteboard->GetCurrentAccountId();
-    auto curTime = static_cast<uint64_t>(PasteboardTime::GetBootTimeMs());
+    auto curTime = static_cast<uint64_t>(PasteBoardTime::GetBootTimeMs());
     auto copyTime = curTime - 2;
     tempPasteboard->agedTime_ = 1;
     tempPasteboard->copyTime_.InsertOrAssign(userId, copyTime);
@@ -303,7 +303,7 @@ HWTEST_F(PasteboardServiceCheckTest, IsDataAgedTest006, TestSize.Level0)
     EXPECT_NE(tempPasteboard, nullptr);
 
     auto userId = tempPasteboard->GetCurrentAccountId();
-    auto curTime = static_cast<uint64_t>(PasteboardTime::GetBootTimeMs());
+    auto curTime = static_cast<uint64_t>(PasteBoardTime::GetBootTimeMs());
     auto copyTime = curTime - 2;
     tempPasteboard->copyTime_.InsertOrAssign(userId, copyTime);
 
