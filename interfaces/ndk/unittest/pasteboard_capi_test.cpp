@@ -699,29 +699,29 @@ HWTEST_F(PasteboardCapiTest, OH_Pasteboard_HasType005, TestSize.Level1)
     OH_UdmfData_AddRecord(setData, record);
 
     OH_Pasteboard_SetData(pasteboard, setData);
-    char udmf_plainText[] = "general.plain-text";
-    char udmf_html[] = "general.html";
-    char udmf_Hyperlink[] = "general.hyperlink";
-    char udmf_uri[] = "general.file-uri";
-    char udmf_want[] = "openharmony.want";
-    char udmf_pixelmap[] = "openharmony.pixel-map";
+    char udmfPlainText[] = "general.plain-text";
+    char udmfHtml[] = "general.html";
+    char udmfHyperlink[] = "general.hyperlink";
+    char udmfUri[] = "general.file-uri";
+    char udmfWant[] = "openharmony.want";
+    char udmfPixelmap[] = "openharmony.pixel-map";
 
-    bool res = OH_Pasteboard_HasType(pasteboard, udmf_plainText);
+    bool res = OH_Pasteboard_HasType(pasteboard, udmfPlainText);
     EXPECT_TRUE(res);
 
-    res = OH_Pasteboard_HasType(pasteboard, udmf_html);
+    res = OH_Pasteboard_HasType(pasteboard, udmfHtml);
     EXPECT_FALSE(res);
 
-    res = OH_Pasteboard_HasType(pasteboard, udmf_Hyperlink);
+    res = OH_Pasteboard_HasType(pasteboard, udmfHyperlink);
     EXPECT_FALSE(res);
 
-    res = OH_Pasteboard_HasType(pasteboard, udmf_uri);
+    res = OH_Pasteboard_HasType(pasteboard, udmfUri);
     EXPECT_FALSE(res);
 
-    res = OH_Pasteboard_HasType(pasteboard, udmf_want);
+    res = OH_Pasteboard_HasType(pasteboard, udmfWant);
     EXPECT_FALSE(res);
 
-    res = OH_Pasteboard_HasType(pasteboard, udmf_pixelmap);
+    res = OH_Pasteboard_HasType(pasteboard, udmfPixelmap);
     EXPECT_FALSE(res);
 
     OH_Pasteboard_Destroy(pasteboard);
@@ -750,29 +750,29 @@ HWTEST_F(PasteboardCapiTest, OH_Pasteboard_HasType006, TestSize.Level1)
     OH_UdmfData_AddRecord(setData, record);
 
     OH_Pasteboard_SetData(pasteboard, setData);
-    char udmf_plainText[] = "general.plain-text";
-    char udmf_html[] = "general.html";
-    char udmf_Hyperlink[] = "general.hyperlink";
-    char udmf_uri[] = "general.file-uri";
-    char udmf_want[] = "openharmony.want";
-    char udmf_pixelmap[] = "openharmony.pixel-map";
+    char udmfPlainText[] = "general.plain-text";
+    char udmfHtml[] = "general.html";
+    char udmfHyperlink[] = "general.hyperlink";
+    char udmfUri[] = "general.file-uri";
+    char udmfWant[] = "openharmony.want";
+    char udmfPixelmap[] = "openharmony.pixel-map";
 
-    bool res = OH_Pasteboard_HasType(pasteboard, udmf_plainText);
+    bool res = OH_Pasteboard_HasType(pasteboard, udmfPlainText);
     EXPECT_FALSE(res);
 
-    res = OH_Pasteboard_HasType(pasteboard, udmf_html);
+    res = OH_Pasteboard_HasType(pasteboard, udmfHtml);
     EXPECT_TRUE(res);
 
-    res = OH_Pasteboard_HasType(pasteboard, udmf_Hyperlink);
+    res = OH_Pasteboard_HasType(pasteboard, udmfHyperlink);
     EXPECT_FALSE(res);
 
-    res = OH_Pasteboard_HasType(pasteboard, udmf_uri);
+    res = OH_Pasteboard_HasType(pasteboard, udmfUri);
     EXPECT_FALSE(res);
 
-    res = OH_Pasteboard_HasType(pasteboard, udmf_want);
+    res = OH_Pasteboard_HasType(pasteboard, udmfWant);
     EXPECT_FALSE(res);
 
-    res = OH_Pasteboard_HasType(pasteboard, udmf_pixelmap);
+    res = OH_Pasteboard_HasType(pasteboard, udmfPixelmap);
     EXPECT_FALSE(res);
 
     OH_Pasteboard_Destroy(pasteboard);
