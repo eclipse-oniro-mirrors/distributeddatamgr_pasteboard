@@ -667,5 +667,24 @@ HWTEST_F(PasteboardServiceSubscribeTest, RemoveObserverByPidTest002, TestSize.Le
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "RemoveObserverByPidTest002 end");
 }
 
+/**
+ * @tc.name: RegisterClientDeathObserverTest001
+ * @tc.desc: test Func RegisterClientDeathObserver
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceSubscribeTest, RegisterClientDeathObserverTest001, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "RegisterClientDeathObserverTest001 start");
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+
+    PasteboardService service;
+    pid_t pid = 1;
+    sptr<IRemoteObject> observer = sptr<RemoteObjectTest>::MakeSptr(u"test");
+    auto result = tempPasteboard->RegisterClientDeathObserver(observer);
+    EXPECT_EQ(result, ERR_OK);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "RegisterClientDeathObserverTest001 end");
+}
+
 } // namespace MiscServices
 } // namespace OHOS

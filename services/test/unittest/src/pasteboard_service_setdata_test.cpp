@@ -899,5 +899,257 @@ HWTEST_F(PasteboardServiceSetDataTest, SetCriticalTimerTest004, TestSize.Level1)
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetCriticalTimerTest004 end");
 }
 
+/**
+ * @tc.name: SaveData001
+ * @tc.desc: test Func SaveData
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceSetDataTest, SaveData001, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SaveData001 start");
+    std::shared_ptr<PasteboardService> tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+
+    PasteData pasteData;
+    sptr<PasteboardDelayGetterImpl> delayGetter = sptr<PasteboardDelayGetterImpl>::MakeSptr();
+    EXPECT_NE(delayGetter, nullptr);
+
+    sptr<PasteboardEntryGetterImpl> entryGetter = sptr<PasteboardEntryGetterImpl>::MakeSptr();
+    EXPECT_NE(entryGetter, nullptr);
+
+    int64_t dataSize = 0;
+    tempPasteboard->SaveData(pasteData, dataSize, delayGetter, entryGetter);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SaveData001 end");
+}
+
+/**
+ * @tc.name: SaveData002
+ * @tc.desc: SaveData002
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceSetDataTest, SaveData002, TestSize.Level0)
+{
+    std::shared_ptr<PasteboardService> tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+    PasteData pasteData;
+    sptr<PasteboardDelayGetterImpl> delayGetter = nullptr;
+    sptr<PasteboardEntryGetterImpl> entryGetter = sptr<PasteboardEntryGetterImpl>::MakeSptr();
+    ASSERT_NE(entryGetter, nullptr);
+    int64_t dataSize = 0;
+    int32_t ret = tempPasteboard->SaveData(pasteData, dataSize, delayGetter, entryGetter);
+    EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
+}
+
+/**
+ * @tc.name: SaveData003
+ * @tc.desc: SaveData003
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceSetDataTest, SaveData003, TestSize.Level0)
+{
+    std::shared_ptr<PasteboardService> tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+    PasteData pasteData;
+    sptr<PasteboardDelayGetterImpl> delayGetter = sptr<PasteboardDelayGetterImpl>::MakeSptr();
+    ASSERT_NE(delayGetter, nullptr);
+    sptr<PasteboardEntryGetterImpl> entryGetter = nullptr;
+    int64_t dataSize = 0;
+    int32_t ret = tempPasteboard->SaveData(pasteData, dataSize, delayGetter, entryGetter);
+    EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
+}
+
+/**
+ * @tc.name: SaveData004
+ * @tc.desc: SaveData004
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceSetDataTest, SaveData004, TestSize.Level0)
+{
+    std::shared_ptr<PasteboardService> tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+    PasteData pasteData;
+    sptr<PasteboardDelayGetterImpl> delayGetter = sptr<PasteboardDelayGetterImpl>::MakeSptr();
+    ASSERT_NE(delayGetter, nullptr);
+    sptr<PasteboardEntryGetterImpl> entryGetter = sptr<PasteboardEntryGetterImpl>::MakeSptr();
+    ASSERT_NE(entryGetter, nullptr);
+    int64_t dataSize = INT64_MAX;
+    int32_t ret = tempPasteboard->SaveData(pasteData, dataSize, delayGetter, entryGetter);
+    EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
+}
+
+/**
+ * @tc.name: WriteRawDataTest001
+ * @tc.desc: test Func WriteRawData
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceSetDataTest, WriteRawDataTest001, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "WriteRawDataTest001 start");
+    auto service = std::make_shared<PasteboardService>();
+    char rawData[] = "testData";
+    int32_t fd = INT32_NEGATIVE_NUMBER;
+    bool result = service->WriteRawData(rawData, sizeof(rawData), fd);
+    EXPECT_EQ(result, true);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "WriteRawDataTest001 end");
+}
+
+/**
+ * @tc.name: WriteRawDataTest002
+ * @tc.desc: test Func WriteRawData
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(PasteboardServiceSetDataTest, WriteRawDataTest002, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "WriteRawDataTest002 start");
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+
+    int serFd = 0;
+    int64_t size = 10;
+
+    bool result = tempPasteboard->WriteRawData(nullptr, size, serFd);
+    EXPECT_FALSE(result);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "WriteRawDataTest002 end");
+}
+
+/**
+ * @tc.name: WriteRawDataTest003
+ * @tc.desc: test Func WriteRawData
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(PasteboardServiceSetDataTest, WriteRawDataTest003, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "WriteRawDataTest003 start");
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+
+    int serFd = 0;
+    char data[10];
+
+    bool result = tempPasteboard->WriteRawData(data, 0, serFd);
+    EXPECT_FALSE(result);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "WriteRawDataTest003 end");
+}
+
+/**
+ * @tc.name: WritePasteDataTest001
+ * @tc.desc: test Func WritePasteDataTest
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(PasteboardServiceSetDataTest, WritePasteDataTest001, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "WritePasteDataTest001 start");
+    int fd = -1;
+    int64_t rawDataSize = 0;
+    std::vector<uint8_t> buffer;
+    PasteData output;
+    bool hasData = false;
+
+    PasteData input;
+    input.AddTextRecord("test");
+    bool result = input.Encode(buffer);
+    ASSERT_TRUE(result);
+
+    rawDataSize = static_cast<int64_t>(buffer.size());
+    MessageParcelWarp messageData;
+    ASSERT_TRUE(rawDataSize <= MIN_ASHMEM_DATA_SIZE);
+
+    fd = messageData.CreateTmpFd();
+    ASSERT_TRUE(fd >= 0);
+
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    auto ret = tempPasteboard->WritePasteData(fd, rawDataSize, buffer, output, hasData);
+    EXPECT_EQ(static_cast<int32_t>(PasteboardError::E_OK), ret);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "WritePasteDataTest001 end");
+}
+
+/**
+ * @tc.name: WritePasteDataTest002
+ * @tc.desc: test Func WritePasteDataTest
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(PasteboardServiceSetDataTest, WritePasteDataTest002, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "WritePasteDataTest002 start");
+    int fd = -1;
+    int64_t rawDataSize = 0;
+    std::vector<uint8_t> buffer;
+    PasteData output;
+    bool hasData = false;
+
+    PasteData input;
+    std::string text = "test";
+    for (int i = 0; i < INT_THREETHREETHREE; ++i) {
+        text += TEST_ENTITY_TEXT;
+    }
+    input.AddTextRecord(text);
+    bool result = input.Encode(buffer);
+    ASSERT_TRUE(result);
+
+    rawDataSize = static_cast<int64_t>(buffer.size());
+    MessageParcelWarp messageData;
+    MessageParcel parcelData;
+    ASSERT_TRUE(rawDataSize > MIN_ASHMEM_DATA_SIZE);
+
+    result = messageData.WriteRawData(parcelData, buffer.data(), buffer.size());
+    ASSERT_TRUE(result);
+
+    fd = messageData.GetWriteDataFd();
+    buffer.clear();
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    auto ret = tempPasteboard->WritePasteData(fd, rawDataSize, buffer, output, hasData);
+    EXPECT_EQ(static_cast<int32_t>(PasteboardError::E_OK), ret);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "WritePasteDataTest002 end");
+}
+
+/**
+ * @tc.name: WritePasteDataTest003
+ * @tc.desc: test Func WritePasteDataTest
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(PasteboardServiceSetDataTest, WritePasteDataTest003, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "WritePasteDataTest003 start");
+    int fd = -1;
+    int64_t rawDataSize = 0;
+    std::vector<uint8_t> buffer;
+    PasteData output;
+    bool hasData = false;
+
+    PasteData input;
+    std::string text = "test";
+    for (int i = 0; i < INT_THREETHREETHREE; ++i) {
+        text += TEST_ENTITY_TEXT;
+    }
+    input.AddTextRecord(text);
+    bool result = input.Encode(buffer);
+    ASSERT_TRUE(result);
+
+    rawDataSize = static_cast<int64_t>(buffer.size() + 1);
+    MessageParcelWarp messageData;
+    MessageParcel parcelData;
+    ASSERT_TRUE(rawDataSize > MIN_ASHMEM_DATA_SIZE);
+
+    result = messageData.WriteRawData(parcelData, buffer.data(), buffer.size());
+    ASSERT_TRUE(result);
+
+    fd = messageData.GetWriteDataFd();
+    buffer.clear();
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    auto ret = tempPasteboard->WritePasteData(fd, rawDataSize, buffer, output, hasData);
+    EXPECT_EQ(static_cast<int32_t>(PasteboardError::INVALID_DATA_SIZE), ret);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "WritePasteDataTest003 end");
+}
+
 } // namespace MiscServices
 } // namespace OHOS
