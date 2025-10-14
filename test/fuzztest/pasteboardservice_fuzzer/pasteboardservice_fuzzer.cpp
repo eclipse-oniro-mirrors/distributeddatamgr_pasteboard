@@ -200,6 +200,13 @@ public:
         return 0;
     }
 
+    int32_t HasUtdType(const std::string &utdType, bool& funcResult) override
+    {
+        (void)utdType;
+        (void)funcResult;
+        return 0;
+    }
+
     int32_t GetMimeTypes(std::vector<std::string>& funcResult) override
     {
         (void)funcResult;

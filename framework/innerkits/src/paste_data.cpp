@@ -394,6 +394,17 @@ bool PasteData::HasMimeType(const std::string &mimeType)
     return false;
 } // LCOV_EXCL_STOP
 
+bool PasteData::HasUtdType(const std::string &utdType)
+{ // LCOV_EXCL_START
+    for (const auto &item : records_) {
+        auto itemTypes = item->GetUtdTypes();
+        if (itemTypes.find(utdType) != itemTypes.end()) {
+            return true;
+        }
+    }
+    return false;
+} // LCOV_EXCL_STOP
+
 std::vector<std::shared_ptr<PasteDataRecord>> PasteData::AllRecords() const
 { // LCOV_EXCL_START
     return this->records_;

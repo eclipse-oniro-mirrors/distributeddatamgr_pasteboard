@@ -46,6 +46,37 @@ extern "C" {
 #endif
 
 /**
+ * @brief MIME type of plain text.
+ *
+ * @since 22
+ */
+#define PASTEBOARD_MIMETYPE_TEXT_PLAIN "text/plain"
+/**
+ * @brief MIME type of URI.
+ *
+ * @since 22
+ */
+#define PASTEBOARD_MIMETYPE_TEXT_URI "text/uri"
+/**
+ * @brief MIME type of HTML text.
+ *
+ * @since 22
+ */
+#define PASTEBOARD_MIMETYPE_TEXT_HTML "text/html"
+/**
+ * @brief MIME type of PixelMap.
+ *
+ * @since 22
+ */
+#define PASTEBOARD_MIMETYPE_PIXELMAP "pixelMap"
+/**
+ * @brief MIME type of want.
+ *
+ * @since 22
+ */
+#define PASTEBOARD_MIMETYPE_TEXT_WANT "text/want"
+
+/**
  * @brief Introduces the UDMF data defined by ArkData Kit.
  *
  * @since 13

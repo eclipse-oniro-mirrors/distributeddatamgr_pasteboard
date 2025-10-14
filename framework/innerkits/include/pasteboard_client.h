@@ -353,6 +353,14 @@ public:
     bool HasDataType(const std::string &mimeType);
 
     /**
+     * HasUtdType
+     * @description Check if there is data of the specified type in the pasteboard.
+     * @param std::string utdType Specified mimetype.
+     * @return bool. True exists, false does not exist
+     */
+    bool HasUtdType(const std::string &utdType);
+
+    /**
      * DetectPatterns
      * @description Checks the specified patterns contained in clipboard, and removes if not found.
      * @param patternsToCheck A reference to an set of Pattern to check against the clipboard.
