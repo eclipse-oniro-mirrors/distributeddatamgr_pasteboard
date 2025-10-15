@@ -62,6 +62,77 @@
 #define NAME_MAX_LEN_TWO MAX_POS_CTRL
 #define NAME_MAX_LEN_TREE 3
 
+constexpr int32_t COMMON_USERID = 0;
+constexpr int32_t INIT_INTERVAL = 10000L;
+constexpr uint32_t MAX_IPC_THREAD_NUM = 32;
+constexpr const char *PASTEBOARD_SERVICE_SA_NAME = "pasteboard_service";
+constexpr const char *PASTEBOARD_SERVICE_NAME = "PasteboardService";
+constexpr const char *NLU_SO_PATH = "libai_nlu_innerapi.z.so";
+constexpr const char *GET_PASTE_DATA_PROCESSOR = "GetPasteDataProcessor";
+constexpr const char *FAIL_TO_GET_TIME_STAMP = "FAIL_TO_GET_TIME_STAMP";
+constexpr const char *SECURE_PASTE_PERMISSION = "ohos.permission.SECURE_PASTE";
+constexpr const char *READ_PASTEBOARD_PERMISSION = "ohos.permission.READ_PASTEBOARD";
+constexpr const char *TRANSMIT_CONTROL_PROP_KEY = "persist.distributed_scene.datafiles_trans_ctrl";
+constexpr const char *MANAGE_PASTEBOARD_APP_SHARE_OPTION_PERMISSION =
+    "ohos.permission.MANAGE_PASTEBOARD_APP_SHARE_OPTION";
+constexpr const char *GET_DATA_APP = "GET_DATA_APP";
+constexpr const char *NETWORK_DEV_NUM = "NETWORK_DEV_NUM";
+constexpr const char *COVER_DELAY_DATA = "COVER_DELAY_DATA";
+constexpr const char *UE_COPY = "DISTRIBUTED_PASTEBOARD_COPY";
+constexpr const char *UE_PASTE = "DISTRIBUTED_PASTEBOARD_PASTE";
+
+constexpr int32_t INVALID_VERSION = -1;
+constexpr int32_t ADD_PERMISSION_CHECK_SDK_VERSION = 12;
+constexpr int32_t CTRLV_EVENT_SIZE = 2;
+constexpr int32_t CONTROL_TYPE_ALLOW_SEND_RECEIVE = 1;
+constexpr uint32_t EVENT_TIME_OUT = 2000;
+constexpr uint32_t MAX_RECOGNITION_LENGTH = 1000;
+constexpr int32_t DEVICE_COLLABORATION_UID = 5521;
+constexpr uint64_t SYSTEM_APP_MASK = (static_cast<uint64_t>(1) << 32);
+constexpr uint32_t MAX_BUNDLE_NAME_LENGTH = 127;
+constexpr int64_t MIN_ASHMEM_DATA_SIZE = 32 * 1024;
+constexpr int32_t E_OK_OPERATION = 0;
+constexpr int32_t SET_VALUE_SUCCESS = 1;
+constexpr uid_t ANCO_SERVICE_BROKER_UID = 5557;
+constexpr float RECALCULATE_DATA_SIZE = 0.9;
+
+struct AppInfo {
+    std::string bundleName = "com.pasteboard.default";
+    int32_t tokenType = -1;
+    int32_t userId = ERROR_USERID;
+    uint32_t tokenId;
+    int32_t appIndex = 0;
+};
+
+struct HistoryInfo {
+    std::string time;
+    std::string bundleName;
+    std::string state;
+    std::string remote;
+    int32_t userId = ERROR_USERID;
+};
+
+struct PasteDateTime {
+    int32_t syncTime = 0;
+    int32_t errorCode = 0;
+    std::shared_ptr<PasteData> data;
+};
+
+struct PasteDateResult {
+    int32_t syncTime = 0;
+    int32_t errorCode = 0;
+};
+
+struct PasteP2pEstablishInfo {
+    std::string networkId;
+    std::shared_ptr<BlockObject<int32_t>> pasteBlock;
+};
+
+struct FocusedAppInfo {
+    int32_t windowId = 0;
+    sptr<IRemoteObject> abilityToken = nullptr;
+};
+
 // ============================ 鸿蒙剪贴板接口 ============================
 namespace OHOS {
 namespace MiscServices {
