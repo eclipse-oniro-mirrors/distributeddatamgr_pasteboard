@@ -66,9 +66,10 @@ int32_t PasteboardObserverStub::OnPasteboardChangedStub(MessageParcel &data, Mes
 int32_t PasteboardObserverStub::OnPasteboardEventStub(MessageParcel &data, MessageParcel &reply)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "start.");
-    std::string bundleName = data.ReadString();
-    int32_t status = data.ReadInt32();
-    OnPasteboardEvent(bundleName, status);
+    PasteboardChangedEvent event;
+    event.bundleName = data.ReadString();
+    event.status = data.ReadInt32();
+    OnPasteboardEvent(event);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "end.");
     return ERR_OK;
 }

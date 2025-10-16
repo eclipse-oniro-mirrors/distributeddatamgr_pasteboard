@@ -104,11 +104,11 @@ void PasteboardObserverCallback::OnPasteboardChanged()
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "test changed callback.");
 }
 
-void PasteboardEventObserverCallback::OnPasteboardEvent(std::string bundleName, int32_t status)
+void PasteboardEventObserverCallback::OnPasteboardEvent(const PasteboardChangedEvent &event)
 {
-    PasteboardServiceTest::pasteboardEventStatus_ = status;
+    PasteboardServiceTest::pasteboardEventStatus_ = event.status;
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "test event callback bundleName: %{public}s,status:%{public}d",
-        bundleName.c_str(), status);
+        event.bundleName.c_str(), event.status);
 }
 
 bool PasteboardServiceTest::ExecuteCmd(std::string &result)
