@@ -32,6 +32,7 @@
 #include "eventcenter/pasteboard_event.h"
 #include "hiview_adapter.h"
 #include "input_method_controller.h"
+#include "ipasteboard_changed_observer.h"
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
 #include "mem_mgr_client.h"
@@ -3030,7 +3031,6 @@ void PasteboardService::NotifyObservers(std::string bundleName, int32_t userId, 
                 }
             }
         }
-        std::string notifyInfo =
         IPasteboardChangedObserver::PasteboardChangedEvent event;
         event.status = static_cast<int32_t>(status);
         event.userId = userId;
