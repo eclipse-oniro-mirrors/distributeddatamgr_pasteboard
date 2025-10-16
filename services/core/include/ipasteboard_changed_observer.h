@@ -26,7 +26,7 @@ public:
         std::string bundleName;
         int32_t status;
         int32_t userId;
-    }
+    };
     virtual void OnPasteboardChanged() = 0;
     virtual void OnPasteboardEvent(const PasteboardChangedEvent &event) = 0;
     virtual ~IPasteboardChangedObserver() = default;
