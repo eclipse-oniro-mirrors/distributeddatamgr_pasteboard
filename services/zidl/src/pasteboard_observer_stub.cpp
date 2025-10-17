@@ -70,9 +70,11 @@ int32_t PasteboardObserverStub::OnPasteboardEventStub(MessageParcel &data, Messa
     PasteboardChangedEvent event;
     event.bundleName = data.ReadString();
     if (!data.ReadInt32(event.status)) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "Read status failed.");
         return static_cast<int32_t>(PasteboardError::DESERIALIZATION_ERROR);
     }
     if (!data.ReadInt32(event.userId)) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "Read userId failed.");
         return static_cast<int32_t>(PasteboardError::DESERIALIZATION_ERROR);
     }
     OnPasteboardEvent(event);
