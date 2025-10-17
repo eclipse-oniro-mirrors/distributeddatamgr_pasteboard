@@ -988,6 +988,7 @@ private:
         if (it != getDataParams_.end()) {
             auto &params = it->second;
             ohos::pasteboard::pasteboard::ProgressInfo progress;
+            progress.progress = 0;
             if (getDataParams->info != nullptr) {
                 progress.progress = getDataParams->info->percentage;
             }
