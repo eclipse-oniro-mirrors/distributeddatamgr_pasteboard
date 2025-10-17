@@ -22,8 +22,13 @@ namespace OHOS {
 namespace MiscServices {
 class IPasteboardChangedObserver : public IRemoteBroker {
 public:
+    struct PasteboardChangedEvent {
+        std::string bundleName;
+        int32_t status;
+        int32_t userId = -1;
+    };
     virtual void OnPasteboardChanged() = 0;
-    virtual void OnPasteboardEvent(std::string bundleName, int32_t status) = 0;
+    virtual void OnPasteboardEvent(const PasteboardChangedEvent &event) = 0;
     virtual ~IPasteboardChangedObserver() = default;
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.miscservices.pasteboard.IPasteboardChangedObserver");
 };

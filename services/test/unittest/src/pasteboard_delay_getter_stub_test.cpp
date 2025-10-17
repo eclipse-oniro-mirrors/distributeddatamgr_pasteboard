@@ -38,7 +38,7 @@ public:
     PasteboardObserverImpl();
     ~PasteboardObserverImpl();
     void OnPasteboardChanged() override;
-    void OnPasteboardEvent(std::string bundleName, int32_t status) override;
+    void OnPasteboardEvent(const PasteboardChangedEvent &event) override;
 };
 
 PasteboardObserverImpl::PasteboardObserverImpl()
@@ -56,7 +56,7 @@ void PasteboardObserverImpl::OnPasteboardChanged()
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "changed callback.");
 }
 
-void PasteboardObserverImpl::OnPasteboardEvent(std::string bundleName, int32_t status)
+void PasteboardObserverImpl::OnPasteboardEvent(const PasteboardChangedEvent &event)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "event callback.");
 }

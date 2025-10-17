@@ -85,7 +85,7 @@ class MyTestPasteboardChangedObserver : public IPasteboardChangedObserver {
     {
         return;
     }
-    void OnPasteboardEvent(std::string bundleName, int32_t status)
+    void OnPasteboardEvent(const PasteboardChangedEvent &event)
     {
         return;
     }

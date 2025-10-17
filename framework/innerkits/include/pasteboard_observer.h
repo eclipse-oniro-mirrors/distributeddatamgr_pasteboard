@@ -24,7 +24,7 @@ public:
     PasteboardObserver();
     ~PasteboardObserver();
     void OnPasteboardChanged() override;
-    void OnPasteboardEvent(std::string bundleName, int32_t status) override;
+    void OnPasteboardEvent(const PasteboardChangedEvent &event) override;
 };
 } // namespace MiscServices
 } // namespace OHOS

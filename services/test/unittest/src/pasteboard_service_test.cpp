@@ -80,7 +80,7 @@ class MyTestPasteboardChangedObserver : public PasteboardObserverStub {
     {
         return;
     }
-    void OnPasteboardEvent(std::string bundleName, int32_t status)
+    void OnPasteboardEvent(const PasteboardChangedEvent &event)
     {
         return;
     }
