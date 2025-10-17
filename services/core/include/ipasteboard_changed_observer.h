@@ -25,7 +25,7 @@ public:
     struct PasteboardChangedEvent {
         std::string bundleName;
         int32_t status;
-        int32_t userId;
+        int32_t userId = -1;
     };
     virtual void OnPasteboardChanged() = 0;
     virtual void OnPasteboardEvent(const PasteboardChangedEvent &event) = 0;

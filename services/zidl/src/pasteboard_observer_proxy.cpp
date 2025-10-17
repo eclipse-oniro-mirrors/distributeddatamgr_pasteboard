@@ -15,6 +15,7 @@
 
 #include "pasteboard_observer_proxy.h"
 #include "pasteboard_hilog.h"
+#include "pasteboard_error.h"
 #include "pasteboard_serv_ipc_interface_code.h"
 
 using namespace OHOS::Security::PasteboardServ;
@@ -56,6 +57,7 @@ void PasteboardObserverProxy::OnPasteboardEvent(const PasteboardChangedEvent &ev
     PASTEBOARD_CHECK_AND_RETURN_LOGE(data.WriteString(event.bundleName), PASTEBOARD_MODULE_SERVICE,
         "Write bundleName failed");
     PASTEBOARD_CHECK_AND_RETURN_LOGE(data.WriteInt32(event.status), PASTEBOARD_MODULE_SERVICE, "Write status failed");
+    PASTEBOARD_CHECK_AND_RETURN_LOGE(data.WriteInt32(event.userId), PASTEBOARD_MODULE_SERVICE, "Write userId failed");
     int ret = Remote()->SendRequest(
         static_cast<int>(PasteboardObserverInterfaceCode::ON_PASTE_BOARD_EVENT), data, reply, option);
     if (ret != ERR_OK) {
