@@ -69,7 +69,6 @@ int32_t PasteboardObserverStub::OnPasteboardEventStub(MessageParcel &data, Messa
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "start.");
     PasteboardChangedEvent event;
     event.bundleName = data.ReadString();
-    event.status = data.ReadInt32();
     if (!data.ReadInt32(event.status)) {
         return static_cast<int32_t>(PasteboardError::DESERIALIZATION_ERROR);
     }
