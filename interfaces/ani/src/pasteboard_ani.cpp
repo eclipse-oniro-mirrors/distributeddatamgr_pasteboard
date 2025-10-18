@@ -779,7 +779,7 @@ bool ForEachMapEntry(ani_env *env, ani_object map_object,
         return false;
     }
     ani_ref keys;
-    if (ANI_OK != env->Object_CallMethodByName_Ref(map_object, "keys", ":Lescompat/IterableIterator;", &keys)) {
+    if (ANI_OK != env->Object_CallMethodByName_Ref(map_object, "keys", ":Lstd/core/IterableIterator;", &keys)) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "[forEachMapEntry] Failed to get keys iterator.");
         return false;
     }
