@@ -35,15 +35,9 @@ using namespace OHOS::Security::AccessToken;
 
 namespace OHOS {
 namespace {
-const int INT_ONE = 1;
 const int32_t INT32_NEGATIVE_NUMBER = -1;
-constexpr int32_t SET_VALUE_SUCCESS = 1;
 const int INT_THREETHREETHREE = 333;
-const uint32_t MAX_RECOGNITION_LENGTH = 1000;
 constexpr int64_t MIN_ASHMEM_DATA_SIZE = 32 * 1024;
-constexpr uint32_t EVENT_TIME_OUT = 2000;
-const int32_t ACCOUNT_IDS_RANDOM = 1121;
-const uint32_t UINT32_ONE = 1;
 const std::string TEST_ENTITY_TEXT =
     "清晨，从杭州市中心出发，沿着湖滨路缓缓前行。湖滨路是杭州市中心通往西湖的主要街道之一，两旁绿树成荫，湖光山色尽收眼"
     "底。你可以选择步行或骑行，感受微风拂面的惬意。湖滨路的尽头是南山路，这里有一片开阔的广场，是欣赏西湖全景的绝佳位置"
@@ -59,9 +53,6 @@ const std::string TEST_ENTITY_TEXT =
     "和谐与宁静。如果你时间充裕，可以选择在湖畔的咖啡馆稍作休息，回味这一天的旅程。这条路线涵盖了西湖的主要经典景点，从"
     "湖滨路到南山路，再到杨公堤、北山街，最后回到杭州市中心，整个行程大约需要一天时间。沿着这条路线，你可以领略西湖的自"
     "然风光和文化底蕴，感受人间天堂的独特魅力。";
-const int64_t DEFAULT_MAX_RAW_DATA_SIZE = 128 * 1024 * 1024;
-constexpr int32_t MIMETYPE_MAX_SIZE = 1024;
-static constexpr uint64_t ONE_HOUR_MILLISECONDS = 60 * 60 * 1000;
 } // namespace
 
 class MyTestEntityRecognitionObserver : public IEntityRecognitionObserver {
