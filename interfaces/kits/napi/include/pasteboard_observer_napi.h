@@ -29,7 +29,7 @@ public:
     void OnPasteboardChanged() override;
 
 private:
-    napi_threadsafe_function callback_ = nullptr;
+    std::shared_ptr<napi_threadsafe_function> callback_ = nullptr;
     napi_env env_;
 };
 

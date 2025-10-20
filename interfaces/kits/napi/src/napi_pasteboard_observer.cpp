@@ -25,13 +25,14 @@ using namespace OHOS::MiscServices;
 namespace OHOS {
 namespace MiscServicesNapi {
 PasteboardObserverInstance::PasteboardObserverInstance(napi_threadsafe_function callback, napi_env env)
-    : callback_(callback), env_(env)
+    : env_(env)
 {
+    callback_ = std::make_shared<napi_threadsafe_function>(callback);
 }
 
 PasteboardObserverInstance::~PasteboardObserverInstance()
 {
-    napi_status status = napi_release_threadsafe_function(callback_, napi_tsfn_release);
+    napi_status status = napi_release_threadsafe_function(*callback_, napi_tsfn_release);
     PASTEBOARD_CHECK_AND_RETURN_LOGE(status == napi_ok, PASTEBOARD_MODULE_JS_NAPI,
         "release callback failed, status=%{public}d", status);
 }
@@ -40,16 +41,16 @@ void PasteboardObserverInstance::OnPasteboardChanged()
 {
     pid_t threadId = syscall(SYS_gettid);
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "enter");
-    auto task = [this, threadId]() {
+    auto task = [callback = callback_, threadId]() {
         PASTEBOARD_HILOGI(PASTEBOARD_MODULE_JS_NAPI, "napi_send_event start, originTid=%{public}d", threadId);
-        napi_status status = napi_acquire_threadsafe_function(callback_);
+        napi_status status = napi_acquire_threadsafe_function(*callback);
         PASTEBOARD_CHECK_AND_RETURN_LOGE(status == napi_ok, PASTEBOARD_MODULE_JS_NAPI,
             "acquire callback failed, status=%{public}d", status);
-        status = napi_call_threadsafe_function(callback_, nullptr, napi_tsfn_blocking);
+        status = napi_call_threadsafe_function(*callback, nullptr, napi_tsfn_blocking);
         if (status != napi_ok) {
             PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "call callback failed, status=%{public}d", status);
         }
-        status = napi_release_threadsafe_function(callback_, napi_tsfn_release);
+        status = napi_release_threadsafe_function(*callback, napi_tsfn_release);
         PASTEBOARD_CHECK_AND_RETURN_LOGE(status == napi_ok, PASTEBOARD_MODULE_JS_NAPI,
             "release callback failed, status=%{public}d", status);
     };
