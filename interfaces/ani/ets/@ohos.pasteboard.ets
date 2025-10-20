@@ -169,12 +169,12 @@ export class SystemPasteboardImpl implements pasteboard.SystemPasteboard {
     setData(data: pasteboard.PasteData, callback: AsyncCallback<void>): void {
         console.println("setData enter")
         let p = taskpool.execute(this.nativeSetData, data)
-        p.then((e: NullishType) => {
+        p.then((e: Any) => {
             let r = e as number
             console.println("setData return :" + r)
             let err: BusinessError<void>
             callback(err, undefined)
-        }).catch((e: NullishType) => {
+        }).catch((e: Any) => {
             let err = e as BusinessError<void>;
             callback(err, undefined);
         });
@@ -183,7 +183,7 @@ export class SystemPasteboardImpl implements pasteboard.SystemPasteboard {
         console.println("promise => setData enter")
         return new Promise<void>((resolve: (v: PromiseLike<void>) => void, reject: (error: Error) => void): void => {
             let p = taskpool.execute(this.nativeSetData, data)
-            p.then((e: NullishType): void => {
+            p.then((e: Any): void => {
                 let r = e as number
                 console.println("promise => setData return:" + r)
                 resolve(Promise.resolve())
@@ -199,11 +199,11 @@ export class SystemPasteboardImpl implements pasteboard.SystemPasteboard {
             this.nativeClearData()
             return 0
         })
-        p.then((e: NullishType) => {
+        p.then((e: Any) => {
             let r = e as number
             let err: BusinessError<void>
             callback(err, undefined)
-        }).catch((e: NullishType) => {
+        }).catch((e: Any) => {
             let err = e as BusinessError<void>;
             callback(err, undefined);
         });
@@ -215,7 +215,7 @@ export class SystemPasteboardImpl implements pasteboard.SystemPasteboard {
                 this.nativeClearData()
                 return 0
             })
-            p.then((e: NullishType): void => {
+            p.then((e: Any): void => {
                 resolve(Promise.resolve())
             }).catch((e: Error): void => {
                 console.log("promise => clear failed:", e)
