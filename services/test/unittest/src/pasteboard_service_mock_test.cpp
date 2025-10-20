@@ -1934,5 +1934,1597 @@ HWTEST_F(PasteboardServiceMockTest, PasteboardEventSubscriberTest003, TestSize.L
     tempPasteboard->PasteboardEventSubscriber();
     EXPECT_NE(tempPasteboard->p2pMap_.Size(), 0);
 }
+
+/**
+ * @tc.name: SetDistributedDataTest001
+ * @tc.desc: test Func SetDistributedData, IsAllowSendData is false
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, SetDistributedDataTest001, TestSize.Level0)
+{
+    PasteboardService service;
+    NiceMock<PasteboardServiceInterfaceMock> ipcMock;
+    EXPECT_CALL(ipcMock, GetIntParameter(testing::_, testing::_, testing::_, testing::_))
+        .WillRepeatedly(testing::Return(INT32_NEGATIVE_NUMBER));
+
+    PasteData pasteData;
+    int32_t result = service.SetDistributedData(ACCOUNT_IDS_RANDOM, pasteData);
+    EXPECT_EQ(result, false);
+}
+
+/**
+ * @tc.name: SetDistributedDataTest002
+ * @tc.desc: test Func SetDistributedData, IsDisallowDistributed is true
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, SetDistributedDataTest002, TestSize.Level0)
+{
+    PasteboardService service;
+    NiceMock<PasteboardServiceInterfaceMock> ipcMock;
+    EXPECT_CALL(ipcMock, GetIntParameter(testing::_, testing::_, testing::_, testing::_))
+        .WillRepeatedly(testing::Return(CONTROL_TYPE_ALLOW_SEND_RECEIVE));
+    EXPECT_CALL(ipcMock, GetCallingUid()).WillOnce(testing::Return(DEVICE_COLLABORATION_UID));
+
+    PasteData pasteData;
+    int32_t result = service.SetDistributedData(ACCOUNT_IDS_RANDOM, pasteData);
+    EXPECT_EQ(result, false);
+}
+
+/**
+ * @tc.name: SetDistributedDataTest003
+ * @tc.desc: test Func SetDistributedData, clipPlugin == nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, SetDistributedDataTest003, TestSize.Level0)
+{
+    PasteboardService service;
+    NiceMock<PasteboardServiceInterfaceMock> ipcMock;
+    EXPECT_CALL(ipcMock, GetIntParameter(testing::_, testing::_, testing::_, testing::_))
+        .WillRepeatedly(testing::Return(CONTROL_TYPE_ALLOW_SEND_RECEIVE));
+    EXPECT_CALL(ipcMock, GetCallingUid()).WillOnce(testing::Return(1234));
+
+    service.securityLevel_.securityLevel_ = DATA_SEC_LEVEL1;
+    PasteData pasteData;
+    int32_t result = service.SetDistributedData(ACCOUNT_IDS_RANDOM, pasteData);
+    EXPECT_EQ(result, false);
+}
+
+/**
+ * @tc.name: SetDistributedDataTest004
+ * @tc.desc: test Func SetDistributedData, return true
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, SetDistributedDataTest004, TestSize.Level0)
+{
+    PasteboardService service;
+    NiceMock<PasteboardServiceInterfaceMock> ipcMock;
+    EXPECT_CALL(ipcMock, GetIntParameter(testing::_, testing::_, testing::_, testing::_))
+        .WillRepeatedly(testing::Return(CONTROL_TYPE_ALLOW_SEND_RECEIVE));
+    EXPECT_CALL(ipcMock, GetCallingUid()).WillOnce(testing::Return(1234));
+
+    PasteData pasteData;
+    int32_t result = service.SetDistributedData(ACCOUNT_IDS_RANDOM, pasteData);
+    EXPECT_EQ(result, false);
+}
+
+/**
+ * @tc.name: SetCurrentDataTest001
+ * @tc.desc: test Func SetCurrentData, clipPlugin == nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, SetCurrentDataTest001, TestSize.Level0)
+{
+    PasteboardService service;
+    NiceMock<PasteboardServiceInterfaceMock> ipcMock;
+
+    service.securityLevel_.securityLevel_ = DATA_SEC_LEVEL1;
+    TestEvent event;
+    PasteData data;
+    bool result = service.SetCurrentData(event, data);
+    EXPECT_EQ(result, false);
+}
+
+/**
+ * @tc.name: SetCurrentDataTest002
+ * @tc.desc: test Func SetCurrentData, needFull is true, encode is false
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, SetCurrentDataTest002, TestSize.Level0)
+{
+    PasteboardService service;
+    NiceMock<PasteboardServiceInterfaceMock> mock;
+    service.securityLevel_.securityLevel_ = DATA_SEC_LEVEL3;
+    std::string PLUGIN_NAME_VAL = "mock_clip";
+    auto release = [&PLUGIN_NAME_VAL, this](ClipPlugin *plugin) {
+        ClipPlugin::DestroyPlugin(PLUGIN_NAME_VAL, plugin);
+    };
+    std::shared_ptr<ClipPlugin> clipPlugin =
+        std::shared_ptr<ClipPlugin>(ClipPlugin::CreatePlugin(PLUGIN_NAME_VAL), release);
+    service.clipPlugin_ = clipPlugin;
+    TestEvent event;
+    PasteData data;
+    data.AddTextRecord(RANDOM_STRING);
+    data.SetDelayRecord(true);
+    EXPECT_CALL(mock, IsOn()).WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, GetRemoteDeviceMinVersion())
+        .WillRepeatedly(testing::Return(DistributedModuleConfig::FIRST_VERSION));
+
+    bool result = service.SetCurrentData(event, data);
+    EXPECT_EQ(result, false);
+}
+
+/**
+ * @tc.name: SetCurrentDataTest003
+ * @tc.desc: test Func SetCurrentData, data.IsDelayRecord() && !needFull
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, SetCurrentDataTest003, TestSize.Level0)
+{
+    PasteboardService service;
+    NiceMock<PasteboardServiceInterfaceMock> mock;
+    service.securityLevel_.securityLevel_ = DATA_SEC_LEVEL3;
+    std::string PLUGIN_NAME_VAL = "mock_clip";
+    auto release = [&PLUGIN_NAME_VAL, this](ClipPlugin *plugin) {
+        ClipPlugin::DestroyPlugin(PLUGIN_NAME_VAL, plugin);
+    };
+    std::shared_ptr<ClipPlugin> clipPlugin =
+        std::shared_ptr<ClipPlugin>(ClipPlugin::CreatePlugin(PLUGIN_NAME_VAL), release);
+    service.clipPlugin_ = clipPlugin;
+    TestEvent event;
+    PasteData data;
+    data.AddTextRecord(RANDOM_STRING);
+    data.SetDelayRecord(true);
+    EXPECT_CALL(mock, IsOn()).WillOnce(testing::Return(true));
+    EXPECT_CALL(mock, GetRemoteDeviceMinVersion())
+        .WillRepeatedly(testing::Return(DistributedModuleConfig::FIRST_VERSION + 1));
+    EXPECT_CALL(mock, Encode(testing::_)).WillOnce(Return(true));
+    bool result = service.SetCurrentData(event, data);
+    EXPECT_EQ(result, true);
+}
+
+/**
+ * @tc.name: GetDistributedDelayEntryTest001
+ * @tc.desc: test Func GetDistributedDelayEntry
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, GetDistributedDelayEntryTest001, TestSize.Level0)
+{
+    PasteboardService service;
+    TestEvent event;
+    event.user = ACCOUNT_IDS_RANDOM;
+    auto data = std::make_shared<PasteData>();
+    EXPECT_NE(data, nullptr);
+    auto record = PasteDataRecord::NewPlainTextRecord(RANDOM_STRING);
+    data->SetDataId(service.delayDataId_);
+    data->AddRecord(record);
+    data->SetRemote(true);
+    data->records_.emplace_back(record);
+    service.clips_.InsertOrAssign(ACCOUNT_IDS_RANDOM, data);
+    event.dataId == data->GetDataId();
+    std::vector<uint8_t> rawData;
+    auto entry = std::make_shared<PasteDataEntry>();
+    entry->SetMimeType(MIMETYPE_TEXT_PLAIN);
+
+    sptr<PasteboardEntryGetterImpl> pasteboardEntryGetterImpl = sptr<PasteboardEntryGetterImpl>::MakeSptr();
+    sptr<PasteboardService::EntryGetterDeathRecipient> deathRecipient =
+        sptr<PasteboardService::EntryGetterDeathRecipient>::MakeSptr(ACCOUNT_IDS_RANDOM, service);
+    service.entryGetters_.InsertOrAssign(
+        ACCOUNT_IDS_RANDOM, std::make_pair(pasteboardEntryGetterImpl, deathRecipient));
+
+    NiceMock<PasteboardServiceInterfaceMock> mock;
+    EXPECT_CALL(mock, GetRecordById(testing::_)).WillOnce(Return(record));
+    EXPECT_CALL(mock, GetEntry(testing::_)).WillOnce(Return(entry));
+    EXPECT_CALL(mock, Encode(testing::_)).WillOnce(Return(true));
+    service.GetDistributedDelayEntry(event, data->GetRecordId(), RANDOM_STRING, rawData);
+}
+
+/**
+ * @tc.name: GetDistributedDelayEntryTest002
+ * @tc.desc: test Func GetDistributedDelayEntry
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, GetDistributedDelayEntryTest002, TestSize.Level0)
+{
+    PasteboardService service;
+    TestEvent event;
+    event.user = ACCOUNT_IDS_RANDOM;
+    auto data = std::make_shared<PasteData>();
+    EXPECT_NE(data, nullptr);
+    OHOS::Uri uri("uri");
+    auto record = PasteDataRecord::NewUriRecord(uri);
+    data->SetDataId(service.delayDataId_);
+    data->AddRecord(record);
+    data->SetRemote(true);
+    data->records_.emplace_back(record);
+    service.clips_.InsertOrAssign(ACCOUNT_IDS_RANDOM, data);
+    event.dataId == data->GetDataId();
+    std::vector<uint8_t> rawData;
+    auto entry = std::make_shared<PasteDataEntry>();
+    entry->SetMimeType(MIMETYPE_TEXT_URI);
+
+    sptr<PasteboardEntryGetterImpl> pasteboardEntryGetterImpl = sptr<PasteboardEntryGetterImpl>::MakeSptr();
+    sptr<PasteboardService::EntryGetterDeathRecipient> deathRecipient =
+        sptr<PasteboardService::EntryGetterDeathRecipient>::MakeSptr(ACCOUNT_IDS_RANDOM, service);
+    service.entryGetters_.InsertOrAssign(
+        ACCOUNT_IDS_RANDOM, std::make_pair(pasteboardEntryGetterImpl, deathRecipient));
+
+    NiceMock<PasteboardServiceInterfaceMock> mock;
+    EXPECT_CALL(mock, GetRecordById(testing::_)).WillOnce(Return(record));
+    EXPECT_CALL(mock, GetEntry(testing::_)).WillOnce(Return(entry));
+    service.GetDistributedDelayEntry(event, data->GetRecordId(), RANDOM_STRING, rawData);
+}
+
+/**
+ * @tc.name: GetDistributedDelayEntryTest003
+ * @tc.desc: test Func GetDistributedDelayEntry
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, GetDistributedDelayEntryTest003, TestSize.Level0)
+{
+    PasteboardService service;
+    TestEvent event;
+    event.user = ACCOUNT_IDS_RANDOM;
+    auto data = std::make_shared<PasteData>();
+    EXPECT_NE(data, nullptr);
+    auto record = PasteDataRecord::NewHtmlRecord(HTML_STRING);
+    data->SetDataId(service.delayDataId_);
+    data->AddRecord(record);
+    data->SetRemote(true);
+    data->records_.emplace_back(record);
+    service.clips_.InsertOrAssign(ACCOUNT_IDS_RANDOM, data);
+    event.dataId == data->GetDataId();
+    std::vector<uint8_t> rawData;
+    auto entry = std::make_shared<PasteDataEntry>();
+    entry->SetMimeType(MIMETYPE_TEXT_HTML);
+
+    sptr<PasteboardEntryGetterImpl> pasteboardEntryGetterImpl = sptr<PasteboardEntryGetterImpl>::MakeSptr();
+    sptr<PasteboardService::EntryGetterDeathRecipient> deathRecipient =
+        sptr<PasteboardService::EntryGetterDeathRecipient>::MakeSptr(ACCOUNT_IDS_RANDOM, service);
+    service.entryGetters_.InsertOrAssign(
+        ACCOUNT_IDS_RANDOM, std::make_pair(pasteboardEntryGetterImpl, deathRecipient));
+
+    NiceMock<PasteboardServiceInterfaceMock> mock;
+    EXPECT_CALL(mock, GetRecordById(testing::_)).WillOnce(Return(record));
+    EXPECT_CALL(mock, GetEntry(testing::_)).WillOnce(Return(entry));
+    service.GetDistributedDelayEntry(event, data->GetRecordId(), RANDOM_STRING, rawData);
+}
+
+/**
+ * @tc.name: ProcessDistributedDelayUriTest003
+ * @tc.desc: test Func ProcessDistributedDelayUri
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, ProcessDistributedDelayUriTest003, TestSize.Level0)
+{
+    PasteboardService service;
+
+    PasteData data;
+    OHOS::Uri uri("/");
+    auto record = PasteDataRecord::NewUriRecord(uri);
+    data.AddRecord(record);
+
+    auto entry = record->GetEntryByMimeType(MIMETYPE_TEXT_URI);
+    auto utdId = CommonUtils::Convert2UtdId(UDMF::UDType::UD_BUTT, entry->GetMimeType());
+    entry->SetUtdId(utdId);
+    std::vector<uint8_t> rawData;
+
+    NiceMock<PasteboardServiceInterfaceMock> mock;
+    struct HmdfsUriInfo dfsUri;
+    EXPECT_CALL(mock, GetDfsUriFromLocal(testing::_, testing::_, testing::_))
+        .WillOnce([](auto, auto, struct HmdfsUriInfo &hui) {
+            hui.uriStr = "uri";
+            hui.fileSize = 0;
+            return 0;
+        });
+    EXPECT_CALL(mock, Encode(testing::_)).WillOnce(Return(true));
+    int32_t ret = service.ProcessDistributedDelayUri(ACCOUNT_IDS_RANDOM, data, *entry, rawData);
+    EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
+}
+
+/**
+ * @tc.name: GetClipPluginTest001
+ * @tc.desc: test Func GetClipPlugin
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, GetClipPluginTest001, TestSize.Level0)
+{
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    ASSERT_NE(tempPasteboard, nullptr);
+
+    tempPasteboard->securityLevel_.securityLevel_ = DATA_SEC_LEVEL1;
+    testing::NiceMock<PasteboardServiceInterfaceMock> mock;
+
+    EXPECT_CALL(mock, IsOn()).WillOnce(testing::Return(true));
+
+    auto result = tempPasteboard->GetClipPlugin();
+    EXPECT_EQ(result, nullptr);
+    tempPasteboard->securityLevel_.securityLevel_ = DATA_SEC_LEVEL0;
+}
+
+/**
+ * @tc.name: GetClipPluginTest002
+ * @tc.desc: test Func GetClipPlugin
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, GetClipPluginTest002, TestSize.Level0)
+{
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    ASSERT_NE(tempPasteboard, nullptr);
+
+    tempPasteboard->securityLevel_.securityLevel_ = DATA_SEC_LEVEL3;
+    tempPasteboard->clipPlugin_ = nullptr;
+    testing::NiceMock<PasteboardServiceInterfaceMock> mock;
+
+    EXPECT_CALL(mock, IsOn()).WillOnce(testing::Return(true));
+
+    auto result = tempPasteboard->GetClipPlugin();
+    EXPECT_NE(result, nullptr);
+    tempPasteboard->securityLevel_.securityLevel_ = DATA_SEC_LEVEL0;
+}
+
+/**
+ * @tc.name: GetClipPluginTest003
+ * @tc.desc: test Func GetClipPlugin
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, GetClipPluginTest003, TestSize.Level0)
+{
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    ASSERT_NE(tempPasteboard, nullptr);
+
+    tempPasteboard->securityLevel_.securityLevel_ = DATA_SEC_LEVEL3;
+    tempPasteboard->clipPlugin_ = nullptr;
+    testing::NiceMock<PasteboardServiceInterfaceMock> mock;
+
+    EXPECT_CALL(mock, IsOn()).WillOnce(testing::Return(false));
+
+    auto result = tempPasteboard->GetClipPlugin();
+    EXPECT_EQ(result, nullptr);
+    tempPasteboard->securityLevel_.securityLevel_ = DATA_SEC_LEVEL0;
+}
+
+/**
+ * @tc.name: GetClipPluginTest004
+ * @tc.desc: test Func GetClipPlugin
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, GetClipPluginTest004, TestSize.Level0)
+{
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    ASSERT_NE(tempPasteboard, nullptr);
+
+    tempPasteboard->securityLevel_.securityLevel_ = DATA_SEC_LEVEL3;
+    std::string PLUGIN_NAME_VAL = "distributed_clip";
+    auto release = [&PLUGIN_NAME_VAL, this](ClipPlugin *plugin) {
+        ClipPlugin::DestroyPlugin(PLUGIN_NAME_VAL, plugin);
+    };
+    std::shared_ptr<ClipPlugin> clipPlugin =
+        std::shared_ptr<ClipPlugin>(ClipPlugin::CreatePlugin(PLUGIN_NAME_VAL), release);
+    tempPasteboard->clipPlugin_ = clipPlugin;
+    testing::NiceMock<PasteboardServiceInterfaceMock> mock;
+
+    EXPECT_CALL(mock, IsOn()).WillOnce(testing::Return(true));
+
+    auto result = tempPasteboard->GetClipPlugin();
+    EXPECT_EQ(result, clipPlugin);
+    tempPasteboard->securityLevel_.securityLevel_ = DATA_SEC_LEVEL0;
+}
+
+/**
+ * @tc.name: CleanDistributedDataTest001
+ * @tc.desc: test Func CleanDistributedData
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, CleanDistributedDataTest001, TestSize.Level0)
+{
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    ASSERT_NE(tempPasteboard, nullptr);
+
+    tempPasteboard->securityLevel_.securityLevel_ = DATA_SEC_LEVEL1;
+    tempPasteboard->clipPlugin_ = nullptr;
+    testing::NiceMock<PasteboardServiceInterfaceMock> mock;
+
+    EXPECT_CALL(mock, IsOn()).WillOnce(testing::Return(true));
+
+    tempPasteboard->CleanDistributedData(ACCOUNT_IDS_RANDOM);
+    tempPasteboard->securityLevel_.securityLevel_ = DATA_SEC_LEVEL0;
+}
+
+/**
+ * @tc.name: ChangeStoreStatusTest001
+ * @tc.desc: test Func ChangeStoreStatus
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, ChangeStoreStatusTest001, TestSize.Level0)
+{
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    ASSERT_NE(tempPasteboard, nullptr);
+
+    tempPasteboard->securityLevel_.securityLevel_ = DATA_SEC_LEVEL1;
+    tempPasteboard->clipPlugin_ = nullptr;
+    testing::NiceMock<PasteboardServiceInterfaceMock> mock;
+
+    EXPECT_CALL(mock, IsOn()).WillOnce(testing::Return(true));
+
+    tempPasteboard->ChangeStoreStatus(ACCOUNT_IDS_RANDOM);
+    tempPasteboard->securityLevel_.securityLevel_ = DATA_SEC_LEVEL0;
+}
+
+
+/**
+ * @tc.name: GetFullDelayPasteDataTest001
+ * @tc.desc: test Func GetFullDelayPasteData
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, GetFullDelayPasteDataTest001, TestSize.Level0)
+{
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    ASSERT_NE(tempPasteboard, nullptr);
+
+    tempPasteboard->securityLevel_.securityLevel_ = DATA_SEC_LEVEL1;
+    tempPasteboard->clipPlugin_ = nullptr;
+
+    sptr<PasteboardEntryGetterImpl> pasteboardEntryGetterImpl = sptr<PasteboardEntryGetterImpl>::MakeSptr();
+    sptr<PasteboardService::EntryGetterDeathRecipient> deathRecipient =
+        sptr<PasteboardService::EntryGetterDeathRecipient>::MakeSptr(ACCOUNT_IDS_RANDOM, *tempPasteboard);
+    tempPasteboard->entryGetters_.InsertOrAssign(
+        ACCOUNT_IDS_RANDOM, std::make_pair(pasteboardEntryGetterImpl, deathRecipient));
+
+    testing::NiceMock<PasteboardServiceInterfaceMock> mock;
+    PasteData data;
+    std::shared_ptr<PasteDataRecord> record = std::make_shared<PasteDataRecord>();
+    record->SetDelayRecordFlag(false);
+    record->SetRecordId(11);
+    record->mimeType_ = MIMETYPE_TEXT_HTML;
+    std::vector<std::shared_ptr<PasteDataRecord>> records_;
+    records_.push_back(record);
+
+    EXPECT_CALL(mock, IsOn()).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, AllRecords()).WillRepeatedly(testing::Return(records_));
+
+    auto result = tempPasteboard->GetFullDelayPasteData(ACCOUNT_IDS_RANDOM, data);
+    EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::E_OK));
+    tempPasteboard->securityLevel_.securityLevel_ = DATA_SEC_LEVEL0;
+}
+
+/**
+ * @tc.name: GetFullDelayPasteDataTest002
+ * @tc.desc: test Func GetFullDelayPasteData
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, GetFullDelayPasteDataTest002, TestSize.Level0)
+{
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    ASSERT_NE(tempPasteboard, nullptr);
+
+    tempPasteboard->securityLevel_.securityLevel_ = DATA_SEC_LEVEL1;
+    tempPasteboard->clipPlugin_ = nullptr;
+
+    sptr<PasteboardEntryGetterImpl> pasteboardEntryGetterImpl = sptr<PasteboardEntryGetterImpl>::MakeSptr();
+    sptr<PasteboardService::EntryGetterDeathRecipient> deathRecipient =
+        sptr<PasteboardService::EntryGetterDeathRecipient>::MakeSptr(ACCOUNT_IDS_RANDOM, *tempPasteboard);
+    tempPasteboard->entryGetters_.InsertOrAssign(
+        ACCOUNT_IDS_RANDOM, std::make_pair(pasteboardEntryGetterImpl, deathRecipient));
+
+    testing::NiceMock<PasteboardServiceInterfaceMock> mock;
+    PasteData data;
+    std::shared_ptr<PasteDataRecord> record = std::make_shared<PasteDataRecord>();
+    record->SetDelayRecordFlag(true);
+    record->SetRecordId(11);
+    record->mimeType_ = MIMETYPE_TEXT_HTML;
+    std::vector<std::shared_ptr<PasteDataEntry>> entries;
+    std::shared_ptr<PasteDataEntry> entry = std::make_shared<PasteDataEntry>();
+    auto newObject = std::make_shared<Object>();
+    entry->SetValue(newObject);
+    entries.emplace_back(entry);
+    record->entries_.push_back(entry);
+    std::vector<std::shared_ptr<PasteDataRecord>> records_;
+    records_.push_back(record);
+
+    EXPECT_CALL(mock, IsOn()).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, AllRecords()).WillRepeatedly(testing::Return(records_));
+
+    auto result = tempPasteboard->GetFullDelayPasteData(ACCOUNT_IDS_RANDOM, data);
+    EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::E_OK));
+    tempPasteboard->securityLevel_.securityLevel_ = DATA_SEC_LEVEL0;
+}
+
+/**
+ * @tc.name: GetFullDelayPasteDataTest003
+ * @tc.desc: test Func GetFullDelayPasteData
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, GetFullDelayPasteDataTest003, TestSize.Level0)
+{
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    ASSERT_NE(tempPasteboard, nullptr);
+
+    tempPasteboard->securityLevel_.securityLevel_ = DATA_SEC_LEVEL1;
+    tempPasteboard->clipPlugin_ = nullptr;
+    g_recordValueByType = static_cast<int32_t>(PasteboardError::INVALID_PARAM_ERROR);
+
+    sptr<PasteboardEntryGetterImpl> pasteboardEntryGetterImpl = sptr<PasteboardEntryGetterImpl>::MakeSptr();
+    sptr<PasteboardService::EntryGetterDeathRecipient> deathRecipient =
+        sptr<PasteboardService::EntryGetterDeathRecipient>::MakeSptr(ACCOUNT_IDS_RANDOM, *tempPasteboard);
+    tempPasteboard->entryGetters_.InsertOrAssign(
+        ACCOUNT_IDS_RANDOM, std::make_pair(pasteboardEntryGetterImpl, deathRecipient));
+
+    testing::NiceMock<PasteboardServiceInterfaceMock> mock;
+    PasteData data;
+    std::shared_ptr<PasteDataRecord> record = std::make_shared<PasteDataRecord>();
+    record->SetDelayRecordFlag(true);
+    record->SetRecordId(11);
+    record->mimeType_ = MIMETYPE_TEXT_HTML;
+    std::vector<std::shared_ptr<PasteDataEntry>> entries;
+    std::shared_ptr<PasteDataEntry> entry = std::make_shared<PasteDataEntry>();
+    EntryValue var;
+    entry->SetValue(var);
+    entries.emplace_back(entry);
+    record->entries_.push_back(entry);
+    std::vector<std::shared_ptr<PasteDataRecord>> records_;
+    records_.push_back(record);
+
+    EXPECT_CALL(mock, IsOn()).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, AllRecords()).WillRepeatedly(testing::Return(records_));
+
+    auto result = tempPasteboard->GetFullDelayPasteData(ACCOUNT_IDS_RANDOM, data);
+    EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::E_OK));
+    tempPasteboard->securityLevel_.securityLevel_ = DATA_SEC_LEVEL0;
+    g_recordValueByType = static_cast<int32_t>(PasteboardError::E_OK);
+}
+
+/**
+ * @tc.name: GetFullDelayPasteDataTest004
+ * @tc.desc: test Func GetFullDelayPasteData
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, GetFullDelayPasteDataTest004, TestSize.Level0)
+{
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    ASSERT_NE(tempPasteboard, nullptr);
+
+    tempPasteboard->securityLevel_.securityLevel_ = DATA_SEC_LEVEL1;
+    tempPasteboard->clipPlugin_ = nullptr;
+    g_recordValueByType = static_cast<int32_t>(PasteboardError::E_OK);
+
+    sptr<PasteboardEntryGetterImpl> pasteboardEntryGetterImpl = sptr<PasteboardEntryGetterImpl>::MakeSptr();
+    sptr<PasteboardService::EntryGetterDeathRecipient> deathRecipient =
+        sptr<PasteboardService::EntryGetterDeathRecipient>::MakeSptr(ACCOUNT_IDS_RANDOM, *tempPasteboard);
+    tempPasteboard->entryGetters_.InsertOrAssign(
+        ACCOUNT_IDS_RANDOM, std::make_pair(pasteboardEntryGetterImpl, deathRecipient));
+
+    testing::NiceMock<PasteboardServiceInterfaceMock> mock;
+    PasteData data;
+    std::shared_ptr<PasteDataRecord> record = std::make_shared<PasteDataRecord>();
+    record->SetDelayRecordFlag(true);
+    record->SetRecordId(11);
+    record->mimeType_ = MIMETYPE_TEXT_HTML;
+    std::vector<std::shared_ptr<PasteDataEntry>> entries;
+    std::shared_ptr<PasteDataEntry> entry = std::make_shared<PasteDataEntry>();
+    EntryValue var;
+    entry->SetValue(var);
+    entry->SetMimeType(MIMETYPE_TEXT_HTML);
+    entries.emplace_back(entry);
+    record->entries_.push_back(entry);
+    std::vector<std::shared_ptr<PasteDataRecord>> records_;
+    records_.push_back(record);
+
+    EXPECT_CALL(mock, IsOn()).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(mock, AllRecords()).WillRepeatedly(testing::Return(records_));
+
+    auto result = tempPasteboard->GetFullDelayPasteData(ACCOUNT_IDS_RANDOM, data);
+    EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::E_OK));
+    tempPasteboard->securityLevel_.securityLevel_ = DATA_SEC_LEVEL0;
+    g_recordValueByType = static_cast<int32_t>(PasteboardError::E_OK);
+}
+
+/**
+ * @tc.name: GetDistributedData002
+ * @tc.desc: test Func GetDistributedData
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, GetDistributedData002, TestSize.Level0)
+{
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+
+    TestEvent event;
+    int32_t user = 0;
+    testing::NiceMock<PasteboardServiceInterfaceMock> mock;
+    EXPECT_CALL(mock, IsOn()).WillOnce(testing::Return(true));
+    tempPasteboard->securityLevel_.securityLevel_ = DATA_SEC_LEVEL1;
+    std::pair<std::shared_ptr<PasteData>, PasteDateResult> result = tempPasteboard->GetDistributedData(event, user);
+    EXPECT_EQ(result.second.errorCode, static_cast<int32_t>(PasteboardError::REMOTE_TASK_ERROR));
+}
+
+/**
+ * @tc.name: GetDistributedData003
+ * @tc.desc: test Func GetDistributedData
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, GetDistributedData003, TestSize.Level0)
+{
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+
+    TestEvent event;
+    int32_t user = 0;
+    testing::NiceMock<PasteboardServiceInterfaceMock> mock;
+    auto release = [](ClipPlugin *plugin) {
+        ClipPlugin::DestroyPlugin(RANDOM_STRING, plugin);
+    };
+    tempPasteboard->clipPlugin_ = std::shared_ptr<ClipPlugin>(ClipPlugin::CreatePlugin(RANDOM_STRING), release);
+    EXPECT_CALL(mock, IsOn()).WillOnce(testing::Return(true));
+    tempPasteboard->securityLevel_.securityLevel_ = DATA_SEC_LEVEL4;
+    std::pair<std::shared_ptr<PasteData>, PasteDateResult> result = tempPasteboard->GetDistributedData(event, user);
+    EXPECT_EQ(result.second.errorCode, static_cast<int32_t>(PasteboardError::E_OK));
+    tempPasteboard->clipPlugin_ = nullptr;
+}
+
+/**
+ * @tc.name: GetPasteDataDot002
+ * @tc.desc: test Func GetPasteDataDot
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, GetPasteDataDot002, TestSize.Level0)
+{
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+    PasteData pasteData;
+    pasteData.SetRemote(false);
+    int32_t userId = 0;
+    EXPECT_NO_FATAL_FAILURE(tempPasteboard->GetPasteDataDot(pasteData, RANDOM_STRING, userId));
+}
+
+/**
+ * @tc.name: GetPasteDataDot003
+ * @tc.desc: test Func GetPasteDataDot
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, GetPasteDataDot003, TestSize.Level0)
+{
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+    PasteData pasteData;
+    pasteData.SetRemote(true);
+    int32_t userId = 0;
+    EXPECT_NO_FATAL_FAILURE(tempPasteboard->GetPasteDataDot(pasteData, RANDOM_STRING, userId));
+}
+
+/**
+ * @tc.name: DumpHistory002
+ * @tc.desc: test Func DumpHistory
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, DumpHistory002, TestSize.Level0)
+{
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+    tempPasteboard->dataHistory_.clear();
+    tempPasteboard->dataHistory_.push_back(RANDOM_STRING);
+    std::string history = tempPasteboard->DumpHistory();
+    EXPECT_TRUE(history.find("Access history last ten times: ") != std::string::npos);
+    tempPasteboard->dataHistory_.clear();
+}
+
+/**
+ * @tc.name: DumpHistory003
+ * @tc.desc: test Func DumpHistory
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, DumpHistory003, TestSize.Level0)
+{
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+    tempPasteboard->dataHistory_.clear();
+    std::string history = tempPasteboard->DumpHistory();
+    EXPECT_TRUE(history.find("Access history fail! dataHistory_ no data.") != std::string::npos);
+}
+
+/**
+ * @tc.name: Dump002
+ * @tc.desc: test Func Dump when uid > maxUid
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, Dump002, TestSize.Level0)
+{
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+    int fd = INT_ONE;
+    std::vector<std::u16string> args;
+    testing::NiceMock<PasteboardServiceInterfaceMock> mock;
+    EXPECT_CALL(mock, GetCallingUid).WillOnce(testing::Return(UINT32_EXCEPTION_APPID));
+    int result = tempPasteboard->Dump(fd, args);
+    EXPECT_EQ(result, 0);
+}
+
+/**
+ * @tc.name: Dump003
+ * @tc.desc: test Func Dump when PasteboardDumpHelper::GetInstance().Dump return false
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, Dump003, TestSize.Level0)
+{
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+    int fd = INT_ONE;
+    std::vector<std::u16string> args;
+    args.push_back(RANDOM_U16STRING);
+    testing::NiceMock<PasteboardServiceInterfaceMock> mock;
+    EXPECT_CALL(mock, GetCallingUid).WillOnce(testing::Return(INT_THREETHREETHREE));
+    EXPECT_CALL(mock, Dump).WillOnce(testing::Return(false));
+    int result = tempPasteboard->Dump(fd, args);
+    EXPECT_EQ(result, 0);
+}
+
+/**
+ * @tc.name: Dump004
+ * @tc.desc: test Func Dump when PasteboardDumpHelper::GetInstance().Dump return true
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, Dump004, TestSize.Level0)
+{
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+    int fd = INT_ONE;
+    std::vector<std::u16string> args;
+    args.push_back(RANDOM_U16STRING);
+    testing::NiceMock<PasteboardServiceInterfaceMock> mock;
+    EXPECT_CALL(mock, GetCallingUid).WillOnce(testing::Return(INT_THREETHREETHREE));
+    EXPECT_CALL(mock, Dump).WillOnce(testing::Return(true));
+    int result = tempPasteboard->Dump(fd, args);
+    EXPECT_EQ(result, 0);
+}
+
+/**
+ * @tc.name: IsNeedThaw002
+ * @tc.desc: test Func IsNeedThaw when InputMethodController::GetInstance return nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, IsNeedThaw002, TestSize.Level0)
+{
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+    testing::NiceMock<PasteboardServiceInterfaceMock> mock;
+    EXPECT_CALL(mock, GetInstance).WillOnce(testing::Return(nullptr));
+    bool result = tempPasteboard->IsNeedThaw();
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: IsNeedThaw003
+ * @tc.desc: test Func IsNeedThaw when imc->GetDefaultInputMethod is error
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, IsNeedThaw003, TestSize.Level0)
+{
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+    sptr<InputMethodController> instance_ = new (std::nothrow) InputMethodController();
+    g_encodeInsert = true;
+    testing::NiceMock<PasteboardServiceInterfaceMock> mock;
+    EXPECT_CALL(mock, GetInstance).WillOnce(testing::Return(instance_));
+    EXPECT_CALL(mock, GetDefaultInputMethod).WillOnce(testing::Return(INT32_NEGATIVE_NUMBER));
+    bool result = tempPasteboard->IsNeedThaw();
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: IsNeedThaw004
+ * @tc.desc: test Func IsNeedThaw when property == nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, IsNeedThaw004, TestSize.Level0)
+{
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+    sptr<InputMethodController> instance_ = new (std::nothrow) InputMethodController();
+    g_encodeInsert = false;
+    testing::NiceMock<PasteboardServiceInterfaceMock> mock;
+    EXPECT_CALL(mock, GetInstance).WillOnce(testing::Return(instance_));
+    EXPECT_CALL(mock, GetDefaultInputMethod).WillOnce(testing::Return(0));
+    bool result = tempPasteboard->IsNeedThaw();
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: IsNeedThaw005
+ * @tc.desc: test Func IsNeedThaw when validity
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, IsNeedThaw005, TestSize.Level0)
+{
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+    sptr<InputMethodController> instance_ = new (std::nothrow) InputMethodController();
+    g_encodeInsert = true;
+    testing::NiceMock<PasteboardServiceInterfaceMock> mock;
+    EXPECT_CALL(mock, GetInstance).WillOnce(testing::Return(instance_));
+    EXPECT_CALL(mock, GetDefaultInputMethod).WillOnce(testing::Return(0));
+    bool result = tempPasteboard->IsNeedThaw();
+    EXPECT_TRUE(result);
+}
+
+/**
+ * @tc.name: GrantUriPermissionTest001
+ * @tc.desc: test Func GrantUriPermission
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, GrantUriPermissionTest001, TestSize.Level0)
+{
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+    testing::NiceMock<PasteboardServiceInterfaceMock> mock;
+    EXPECT_CALL(mock, GetBoolParameter(_, _)).WillRepeatedly(testing::Return(true));
+
+    std::vector<Uri> grantUris;
+    std::string targetBundleName = "com.example.app";
+    int32_t appIndex = 1;
+    std::string uriStr = URI_STRING;
+    auto uri = OHOS::Uri(uriStr);
+    grantUris.push_back(uri);
+
+    auto result = tempPasteboard->GrantUriPermission(grantUris, targetBundleName, false, appIndex);
+    EXPECT_NE(result, static_cast<int32_t>(PasteboardError::E_OK));
+}
+
+/**
+ * @tc.name: GrantUriPermissionTest002
+ * @tc.desc: test Func GrantUriPermission
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, GrantUriPermissionTest002, TestSize.Level0)
+{
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+    testing::NiceMock<PasteboardServiceInterfaceMock> mock;
+    EXPECT_CALL(mock, GetBoolParameter(_, _)).WillRepeatedly(testing::Return(false));
+
+    std::vector<Uri> grantUris;
+    std::string targetBundleName = "com.example.app";
+    int32_t appIndex = 1;
+    std::string uriStr = URI_STRING;
+    auto uri = OHOS::Uri(uriStr);
+    grantUris.push_back(uri);
+
+    auto result = tempPasteboard->GrantUriPermission(grantUris, targetBundleName, false, appIndex);
+    EXPECT_NE(result, static_cast<int32_t>(PasteboardError::E_OK));
+}
+
+/**
+ * @tc.name: GrantUriPermissionTest003
+ * @tc.desc: test Func GrantUriPermission
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, GrantUriPermissionTest003, TestSize.Level0)
+{
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+    testing::NiceMock<PasteboardServiceInterfaceMock> mock;
+    EXPECT_CALL(mock, GetBoolParameter(_, _)).WillRepeatedly(testing::Return(true));
+
+    std::vector<Uri> grantUris;
+    std::string targetBundleName = "com.example.app";
+    int32_t appIndex = 1;
+    std::string uriStr = URI_STRING;
+    auto uri = OHOS::Uri(uriStr);
+    grantUris.push_back(uri);
+
+    auto result = tempPasteboard->GrantUriPermission(grantUris, targetBundleName, true, appIndex);
+    EXPECT_NE(result, static_cast<int32_t>(PasteboardError::E_OK));
+}
+
+/**
+ * @tc.name: GrantUriPermissionTest004
+ * @tc.desc: test Func GrantUriPermission
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, GrantUriPermissionTest004, TestSize.Level0)
+{
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+    testing::NiceMock<PasteboardServiceInterfaceMock> mock;
+    EXPECT_CALL(mock, GetBoolParameter(_, _)).WillRepeatedly(testing::Return(false));
+
+    std::vector<Uri> grantUris;
+    std::string targetBundleName = "com.example.app";
+    int32_t appIndex = 1;
+    std::string uriStr = URI_STRING;
+    auto uri = OHOS::Uri(uriStr);
+    grantUris.push_back(uri);
+
+    auto result = tempPasteboard->GrantUriPermission(grantUris, targetBundleName, true, appIndex);
+    EXPECT_NE(result, static_cast<int32_t>(PasteboardError::E_OK));
+}
+
+/**
+ * @tc.name: SetAppShareOptionsTest004
+ * @tc.desc: test Func SetAppShareOptions
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, SetAppShareOptionsTest004, TestSize.Level0)
+{
+    PasteboardService service;
+    int32_t shareOptions = 0;
+
+    NiceMock<PasteboardServiceInterfaceMock> ipcMock;
+    EXPECT_CALL(ipcMock, GetCallingFullTokenID).WillOnce(testing::Return(4294967296));
+    EXPECT_CALL(ipcMock, GetCallingTokenID).WillOnce(testing::Return(1000));
+    int32_t result = service.SetAppShareOptions(shareOptions);
+    ASSERT_EQ(result, 0);
+}
+
+/**
+ * @tc.name: SetAppShareOptionsTest005
+ * @tc.desc: test Func SetAppShareOptions
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, SetAppShareOptionsTest005, TestSize.Level0)
+{
+    PasteboardService service;
+    int32_t shareOptions = 0;
+
+    NiceMock<PasteboardServiceInterfaceMock> ipcMock;
+    EXPECT_CALL(ipcMock, GetCallingFullTokenID).WillOnce(testing::Return(4294967296));
+    EXPECT_CALL(ipcMock, GetCallingTokenID).WillOnce(testing::Return(1000));
+    ShareOption testOption = InApp;
+    PasteboardService::GlobalShareOption option = {.source = PasteboardService::GlobalShareOptionSource::APP,
+        .shareOption = testOption};
+    service.globalShareOptions_.InsertOrAssign(1000, option);
+    int32_t result = service.SetAppShareOptions(shareOptions);
+    ASSERT_EQ(result, static_cast<int32_t>(PasteboardError::INVALID_OPERATION_ERROR));
+}
+
+/**
+ * @tc.name: RemoveAppShareOptionsTest001
+ * @tc.desc: test Func RemoveAppShareOptions
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, RemoveAppShareOptionsTest001, TestSize.Level0)
+{
+    PasteboardService service;
+
+    NiceMock<PasteboardServiceInterfaceMock> ipcMock;
+    EXPECT_CALL(ipcMock, VerifyAccessToken).WillOnce(Return(PermissionState::PERMISSION_DENIED));
+    EXPECT_CALL(ipcMock, GetCallingFullTokenID).WillOnce(testing::Return(123));
+    EXPECT_CALL(ipcMock, GetCallingTokenID).WillOnce(testing::Return(1000));
+    int32_t result = service.RemoveAppShareOptions();
+    ASSERT_EQ(result, static_cast<int32_t>(PasteboardError::PERMISSION_VERIFICATION_ERROR));
+}
+
+/**
+ * @tc.name: RemoveAppShareOptionsTest002
+ * @tc.desc: test Func RemoveAppShareOptions
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, RemoveAppShareOptionsTest002, TestSize.Level0)
+{
+    PasteboardService service;
+
+    NiceMock<PasteboardServiceInterfaceMock> ipcMock;
+    EXPECT_CALL(ipcMock, GetCallingFullTokenID).WillOnce(testing::Return(4294967296));
+    EXPECT_CALL(ipcMock, GetCallingTokenID).WillOnce(testing::Return(1000));
+    int32_t result = service.RemoveAppShareOptions();
+    ASSERT_EQ(result, 0);
+}
+
+/**
+ * @tc.name: RemoveAppShareOptionsTest005
+ * @tc.desc: test Func RemoveAppShareOptions
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, RemoveAppShareOptionsTest005, TestSize.Level0)
+{
+    PasteboardService service;
+
+    NiceMock<PasteboardServiceInterfaceMock> ipcMock;
+    EXPECT_CALL(ipcMock, GetCallingFullTokenID).WillOnce(testing::Return(4294967296));
+    EXPECT_CALL(ipcMock, GetCallingTokenID).WillOnce(testing::Return(1000));
+    ShareOption testOption = InApp;
+    PasteboardService::GlobalShareOption option = {.source = PasteboardService::GlobalShareOptionSource::APP,
+        .shareOption = testOption};
+    service.globalShareOptions_.InsertOrAssign(1000, option);
+    int32_t result = service.RemoveAppShareOptions();
+    ASSERT_EQ(result, 0);
+}
+
+/**
+ * @tc.name: RemoveAppShareOptionsTest004
+ * @tc.desc: test Func RemoveAppShareOptions
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, RemoveAppShareOptionsTest004, TestSize.Level0)
+{
+    PasteboardService service;
+
+    NiceMock<PasteboardServiceInterfaceMock> ipcMock;
+    EXPECT_CALL(ipcMock, GetCallingFullTokenID).WillOnce(testing::Return(4294967296));
+    EXPECT_CALL(ipcMock, GetCallingTokenID).WillOnce(testing::Return(1000));
+    ShareOption testOption = InApp;
+    PasteboardService::GlobalShareOption option = {.source = PasteboardService::GlobalShareOptionSource::MDM,
+        .shareOption = testOption};
+    service.globalShareOptions_.InsertOrAssign(1000, option);
+    int32_t result = service.RemoveAppShareOptions();
+    ASSERT_EQ(result, 0);
+}
+
+/**
+ * @tc.name: CheckMdmShareOptionTest001
+ * @tc.desc: test Func CheckMdmShareOption
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, CheckMdmShareOptionTest001, TestSize.Level0)
+{
+    PasteboardService service;
+    PasteData pasteData;
+
+    pasteData.SetTokenId(1000);
+    NiceMock<PasteboardServiceInterfaceMock> ipcMock;
+    ShareOption testOption = InApp;
+    PasteboardService::GlobalShareOption option = {.source = PasteboardService::GlobalShareOptionSource::MDM,
+        .shareOption = testOption};
+    service.globalShareOptions_.InsertOrAssign(1000, option);
+    int32_t result = service.CheckMdmShareOption(pasteData);
+    ASSERT_EQ(result, true);
+}
+
+/**
+ * @tc.name: CheckMdmShareOptionTest002
+ * @tc.desc: test Func CheckMdmShareOption
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, CheckMdmShareOptionTest002, TestSize.Level0)
+{
+    PasteboardService service;
+    PasteData pasteData;
+
+    NiceMock<PasteboardServiceInterfaceMock> ipcMock;
+    int32_t result = service.CheckMdmShareOption(pasteData);
+    ASSERT_EQ(result, false);
+}
+
+/**
+ * @tc.name: SetPasteboardHistoryTest001
+ * @tc.desc: test Func SetPasteboardHistory
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, SetPasteboardHistoryTest001, TestSize.Level0)
+{
+    PasteboardService service;
+    HistoryInfo info;
+    for (int i = 1; i <= INT32_TEN; i++) {
+        info.time = std::to_string(i);
+        info.bundleName = "app" + std::to_string(i);
+        info.state = "COPY";
+        info.remote = "";
+        info.userId = 0;
+        service.SetPasteboardHistory(info);
+    }
+
+    ASSERT_EQ(service.dataHistory_.size(), INT32_TEN);
+    info.time = "11";
+    info.bundleName = "app11";
+    NiceMock<PasteboardServiceInterfaceMock> ipcMock;
+
+    int32_t result = service.SetPasteboardHistory(info);
+    ASSERT_EQ(service.dataHistory_.size(), INT32_TEN);
+
+    ASSERT_EQ(result, true);
+    EXPECT_TRUE(service.dataHistory_.front().find("2 ") == 0);
+    EXPECT_TRUE(service.dataHistory_.back().find("11 ") == 0);
+}
+
+/**
+ * @tc.name: HandleDelayDataAndRecordTest001
+ * @tc.desc: HandleDelayDataAndRecordTest001
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, HandleDelayDataAndRecordTest001, TestSize.Level0)
+{
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+
+    PasteData pasteData;
+    sptr<IPasteboardDelayGetter> delayGetter = nullptr;
+    sptr<IPasteboardEntryGetter> entryGetter = sptr<PasteboardEntryGetterImpl>::MakeSptr();
+    AppInfo appInfo;
+
+    NiceMock<PasteboardServiceInterfaceMock> mock;
+    EXPECT_CALL(mock, IsDelayData()).WillOnce(Return(true));
+
+    tempPasteboard->HandleDelayDataAndRecord(pasteData, delayGetter, entryGetter, appInfo);
+}
+
+/**
+ * @tc.name: HandleDelayDataAndRecordTest002
+ * @tc.desc: HandleDelayDataAndRecordTest002
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, HandleDelayDataAndRecordTest002, TestSize.Level0)
+{
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+
+    PasteData pasteData;
+    sptr<IPasteboardDelayGetter> delayGetter = nullptr;
+    sptr<IPasteboardEntryGetter> entryGetter = nullptr;
+    AppInfo appInfo;
+
+    tempPasteboard->HandleDelayDataAndRecord(pasteData, delayGetter, entryGetter, appInfo);
+}
+
+/**
+ * @tc.name: HandleDelayDataAndRecordTest003
+ * @tc.desc: HandleDelayDataAndRecordTest003
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, HandleDelayDataAndRecordTest003, TestSize.Level0)
+{
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+
+    PasteData pasteData;
+    sptr<IPasteboardDelayGetter> delayGetter = sptr<PasteboardDelayGetterImpl>::MakeSptr();
+    sptr<IPasteboardEntryGetter> entryGetter = nullptr;
+    AppInfo appInfo;
+
+    NiceMock<PasteboardServiceInterfaceMock> mock;
+    EXPECT_CALL(mock, IsDelayRecord()).WillOnce(Return(true));
+
+    tempPasteboard->HandleDelayDataAndRecord(pasteData, delayGetter, entryGetter, appInfo);
+}
+
+/**
+ * @tc.name: EstablishP2PLinkTest001
+ * @tc.desc: EstablishP2PLinkTest001
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, EstablishP2PLinkTest001, TestSize.Level0)
+{
+#ifdef PB_DEVICE_MANAGER_ENABLE
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+
+    PasteboardService service;
+    std::string networkld = "network123";
+    std::string pasteld = "paste123";
+
+    NiceMock<PasteboardServiceInterfaceMock> mock;
+    EXPECT_CALL(mock, GetRemoteDeviceInfo(testing::_, testing::_))
+        .WillOnce(Return(static_cast<int32_t>(PasteboardError::E_OK)));
+
+    tempPasteboard->EstablishP2PLink(networkld, pasteld);
+    ASSERT_TRUE(true);
+#else
+    ASSERT_TRUE(true);
+#endif
+}
+
+/**
+ * @tc.name: CloseP2PLinkTest001
+ * @tc.desc: CloseP2PLinkTest001
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, CloseP2PLinkTest001, TestSize.Level0)
+{
+#ifdef PB_DEVICE_MANAGER_ENABLE
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+
+    std::string networkld = "network123";
+
+    NiceMock<PasteboardServiceInterfaceMock> mock;
+    EXPECT_CALL(mock, GetRemoteDeviceInfo(testing::_, testing::_))
+        .WillOnce(Return(static_cast<int32_t>(PasteboardError::E_OK)));
+
+    tempPasteboard->CloseP2PLink(networkld);
+#else
+    ASSERT_TRUE(true);
+#endif
+}
+
+/**
+ * @tc.name: PreSyncRemotePasteboardDataTest
+ * @tc.desc: PreSyncRemotePasteboardData
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, PreSyncRemotePasteboardDataTest, TestSize.Level0)
+{
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+    testing::NiceMock<PasteboardServiceInterfaceMock> mock;
+    EXPECT_CALL(mock, IsOn()).WillRepeatedly(testing::Return(true));
+    tempPasteboard->securityLevel_.securityLevel_ = DATA_SEC_LEVEL1;
+    tempPasteboard->PreSyncRemotePasteboardData();
+    tempPasteboard->securityLevel_.securityLevel_ = DATA_SEC_LEVEL3;
+    std::string PLUGIN_NAME_VAL = "distributed_clip";
+    auto release = [&PLUGIN_NAME_VAL, this](ClipPlugin *plugin) {
+        ClipPlugin::DestroyPlugin(PLUGIN_NAME_VAL, plugin);
+    };
+    std::shared_ptr<ClipPlugin> clipPlugin =
+        std::shared_ptr<ClipPlugin>(ClipPlugin::CreatePlugin(PLUGIN_NAME_VAL), release);
+    EXPECT_NE(clipPlugin, nullptr);
+    tempPasteboard->clipPlugin_ = clipPlugin;
+    EXPECT_NE(tempPasteboard->GetClipPlugin(), nullptr);
+    tempPasteboard->PreSyncRemotePasteboardData();
+}
+
+/**
+ * @tc.name: ClearP2PEstablishTaskInfoTest
+ * @tc.desc: ClearP2PEstablishTaskInfo
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, ClearP2PEstablishTaskInfoTest, TestSize.Level0)
+{
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+    tempPasteboard->ClearP2PEstablishTaskInfo();
+}
+
+/**
+ * @tc.name: RegisterPreSyncCallbackTest
+ * @tc.desc: RegisterPreSyncCallback
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, RegisterPreSyncCallbackTest, TestSize.Level0)
+{
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+    tempPasteboard->RegisterPreSyncCallback(nullptr);
+    auto clipPlugin = std::make_shared<DefaultClip>();
+    EXPECT_NE(clipPlugin, nullptr);
+    tempPasteboard->RegisterPreSyncCallback(clipPlugin);
+}
+
+/**
+ * @tc.name: PreEstablishP2PLinkCallbackTest
+ * @tc.desc: PreEstablishP2PLinkCallback
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, PreEstablishP2PLinkCallbackTest, TestSize.Level0)
+{
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+    std::string networkId;
+    auto clipPlugin = std::make_shared<DefaultClip>();
+    EXPECT_NE(clipPlugin, nullptr);
+    tempPasteboard->PreEstablishP2PLinkCallback(networkId, clipPlugin.get());
+    networkId = "TestNetworkId";
+    tempPasteboard->PreEstablishP2PLinkCallback(networkId, clipPlugin.get());
+}
+
+/**
+ * @tc.name: PreSyncSwitchMonitorCallbackTest
+ * @tc.desc: PreSyncSwitchMonitorCallback
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, PreSyncSwitchMonitorCallbackTest, TestSize.Level0)
+{
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+    tempPasteboard->PreSyncSwitchMonitorCallback();
+}
+
+/**
+ * @tc.name: RegisterPreSyncMonitorTest
+ * @tc.desc: RegisterPreSyncMonitor
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, RegisterPreSyncMonitorTest, TestSize.Level0)
+{
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+    tempPasteboard->RegisterPreSyncMonitor();
+    tempPasteboard->ffrtTimer_ = std::make_shared<FFRTTimer>();
+    EXPECT_NE(tempPasteboard->ffrtTimer_, nullptr);
+    tempPasteboard->RegisterPreSyncMonitor();
+    tempPasteboard->subscribeActiveId_ = 0;
+    tempPasteboard->RegisterPreSyncMonitor();
+}
+
+/**
+ * @tc.name: UnRegisterPreSyncMonitorTest
+ * @tc.desc: UnRegisterPreSyncMonitor
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, UnRegisterPreSyncMonitorTest, TestSize.Level0)
+{
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+    tempPasteboard->subscribeActiveId_ = -1;
+    tempPasteboard->UnRegisterPreSyncMonitor();
+}
+
+/**
+ * @tc.name: DeletePreSyncP2pFromP2pMapTest
+ * @tc.desc: DeletePreSyncP2pFromP2pMap
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, DeletePreSyncP2pFromP2pMapTest, TestSize.Level0)
+{
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+    std::string networkId = "TestNetworkId";
+    tempPasteboard->ffrtTimer_ = std::make_shared<FFRTTimer>();
+    EXPECT_NE(tempPasteboard->ffrtTimer_, nullptr);
+    tempPasteboard->DeletePreSyncP2pFromP2pMap(networkId);
+}
+
+/**
+ * @tc.name: CheckAndReuseP2PLinkTest001
+ * @tc.desc: CheckAndReuseP2PLink
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, CheckAndReuseP2PLinkTest001, TestSize.Level0)
+{
+#ifdef PB_DEVICE_MANAGER_ENABLE
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+    std::string networkId = "TestNetworkId";
+    std::string pasteId = "P2pPreSyncId_";
+    auto result = tempPasteboard->CheckAndReuseP2PLink(networkId, pasteId);
+    EXPECT_EQ(result, nullptr);
+    tempPasteboard->ffrtTimer_ = std::make_shared<FFRTTimer>();
+    EXPECT_NE(tempPasteboard->ffrtTimer_, nullptr);
+
+    PasteboardService::PasteboardP2pInfo p2pInfo;
+    p2pInfo.callPid = 123;
+    p2pInfo.isSuccess = false;
+    ConcurrentMap<std::string, PasteboardService::PasteboardP2pInfo> p2pMap;
+    p2pMap.Insert(pasteId, p2pInfo);
+    tempPasteboard->p2pMap_.Insert(networkId, p2pMap);
+    std::shared_ptr<BlockObject<int32_t>> block = std::make_shared<BlockObject<int32_t>>(2000, 0);
+    EXPECT_NE(block, nullptr);
+    tempPasteboard->preSyncP2pMap_.insert(std::make_pair(networkId, block));
+    result = tempPasteboard->CheckAndReuseP2PLink(networkId, pasteId);
+    EXPECT_NE(result, nullptr);
+#else
+    ASSERT_TRUE(true);
+#endif
+}
+
+/**
+ * @tc.name: EstablishP2PLinkTaskTest001
+ * @tc.desc: EstablishP2PLinkTask
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, EstablishP2PLinkTaskTest001, TestSize.Level0)
+{
+#ifdef PB_DEVICE_MANAGER_ENABLE
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+    TestEvent event;
+    std::string pasteId = "P2pPreSyncId_";
+    auto result = tempPasteboard->EstablishP2PLinkTask(pasteId, event);
+    EXPECT_EQ(result, nullptr);
+    event.deviceId = DMAdapter::GetInstance().GetLocalNetworkId();
+    result = tempPasteboard->EstablishP2PLinkTask(pasteId, event);
+    EXPECT_EQ(result, nullptr);
+    event.deviceId = "TestNetworkId";
+    std::string uriType = "text/plain";
+    event.dataType.push_back(uriType);
+    result = tempPasteboard->EstablishP2PLinkTask(pasteId, event);
+    EXPECT_EQ(result, nullptr);
+    uriType = "text/uri";
+    event.dataType.push_back(uriType);
+    result = tempPasteboard->EstablishP2PLinkTask(pasteId, event);
+    EXPECT_EQ(result, nullptr);
+    PasteboardService::PasteboardP2pInfo p2pInfo;
+    p2pInfo.callPid = 123;
+    p2pInfo.isSuccess = false;
+    ConcurrentMap<std::string, PasteboardService::PasteboardP2pInfo> p2pMap;
+    p2pMap.Insert(pasteId, p2pInfo);
+    tempPasteboard->p2pMap_.Insert(event.deviceId, p2pMap);
+    std::shared_ptr<BlockObject<int32_t>> block = std::make_shared<BlockObject<int32_t>>(2000, 0);
+    EXPECT_NE(block, nullptr);
+    tempPasteboard->preSyncP2pMap_.insert(std::make_pair(event.deviceId, block));
+    result = tempPasteboard->EstablishP2PLinkTask(pasteId, event);
+    EXPECT_NE(result, nullptr);
+#else
+    ASSERT_TRUE(true);
+#endif
+}
+
+/**
+ * @tc.name: OpenP2PLinkForPreEstablishTest001
+ * @tc.desc: OpenP2PLinkForPreEstablish
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, OpenP2PLinkForPreEstablishTest001, TestSize.Level0)
+{
+#ifdef PB_DEVICE_MANAGER_ENABLE
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+    std::string networkId = "TestNetworkId";
+    auto clipPlugin = std::make_shared<DefaultClip>();
+    EXPECT_NE(clipPlugin, nullptr);
+    NiceMock<PasteboardServiceInterfaceMock> mock;
+    EXPECT_CALL(mock, GetRemoteDeviceInfo(testing::_, testing::_))
+        .WillOnce(Return(static_cast<int32_t>(PasteboardError::OTHER_ERROR)));
+    tempPasteboard->ffrtTimer_ = std::make_shared<FFRTTimer>();
+    EXPECT_NE(tempPasteboard->ffrtTimer_, nullptr);
+    auto result = tempPasteboard->OpenP2PLinkForPreEstablish(networkId, clipPlugin.get());
+    EXPECT_EQ(result, false);
+#else
+    ASSERT_TRUE(true);
+#endif
+}
+
+/**
+ * @tc.name: PreEstablishP2PLinkTest001
+ * @tc.desc: PreEstablishP2PLink
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, PreEstablishP2PLinkTest001, TestSize.Level0)
+{
+#ifdef PB_DEVICE_MANAGER_ENABLE
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+    tempPasteboard->ffrtTimer_ = std::make_shared<FFRTTimer>();
+    EXPECT_NE(tempPasteboard->ffrtTimer_, nullptr);
+    tempPasteboard->p2pEstablishInfo_.pasteBlock = std::make_shared<BlockObject<int32_t>>(2000, 0);
+    EXPECT_NE(tempPasteboard->p2pEstablishInfo_.pasteBlock, nullptr);
+    std::string networkId = "TestNetworkId";
+    tempPasteboard->p2pEstablishInfo_.networkId = networkId;
+    auto clipPlugin = std::make_shared<DefaultClip>();
+    EXPECT_NE(clipPlugin, nullptr);
+    tempPasteboard->PreEstablishP2PLink(networkId, clipPlugin.get());
+    tempPasteboard->p2pEstablishInfo_.pasteBlock = nullptr;
+    std::string p2pPresyncId = "P2pPreSyncId_";
+    PasteboardService::PasteboardP2pInfo p2pInfo;
+    p2pInfo.callPid = 123;
+    p2pInfo.isSuccess = false;
+    ConcurrentMap<std::string, PasteboardService::PasteboardP2pInfo> p2pMap;
+    p2pMap.Insert(p2pPresyncId, p2pInfo);
+    tempPasteboard->p2pMap_.Insert(networkId, p2pMap);
+    tempPasteboard->PreEstablishP2PLink(networkId, clipPlugin.get());
+#else
+    ASSERT_TRUE(true);
+#endif
+}
+
+/**
+ * @tc.name: AddPreSyncP2pTimeoutTaskTest001
+ * @tc.desc: AddPreSyncP2pTimeoutTask
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, AddPreSyncP2pTimeoutTaskTest001, TestSize.Level0)
+{
+#ifdef PB_DEVICE_MANAGER_ENABLE
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+    std::string networkId = "TestNetworkId";
+    tempPasteboard->AddPreSyncP2pTimeoutTask(networkId);
+    tempPasteboard->ffrtTimer_ = std::make_shared<FFRTTimer>();
+    EXPECT_NE(tempPasteboard->ffrtTimer_, nullptr);
+    tempPasteboard->AddPreSyncP2pTimeoutTask(networkId);
+#else
+    ASSERT_TRUE(true);
+#endif
+}
+
+/**
+ * @tc.name: CheckAndGrantRemoteUriTest001
+ * @tc.desc: CheckAndGrantRemoteUri
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, CheckAndGrantRemoteUriTest001, TestSize.Level0)
+{
+#ifdef PB_DEVICE_MANAGER_ENABLE
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+    PasteData data;
+    data.SetRemote(true);
+    AppInfo appInfo;
+    std::string pasteId = "TestPasteId";
+    std::string networkId = "TestNetworkId";
+    std::shared_ptr<BlockObject<int32_t>> block = std::make_shared<BlockObject<int32_t>>(2000, 0);
+    EXPECT_NE(block, nullptr);
+    int32_t result = tempPasteboard->CheckAndGrantRemoteUri(data, appInfo, pasteId, networkId, block);
+    EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::E_OK));
+#else
+    ASSERT_TRUE(true);
+#endif
+}
+
+/**
+ * @tc.name: ResubscribeObserver001
+ * @tc.desc: ResubscribeObserver001
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, ResubscribeObserver001, TestSize.Level0)
+{
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+
+    auto type = PasteboardObserverType::OBSERVER_LOCAL;
+    const sptr<IPasteboardChangedObserver> observer = sptr<MyTestPasteboardChangedObserver>::MakeSptr();
+
+    int32_t res = tempPasteboard->ResubscribeObserver(type, observer);
+    EXPECT_EQ(res, ERR_OK);
+}
+
+/**
+ * @tc.name: ResubscribeObserver002
+ * @tc.desc: ResubscribeObserver002
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, ResubscribeObserver002, TestSize.Level0)
+{
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+
+    auto type = PasteboardObserverType::OBSERVER_LOCAL;
+    const sptr<IPasteboardChangedObserver> observer = sptr<MyTestPasteboardChangedObserver>::MakeSptr();
+
+    NiceMock<PasteboardServiceInterfaceMock> mock;
+    EXPECT_CALL(mock, GetTokenTypeFlag).WillRepeatedly(Return(ATokenTypeEnum::TOKEN_HAP));
+    int32_t res = tempPasteboard->ResubscribeObserver(type, observer);
+    EXPECT_EQ(res, ERR_OK);
+}
+
+class EntryGetterImpl : public IPasteboardEntryGetter {
+public:
+    int32_t GetRecordValueByType(uint32_t recordId, PasteDataEntry &entry) override
+    {
+        (void)recordId;
+        (void)entry;
+        return static_cast<int32_t>(PasteboardError::E_OK);
+    }
+
+    sptr<IRemoteObject> AsObject() override
+    {
+        return nullptr;
+    }
+};
+
+/**
+ * @tc.name: SyncDelayedData001
+ * @tc.desc: should return NO_DATA when not set paste data
+ *           should return INVALID_TOKEN_ID when paste data tokenId mismatch
+ *           should return NO_DELAY_GETTER when entry getter not find
+ *           else should return ERR_OK and remove empty entry
+ */
+HWTEST_F(PasteboardServiceMockTest, SyncDelayedData001, TestSize.Level0)
+{
+    g_accountIds = true;
+    uint32_t tokenId = 1;
+    int32_t userId = ACCOUNT_IDS_RANDOM;
+    NiceMock<PasteboardServiceInterfaceMock> mock;
+    EXPECT_CALL(mock, GetTokenTypeFlag).WillRepeatedly(Return(ATokenTypeEnum::TOKEN_NATIVE));
+    EXPECT_CALL(mock, GetCallingTokenID).WillRepeatedly(Return(tokenId));
+    EXPECT_CALL(mock, QueryActiveOsAccountIds).WillRepeatedly(Return(ERR_OK));
+
+    auto pbs = std::make_shared<PasteboardService>();
+    int32_t ret = pbs->SyncDelayedData();
+    EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::NO_DATA_ERROR));
+
+    auto setData = std::make_shared<PasteData>();
+    auto record = std::make_shared<PasteDataRecord>();
+    auto entryText = std::make_shared<PasteDataEntry>(UTDID_PLAIN_TEXT, "plain text");
+    auto entryPixelMap = std::make_shared<PasteDataEntry>();
+    entryPixelMap->SetUtdId(UTDID_PIXEL_MAP);
+    record->SetDelayRecordFlag(true);
+    record->AddEntry(UTDID_PLAIN_TEXT, entryText);
+    record->AddEntry(UTDID_PIXEL_MAP, entryPixelMap);
+    setData->AddRecord(record);
+    setData->SetTokenId(tokenId + 1);
+    pbs->clips_.InsertOrAssign(userId, setData);
+    ret = pbs->SyncDelayedData();
+    EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::INVALID_TOKEN_ID));
+
+    setData->SetTokenId(tokenId);
+    ret = pbs->SyncDelayedData();
+    EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::NO_DELAY_GETTER));
+
+    sptr<IPasteboardEntryGetter> entryGetter = sptr<EntryGetterImpl>::MakeSptr();
+    pbs->entryGetters_.InsertOrAssign(userId, std::make_pair(entryGetter, nullptr));
+    ret = pbs->SyncDelayedData();
+    EXPECT_EQ(ret, ERR_OK);
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    EXPECT_FALSE(record->HasEmptyEntry());
+    EXPECT_EQ(setData->GetMimeTypes().size(), 1);
+    EXPECT_STREQ(setData->GetMimeTypes()[0].c_str(), MIMETYPE_TEXT_PLAIN);
+}
 }
 } // namespace OHOS::MiscServices
