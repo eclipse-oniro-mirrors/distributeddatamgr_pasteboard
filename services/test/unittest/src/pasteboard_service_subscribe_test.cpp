@@ -35,33 +35,8 @@ using namespace OHOS::Security::AccessToken;
 
 namespace OHOS {
 namespace {
-const int INT_ONE = 1;
-const int32_t INT32_NEGATIVE_NUMBER = -1;
-constexpr int32_t SET_VALUE_SUCCESS = 1;
-const int INT_THREETHREETHREE = 333;
 const uint32_t MAX_RECOGNITION_LENGTH = 1000;
 constexpr int64_t MIN_ASHMEM_DATA_SIZE = 32 * 1024;
-constexpr uint32_t EVENT_TIME_OUT = 2000;
-const int32_t ACCOUNT_IDS_RANDOM = 1121;
-const uint32_t UINT32_ONE = 1;
-const std::string TEST_ENTITY_TEXT =
-    "清晨，从杭州市中心出发，沿着湖滨路缓缓前行。湖滨路是杭州市中心通往西湖的主要街道之一，两旁绿树成荫，湖光山色尽收眼"
-    "底。你可以选择步行或骑行，感受微风拂面的惬意。湖滨路的尽头是南山路，这里有一片开阔的广场，是欣赏西湖全景的绝佳位置"
-    "。进入南山路后，继续前行，雷峰塔的轮廓会逐渐映入眼帘。雷峰塔是西湖的标志性建筑之一，矗立在南屏山下，与西湖相映成趣"
-    "。你可以在这里稍作停留，欣赏塔的雄伟与湖水的柔美。南山路两旁有许多咖啡馆和餐厅，是补充能量的好去处。离开雷峰塔，沿"
-    "着南山路继续前行，你会看到一条蜿蜒的堤岸——杨公堤。杨公堤是西湖十景之一，堤岸两旁种满了柳树和桃树，春夏之交，柳绿桃"
-    "红，美不胜收。你可以选择沿着堤岸漫步，感受湖水的宁静与柳树的轻柔。杨公堤的尽头是湖心亭，这里是西湖的中心地带，也是"
-    "观赏西湖全景的最佳位置之一。从湖心亭出发，沿着湖畔步行至北山街。北山街是西湖北部的一条主要街道，两旁有许多历史建筑"
-    "和文化遗址。继续前行，你会看到保俶塔矗立在宝石流霞景区。保俶塔是西湖的另一座标志性建筑，与雷峰塔遥相呼应，形成“一"
-    "南一北”的独特景观。离开保俶塔，沿着北山街继续前行，你会到达断桥。断桥是西湖十景之一，冬季可欣赏断桥残雪的美景。断"
-    "桥的两旁种满了柳树，湖水清澈见底，是拍照留念的好地方。断桥的尽头是平湖秋月，这里是观赏西湖夜景的绝佳地点，夜晚灯光"
-    "亮起时，湖面倒映着月光，美轮美奂。游览结束后，沿着湖畔返回杭州市中心。沿途可以再次欣赏西湖的湖光山色，感受大自然的"
-    "和谐与宁静。如果你时间充裕，可以选择在湖畔的咖啡馆稍作休息，回味这一天的旅程。这条路线涵盖了西湖的主要经典景点，从"
-    "湖滨路到南山路，再到杨公堤、北山街，最后回到杭州市中心，整个行程大约需要一天时间。沿着这条路线，你可以领略西湖的自"
-    "然风光和文化底蕴，感受人间天堂的独特魅力。";
-const int64_t DEFAULT_MAX_RAW_DATA_SIZE = 128 * 1024 * 1024;
-constexpr int32_t MIMETYPE_MAX_SIZE = 1024;
-static constexpr uint64_t ONE_HOUR_MILLISECONDS = 60 * 60 * 1000;
 } // namespace
 
 class MyTestEntityRecognitionObserver : public IEntityRecognitionObserver {

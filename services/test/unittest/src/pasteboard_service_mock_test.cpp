@@ -43,10 +43,7 @@ using namespace OHOS::Storage::DistributedFile;
 namespace OHOS {
 namespace {
     const int32_t INT32_TEN = 10;
-    const int32_t INT32_ZERO = 0;
-    const int32_t INT32_TWO = 2;
     const int32_t ACCOUNT_IDS_RANDOM = 1121;
-    const uint32_t UINT32_ONE = 1;
     const int INT_ONE = 1;
     const uint8_t UINT8_ONE = 1;
     const int32_t INT32_NEGATIVE_NUMBER = -1;
@@ -54,7 +51,6 @@ namespace {
     const int64_t INT64_NEGATIVE_NUMBER = -1;
     const uint32_t UINT32_EXCEPTION_APPID = 9999985;
     const int INT_THREETHREETHREE = 333;
-    const uint32_t MAX_RECOGNITION_LENGTH = 1000;
     const int64_t MIN_ASHMEM_DATA_SIZE = 32 * 1024;
     const int32_t CONTROL_TYPE_ALLOW_SEND_RECEIVE = 1;
     const int32_t DEVICE_COLLABORATION_UID = 5521;
@@ -68,17 +64,6 @@ namespace {
     const std::string UTDID_PIXEL_MAP = "openharmony.pixel-map";
     using TestEvent = ClipPlugin::GlobalEvent;
 }
-
-class MyTestEntityRecognitionObserver : public IEntityRecognitionObserver {
-    void OnRecognitionEvent(EntityType entityType, std::string &entity)
-    {
-        return;
-    }
-    sptr<IRemoteObject> AsObject()
-    {
-        return nullptr;
-    }
-};
 
 class MyTestPasteboardChangedObserver : public IPasteboardChangedObserver {
     void OnPasteboardChanged()
