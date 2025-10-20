@@ -1933,6 +1933,7 @@ std::vector<Uri> PasteboardService::CheckUriPermission(PasteData &data,
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "enter");
     std::vector<Uri> grantUris;
+    std::shared_lock<std::shared_mutex> read(pasteDataMutex_);
     for (size_t i = 0; i < data.GetRecordCount(); i++) {
         auto item = data.GetRecordAt(i);
         if (item == nullptr || (!data.IsRemote() && targetBundleAndIndex == data.GetOriginAuthority())) {
@@ -2129,6 +2130,13 @@ void PasteboardService::SetPasteDataInfo(PasteData &pasteData, const AppInfo &ap
     pasteData.SetDataId(dataId);
     for (auto &record : pasteData.AllRecords()) {
         record->SetDataId(dataId);
+    }
+    if (pasteData.GetRecordCount() != 0) {
+        size_t counts = pasteData.GetRecordCount() - 1;
+        std::shared_ptr<PasteDataRecord> records = pasteData.GetRecordAt(counts);
+	PASTEBOARD_CHECK_AND_RETURN_LOGE(records != nullptr, PASTEBOARD_MODULE_SERVICE, "records is nullptr.");
+        std::string text = records->ConvertToText();
+        pasteData.SetTextSize(text.size());
     }
 }
 
@@ -3048,18 +3056,6 @@ void PasteboardService::NotifyObservers(std::string bundleName, int32_t userId, 
     thread.detach();
 }
 
-size_t PasteboardService::GetDataSize(PasteData &data) const
-{
-    if (data.GetRecordCount() != 0) {
-        size_t counts = data.GetRecordCount() - 1;
-        std::shared_ptr<PasteDataRecord> records = data.GetRecordAt(counts);
-        std::string text = records->ConvertToText();
-        size_t textSize = text.size();
-        return textSize;
-    }
-    return 0; // get wrong size
-}
-
 bool PasteboardService::SetPasteboardHistory(HistoryInfo &info)
 {
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(info.userId != ERROR_USERID, false,
@@ -3471,8 +3467,8 @@ void PasteboardService::SetPasteDataDot(PasteData &pasteData, const int32_t &use
         { static_cast<int>(BehaviourPasteboardState::BPS_COPY_STATE), bundleName });
 
     int state = static_cast<int>(StatisticPasteboardState::SPS_COPY_STATE);
-    PASTEBOARD_HILOGD(PASTEBOARD_MODULE_SERVICE, "SetPasteData GetDataSize!");
-    size_t dataSize = GetDataSize(pasteData);
+    PASTEBOARD_HILOGD(PASTEBOARD_MODULE_SERVICE, "SetPasteData GetTextSize!");
+    size_t dataSize = pasteData.GetTextSize();
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_SERVICE, "SetPasteData timeC!");
     CalculateTimeConsuming timeC(dataSize, state);
 }
@@ -3498,7 +3494,7 @@ void PasteboardService::GetPasteDataDot(PasteData &pasteData, const std::string 
     };
 
     Reporter::GetInstance().PasteboardBehaviour().Report({ bState, bundleName });
-    size_t dataSize = GetDataSize(pasteData);
+    size_t dataSize = pasteData.GetTextSize();
     CalculateTimeConsuming timeC(dataSize, pState);
 }
 
@@ -4006,27 +4002,26 @@ int32_t PasteboardService::ProcessRemoteDelayHtml(const std::string &remoteDevic
             PASTEBOARD_HILOGW(PASTEBOARD_MODULE_SERVICE, "no space, dataSize=%{public}" PRId64
                 ", entrySize=%{public}" PRId64, data.rawDataSize_, entry.rawDataSize_);
         }
+
+        PASTEBOARD_CHECK_AND_RETURN_RET_LOGD(htmlRecord->GetFrom() != 0, static_cast<int32_t>(PasteboardError::E_OK),
+            PASTEBOARD_MODULE_SERVICE, "no uri");
+
+        data.SetTag(PasteData::WEBVIEW_PASTEDATA_TAG);
+        uint32_t htmlRecordId = record.GetRecordId();
+        record.SetFrom(htmlRecordId);
+        for (auto &recordItem : tmpData.AllRecords()) {
+            if (recordItem == nullptr) {
+                continue;
+            }
+            if (!recordItem->GetConvertUri().empty()) {
+                recordItem->isConvertUriFromRemote = true;
+            }
+            if (recordItem->GetFrom() > 0 && recordItem->GetRecordId() != recordItem->GetFrom()) {
+                recordItem->SetFrom(htmlRecordId);
+                data.AddRecord(*recordItem);
+            }
+        }
     }
-
-    PASTEBOARD_CHECK_AND_RETURN_RET_LOGD(htmlRecord->GetFrom() != 0, static_cast<int32_t>(PasteboardError::E_OK),
-        PASTEBOARD_MODULE_SERVICE, "no uri");
-
-    data.SetTag(PasteData::WEBVIEW_PASTEDATA_TAG);
-    uint32_t htmlRecordId = record.GetRecordId();
-    record.SetFrom(htmlRecordId);
-    for (auto &recordItem : tmpData.AllRecords()) {
-        if (recordItem == nullptr) {
-            continue;
-        }
-        if (!recordItem->GetConvertUri().empty()) {
-            recordItem->isConvertUriFromRemote = true;
-        }
-        if (recordItem->GetFrom() > 0 && recordItem->GetRecordId() != recordItem->GetFrom()) {
-            recordItem->SetFrom(htmlRecordId);
-            data.AddRecord(*recordItem);
-        }
-    }
-
     return ProcessRemoteDelayHtmlInner(remoteDeviceId, appInfo, tmpData, data, entry);
 }
 
