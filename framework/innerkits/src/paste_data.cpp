@@ -75,7 +75,8 @@ PasteData::~PasteData() {}
 PasteData::PasteData(const PasteData &data)
     : rawDataSize_(data.rawDataSize_), userId_(data.userId_), valid_(data.valid_), isDraggedData_(data.isDraggedData_),
       isLocalPaste_(data.isLocalPaste_), isDelayData_(data.isDelayData_), isDelayRecord_(data.isDelayRecord_),
-      dataId_(data.dataId_), recordId_(data.recordId_), originAuthority_(data.originAuthority_), pasteId_(data.pasteId_)
+      dataId_(data.dataId_), recordId_(data.recordId_), textSize_(data.textSize_),
+      originAuthority_(data.originAuthority_), pasteId_(data.pasteId_)
 { // LCOV_EXCL_START
     this->props_ = data.props_;
     for (const auto &item : data.records_) {
@@ -115,6 +116,7 @@ PasteData &PasteData::operator=(const PasteData &data)
         this->records_.emplace_back(std::make_shared<PasteDataRecord>(*item));
     }
     this->recordId_ = data.GetRecordId();
+    this->textSize_ = data.textSize_;
     this->rawDataSize_ = data.rawDataSize_;
     this->userId_ = data.userId_;
     return *this;
