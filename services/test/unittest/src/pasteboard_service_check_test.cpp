@@ -706,5 +706,391 @@ HWTEST_F(PasteboardServiceCheckTest, ClearAgedDataTest001, TestSize.Level0)
     result = tempPasteboard->clips_.Find(userId);
     EXPECT_FALSE(result.first);
 }
+/**
+ * @tc.name: PasteboardServiceCheckTest001
+ * @tc.desc: detect test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceCheckTest, PasteboardServiceCheckTest001, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteboardServiceCheckTest001 start");
+    bool hasPlain = true;
+    bool hasHTML = true;
+
+    std::string plainText = "plain text";
+    auto data = PasteboardClient::GetInstance()->CreatePlainTextData(plainText);
+    ASSERT_TRUE(data != nullptr);
+
+    PasteboardClient::GetInstance()->Clear();
+    auto has = PasteboardClient::GetInstance()->HasPasteData();
+    ASSERT_TRUE(has != true);
+
+    int32_t ret = PasteboardClient::GetInstance()->SetPasteData(*data);
+    ASSERT_TRUE(ret == static_cast<int32_t>(PasteboardError::E_OK));
+
+    has = PasteboardClient::GetInstance()->HasPasteData();
+    ASSERT_TRUE(has == true);
+
+    PasteData pasteData;
+    ret = PasteboardClient::GetInstance()->GetPasteData(pasteData);
+    ASSERT_TRUE(ret == static_cast<int32_t>(PasteboardError::E_OK));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "get.");
+
+    auto primaryText = pasteData.GetPrimaryText();
+    ASSERT_TRUE(primaryText != nullptr);
+    ASSERT_TRUE(*primaryText == plainText);
+
+    const std::set<Pattern> patternsToCheck = {};
+
+    auto detect = PatternDetection::Detect(patternsToCheck, pasteData, hasHTML, hasPlain);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteboardServiceCheckTest001 end");
+}
+
+/**
+ * @tc.name: PasteboardServiceCheckTest002
+ * @tc.desc: detect test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceCheckTest, PasteboardServiceCheckTest002, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteboardServiceCheckTest002 start");
+    bool hasPlain = true;
+    bool hasHTML = true;
+
+    std::string plainText = "plain text";
+    auto data = PasteboardClient::GetInstance()->CreatePlainTextData(plainText);
+    ASSERT_TRUE(data != nullptr);
+
+    PasteboardClient::GetInstance()->Clear();
+    auto has = PasteboardClient::GetInstance()->HasPasteData();
+    ASSERT_TRUE(has != true);
+
+    int32_t ret = PasteboardClient::GetInstance()->SetPasteData(*data);
+    ASSERT_TRUE(ret == static_cast<int32_t>(PasteboardError::E_OK));
+
+    has = PasteboardClient::GetInstance()->HasPasteData();
+    ASSERT_TRUE(has == true);
+
+    PasteData pasteData;
+    ret = PasteboardClient::GetInstance()->GetPasteData(pasteData);
+    ASSERT_TRUE(ret == static_cast<int32_t>(PasteboardError::E_OK));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "get.");
+
+    auto primaryText = pasteData.GetPrimaryText();
+    ASSERT_TRUE(primaryText != nullptr);
+    ASSERT_TRUE(*primaryText == plainText);
+
+    const std::set<Pattern> patternsToCheck = { Pattern::URL };
+
+    auto detect = PatternDetection::Detect(patternsToCheck, pasteData, hasHTML, hasPlain);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteboardServiceCheckTest002 end");
+}
+
+/**
+ * @tc.name: PasteboardServiceCheckTest003
+ * @tc.desc: detect test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceCheckTest, PasteboardServiceCheckTest003, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteboardServiceCheckTest003 start");
+    bool hasPlain = true;
+    bool hasHTML = false;
+
+    std::string plainText = "plain text";
+    auto data = PasteboardClient::GetInstance()->CreatePlainTextData(plainText);
+    ASSERT_TRUE(data != nullptr);
+
+    PasteboardClient::GetInstance()->Clear();
+    auto has = PasteboardClient::GetInstance()->HasPasteData();
+    ASSERT_TRUE(has != true);
+
+    int32_t ret = PasteboardClient::GetInstance()->SetPasteData(*data);
+    ASSERT_TRUE(ret == static_cast<int32_t>(PasteboardError::E_OK));
+
+    has = PasteboardClient::GetInstance()->HasPasteData();
+    ASSERT_TRUE(has == true);
+
+    PasteData pasteData;
+    ret = PasteboardClient::GetInstance()->GetPasteData(pasteData);
+    ASSERT_TRUE(ret == static_cast<int32_t>(PasteboardError::E_OK));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "get.");
+
+    auto primaryText = pasteData.GetPrimaryText();
+    ASSERT_TRUE(primaryText != nullptr);
+    ASSERT_TRUE(*primaryText == plainText);
+
+    const std::set<Pattern> patternsToCheck = { Pattern::URL };
+
+    auto detect = PatternDetection::Detect(patternsToCheck, pasteData, hasHTML, hasPlain);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteboardServiceCheckTest003 end");
+}
+
+/**
+ * @tc.name: PasteboardServiceCheckTest004
+ * @tc.desc: detect test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceCheckTest, PasteboardServiceCheckTest004, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteboardServiceCheckTest004 start");
+    bool hasPlain = false;
+    bool hasHTML = true;
+
+    std::string plainText = "plain text";
+    auto data = PasteboardClient::GetInstance()->CreatePlainTextData(plainText);
+    ASSERT_TRUE(data != nullptr);
+
+    PasteboardClient::GetInstance()->Clear();
+    auto has = PasteboardClient::GetInstance()->HasPasteData();
+    ASSERT_TRUE(has != true);
+
+    int32_t ret = PasteboardClient::GetInstance()->SetPasteData(*data);
+    ASSERT_TRUE(ret == static_cast<int32_t>(PasteboardError::E_OK));
+
+    has = PasteboardClient::GetInstance()->HasPasteData();
+    ASSERT_TRUE(has == true);
+    PasteData pasteData;
+    ret = PasteboardClient::GetInstance()->GetPasteData(pasteData);
+    ASSERT_TRUE(ret == static_cast<int32_t>(PasteboardError::E_OK));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "get.");
+
+    auto primaryText = pasteData.GetPrimaryText();
+    ASSERT_TRUE(primaryText != nullptr);
+    ASSERT_TRUE(*primaryText == plainText);
+
+    const std::set<Pattern> patternsToCheck = { Pattern::URL };
+
+    auto detect = PatternDetection::Detect(patternsToCheck, pasteData, hasHTML, hasPlain);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteboardServiceCheckTest004 end");
+}
+
+/**
+ * @tc.name: PasteboardServiceCheckTest005
+ * @tc.desc: detect test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceCheckTest, PasteboardServiceCheckTest005, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteboardServiceCheckTest005 start");
+    bool hasPlain = false;
+    bool hasHTML = false;
+
+    std::string plainText = "plain text";
+    auto data = PasteboardClient::GetInstance()->CreatePlainTextData(plainText);
+    ASSERT_TRUE(data != nullptr);
+
+    PasteboardClient::GetInstance()->Clear();
+    auto has = PasteboardClient::GetInstance()->HasPasteData();
+    ASSERT_TRUE(has != true);
+
+    int32_t ret = PasteboardClient::GetInstance()->SetPasteData(*data);
+    ASSERT_TRUE(ret == static_cast<int32_t>(PasteboardError::E_OK));
+
+    has = PasteboardClient::GetInstance()->HasPasteData();
+    ASSERT_TRUE(has == true);
+
+    PasteData pasteData;
+    ret = PasteboardClient::GetInstance()->GetPasteData(pasteData);
+    ASSERT_TRUE(ret == static_cast<int32_t>(PasteboardError::E_OK));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "get.");
+
+    auto primaryText = pasteData.GetPrimaryText();
+    ASSERT_TRUE(primaryText != nullptr);
+    ASSERT_TRUE(*primaryText == plainText);
+
+    const std::set<Pattern> patternsToCheck = { Pattern::URL };
+
+    auto detect = PatternDetection::Detect(patternsToCheck, pasteData, hasHTML, hasPlain);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteboardServiceCheckTest005 end");
+}
+
+/**
+ * @tc.name: PasteboardServiceCheckTest006
+ * @tc.desc: detect test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceCheckTest, PasteboardServiceCheckTest006, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteboardServiceCheckTest006 start");
+    bool hasPlain = true;
+    bool hasHTML = true;
+
+    std::string htmlText = "<div class='disabled item tip user-programs'>";
+    auto data = PasteboardClient::GetInstance()->CreateHtmlData(htmlText);
+    ASSERT_TRUE(data != nullptr);
+
+    PasteboardClient::GetInstance()->Clear();
+    auto has = PasteboardClient::GetInstance()->HasPasteData();
+    ASSERT_TRUE(has != true);
+
+    int32_t ret = PasteboardClient::GetInstance()->SetPasteData(*data);
+    ASSERT_TRUE(ret == static_cast<int32_t>(PasteboardError::E_OK));
+
+    has = PasteboardClient::GetInstance()->HasPasteData();
+    ASSERT_TRUE(has == true);
+
+    PasteData pasteData;
+    ret = PasteboardClient::GetInstance()->GetPasteData(pasteData);
+    ASSERT_TRUE(ret == static_cast<int32_t>(PasteboardError::E_OK));
+
+    auto record = pasteData.GetPrimaryHtml();
+    ASSERT_TRUE(record != nullptr);
+    ASSERT_TRUE(*record == htmlText);
+
+    const std::set<Pattern> patternsToCheck = { Pattern::URL };
+
+    auto detect = PatternDetection::Detect(patternsToCheck, pasteData, hasHTML, hasPlain);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteboardServiceCheckTest006 end");
+}
+
+/**
+ * @tc.name: PasteboardServiceCheckTest007
+ * @tc.desc: detect test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceCheckTest, PasteboardServiceCheckTest007, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteboardServiceCheckTest007 start");
+    bool hasPlain = true;
+    bool hasHTML = false;
+
+    std::string htmlText = "<div class='disabled item tip user-programs'>";
+    auto data = PasteboardClient::GetInstance()->CreateHtmlData(htmlText);
+    ASSERT_TRUE(data != nullptr);
+
+    PasteboardClient::GetInstance()->Clear();
+    auto has = PasteboardClient::GetInstance()->HasPasteData();
+    ASSERT_TRUE(has != true);
+
+    int32_t ret = PasteboardClient::GetInstance()->SetPasteData(*data);
+    ASSERT_TRUE(ret == static_cast<int32_t>(PasteboardError::E_OK));
+
+    has = PasteboardClient::GetInstance()->HasPasteData();
+    ASSERT_TRUE(has == true);
+
+    PasteData pasteData;
+    ret = PasteboardClient::GetInstance()->GetPasteData(pasteData);
+    ASSERT_TRUE(ret == static_cast<int32_t>(PasteboardError::E_OK));
+
+    auto record = pasteData.GetPrimaryHtml();
+    ASSERT_TRUE(record != nullptr);
+    ASSERT_TRUE(*record == htmlText);
+
+    const std::set<Pattern> patternsToCheck = { Pattern::URL };
+
+    auto detect = PatternDetection::Detect(patternsToCheck, pasteData, hasHTML, hasPlain);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteboardServiceCheckTest007 end");
+}
+
+/**
+ * @tc.name: PasteboardServiceCheckTest008
+ * @tc.desc: detect test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceCheckTest, PasteboardServiceCheckTest008, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteboardServiceCheckTest008 start");
+    bool hasPlain = false;
+    bool hasHTML = true;
+
+    std::string htmlText = "<div class='disabled item tip user-programs'>";
+    auto data = PasteboardClient::GetInstance()->CreateHtmlData(htmlText);
+    ASSERT_TRUE(data != nullptr);
+
+    PasteboardClient::GetInstance()->Clear();
+    auto has = PasteboardClient::GetInstance()->HasPasteData();
+    ASSERT_TRUE(has != true);
+
+    int32_t ret = PasteboardClient::GetInstance()->SetPasteData(*data);
+    ASSERT_TRUE(ret == static_cast<int32_t>(PasteboardError::E_OK));
+
+    has = PasteboardClient::GetInstance()->HasPasteData();
+    ASSERT_TRUE(has == true);
+
+    PasteData pasteData;
+    ret = PasteboardClient::GetInstance()->GetPasteData(pasteData);
+    ASSERT_TRUE(ret == static_cast<int32_t>(PasteboardError::E_OK));
+
+    auto record = pasteData.GetPrimaryHtml();
+    ASSERT_TRUE(record != nullptr);
+    ASSERT_TRUE(*record == htmlText);
+
+    const std::set<Pattern> patternsToCheck = { Pattern::URL };
+
+    auto detect = PatternDetection::Detect(patternsToCheck, pasteData, hasHTML, hasPlain);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteboardServiceCheckTest008 end");
+}
+
+/**
+ * @tc.name: PasteboardServiceCheckTest009
+ * @tc.desc: detect test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceCheckTest, PasteboardServiceCheckTest009, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteboardServiceCheckTest009 start");
+    bool hasPlain = false;
+    bool hasHTML = true;
+
+    std::string htmlText = "<div class='disabled item tip user-programs'>";
+    auto data = PasteboardClient::GetInstance()->CreateHtmlData(htmlText);
+    ASSERT_TRUE(data != nullptr);
+
+    PasteboardClient::GetInstance()->Clear();
+    auto has = PasteboardClient::GetInstance()->HasPasteData();
+    ASSERT_TRUE(has != true);
+
+    int32_t ret = PasteboardClient::GetInstance()->SetPasteData(*data);
+    ASSERT_TRUE(ret == static_cast<int32_t>(PasteboardError::E_OK));
+
+    has = PasteboardClient::GetInstance()->HasPasteData();
+    ASSERT_TRUE(has == true);
+
+    PasteData pasteData;
+    ret = PasteboardClient::GetInstance()->GetPasteData(pasteData);
+    ASSERT_TRUE(ret == static_cast<int32_t>(PasteboardError::E_OK));
+
+    auto record = pasteData.GetPrimaryHtml();
+    ASSERT_TRUE(record != nullptr);
+    ASSERT_TRUE(*record == htmlText);
+
+    const std::set<Pattern> patternsToCheck = { Pattern::URL };
+
+    auto detect = PatternDetection::Detect(patternsToCheck, pasteData, hasHTML, hasPlain);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteboardServiceCheckTest009 end");
+}
+
+/**
+ * @tc.name: PasteboardServiceCheckTest010
+ * @tc.desc: IsValid test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceCheckTest, PasteboardServiceCheckTest010, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteboardServiceCheckTest010 start");
+
+    std::set<Pattern> patterns = { Pattern::COUNT };
+    bool isValid = PatternDetection::IsValid(patterns);
+    EXPECT_FALSE(isValid);
+
+    patterns = { Pattern::URL };
+    isValid = PatternDetection::IsValid(patterns);
+    EXPECT_TRUE(isValid);
+
+    patterns = { Pattern::NUMBER };
+    isValid = PatternDetection::IsValid(patterns);
+    EXPECT_TRUE(isValid);
+
+    patterns = { Pattern::EMAIL_ADDRESS };
+    isValid = PatternDetection::IsValid(patterns);
+    EXPECT_TRUE(isValid);
+
+    patterns = { Pattern::URL, Pattern::COUNT };
+    isValid = PatternDetection::IsValid(patterns);
+    EXPECT_FALSE(isValid);
+
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteboardServiceCheckTest010 end");
+}
 } // namespace MiscServices
 } // namespace OHOS
