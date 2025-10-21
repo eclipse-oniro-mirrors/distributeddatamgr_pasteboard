@@ -36,7 +36,7 @@ using namespace OHOS::Security::AccessToken;
 namespace OHOS {
 namespace {
 const int32_t INT32_NEGATIVE_NUMBER = -1;
-const int INT_THREETHREETHREE = 333;
+const uint32_t LOOP_COUNT = 333;
 constexpr int64_t MIN_ASHMEM_DATA_SIZE = 32 * 1024;
 const int32_t ACCOUNT_IDS_RANDOM = 1121;
 const std::string TEST_ENTITY_TEXT =
@@ -468,7 +468,7 @@ HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataOnlyTest001, TestSize.Level0)
 HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataInfoTest001, TestSize.Level0)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetPasteDataInfoTest001 start");
-    std::string bundleName = "com.pastboard.test";
+    std::string bundleName = "com.pasteboard.test";
     int32_t appIndex = 1;
     PasteData pasteData;
     AppInfo appInfo;
@@ -1080,7 +1080,7 @@ HWTEST_F(PasteboardServiceSetDataTest, WritePasteDataTest002, TestSize.Level0)
 
     PasteData input;
     std::string text = "test";
-    for (int i = 0; i < INT_THREETHREETHREE; ++i) {
+    for (uint32_t i = 0; i < LOOP_COUNT; ++i) {
         text += TEST_ENTITY_TEXT;
     }
     input.AddTextRecord(text);
@@ -1121,7 +1121,7 @@ HWTEST_F(PasteboardServiceSetDataTest, WritePasteDataTest003, TestSize.Level0)
 
     PasteData input;
     std::string text = "test";
-    for (int i = 0; i < INT_THREETHREETHREE; ++i) {
+    for (uint32_t i = 0; i < LOOP_COUNT; ++i) {
         text += TEST_ENTITY_TEXT;
     }
     input.AddTextRecord(text);
