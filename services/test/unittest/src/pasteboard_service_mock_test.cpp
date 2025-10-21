@@ -1495,13 +1495,13 @@ HWTEST_F(PasteboardServiceMockTest, DumpDataTest002, TestSize.Level0)
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "DumpDataTest002 start.");
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
-    std::string expectdStr;
-    expectdStr.append("No copy data.").append("\n");
+    std::string expectStr;
+    expectStr.append("No copy data.").append("\n");
     tempPasteboard->currentUserId_ = ACCOUNT_IDS_RANDOM;
     NiceMock<PasteboardServiceInterfaceMock> mock;
     EXPECT_CALL(mock, QueryActiveOsAccountIds(testing::_)).WillRepeatedly(Return(ERR_OK));
     auto ret = tempPasteboard->DumpData();
-    ASSERT_EQ(ret, expectdStr);
+    ASSERT_EQ(ret, expectStr);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "DumpDataTest002 end.");
 }
 
@@ -1515,14 +1515,14 @@ HWTEST_F(PasteboardServiceMockTest, DumpDataTest003, TestSize.Level0)
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "DumpDataTest003 start.");
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
-    std::string expectdStr;
-    expectdStr.append("No copy data.").append("\n");
+    std::string expectStr;
+    expectStr.append("No copy data.").append("\n");
     tempPasteboard->currentUserId_ = ACCOUNT_IDS_RANDOM;
     tempPasteboard->clips_.Insert(ACCOUNT_IDS_RANDOM, nullptr);
     NiceMock<PasteboardServiceInterfaceMock> mock;
     EXPECT_CALL(mock, QueryActiveOsAccountIds(testing::_)).WillRepeatedly(Return(ERR_OK));
     auto ret = tempPasteboard->DumpData();
-    ASSERT_EQ(ret, expectdStr);
+    ASSERT_EQ(ret, expectStr);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "DumpDataTest003 end.");
 }
 
@@ -1536,7 +1536,7 @@ HWTEST_F(PasteboardServiceMockTest, DumpDataTest004, TestSize.Level0)
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "DumpDataTest004 start.");
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
-    std::string expectdStr;
+    std::string expectStr;
     tempPasteboard->currentUserId_ = ACCOUNT_IDS_RANDOM;
     auto pasteData = std::make_shared<PasteData>();
     EXPECT_NE(pasteData, nullptr);
@@ -1557,7 +1557,7 @@ HWTEST_F(PasteboardServiceMockTest, DumpDataTest004, TestSize.Level0)
     pData->mimeTypes.push_back(mimeType);
     pasteData->SetProperty(*pData);
     tempPasteboard->clips_.Insert(ACCOUNT_IDS_RANDOM, pasteData);
-    expectdStr.append("|Owner       :  ")
+    expectStr.append("|Owner       :  ")
             .append(bundleName)
             .append("\n")
             .append("|Timestamp   :  ")
@@ -1580,7 +1580,7 @@ HWTEST_F(PasteboardServiceMockTest, DumpDataTest004, TestSize.Level0)
     EXPECT_CALL(mock, QueryActiveOsAccountIds(testing::_)).WillRepeatedly(Return(ERR_OK));
     auto ret = tempPasteboard->DumpData();
     delete pData;
-    ASSERT_EQ(ret, expectdStr);
+    ASSERT_EQ(ret, expectStr);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "DumpDataTest004 end.");
 }
 
@@ -1594,7 +1594,7 @@ HWTEST_F(PasteboardServiceMockTest, DumpDataTest005, TestSize.Level0)
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "DumpDataTest005 start.");
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
-    std::string expectdStr;
+    std::string expectStr;
     tempPasteboard->currentUserId_ = ACCOUNT_IDS_RANDOM;
     auto pasteData = std::make_shared<PasteData>();
     EXPECT_NE(pasteData, nullptr);
@@ -1612,7 +1612,7 @@ HWTEST_F(PasteboardServiceMockTest, DumpDataTest005, TestSize.Level0)
     pData->shareOption = ShareOption::InApp;
     pasteData->SetProperty(*pData);
     tempPasteboard->clips_.Insert(ACCOUNT_IDS_RANDOM, pasteData);
-    expectdStr.append("|Owner       :  ")
+    expectStr.append("|Owner       :  ")
             .append(bundleName)
             .append("\n")
             .append("|Timestamp   :  ")
@@ -1633,7 +1633,7 @@ HWTEST_F(PasteboardServiceMockTest, DumpDataTest005, TestSize.Level0)
     EXPECT_CALL(mock, QueryActiveOsAccountIds(testing::_)).WillRepeatedly(Return(ERR_OK));
     auto ret = tempPasteboard->DumpData();
     delete pData;
-    ASSERT_EQ(ret, expectdStr);
+    ASSERT_EQ(ret, expectStr);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "DumpDataTest005 end.");
 }
 
@@ -3086,14 +3086,14 @@ HWTEST_F(PasteboardServiceMockTest, EstablishP2PLinkTest001, TestSize.Level0)
     EXPECT_NE(tempPasteboard, nullptr);
 
     PasteboardService service;
-    std::string networkld = "network123";
-    std::string pasteld = "paste123";
+    std::string networkId = "network123";
+    std::string pasteId = "paste123";
 
     NiceMock<PasteboardServiceInterfaceMock> mock;
     EXPECT_CALL(mock, GetRemoteDeviceInfo(testing::_, testing::_))
         .WillOnce(Return(static_cast<int32_t>(PasteboardError::E_OK)));
 
-    tempPasteboard->EstablishP2PLink(networkld, pasteld);
+    tempPasteboard->EstablishP2PLink(networkId, pasteId);
     ASSERT_TRUE(true);
 #else
     ASSERT_TRUE(true);
@@ -3111,13 +3111,13 @@ HWTEST_F(PasteboardServiceMockTest, CloseP2PLinkTest001, TestSize.Level0)
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
 
-    std::string networkld = "network123";
+    std::string networkId = "network123";
 
     NiceMock<PasteboardServiceInterfaceMock> mock;
     EXPECT_CALL(mock, GetRemoteDeviceInfo(testing::_, testing::_))
         .WillOnce(Return(static_cast<int32_t>(PasteboardError::E_OK)));
 
-    tempPasteboard->CloseP2PLink(networkld);
+    tempPasteboard->CloseP2PLink(networkId);
 #else
     ASSERT_TRUE(true);
 #endif

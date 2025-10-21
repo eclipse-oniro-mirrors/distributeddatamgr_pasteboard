@@ -566,15 +566,15 @@ HWTEST_F(PasteboardServiceSubscribeTest, GetAllObserversSizeTest001, TestSize.Le
 }
 
 /**
- * @tc.name: RemoveSingleObserverddObserverTest001
- * @tc.desc: test Func RemoveSingleObserverddObserver
+ * @tc.name: RemoveSingleObserverTest001
+ * @tc.desc: test Func RemoveSingleObserver
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(PasteboardServiceSubscribeTest, RemoveSingleObserverddObserverTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceSubscribeTest, RemoveSingleObserverTest001, TestSize.Level0)
 {
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "RemoveSingleObserverddObserverTest001 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "RemoveSingleObserverTest001 start");
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
 
@@ -582,7 +582,7 @@ HWTEST_F(PasteboardServiceSubscribeTest, RemoveSingleObserverddObserverTest001, 
     int32_t user = 1234;
 
     tempPasteboard->RemoveSingleObserver(user, nullptr, observerMap);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "RemoveSingleObserverddObserverTest001 end");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "RemoveSingleObserverTest001 end");
 }
 
 /**

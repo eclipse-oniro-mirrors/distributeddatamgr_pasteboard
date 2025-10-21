@@ -468,7 +468,7 @@ HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataOnlyTest001, TestSize.Level0)
 HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataInfoTest001, TestSize.Level0)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetPasteDataInfoTest001 start");
-    std::string bundleName = "com.pastboard.test";
+    std::string bundleName = "com.pasteboard.test";
     int32_t appIndex = 1;
     PasteData pasteData;
     AppInfo appInfo;
