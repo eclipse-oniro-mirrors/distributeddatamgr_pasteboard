@@ -600,6 +600,111 @@ HWTEST_F(PasteboardServiceCheckTest, IsNeedThawTest001, TestSize.Level0)
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "IsNeedThawTest001 end");
 }
 
+/**
+ * @tc.name: CleanDistributedDataTest001
+ * @tc.desc: test Func CleanDistributedData
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceCheckTest, CleanDistributedDataTest001, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "CleanDistributedDataTest001 start");
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
 
+    int32_t user = ACCOUNT_IDS_RANDOM;
+    tempPasteboard->CleanDistributedData(user);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "CleanDistributedDataTest001 end");
+}
+
+/**
+ * @tc.name: ClearTest001
+ * @tc.desc: test Func Clear
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceCheckTest, ClearTest001, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ClearTest001 start");
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+
+    tempPasteboard->currentUserId_ = ACCOUNT_IDS_RANDOM;
+    tempPasteboard->clips_.InsertOrAssign(ACCOUNT_IDS_RANDOM, std::make_shared<PasteData>());
+    int32_t result = tempPasteboard->Clear();
+    EXPECT_EQ(result, ERR_OK);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ClearTest001 end");
+}
+
+/**
+ * @tc.name: ClearTest002
+ * @tc.desc: test Func Clear
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceCheckTest, ClearTest002, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ClearTest002 start");
+    auto tempPasteboard = std::make_shared<InputEventCallback>();
+    EXPECT_NE(tempPasteboard, nullptr);
+
+    tempPasteboard->Clear();
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ClearTest002 end");
+}
+
+/**
+ * @tc.name: ClearInputMethodPidByPidTest001
+ * @tc.desc: test Func ClearInputMethodPidByPid
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceCheckTest, ClearInputMethodPidByPidTest001, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ClearInputMethodPidByPidTest001 start");
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+
+    auto userId = tempPasteboard->GetCurrentAccountId();
+    pid_t callPid = 1;
+    tempPasteboard->ClearInputMethodPidByPid(userId, callPid);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ClearInputMethodPidByPidTest001 end");
+}
+
+/**
+ * @tc.name: ClearInputMethodPidTest001
+ * @tc.desc: test Func ClearInputMethodPid
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceCheckTest, ClearInputMethodPidTest001, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ClearInputMethodPidTest001 start");
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+
+    tempPasteboard->ClearInputMethodPid();
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ClearInputMethodPidTest001 end");
+}
+
+/**
+ * @tc.name: ClearAgedDataTest001
+ * @tc.desc: Test ClearAgedData function to clear expired data
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceCheckTest, ClearAgedDataTest001, TestSize.Level0)
+{
+    std::shared_ptr<PasteboardService> tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+    auto tokenId = IPCSkeleton::GetCallingTokenID();
+    auto appInfo = tempPasteboard->GetAppInfo(tokenId);
+    int32_t userId = appInfo.userId;
+    tempPasteboard->ffrtTimer_ = nullptr;
+    tempPasteboard->SetDataExpirationTimer(userId);
+    tempPasteboard->ffrtTimer_ = std::make_shared<FFRTTimer>();
+    tempPasteboard->SetDataExpirationTimer(userId);
+    std::shared_ptr<PasteData> testData = std::make_shared<PasteData>();
+    tempPasteboard->clips_.InsertOrAssign(userId, testData);
+    auto result = tempPasteboard->clips_.Find(userId);
+    EXPECT_TRUE(result.first);
+    EXPECT_NE(result.second, nullptr);
+    tempPasteboard->ClearAgedData(userId);
+    result = tempPasteboard->clips_.Find(userId);
+    EXPECT_FALSE(result.first);
+}
 } // namespace MiscServices
 } // namespace OHOS
