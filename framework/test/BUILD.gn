@@ -443,7 +443,6 @@ ohos_unittest("PasteboardClientMockTest") {
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
     "data_share:datashare_consumer",
-    "dataclassification:data_transit_mgr",
     "dfs_service:distributed_file_daemon_kit_inner",
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
@@ -492,6 +491,11 @@ ohos_unittest("PasteboardClientMockTest") {
   if (pasteboard_device_manager_part_enabled) {
     external_deps += [ "device_manager:devicemanagersdk" ]
     defines += [ "PB_DEVICE_MANAGER_ENABLE" ]
+  }
+
+  if (pasteboard_dataclassification_enabled) {
+    external_deps += [ "dataclassification:data_transit_mgr" ]
+    defines += [ "PB_DATACLASSIFICATION_ENABLE" ]
   }
 }
 

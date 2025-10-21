@@ -156,7 +156,6 @@ ohos_unittest("PasteServInterfaceTest") {
     "cJSON:cjson",
     "common_event_service:cesfwk_innerkits",
     "data_share:datashare_consumer",
-    "dataclassification:data_transit_mgr",
     "dfs_service:distributed_file_daemon_kit_inner",
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
@@ -215,6 +214,11 @@ ohos_unittest("PasteServInterfaceTest") {
   if (pasteboard_screenlock_mgr_part_enabled) {
     external_deps += [ "screenlock_mgr:screenlock_client" ]
     defines += [ "PB_SCREENLOCK_MGR_ENABLE" ]
+  }
+
+  if (pasteboard_dataclassification_enabled) {
+    external_deps += [ "dataclassification:data_transit_mgr" ]
+    defines += [ "PB_DATACLASSIFICATION_ENABLE" ]
   }
 }
 
@@ -292,7 +296,6 @@ ohos_unittest("PasteServInterfaceMockTest") {
     "cJSON:cjson",
     "common_event_service:cesfwk_innerkits",
     "data_share:datashare_consumer",
-    "dataclassification:data_transit_mgr",
     "dfs_service:distributed_file_daemon_kit_inner",
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
@@ -350,6 +353,11 @@ ohos_unittest("PasteServInterfaceMockTest") {
   if (pasteboard_screenlock_mgr_part_enabled) {
     external_deps += [ "screenlock_mgr:screenlock_client" ]
     defines += [ "PB_SCREENLOCK_MGR_ENABLE" ]
+  }
+
+  if (pasteboard_dataclassification_enabled) {
+    external_deps += [ "dataclassification:data_transit_mgr" ]
+    defines += [ "PB_DATACLASSIFICATION_ENABLE" ]
   }
 }
 
@@ -651,7 +659,6 @@ ohos_unittest("PasteboardDelayManagerTest") {
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
     "data_share:datashare_consumer",
-    "dataclassification:data_transit_mgr",
     "dfs_service:distributed_file_daemon_kit_inner",
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
@@ -672,6 +679,11 @@ ohos_unittest("PasteboardDelayManagerTest") {
   if (pasteboard_device_manager_part_enabled) {
     external_deps += [ "device_manager:devicemanagersdk" ]
     defines += [ "PB_DEVICE_MANAGER_ENABLE" ]
+  }
+
+  if (pasteboard_dataclassification_enabled) {
+    external_deps += [ "dataclassification:data_transit_mgr" ]
+    defines += [ "PB_DATACLASSIFICATION_ENABLE" ]
   }
 }
 
@@ -746,7 +758,6 @@ ohos_unittest("PasteServGetLocalDataTest") {
     "cJSON:cjson",
     "common_event_service:cesfwk_innerkits",
     "data_share:datashare_consumer",
-    "dataclassification:data_transit_mgr",
     "dfs_service:distributed_file_daemon_kit_inner",
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
@@ -805,6 +816,11 @@ ohos_unittest("PasteServGetLocalDataTest") {
   if (pasteboard_screenlock_mgr_part_enabled) {
     external_deps += [ "screenlock_mgr:screenlock_client" ]
     defines += [ "PB_SCREENLOCK_MGR_ENABLE" ]
+  }
+
+  if (pasteboard_dataclassification_enabled) {
+    external_deps += [ "dataclassification:data_transit_mgr" ]
+    defines += [ "PB_DATACLASSIFICATION_ENABLE" ]
   }
 }
 
@@ -879,7 +895,6 @@ ohos_unittest("PasteServSubscribeTest") {
     "cJSON:cjson",
     "common_event_service:cesfwk_innerkits",
     "data_share:datashare_consumer",
-    "dataclassification:data_transit_mgr",
     "dfs_service:distributed_file_daemon_kit_inner",
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
@@ -938,6 +953,11 @@ ohos_unittest("PasteServSubscribeTest") {
   if (pasteboard_screenlock_mgr_part_enabled) {
     external_deps += [ "screenlock_mgr:screenlock_client" ]
     defines += [ "PB_SCREENLOCK_MGR_ENABLE" ]
+  }
+
+  if (pasteboard_dataclassification_enabled) {
+    external_deps += [ "dataclassification:data_transit_mgr" ]
+    defines += [ "PB_DATACLASSIFICATION_ENABLE" ]
   }
 }
 
@@ -1012,7 +1032,6 @@ ohos_unittest("PasteServNotifyTest") {
     "cJSON:cjson",
     "common_event_service:cesfwk_innerkits",
     "data_share:datashare_consumer",
-    "dataclassification:data_transit_mgr",
     "dfs_service:distributed_file_daemon_kit_inner",
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
@@ -1071,6 +1090,11 @@ ohos_unittest("PasteServNotifyTest") {
   if (pasteboard_screenlock_mgr_part_enabled) {
     external_deps += [ "screenlock_mgr:screenlock_client" ]
     defines += [ "PB_SCREENLOCK_MGR_ENABLE" ]
+  }
+
+  if (pasteboard_dataclassification_enabled) {
+    external_deps += [ "dataclassification:data_transit_mgr" ]
+    defines += [ "PB_DATACLASSIFICATION_ENABLE" ]
   }
 }
 
@@ -1145,7 +1169,6 @@ ohos_unittest("PasteServSetDataTest") {
     "cJSON:cjson",
     "common_event_service:cesfwk_innerkits",
     "data_share:datashare_consumer",
-    "dataclassification:data_transit_mgr",
     "dfs_service:distributed_file_daemon_kit_inner",
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
@@ -1204,6 +1227,11 @@ ohos_unittest("PasteServSetDataTest") {
   if (pasteboard_screenlock_mgr_part_enabled) {
     external_deps += [ "screenlock_mgr:screenlock_client" ]
     defines += [ "PB_SCREENLOCK_MGR_ENABLE" ]
+  }
+
+  if (pasteboard_dataclassification_enabled) {
+    external_deps += [ "dataclassification:data_transit_mgr" ]
+    defines += [ "PB_DATACLASSIFICATION_ENABLE" ]
   }
 }
 
@@ -1278,7 +1306,6 @@ ohos_unittest("PasteServGetDataTest") {
     "cJSON:cjson",
     "common_event_service:cesfwk_innerkits",
     "data_share:datashare_consumer",
-    "dataclassification:data_transit_mgr",
     "dfs_service:distributed_file_daemon_kit_inner",
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
@@ -1337,6 +1364,11 @@ ohos_unittest("PasteServGetDataTest") {
   if (pasteboard_screenlock_mgr_part_enabled) {
     external_deps += [ "screenlock_mgr:screenlock_client" ]
     defines += [ "PB_SCREENLOCK_MGR_ENABLE" ]
+  }
+
+  if (pasteboard_dataclassification_enabled) {
+    external_deps += [ "dataclassification:data_transit_mgr" ]
+    defines += [ "PB_DATACLASSIFICATION_ENABLE" ]
   }
 }
 
@@ -1412,7 +1444,6 @@ ohos_unittest("PasteServEventTest") {
     "cJSON:cjson",
     "common_event_service:cesfwk_innerkits",
     "data_share:datashare_consumer",
-    "dataclassification:data_transit_mgr",
     "dfs_service:distributed_file_daemon_kit_inner",
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
@@ -1471,6 +1502,11 @@ ohos_unittest("PasteServEventTest") {
   if (pasteboard_screenlock_mgr_part_enabled) {
     external_deps += [ "screenlock_mgr:screenlock_client" ]
     defines += [ "PB_SCREENLOCK_MGR_ENABLE" ]
+  }
+
+  if (pasteboard_dataclassification_enabled) {
+    external_deps += [ "dataclassification:data_transit_mgr" ]
+    defines += [ "PB_DATACLASSIFICATION_ENABLE" ]
   }
 }
 
@@ -1546,7 +1582,6 @@ ohos_unittest("PasteServGetTest") {
     "cJSON:cjson",
     "common_event_service:cesfwk_innerkits",
     "data_share:datashare_consumer",
-    "dataclassification:data_transit_mgr",
     "dfs_service:distributed_file_daemon_kit_inner",
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
@@ -1605,6 +1640,11 @@ ohos_unittest("PasteServGetTest") {
   if (pasteboard_screenlock_mgr_part_enabled) {
     external_deps += [ "screenlock_mgr:screenlock_client" ]
     defines += [ "PB_SCREENLOCK_MGR_ENABLE" ]
+  }
+
+  if (pasteboard_dataclassification_enabled) {
+    external_deps += [ "dataclassification:data_transit_mgr" ]
+    defines += [ "PB_DATACLASSIFICATION_ENABLE" ]
   }
 }
 
@@ -1680,7 +1720,6 @@ ohos_unittest("PasteServCheckTest") {
     "cJSON:cjson",
     "common_event_service:cesfwk_innerkits",
     "data_share:datashare_consumer",
-    "dataclassification:data_transit_mgr",
     "dfs_service:distributed_file_daemon_kit_inner",
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
@@ -1739,6 +1778,11 @@ ohos_unittest("PasteServCheckTest") {
   if (pasteboard_screenlock_mgr_part_enabled) {
     external_deps += [ "screenlock_mgr:screenlock_client" ]
     defines += [ "PB_SCREENLOCK_MGR_ENABLE" ]
+  }
+
+  if (pasteboard_dataclassification_enabled) {
+    external_deps += [ "dataclassification:data_transit_mgr" ]
+    defines += [ "PB_DATACLASSIFICATION_ENABLE" ]
   }
 }
 
@@ -1814,7 +1858,6 @@ ohos_unittest("PasteServCleanTest") {
     "cJSON:cjson",
     "common_event_service:cesfwk_innerkits",
     "data_share:datashare_consumer",
-    "dataclassification:data_transit_mgr",
     "dfs_service:distributed_file_daemon_kit_inner",
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
@@ -1873,6 +1916,11 @@ ohos_unittest("PasteServCleanTest") {
   if (pasteboard_screenlock_mgr_part_enabled) {
     external_deps += [ "screenlock_mgr:screenlock_client" ]
     defines += [ "PB_SCREENLOCK_MGR_ENABLE" ]
+  }
+
+  if (pasteboard_dataclassification_enabled) {
+    external_deps += [ "dataclassification:data_transit_mgr" ]
+    defines += [ "PB_DATACLASSIFICATION_ENABLE" ]
   }
 }
 
@@ -1949,7 +1997,6 @@ ohos_unittest("PasteServRemoteTest") {
     "cJSON:cjson",
     "common_event_service:cesfwk_innerkits",
     "data_share:datashare_consumer",
-    "dataclassification:data_transit_mgr",
     "dfs_service:distributed_file_daemon_kit_inner",
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
@@ -2008,6 +2055,11 @@ ohos_unittest("PasteServRemoteTest") {
   if (pasteboard_screenlock_mgr_part_enabled) {
     external_deps += [ "screenlock_mgr:screenlock_client" ]
     defines += [ "PB_SCREENLOCK_MGR_ENABLE" ]
+  }
+
+  if (pasteboard_dataclassification_enabled) {
+    external_deps += [ "dataclassification:data_transit_mgr" ]
+    defines += [ "PB_DATACLASSIFICATION_ENABLE" ]
   }
 }
 

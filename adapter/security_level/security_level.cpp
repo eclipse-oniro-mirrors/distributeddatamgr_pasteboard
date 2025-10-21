@@ -20,12 +20,15 @@
 namespace OHOS::MiscServices {
 uint32_t SecurityLevel::GetDeviceSecurityLevel()
 {
+#ifdef PB_DATACLASSIFICATION_ENABLE
     if (securityLevel_ > DATA_SEC_LEVEL0) {
         return securityLevel_;
     }
+#endif
     return GetSensitiveLevel();
 }
 
+#ifdef PB_DATACLASSIFICATION_ENABLE
 bool SecurityLevel::InitDEVSLQueryParams(DEVSLQueryParams *params, const std::string &udid)
 {
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(params != nullptr && !udid.empty(), false, PASTEBOARD_MODULE_SERVICE,
@@ -37,10 +40,12 @@ bool SecurityLevel::InitDEVSLQueryParams(DEVSLQueryParams *params, const std::st
     params->udidLen = static_cast<uint32_t>(MAX_UDID_LENGTH);
     return true;
 }
+#endif
 
 uint32_t SecurityLevel::GetSensitiveLevel()
 {
     auto &udid = DMAdapter::GetInstance().GetLocalDeviceUdid();
+#ifdef PB_DATACLASSIFICATION_ENABLE
     DEVSLQueryParams query;
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(InitDEVSLQueryParams(&query, udid), DATA_SEC_LEVEL0, PASTEBOARD_MODULE_SERVICE,
         "init query params failed! udid:%{public}.6s", udid.c_str());
@@ -53,5 +58,8 @@ uint32_t SecurityLevel::GetSensitiveLevel()
     PASTEBOARD_HILOGI(
         PASTEBOARD_MODULE_SERVICE, "get highest level success(%{public}.6s)! level: %{public}u", udid.c_str(), level);
     return level;
+#else 
+    return 0;
+#endif
 }
 } // namespace OHOS::MiscServices
