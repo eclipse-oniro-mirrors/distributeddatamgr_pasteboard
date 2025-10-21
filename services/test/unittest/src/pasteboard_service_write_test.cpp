@@ -36,7 +36,7 @@ using namespace OHOS::Security::AccessToken;
 namespace OHOS {
 namespace {
 const int32_t INT32_NEGATIVE_NUMBER = -1;
-const int INT_THREETHREETHREE = 333;
+const uint32_t LOOP_COUNT = 333;
 constexpr int64_t MIN_ASHMEM_DATA_SIZE = 32 * 1024;
 const std::string TEST_ENTITY_TEXT =
     "清晨，从杭州市中心出发，沿着湖滨路缓缓前行。湖滨路是杭州市中心通往西湖的主要街道之一，两旁绿树成荫，湖光山色尽收眼"
@@ -291,7 +291,7 @@ HWTEST_F(PasteboardServiceWriteTest, WritePasteDataTest002, TestSize.Level0)
 
     PasteData input;
     std::string text = "test";
-    for (int i = 0; i < INT_THREETHREETHREE; ++i) {
+    for (uint32_t i = 0; i < LOOP_COUNT; ++i) {
         text += TEST_ENTITY_TEXT;
     }
     input.AddTextRecord(text);
@@ -332,7 +332,7 @@ HWTEST_F(PasteboardServiceWriteTest, WritePasteDataTest003, TestSize.Level0)
 
     PasteData input;
     std::string text = "test";
-    for (int i = 0; i < INT_THREETHREETHREE; ++i) {
+    for (uint32_t i = 0; i < LOOP_COUNT; ++i) {
         text += TEST_ENTITY_TEXT;
     }
     input.AddTextRecord(text);
