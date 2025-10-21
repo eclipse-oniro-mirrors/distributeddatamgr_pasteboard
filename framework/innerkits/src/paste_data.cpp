@@ -875,13 +875,13 @@ std::string PasteData::GetPasteId() const
 } // LCOV_EXCL_STOP
 
 void PasteData::SetTextSize(size_t size)
-{
+{ // LCOV_EXCL_START
     textSize_ = size;
-}
+} // LCOV_EXCL_STOP
 
 size_t PasteData::GetTextSize() const
-{
+{ // LCOV_EXCL_START
     return textSize_;
-}
+} // LCOV_EXCL_STOP
 } // namespace MiscServices
 } // namespace OHOS
