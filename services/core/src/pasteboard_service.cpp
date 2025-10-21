@@ -2134,7 +2134,8 @@ void PasteboardService::SetPasteDataInfo(PasteData &pasteData, const AppInfo &ap
     if (pasteData.GetRecordCount() != 0) {
         size_t counts = pasteData.GetRecordCount() - 1;
         std::shared_ptr<PasteDataRecord> records = pasteData.GetRecordAt(counts);
-        PASTEBOARD_CHECK_AND_RETURN_LOGE(records != nullptr, PASTEBOARD_MODULE_SERVICE, "records is nullptr.");
+        PASTEBOARD_CHECK_AND_RETURN_LOGE(records != nullptr, PASTEBOARD_MODULE_SERVICE,
+            "records[%{public}d] is nullptr.", static_cast<int32_t>(counts));
         std::string text = records->ConvertToText();
         pasteData.SetTextSize(text.size());
     }
