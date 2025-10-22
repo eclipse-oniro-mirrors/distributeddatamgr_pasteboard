@@ -58,7 +58,7 @@ uint32_t SecurityLevel::GetSensitiveLevel()
     PASTEBOARD_HILOGI(
         PASTEBOARD_MODULE_SERVICE, "get highest level success(%{public}.6s)! level: %{public}u", udid.c_str(), level);
     return level;
-#else 
+#else
     return 0;
 #endif
 }
