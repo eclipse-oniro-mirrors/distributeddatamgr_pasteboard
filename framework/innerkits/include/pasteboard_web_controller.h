@@ -57,6 +57,7 @@ private:
     void UpdateHtmlRecord(std::shared_ptr<PasteDataRecord> &htmlRecord, std::shared_ptr<std::string> &htmlData);
     int32_t GetNeedCheckUris(PasteData &pasteData, std::vector<std::string> &uris,
         std::vector<size_t> &indexs, bool ancoFlag);
+    void SetUriPermission(std::shared_ptr<PasteDataRecord> &record, bool isRead, bool isWrite, bool isNeedPersistance);
 };
 } // namespace MiscServices
 } // namespace OHOS

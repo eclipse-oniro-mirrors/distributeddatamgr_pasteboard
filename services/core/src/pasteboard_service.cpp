@@ -826,7 +826,8 @@ int32_t PasteboardService::GetRecordValueByType(uint32_t dataId, uint32_t record
         return ProcessDelayHtmlEntry(*data, appInfo, value);
     }
     if (mimeType == MIMETYPE_TEXT_URI) {
-        std::vector<Uri> grantUris = CheckUriPermission(*data, std::make_pair(appInfo.bundleName, appInfo.appIndex));
+        std::map<uint32_t, std::vector<Uri>> grantUris = CheckUriPermission(
+            *data, std::make_pair(appInfo.bundleName, appInfo.appIndex));
         return GrantUriPermission(grantUris, appInfo.bundleName, isRemoteData, appInfo.appIndex);
     }
     return static_cast<int32_t>(PasteboardError::E_OK);
@@ -860,7 +861,7 @@ int32_t PasteboardService::ProcessDelayHtmlEntry(PasteData &data, const AppInfo 
     PasteboardWebController::GetInstance().SetWebviewPasteData(tmp, data.GetOriginAuthority());
     PasteboardWebController::GetInstance().CheckAppUriPermission(tmp);
 
-    std::vector<Uri> grantUris = CheckUriPermission(tmp, std::make_pair(targetBundle, appIndex));
+    std::map<uint32_t, std::vector<Uri>> grantUris = CheckUriPermission(tmp, std::make_pair(targetBundle, appIndex));
     int32_t ret = GrantUriPermission(grantUris, targetBundle, isRemoteData, appIndex);
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(ret == static_cast<int32_t>(PasteboardError::E_OK), ret,
         PASTEBOARD_MODULE_SERVICE, "grant to %{public}s:%{public}d failed, ret=%{public}d", targetBundle.c_str(),
@@ -1299,7 +1300,8 @@ int32_t PasteboardService::CheckAndGrantRemoteUri(PasteData &data, const AppInfo
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "pasteId=%{public}s, isRemote=%{public}s, fileSize=%{public}" PRId64,
         pasteId.c_str(), isRemoteData ? "true" : "false", fileSize);
     GetPasteDataDot(data, appInfo.bundleName, appInfo.userId);
-    std::vector<Uri> grantUris = CheckUriPermission(data, std::make_pair(appInfo.bundleName, appInfo.appIndex));
+    std::map<uint32_t, std::vector<Uri>> grantUris = CheckUriPermission(
+        data, std::make_pair(appInfo.bundleName, appInfo.appIndex));
     if (isRemoteData) {
         data.SetPasteId(pasteId);
         data.deviceId_ = deviceId;
@@ -1874,33 +1876,18 @@ int32_t PasteboardService::GetRemoteDeviceName(std::string &deviceName, bool &is
     return ERR_OK;
 }
 
-int32_t PasteboardService::GrantUriPermission(const std::vector<Uri> &grantUris, const std::string &targetBundleName,
-    bool isRemoteData, int32_t appIndex)
+int32_t PasteboardService::GrantPermission(const std::vector<Uri> &grantUris, uint32_t permFlag, bool isRemoteData,
+    const std::string &targetBundleName, int32_t appIndex)
 {
-    PASTEBOARD_CHECK_AND_RETURN_RET_LOGD(!grantUris.empty(), static_cast<int32_t>(PasteboardError::E_OK),
-        PASTEBOARD_MODULE_SERVICE, "no uri");
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "uri size=%{public}zu, target=%{public}s, appIndex=%{public}d",
-        grantUris.size(), targetBundleName.c_str(), appIndex);
-    pid_t callingUid = IPCSkeleton::GetCallingUid();
-    PASTEBOARD_CHECK_AND_RETURN_RET_LOGD(callingUid != ANCO_SERVICE_BROKER_UID,
-        static_cast<int32_t>(PasteboardError::E_OK), PASTEBOARD_MODULE_SERVICE, "callingUid = ANCO_SERVICE_BROKER_UID");
-    bool hasGranted = false;
-    int32_t ret = 0;
     size_t offset = 0;
     size_t length = grantUris.size();
     size_t count = PasteData::URI_BATCH_SIZE;
-    bool isNeedPersistance = OHOS::system::GetBoolParameter("const.pasteboard.uri_persistable_permission", false);
-    auto permFlag = AAFwk::Want::FLAG_AUTH_READ_URI_PERMISSION;
-    if (isNeedPersistance && !isRemoteData) {
-        PASTEBOARD_HILOGD(PASTEBOARD_MODULE_SERVICE, "NeedPersistance, permFlag is %{public}d", permFlag);
-        permFlag |= AAFwk::Want::FLAG_AUTH_WRITE_URI_PERMISSION | AAFwk::Want::FLAG_AUTH_PERSISTABLE_URI_PERMISSION;
-    }
-
+    bool hasGranted = false;
     int32_t permissionCode = 0;
+    int32_t ret = 0;
     int32_t userId = GetCurrentAccountId();
     auto [hasData, data] = clips_.Find(userId);
     uint32_t srcTokenId = (hasData && data) ? data->GetTokenId() : 0;
-
     while (length > offset) {
         if (length - offset < PasteData::URI_BATCH_SIZE) {
             count = length - offset;
@@ -1924,15 +1911,43 @@ int32_t PasteboardService::GrantUriPermission(const std::vector<Uri> &grantUris,
             readBundles_.insert({ targetBundleName, appIndex });
         }
     }
+    return ret;
+}
+
+int32_t PasteboardService::GrantUriPermission(std::map<uint32_t, std::vector<Uri>> &grantUris,
+    const std::string &targetBundleName, bool isRemoteData, int32_t appIndex)
+{
+    std::vector<Uri> readUris = grantUris[PasteDataRecord::READ_PERMISSION];
+    std::vector<Uri> writeUris = grantUris[PasteDataRecord::READ_WRITE_PERMISSION];
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGD(!readUris.empty() ||
+        !writeUris.empty(), static_cast<int32_t>(PasteboardError::E_OK),
+        PASTEBOARD_MODULE_SERVICE, "no uri");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE,
+        "readUris=%{public}zu, writeUris=%{public}zu, target=%{public}s, appIndex=%{public}d",
+        readUris.size(), writeUris.size(), targetBundleName.c_str(), appIndex);
+    pid_t callingUid = IPCSkeleton::GetCallingUid();
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGD(callingUid != ANCO_SERVICE_BROKER_UID,
+        static_cast<int32_t>(PasteboardError::E_OK), PASTEBOARD_MODULE_SERVICE, "callingUid = ANCO_SERVICE_BROKER_UID");
+    int32_t ret = 0;
+    auto permFlag = PasteDataRecord::READ_PERMISSION;
+    ret = GrantPermission(readUris, permFlag, isRemoteData, targetBundleName, appIndex);
+    if (!isRemoteData) {
+        PASTEBOARD_HILOGD(PASTEBOARD_MODULE_SERVICE, "NeedPersistance, permFlag is %{public}d", permFlag);
+        permFlag = PasteDataRecord::READ_WRITE_PERMISSION;
+    }
+    auto result = GrantPermission(writeUris, permFlag, isRemoteData, targetBundleName, appIndex);
+    ret = result == 0 ? ret : result;
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "leave, ret=%{public}d", ret);
     return ret == 0 ? static_cast<int32_t>(PasteboardError::E_OK) : ret;
 }
 
-std::vector<Uri> PasteboardService::CheckUriPermission(PasteData &data,
+std::map<uint32_t, std::vector<Uri>> PasteboardService::CheckUriPermission(PasteData &data,
     const std::pair<std::string, int32_t> &targetBundleAndIndex)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "enter");
-    std::vector<Uri> grantUris;
+    std::vector<Uri> readUris;
+    std::vector<Uri> writeUris;
+    std::map<uint32_t, std::vector<Uri>> result;
     std::shared_lock<std::shared_mutex> read(pasteDataMutex_);
     for (size_t i = 0; i < data.GetRecordCount(); i++) {
         auto item = data.GetRecordAt(i);
@@ -1962,10 +1977,18 @@ std::vector<Uri> PasteboardService::CheckUriPermission(PasteData &data,
                 hasGrantUriPermission);
             continue;
         }
-        grantUris.emplace_back(*uri);
+        auto uriPermission = item->GetUriPermission();
+        if (uriPermission == PasteDataRecord::READ_PERMISSION) {
+            readUris.emplace_back(*uri);
+        } else if (uriPermission == PasteDataRecord::READ_WRITE_PERMISSION) {
+            writeUris.emplace_back(*uri);
+        }
     }
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "leave, grant:%{public}zu", grantUris.size());
-    return grantUris;
+    result[PasteDataRecord::READ_PERMISSION] = readUris;
+    result[PasteDataRecord::READ_WRITE_PERMISSION] = writeUris;
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "leave, readUris:%{public}zu, writeUris:%{public}zu",
+        readUris.size(), writeUris.size());
+    return result;
 }
 
 bool PasteboardService::IsBundleOwnUriPermission(const std::string &bundleName, Uri &uri)
@@ -3968,7 +3991,8 @@ int32_t PasteboardService::ProcessRemoteDelayUri(const std::string &deviceId, co
         int64_t fileSize = (uriFileSize > INT64_MAX - dataFileSize) ? INT64_MAX : uriFileSize + dataFileSize;
         data.SetFileSize(fileSize);
     }
-    std::vector<Uri> grantUris = CheckUriPermission(data, std::make_pair(appInfo.bundleName, appInfo.appIndex));
+    std::map<uint32_t, std::vector<Uri>> grantUris = CheckUriPermission(
+        data, std::make_pair(appInfo.bundleName, appInfo.appIndex));
     if (!grantUris.empty()) {
         EstablishP2PLink(deviceId, data.GetPasteId());
         int32_t ret = GrantUriPermission(grantUris, appInfo.bundleName, data.IsRemote(), appInfo.appIndex);
@@ -4037,7 +4061,8 @@ int32_t PasteboardService::ProcessRemoteDelayHtmlInner(const std::string &remote
         data.SetFileSize(fileSize);
     }
 
-    std::vector<Uri> grantUris = CheckUriPermission(data, std::make_pair(appInfo.bundleName, appInfo.appIndex));
+    std::map<uint32_t, std::vector<Uri>> grantUris = CheckUriPermission(
+        data, std::make_pair(appInfo.bundleName, appInfo.appIndex));
     if (!grantUris.empty()) {
         EstablishP2PLink(remoteDeviceId, data.GetPasteId());
         int32_t ret = GrantUriPermission(grantUris, appInfo.bundleName, data.IsRemote(), appInfo.appIndex);
