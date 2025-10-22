@@ -1135,7 +1135,7 @@ CommonInfo PasteboardService::GetCommonState(int64_t dataSize)
 void PasteboardService::SetRadarEvent(const AppInfo &appInfo, PasteData &data, bool isPeerOnline,
     RadarReportInfo &radarReportInfo, const std::string &peerNetId)
 {
-#ifdef PB_DATACLASSIFICATION_ENABLE
+#ifdef PB_DEVICE_MANAGER_ENABLE
     DmDeviceInfo remoteDevice;
     auto ret = DMAdapter::GetInstance().GetRemoteDeviceInfo(peerNetId, remoteDevice);
     if (ret == static_cast<int32_t>(PasteboardError::E_OK)) {
@@ -1157,7 +1157,7 @@ void PasteboardService::SetRadarEvent(const AppInfo &appInfo, PasteData &data, b
 void PasteboardService::SetUeEvent(const AppInfo &appInfo, PasteData &data, bool isPeerOnline,
     UeReportInfo &ueReportInfo, const std::string &peerNetId)
 {
-#ifdef PB_DATACLASSIFICATION_ENABLE
+#ifdef PB_DEVICE_MANAGER_ENABLE
     DmDeviceInfo remoteDevice;
     auto ret = DMAdapter::GetInstance().GetRemoteDeviceInfo(peerNetId, remoteDevice);
     if (ret == static_cast<int32_t>(PasteboardError::E_OK)) {
@@ -2322,7 +2322,7 @@ std::pair<int32_t, ClipPlugin::GlobalEvent> PasteboardService::GetValidDistribut
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "account error");
         return std::make_pair(static_cast<int32_t>(PasteboardError::INVALID_EVENT_ACCOUNT), evt);
     }
-#ifdef PB_DATACLASSIFICATION_ENABLE
+#ifdef PB_DEVICE_MANAGER_ENABLE
     DmDeviceInfo remoteDevice;
     int32_t ret = DMAdapter::GetInstance().GetRemoteDeviceInfo(evt.deviceId, remoteDevice);
     if (ret != static_cast<int32_t>(PasteboardError::E_OK)) {

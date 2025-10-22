@@ -207,7 +207,6 @@ const std::string DMAdapter::GetLocalNetworkId()
 #ifdef PB_DEVICE_MANAGER_ENABLE
 int32_t DMAdapter::GetRemoteDeviceInfo(const std::string &networkId, DmDeviceInfo &remoteDevice)
 {
-#ifdef PB_DEVICE_MANAGER_ENABLE
     auto devices = GetDevices();
     for (auto &device : devices) {
         if (device.networkId == networkId) {
