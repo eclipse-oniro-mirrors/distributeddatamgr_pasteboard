@@ -383,7 +383,7 @@ std::vector<std::shared_ptr<PasteDataRecord>> PasteboardWebController::BuildPast
 void PasteboardWebController::RemoveRecordById(PasteData &pasteData, uint32_t recordId) noexcept
 {
     for (uint32_t i = 0; i < pasteData.GetRecordCount(); i++) {
-        if (pasteData.GetRecordAt(i)->GetRecordId() == recordId) {
+        if (pasteData.GetRecordAt(i) != nullptr && pasteData.GetRecordAt(i)->GetRecordId() == recordId) {
             if (pasteData.RemoveRecordAt(i)) {
                 PASTEBOARD_HILOGD(PASTEBOARD_MODULE_COMMON,
                     "WebClipboardController RemoveRecord success, i=%{public}u", i);
