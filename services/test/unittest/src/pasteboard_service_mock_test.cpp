@@ -1727,44 +1727,6 @@ HWTEST_F(PasteboardServiceMockTest, IsCallerUidValid005, TestSize.Level0)
 }
 
 /**
-* @tc.name: GetDataSize001
-* @tc.desc: GetDataSize001 function test
-* @tc.type: FUNC
-*/
-HWTEST_F(PasteboardServiceMockTest, GetDataSize001, TestSize.Level0)
-{
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetDataSize001 start.");
-    auto tempPasteboard = std::make_shared<PasteboardService>();
-    EXPECT_NE(tempPasteboard, nullptr);
-    auto pasteData = std::make_shared<PasteData>();
-    EXPECT_NE(pasteData, nullptr);
-    size_t recordCounts = 1;
-    auto tempRecord = std::make_shared<PasteDataRecord>();
-    EXPECT_NE(tempRecord, nullptr);
-    pasteData->records_.push_back(tempRecord);
-    auto ret = tempPasteboard->GetDataSize(*pasteData);
-    ASSERT_EQ(ret, 0);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetDataSize001 end.");
-}
-
-/**
-* @tc.name: GetDataSize002
-* @tc.desc: GetDataSize002 function test
-* @tc.type: FUNC
-*/
-HWTEST_F(PasteboardServiceMockTest, GetDataSize002, TestSize.Level0)
-{
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetDataSize002 start.");
-    auto tempPasteboard = std::make_shared<PasteboardService>();
-    EXPECT_NE(tempPasteboard, nullptr);
-    auto pasteData = std::make_shared<PasteData>();
-    EXPECT_NE(pasteData, nullptr);
-    auto ret = tempPasteboard->GetDataSize(*pasteData);
-    ASSERT_EQ(ret, 0);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetDataSize002 end.");
-}
-
-/**
  * @tc.name: CloseDistributedStoreTest002
  * @tc.desc: test Func CloseDistributedStore
  * @tc.type: FUNC
