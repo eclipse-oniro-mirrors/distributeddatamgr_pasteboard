@@ -830,6 +830,9 @@ int32_t PasteboardService::GetRecordValueByType(uint32_t dataId, uint32_t record
         return ProcessDelayHtmlEntry(*data, appInfo, value);
     }
     if (mimeType == MIMETYPE_TEXT_URI) {
+        bool isInvalid = isRemoteData && PasteboardWebController::GetInstance().RemoveInvalidUri(value);
+        PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(!isInvalid, static_cast<int32_t>(PasteboardError::INVALID_URI_ERROR),
+            PASTEBOARD_MODULE_SERVICE, "uri invalid");
         std::map<uint32_t, std::vector<Uri>> grantUris = CheckUriPermission(
             *data, std::make_pair(appInfo.bundleName, appInfo.appIndex));
         return GrantUriPermission(grantUris, appInfo.bundleName, isRemoteData, appInfo.appIndex);
@@ -861,6 +864,7 @@ int32_t PasteboardService::ProcessDelayHtmlEntry(PasteData &data, const AppInfo 
     tmp.SetOriginAuthority(data.GetOriginAuthority());
     tmp.SetTokenId(data.GetTokenId());
     tmp.SetRemote(isRemoteData);
+    SetLocalPasteFlag(tmp.IsRemote(), targetAppInfo.tokenId, tmp);
     PasteboardWebController::GetInstance().SplitWebviewPasteData(tmp);
     PasteboardWebController::GetInstance().SetWebviewPasteData(tmp, data.GetOriginAuthority());
     PasteboardWebController::GetInstance().CheckAppUriPermission(tmp);
@@ -878,6 +882,7 @@ int32_t PasteboardService::PostProcessDelayHtmlEntry(PasteData &data, const AppI
     PasteDataEntry &entry)
 {
     PasteboardWebController::GetInstance().RetainUri(data);
+    PasteboardWebController::GetInstance().RemoveInvalidUri(data);
     PasteboardWebController::GetInstance().RebuildWebviewPasteData(data, targetAppInfo.bundleName,
         targetAppInfo.appIndex);
 
@@ -1223,6 +1228,7 @@ int32_t PasteboardService::GetPasteDataInner(int &fd, int64_t &size, std::vector
     RadarReportInfo radarReportInfo;
     radarReportInfo.pasteInfo.pasteId = data.GetPasteId();
     auto ret = GetData(tokenId, data, syncTime, isPeerOnline, peerNetId, peerUdid);
+    data.SetBundleInfo(appInfo.bundleName, appInfo.appIndex);
     SetUeEvent(appInfo, data, isPeerOnline, ueReportInfo, peerNetId);
     SetRadarEvent(appInfo, data, isPeerOnline, radarReportInfo, peerNetId);
     if (ret != static_cast<int32_t>(PasteboardError::E_OK)) {
@@ -4079,6 +4085,10 @@ int32_t PasteboardService::ProcessRemoteDelayHtmlInner(const std::string &remote
         data.SetFileSize(fileSize);
     }
 
+    bool isInvalid = PasteboardWebController::GetInstance().RemoveInvalidUri(entry);
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(!isInvalid, static_cast<int32_t>(PasteboardError::INVALID_URI_ERROR),
+        PASTEBOARD_MODULE_SERVICE, "uri invalid");
+
     std::map<uint32_t, std::vector<Uri>> grantUris = CheckUriPermission(
         data, std::make_pair(appInfo.bundleName, appInfo.appIndex));
     if (!grantUris.empty()) {
@@ -4091,6 +4101,7 @@ int32_t PasteboardService::ProcessRemoteDelayHtmlInner(const std::string &remote
     tmpData.SetOriginAuthority(data.GetOriginAuthority());
     tmpData.SetTokenId(data.GetTokenId());
     tmpData.SetRemote(data.IsRemote());
+    SetLocalPasteFlag(tmpData.IsRemote(), appInfo.tokenId, tmpData);
     int32_t ret = PostProcessDelayHtmlEntry(tmpData, appInfo, entry);
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(ret == static_cast<int32_t>(PasteboardError::E_OK), ret,
         PASTEBOARD_MODULE_SERVICE, "post process remote html failed, ret=%{public}d", ret);

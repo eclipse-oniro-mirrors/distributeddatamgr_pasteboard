@@ -31,6 +31,8 @@ public:
     void SetWebviewPasteData(PasteData &pasteData, const std::pair<std::string, int32_t> &bundleIndex);
     void CheckAppUriPermission(PasteData &pasteData);
     void RetainUri(PasteData &pasteData);
+    void RemoveInvalidUri(PasteData &data);
+    bool RemoveInvalidUri(PasteDataEntry &entry);
     void RebuildWebviewPasteData(PasteData &pasteData, const std::string &targetBundle = "",
         int32_t appIndex = 0);
 
@@ -50,6 +52,7 @@ private:
     void RemoveAllRecord(std::shared_ptr<PasteData> pasteData) noexcept;
     void RemoveRecordById(PasteData &pasteData, uint32_t recordId) noexcept;
     bool IsLocalURI(std::string &uri) noexcept;
+    bool IsValidUri(const std::shared_ptr<OHOS::Uri> uriPtr) noexcept;
     std::map<std::uint32_t, std::vector<std::shared_ptr<PasteDataRecord>>> GroupRecordWithFrom(PasteData &data);
 
     void RemoveExtraUris(PasteData &data);
