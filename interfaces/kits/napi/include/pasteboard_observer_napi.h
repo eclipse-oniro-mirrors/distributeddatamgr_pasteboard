@@ -35,20 +35,8 @@ private:
 
 class PasteboardNapiScope {
 public:
-    PasteboardNapiScope(napi_env env)
-    {
-        env_ = env;
-        napi_open_handle_scope(env_, &scope_);
-    }
-
-    ~PasteboardNapiScope()
-    {
-        if (scope_ != nullptr && env_ != nullptr) {
-            napi_close_handle_scope(env_, scope_);
-        }
-        scope_ = nullptr;
-        env_ = nullptr;
-    }
+    PasteboardNapiScope(napi_env env);
+    ~PasteboardNapiScope();
 
 private:
     napi_handle_scope scope_ = nullptr;

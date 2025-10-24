@@ -21,8 +21,9 @@ namespace OHOS::MiscServices {
 uint32_t SecurityLevel::GetDeviceSecurityLevel()
 {
 #ifdef PB_DATACLASSIFICATION_ENABLE
-    if (securityLevel_ > DATA_SEC_LEVEL0) {
-        return securityLevel_;
+    uint32_t level = securityLevel_.load();
+    if (level > DATA_SEC_LEVEL0) {
+        return level;
     }
 #endif
     return GetSensitiveLevel();
@@ -54,7 +55,7 @@ uint32_t SecurityLevel::GetSensitiveLevel()
     int32_t result = DATASL_GetHighestSecLevel(&query, &level);
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(result == DEVSL_SUCCESS, DATA_SEC_LEVEL0, PASTEBOARD_MODULE_SERVICE,
         "get highest level failed(%{public}.6s)! level:%{public}u, error:%{public}d", udid.c_str(), level, result);
-    securityLevel_ = level;
+    securityLevel_.store(level);
     PASTEBOARD_HILOGI(
         PASTEBOARD_MODULE_SERVICE, "get highest level success(%{public}.6s)! level: %{public}u", udid.c_str(), level);
     return level;

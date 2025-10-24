@@ -58,5 +58,23 @@ void PasteboardObserverInstance::OnPasteboardChanged()
         "napi_send_event failed, result=%{public}d", ret);
 }
 
+PasteboardNapiScope::PasteboardNapiScope(napi_env env)
+{
+    env_ = env;
+    napi_status status = napi_open_handle_scope(env_, &scope_);
+    if (status != napi_ok || scope_ == nullptr) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "open handle scope failed, status = %{public}d", status);
+        scope_ = nullptr;
+    }
+}
+
+PasteboardNapiScope::~PasteboardNapiScope()
+{
+    if (scope_ != nullptr && env_ != nullptr) {
+        napi_close_handle_scope(env_, scope_);
+    }
+    scope_ = nullptr;
+    env_ = nullptr;
+}
 } // namespace MiscServicesNapi
 } // namespace OHOS

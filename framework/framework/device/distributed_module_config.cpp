@@ -30,7 +30,7 @@ bool DistributedModuleConfig::IsOn()
     if (GetDeviceNum() != 0) {
         Notify();
     }
-    return status_;
+    return status_.load();
 }
 
 void DistributedModuleConfig::Watch(const Observer &observer)
@@ -48,8 +48,8 @@ void DistributedModuleConfig::Notify()
         return;
     }
     bool newStatus = (status == static_cast<int32_t>(PasteboardError::E_OK));
-    if (newStatus != status_) {
-        status_ = newStatus;
+    if (newStatus != status_.load()) {
+        status_.store(newStatus);
         if (observer_ != nullptr) {
             observer_(newStatus);
         }
@@ -69,7 +69,7 @@ void DistributedModuleConfig::GetRetryTask()
                 PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE,
                     "dp load err, retry:%{public}d, status_:%{public}d"
                     "newStatus:%{public}d",
-                    retry, status_, status);
+                    retry, status_.load(), status);
                 std::this_thread::sleep_for(std::chrono::milliseconds(RETRY_INTERVAL));
                 continue;
             }
@@ -78,10 +78,10 @@ void DistributedModuleConfig::GetRetryTask()
         PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE,
             "Retry end. count:%{public}d, status_:%{public}d"
             "newStatus:%{public}d",
-            retry, status_, status);
+            retry, status_.load(), status);
         bool newStatus = (status == static_cast<int32_t>(PasteboardError::E_OK));
-        if (newStatus != status_) {
-            status_ = newStatus;
+        if (newStatus != status_.load()) {
+            status_.store(newStatus);
             if (observer_ != nullptr) {
                 observer_(newStatus);
             }

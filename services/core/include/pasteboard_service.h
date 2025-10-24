@@ -330,6 +330,14 @@ private:
         const std::string &pasteId, const std::string &deviceId, std::shared_ptr<BlockObject<int32_t>> pasteBlock);
     int32_t GetData(uint32_t tokenId, PasteData &data, int32_t &syncTime, bool &isPeerOnline, std::string &peerNetId,
         std::string &peerUdid);
+    void HandleInitFailure();
+    void InitializeDumpCommands();
+    void HandleNotificationsAndStatusChecks(const AppInfo &appInfo, const PasteData &data,
+        const std::string &peerNetId, bool &isPeerOnline);
+    void PublishServiceState(const PasteData &data, int32_t syncTime,
+        const std::string &peerNetId, std::shared_ptr<BlockObject<int32_t>> pasteBlock);
+    void HandleGetDataError(int32_t result, std::shared_ptr<BlockObject<int32_t>> pasteBlock,
+        const std::string &deviceId, const std::string &pasteId);
     CommonInfo GetCommonState(int64_t dataSize);
     void SetRadarEvent(const AppInfo &appInfo, PasteData &data, bool isPeerOnline,
         RadarReportInfo &radarReportInfo, const std::string &peerNetId);

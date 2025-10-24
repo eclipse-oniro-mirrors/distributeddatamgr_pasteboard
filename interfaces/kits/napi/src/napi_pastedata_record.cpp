@@ -563,9 +563,9 @@ void UvWorkGetRecordByEntryGetter(uv_work_t *work, int status)
     auto env = entryGetterWork->entryGetter->GetEnv();
     auto ref = entryGetterWork->entryGetter->GetRef();
     napi_handle_scope scope = nullptr;
-    napi_open_handle_scope(env, &scope);
-    if (scope == nullptr) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "scope is null");
+    napi_status napiStatus = napi_open_handle_scope(env, &scope);
+    if (napiStatus != napi_ok || scope == nullptr) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "open handle scope failed, status = %{public}d", napiStatus);
         return;
     }
     napi_value undefined = nullptr;
