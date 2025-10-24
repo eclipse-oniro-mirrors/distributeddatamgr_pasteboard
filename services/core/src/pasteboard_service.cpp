@@ -180,8 +180,10 @@ void PasteboardService::OnStart()
     Loader loader;
     uid_ = loader.LoadUid();
     moduleConfig_.Init();
+#ifdef PB_DATACLASSIFICATION_ENABLE
     auto status = DATASL_OnStart();
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "datasl on start ret:%{public}d", status);
+#endif
     moduleConfig_.Watch(std::bind(&PasteboardService::OnConfigChange, this, std::placeholders::_1));
     ffrtTimer_ = FFRTPool::GetTimer("pasteboard_service");
     UpdateAgedTime();
@@ -235,7 +237,9 @@ void PasteboardService::OnStop()
     }
     moduleConfig_.DeInit();
     switch_.DeInit();
+#ifdef PB_DATACLASSIFICATION_ENABLE
     DATASL_OnStop();
+#endif
     EventCenter::GetInstance().Unsubscribe(PasteboardEvent::DISCONNECT);
     EventCenter::GetInstance().Unsubscribe(OHOS::MiscServices::Event::EVT_REMOTE_CHANGE);
     CancelCriticalTimer();
@@ -1131,12 +1135,14 @@ CommonInfo PasteboardService::GetCommonState(int64_t dataSize)
 void PasteboardService::SetRadarEvent(const AppInfo &appInfo, PasteData &data, bool isPeerOnline,
     RadarReportInfo &radarReportInfo, const std::string &peerNetId)
 {
+#ifdef PB_DEVICE_MANAGER_ENABLE
     DmDeviceInfo remoteDevice;
     auto ret = DMAdapter::GetInstance().GetRemoteDeviceInfo(peerNetId, remoteDevice);
     if (ret == static_cast<int32_t>(PasteboardError::E_OK)) {
         DeviceManager::GetInstance().GetNetworkTypeByNetworkId(PASTEBOARD_SERVICE_SA_NAME, peerNetId,
             radarReportInfo.pasteInfo.networkType);
     }
+#endif
     std::string peerUdid = DMAdapter::GetInstance().GetUdidByNetworkId(peerNetId);
     radarReportInfo.stageRes = DFX_SUCCESS;
     radarReportInfo.bundleName = appInfo.bundleName;
@@ -1151,12 +1157,14 @@ void PasteboardService::SetRadarEvent(const AppInfo &appInfo, PasteData &data, b
 void PasteboardService::SetUeEvent(const AppInfo &appInfo, PasteData &data, bool isPeerOnline,
     UeReportInfo &ueReportInfo, const std::string &peerNetId)
 {
+#ifdef PB_DEVICE_MANAGER_ENABLE
     DmDeviceInfo remoteDevice;
     auto ret = DMAdapter::GetInstance().GetRemoteDeviceInfo(peerNetId, remoteDevice);
     if (ret == static_cast<int32_t>(PasteboardError::E_OK)) {
         DeviceManager::GetInstance().GetNetworkTypeByNetworkId(PASTEBOARD_SERVICE_SA_NAME, peerNetId,
             ueReportInfo.pasteInfo.networkType);
     }
+#endif
     ueReportInfo.bundleName = appInfo.bundleName;
     ueReportInfo.pasteInfo.peerBundleName = data.GetOriginAuthority().first;
     ueReportInfo.pasteInfo.isDistributed = data.IsRemote();
@@ -1610,6 +1618,7 @@ void PasteboardService::ClearP2PEstablishTaskInfo()
 
 void PasteboardService::OpenP2PLink(const std::string &networkId)
 {
+#ifdef PB_DEVICE_MANAGER_ENABLE
     DmDeviceInfo remoteDevice;
     auto ret = DMAdapter::GetInstance().GetRemoteDeviceInfo(networkId, remoteDevice);
     if (ret != static_cast<int32_t>(PasteboardError::E_OK)) {
@@ -1618,6 +1627,7 @@ void PasteboardService::OpenP2PLink(const std::string &networkId)
         p2pMap_.Erase(networkId);
         return;
     }
+#endif
     auto plugin = GetClipPlugin();
     if (plugin == nullptr) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "plugin is not exist");
@@ -1633,6 +1643,7 @@ void PasteboardService::OpenP2PLink(const std::string &networkId)
     PASTEBOARD_CHECK_AND_RETURN_LOGE(status == RESULT_OK, PASTEBOARD_MODULE_SERVICE,
         "publish CONNECT_SUCC failed, deviceId=%{public}.5s, status=%{public}d", networkId.c_str(), status);
 
+#ifdef PB_DEVICE_MANAGER_ENABLE
     status = DistributedFileDaemonManager::GetInstance().OpenP2PConnection(remoteDevice);
     if (status != RESULT_OK) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "open p2p error, status:%{public}d", status);
@@ -1641,6 +1652,7 @@ void PasteboardService::OpenP2PLink(const std::string &networkId)
         p2pMap_.Erase(networkId);
         return;
     }
+#endif
 }
 
 void PasteboardService::EstablishP2PLink(const std::string &networkId, const std::string &pasteId)
@@ -1854,6 +1866,7 @@ int32_t PasteboardService::GetRemoteDeviceName(std::string &deviceName, bool &is
     auto tokenId = IPCSkeleton::GetCallingTokenID();
     auto appInfo = GetAppInfo(tokenId);
     auto event = GetValidDistributeEvent(appInfo.userId);
+#ifdef PB_DEVICE_MANAGER_ENABLE
     DmDeviceInfo remoteDevice;
     if (!event.second.deviceId.empty()) {
         auto ret = DMAdapter::GetInstance().GetRemoteDeviceInfo(event.second.deviceId, remoteDevice);
@@ -1867,6 +1880,7 @@ int32_t PasteboardService::GetRemoteDeviceName(std::string &deviceName, bool &is
         deviceName = "local";
         isRemote = false;
     }
+#endif
     if (deviceName.empty()) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "Failed to get remote device name");
         return static_cast<int32_t>(PasteboardError::INVALID_PARAM_ERROR);
@@ -2317,6 +2331,7 @@ std::pair<int32_t, ClipPlugin::GlobalEvent> PasteboardService::GetValidDistribut
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "account error");
         return std::make_pair(static_cast<int32_t>(PasteboardError::INVALID_EVENT_ACCOUNT), evt);
     }
+#ifdef PB_DEVICE_MANAGER_ENABLE
     DmDeviceInfo remoteDevice;
     int32_t ret = DMAdapter::GetInstance().GetRemoteDeviceInfo(evt.deviceId, remoteDevice);
     if (ret != static_cast<int32_t>(PasteboardError::E_OK)) {
@@ -2339,6 +2354,9 @@ std::pair<int32_t, ClipPlugin::GlobalEvent> PasteboardService::GetValidDistribut
         "expiration = %{public}" PRIu64 ", curTime = %{public}" PRIu64, evt.expiration, curTime);
     ret = curTime < evt.expiration ? ret : static_cast<int32_t>(PasteboardError::DATA_EXPIRED_ERROR);
     return std::make_pair(ret, evt);
+#else
+    return std::make_pair(static_cast<int32_t>(PasteboardError::NOT_SUPPORT), evt);
+#endif
 }
 
 std::vector<std::string> PasteboardService::GetLocalMimeTypes()
@@ -4169,9 +4187,11 @@ std::shared_ptr<ClipPlugin> PasteboardService::GetClipPlugin()
     auto isOn = moduleConfig_.IsOn();
     if (isOn) {
         auto securityLevel = securityLevel_.GetDeviceSecurityLevel();
+#ifdef PB_DATACLASSIFICATION_ENABLE
         if (securityLevel < DATA_SEC_LEVEL3) {
             return nullptr;
         }
+#endif
     }
     std::lock_guard<decltype(mutex)> lockGuard(mutex);
     if (!isOn || clipPlugin_ != nullptr) {
@@ -4233,10 +4253,12 @@ void PasteboardService::OnConfigChangeInner(bool isOn)
     }
     SetCriticalTimer();
     auto securityLevel = securityLevel_.GetDeviceSecurityLevel();
+#ifdef PB_DATACLASSIFICATION_ENABLE
     if (securityLevel < DATA_SEC_LEVEL3) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "device sec level is %{public}u less than 3.", securityLevel);
         return;
     }
+#endif
     if (clipPlugin_ != nullptr) {
         return;
     }
