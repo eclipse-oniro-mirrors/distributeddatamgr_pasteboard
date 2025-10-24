@@ -68,6 +68,7 @@ void PasteboardServiceLoader::CleanupResource()
     if (remoteObject == nullptr) {
         return;
     }
+    std::lock_guard<std::mutex> lock(instanceLock_);
     remoteObject->RemoveDeathRecipient(deathRecipient_);
 }
 

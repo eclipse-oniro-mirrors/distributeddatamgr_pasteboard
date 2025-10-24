@@ -17,11 +17,13 @@
 #define PASTE_BOARD_DISTRIBUTE_MODULE_CONFIG_H
 
 #include "device/dm_adapter.h"
+#include <atomic>
 
 namespace OHOS {
 namespace MiscServices {
 class API_EXPORT DistributedModuleConfig : protected DMAdapter::DMObserver {
 public:
+    DistributedModuleConfig() : status_(false), retrying_(false) {}
     using Observer = std::function<void(bool isOn)>;
     bool IsOn();
     void Watch(const Observer &observer);
@@ -44,8 +46,8 @@ private:
     void GetRetryTask();
     size_t GetDeviceNum();
     Observer observer_ = nullptr;
-    bool status_ = false;
-    std::atomic<bool> retrying_ = false;
+    std::atomic<bool> status_;
+    std::atomic<bool> retrying_;
     static constexpr const char *SUPPORT_STATUS = "1";
 };
 } // namespace MiscServices

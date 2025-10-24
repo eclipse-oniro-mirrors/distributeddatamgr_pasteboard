@@ -189,17 +189,33 @@ void PasteboardService::OnStart()
     UpdateAgedTime();
     AddSysAbilityListener();
     if (Init() != ERR_OK && serviceHandler_ != nullptr) {
-        auto callback = [this]() {
-            Init();
-        };
-        serviceHandler_->PostTask(callback, INIT_INTERVAL);
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "Init failed. Try again 10s later.");
+        HandleInitFailure();
         return;
     }
     auto callback = [this]() {
         switch_.Init(GetCurrentAccountId());
     };
-    serviceHandler_->PostTask(callback);
+    if (serviceHandler_ != nullptr) {
+        serviceHandler_->PostTask(callback);
+    }
+    InitializeDumpCommands();
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "Start PasteboardService success.");
+    EventCenter::GetInstance().Subscribe(OHOS::MiscServices::Event::EVT_REMOTE_CHANGE, RemotePasteboardChange());
+    HiViewAdapter::StartTimerThread();
+    return;
+}
+
+void PasteboardService::HandleInitFailure()
+{
+    auto callback = [this]() {
+        Init();
+    };
+    serviceHandler_->PostTask(callback, INIT_INTERVAL);
+    PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "Init failed. Try again 10s later.");
+}
+
+void PasteboardService::InitializeDumpCommands()
+{
     copyHistory = std::make_shared<Command>(std::vector<std::string>{ "--copy-history" },
         "Dump access history last ten times.",
         [this](const std::vector<std::string> &input, std::string &output) -> bool {
@@ -216,10 +232,6 @@ void PasteboardService::OnStart()
     CommonEventSubscriber();
     AccountStateSubscriber();
     PasteboardEventSubscriber();
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "Start PasteboardService success.");
-    EventCenter::GetInstance().Subscribe(OHOS::MiscServices::Event::EVT_REMOTE_CHANGE, RemotePasteboardChange());
-    HiViewAdapter::StartTimerThread();
-    return;
 }
 
 void PasteboardService::OnStop()
@@ -918,9 +930,12 @@ bool PasteboardService::VerifyPermission(uint32_t tokenId)
         "isReadGrant is %{public}d, isSecureGrant is %{public}d, isAllowTokenAccess is %{public}d", isReadGrant,
         isSecureGrant, isAllowTokenAccess);
     bool isCtrlVAction = false;
-    if (inputEventCallback_ != nullptr) {
-        isCtrlVAction = inputEventCallback_->IsCtrlVProcess(callPid, IsFocusedApp(tokenId));
-        inputEventCallback_->Clear();
+    {
+        std::lock_guard<std::mutex> lock(eventMutex_);
+        if (inputEventCallback_ != nullptr) {
+            isCtrlVAction = inputEventCallback_->IsCtrlVProcess(callPid, IsFocusedApp(tokenId));
+            inputEventCallback_->Clear();
+        }
     }
     auto isGrant = isReadGrant || isSecureGrant || isAllowTokenAccess || isCtrlVAction;
     if (!isGrant && version >= ADD_PERMISSION_CHECK_SDK_VERSION) {
@@ -1346,7 +1361,27 @@ int32_t PasteboardService::GetData(uint32_t tokenId, PasteData &data, int32_t &s
         peerNetId = distEvt.deviceId;
         peerUdid = DMAdapter::GetInstance().GetUdidByNetworkId(peerNetId);
     }
-    if (observerEventMap_.size() != 0) {
+    
+    HandleNotificationsAndStatusChecks(appInfo, data, peerNetId, isPeerOnline);
+
+    PublishServiceState(data, syncTime, peerNetId, pasteBlock);
+    
+    if (result != static_cast<int32_t>(PasteboardError::E_OK)) {
+        HandleGetDataError(result, pasteBlock, distEvt.deviceId, pasteId);
+        return result;
+    }
+    return CheckAndGrantRemoteUri(data, appInfo, pasteId, distEvt.deviceId, pasteBlock);
+}
+
+void PasteboardService::HandleNotificationsAndStatusChecks(const AppInfo &appInfo, const PasteData &data,
+    const std::string &peerNetId, bool &isPeerOnline)
+{
+    auto observerMapSize = 0;
+    {
+        std::lock_guard<std::mutex> lock(observerMutex_);
+        observerMapSize = observerEventMap_.size();
+    }
+    if (observerMapSize != 0) {
         std::string targetBundleName = GetAppBundleName(appInfo);
         NotifyObservers(targetBundleName, appInfo.userId, PasteboardEventStatus::PASTEBOARD_READ);
     }
@@ -1355,7 +1390,11 @@ int32_t PasteboardService::GetData(uint32_t tokenId, PasteData &data, int32_t &s
         auto it = std::find(peerNetIds.begin(), peerNetIds.end(), peerNetId);
         isPeerOnline = (it != peerNetIds.end());
     }
+}
 
+void PasteboardService::PublishServiceState(const PasteData &data, int32_t syncTime,
+    const std::string &peerNetId, std::shared_ptr<BlockObject<int32_t>> pasteBlock)
+{
     auto plugin = GetClipPlugin();
     bool isNeedPublishState = data.IsRemote() && syncTime != 0 && pasteBlock == nullptr && plugin != nullptr;
     if (isNeedPublishState) {
@@ -1364,15 +1403,16 @@ int32_t PasteboardService::GetData(uint32_t tokenId, PasteData &data, int32_t &s
             PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "Publish state idle error, status:%{public}d", status);
         }
     }
-    if (result != static_cast<int32_t>(PasteboardError::E_OK)) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "get local or remote data err:%{public}d", result);
-        if (pasteBlock) {
-            PasteComplete(distEvt.deviceId, pasteId);
-        }
-        ClearP2PEstablishTaskInfo();
-        return result;
+}
+
+void PasteboardService::HandleGetDataError(int32_t result, std::shared_ptr<BlockObject<int32_t>> pasteBlock,
+    const std::string &deviceId, const std::string &pasteId)
+{
+    PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "get local or remote data err:%{public}d", result);
+    if (pasteBlock) {
+        PasteComplete(deviceId, pasteId);
     }
-    return CheckAndGrantRemoteUri(data, appInfo, pasteId, distEvt.deviceId, pasteBlock);
+    ClearP2PEstablishTaskInfo();
 }
 
 PasteboardService::RemoteDataTaskManager::DataTask PasteboardService::RemoteDataTaskManager::GetRemoteDataTask(
@@ -1573,7 +1613,7 @@ void PasteboardService::GetDelayPasteData(int32_t userId, PasteData &data)
         if (delayGetter.first != nullptr) {
             delayGetter.first->GetPasteData("", delayData);
         }
-        if (delayGetter.second != nullptr) {
+        if (delayGetter.second != nullptr && delayGetter.first != nullptr) {
             delayGetter.first->AsObject()->RemoveDeathRecipient(delayGetter.second);
         }
         delayData.SetDelayData(false);
@@ -4433,7 +4473,6 @@ void PasteBoardAccountStateSubscriber::OnStateChangedInner(const AccountSA::OsAc
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "state: %{public}d, fromId: %{public}d, toId: %{public}d,"
         "callback is nullptr: %{public}d", data.state, data.fromId, data.toId, data.callback == nullptr);
     if (data.state == AccountSA::OsAccountState::STOPPING && pasteboardService_ != nullptr) {
-        std::lock_guard<std::mutex> lock(mutex_);
         pasteboardService_->CloseDistributedStore(data.fromId, true);
     }
     if (data.callback != nullptr) {
