@@ -830,7 +830,8 @@ int32_t PasteboardService::GetRecordValueByType(uint32_t dataId, uint32_t record
         return ProcessDelayHtmlEntry(*data, appInfo, value);
     }
     if (mimeType == MIMETYPE_TEXT_URI) {
-        bool isInvalid = isRemoteData && PasteboardWebController::GetInstance().RemoveInvalidUri(value);
+        bool isInvalid = (isRemoteData || tokenId != data->GetTokenId()) &&
+            PasteboardWebController::GetInstance().RemoveInvalidUri(value);
         PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(!isInvalid, static_cast<int32_t>(PasteboardError::INVALID_URI_ERROR),
             PASTEBOARD_MODULE_SERVICE, "uri invalid");
         std::map<uint32_t, std::vector<Uri>> grantUris = CheckUriPermission(
@@ -4394,12 +4395,12 @@ void PasteBoardCommonEventSubscriber::OnReceiveEventInner(const EventFwk::Common
     } else if (action == EventFwk::CommonEventSupport::COMMON_EVENT_PACKAGE_REMOVED) {
         auto tokenId = want.GetIntParam("accessTokenId", -1);
         if (pasteboardService_ != nullptr) {
-            pasteboardService_->RevokeUriOnUninstall(tokenId);
+            pasteboardService_->ClearUriOnUninstall(tokenId);
         }
     }
 }
 
-void PasteboardService::RevokeUriOnUninstall(int32_t tokenId)
+void PasteboardService::ClearUriOnUninstall(int32_t tokenId)
 {
     PASTEBOARD_CHECK_AND_RETURN_LOGE(tokenId >= 0, PASTEBOARD_MODULE_SERVICE, "tokenId is invalids");
     auto userId = GetCurrentAccountId();
@@ -4410,8 +4411,8 @@ void PasteboardService::RevokeUriOnUninstall(int32_t tokenId)
         if (pasteData->GetTokenId() != static_cast<uint32_t>(tokenId)) {
             return true;
         }
-        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "revoke and clear uri tokenId: %{public}d", tokenId);
-        RevokeAndClearUri(pasteData);
+        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "clear uri, tokenId=%{public}d", tokenId);
+        ClearUriOnUninstall(pasteData);
         delayGetters_.ComputeIfPresent(userId, [](auto, auto &delayGetter) {
             if (delayGetter.first != nullptr && delayGetter.second != nullptr) {
                 delayGetter.first->AsObject()->RemoveDeathRecipient(delayGetter.second);
@@ -4428,30 +4429,30 @@ void PasteboardService::RevokeUriOnUninstall(int32_t tokenId)
     });
 }
 
-void PasteboardService::RevokeAndClearUri(std::shared_ptr<PasteData> pasteData)
+void PasteboardService::ClearUriOnUninstall(std::shared_ptr<PasteData> pasteData)
 {
-    std::set<std::pair<std::string, int32_t>> bundles;
-    {
-        std::lock_guard<std::mutex> lock(readBundleMutex_);
-        bundles = std::move(readBundles_);
-    }
     PASTEBOARD_CHECK_AND_RETURN_LOGE(pasteData != nullptr, PASTEBOARD_MODULE_SERVICE, "pasteData is null");
-    std::thread thread([pasteData, bundles]() {
-        auto &permissionClient = AAFwk::UriPermissionManagerClient::GetInstance();
-        std::unique_lock<std::shared_mutex> threadWriteLock(pasteDataMutex_);
-        for (size_t i = 0; i < pasteData->GetRecordCount(); i++) {
-            auto item = pasteData->GetRecordAt(i);
-            if (item == nullptr || item->GetOriginUri() == nullptr) {
-                continue;
+    std::thread thread([pasteData, this]() {
+        {
+            std::unique_lock<std::shared_mutex> threadWriteLock(pasteDataMutex_);
+            if (!pasteData->HasMimeType(MIMETYPE_TEXT_URI)) {
+                return;
             }
-            Uri uri = *(item->GetOriginUri());
-            for (std::set<std::pair<std::string, int32_t>>::iterator it = bundles.begin(); it != bundles.end(); it++) {
-                auto permissionCode = permissionClient.RevokeUriPermissionManually(uri, it->first, it->second);
-                PASTEBOARD_HILOGD(PASTEBOARD_MODULE_SERVICE, "permissionCode is %{public}d", permissionCode);
-            }
+
             auto emptyUri = std::make_shared<OHOS::Uri>("");
-            item->SetUri(emptyUri);
+            size_t recordCount = pasteData->GetRecordCount();
+            for (size_t i = 0; i < recordCount; i++) {
+                auto item = pasteData->GetRecordAt(i);
+                if (item == nullptr || item->GetOriginUri() == nullptr) {
+                    continue;
+                }
+                item->SetUri(emptyUri);
+            }
         }
+
+        std::lock_guard<decltype(mutex)> lockGuard(mutex);
+        PASTEBOARD_CHECK_AND_RETURN_LOGE(clipPlugin_ != nullptr, PASTEBOARD_MODULE_SERVICE, "clipPlugin is null");
+        clipPlugin_->Clear(pasteData->userId_);
     });
     thread.detach();
 }
