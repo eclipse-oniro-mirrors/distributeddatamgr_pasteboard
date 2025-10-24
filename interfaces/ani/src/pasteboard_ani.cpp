@@ -176,7 +176,7 @@ bool GetArrayBuffer([[maybe_unused]] ani_env *env, ani_object unionObj, std::vec
     if (env == nullptr) {
         return false;
     }
-    std::string classname("escompat.ArrayBuffer");
+    std::string classname("std.core.ArrayBuffer");
     bool isArrayBuffer = ANIUtils_UnionIsInstanceOf(env, unionObj, classname);
     if (!isArrayBuffer) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI,
@@ -687,7 +687,7 @@ static ani_object CreateDataTypeValue([[maybe_unused]] ani_env *env, ani_string 
         return ProcessSpecialMimeType(env, union_obj, type_str);
     }
 
-    std::string classname("C{escompat.ArrayBuffer}");
+    std::string classname("C{std.core.ArrayBuffer}");
     bool isArrayBuffer = ANIUtils_UnionIsInstanceOf(env, union_obj, classname);
     if (!isArrayBuffer) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "[CreateDataTypeValue] not ArrayBuffer.");
