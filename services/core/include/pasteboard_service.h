@@ -345,9 +345,12 @@ private:
     void GetDelayPasteData(int32_t userId, PasteData &data);
     int32_t ProcessDelayHtmlEntry(PasteData &data, const AppInfo &targetAppInfo, PasteDataEntry &entry);
     int32_t PostProcessDelayHtmlEntry(PasteData &data, const AppInfo &targetInfo, PasteDataEntry &entry);
-    std::vector<Uri> CheckUriPermission(PasteData &data, const std::pair<std::string, int32_t> &targetBundleAppIndex);
-    int32_t GrantUriPermission(const std::vector<Uri> &grantUris, const std::string &targetBundleName,
-        bool isRemoteData, int32_t appIndex);
+    std::map<uint32_t, std::vector<Uri>> CheckUriPermission(
+        PasteData &data, const std::pair<std::string, int32_t> &targetBundleAppIndex);
+    int32_t GrantPermission(const std::vector<Uri> &grantUris, uint32_t permFlag, bool isRemoteData,
+        const std::string &targetBundleName, int32_t appIndex);
+    int32_t GrantUriPermission(std::map<uint32_t, std::vector<Uri>> &grantUris,
+        const std::string &targetBundleName, bool isRemoteData, int32_t appIndex);
     void GenerateDistributedUri(PasteData &data);
     bool IsBundleOwnUriPermission(const std::string &bundleName, Uri &uri);
     std::string GetAppLabel(uint32_t tokenId);

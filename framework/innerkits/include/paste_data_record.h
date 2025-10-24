@@ -40,6 +40,10 @@ struct RemoteRecordValue {
 
 class API_EXPORT PasteDataRecord : public TLVWriteable, public TLVReadable {
 public:
+    static constexpr unsigned int NO_PERMISSION = 0;
+    static constexpr unsigned int READ_PERMISSION = AAFwk::Want::FLAG_AUTH_READ_URI_PERMISSION;
+    static constexpr unsigned int READ_WRITE_PERMISSION = AAFwk::Want::FLAG_AUTH_READ_URI_PERMISSION |
+        AAFwk::Want::FLAG_AUTH_WRITE_URI_PERMISSION | AAFwk::Want::FLAG_AUTH_PERSISTABLE_URI_PERMISSION;
     PasteDataRecord();
     ~PasteDataRecord();
     PasteDataRecord(const PasteDataRecord &record);
@@ -91,6 +95,8 @@ public:
     std::string GetConvertUri() const;
     void SetGrantUriPermission(bool hasPermission);
     bool HasGrantUriPermission();
+    void SetUriPermission(uint32_t uriPermission);
+    uint32_t GetUriPermission();
 
     void SetTextContent(const std::string &content);
     std::string GetTextContent() const;
@@ -154,6 +160,7 @@ private:
     uint32_t dataId_ = 0;
     uint32_t recordId_ = 0;
     uint32_t from_ = 0;
+    uint32_t uriPermission_ = NO_PERMISSION;
     std::string convertUri_;
     std::string textContent_;
     std::string mimeType_;

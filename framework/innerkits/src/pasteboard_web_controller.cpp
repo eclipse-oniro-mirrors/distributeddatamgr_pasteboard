@@ -18,6 +18,7 @@
 #include <regex>
 
 #include "file_uri.h"
+#include "parameters.h"
 #include "pasteboard_common.h"
 #include "uri_permission_manager_client.h"
 #include "pasteboard_hilog.h"
@@ -127,7 +128,8 @@ void PasteboardWebController::CheckAppUriPermission(PasteData &pasteData)
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "enter");
     std::vector<std::string> uris;
     std::vector<size_t> indexs;
-    std::vector<bool> checkResults;
+    std::vector<bool> checkReadResults;
+    std::vector<bool> checkWriteResults;
     pid_t callingUid = IPCSkeleton::GetCallingUid();
     bool ancoFlag = (callingUid == ANCO_SERVICE_BROKER_UID);
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_COMMON, "callingUid=%{public}d, ancoFlag=%{public}u", callingUid, ancoFlag);
@@ -145,30 +147,50 @@ void PasteboardWebController::CheckAppUriPermission(PasteData &pasteData)
             count = length - offset;
         }
         auto sendValues = std::vector<std::string>(uris.begin() + offset, uris.begin() + offset + count);
-        std::vector<bool> ret = AAFwk::UriPermissionManagerClient::GetInstance().CheckUriAuthorization(
+        std::vector<bool> checkReadRet = AAFwk::UriPermissionManagerClient::GetInstance().CheckUriAuthorization(
             sendValues, AAFwk::Want::FLAG_AUTH_READ_URI_PERMISSION, pasteData.GetTokenId());
-        checkResults.insert(checkResults.end(), ret.begin(), ret.end());
+        checkReadResults.insert(checkReadResults.end(), checkReadRet.begin(), checkReadRet.end());
+        std::vector<bool> checkWriteRet = AAFwk::UriPermissionManagerClient::GetInstance().CheckUriAuthorization(
+            sendValues, AAFwk::Want::FLAG_AUTH_WRITE_URI_PERMISSION, pasteData.GetTokenId());
+        checkWriteResults.insert(checkWriteResults.end(), checkWriteRet.begin(), checkWriteRet.end());
         offset += count;
     }
-    if (checkResults.size() != indexs.size()) {
+    if (checkReadResults.size() != indexs.size() || checkWriteResults.size() != indexs.size()) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_COMMON, "check uri authorization fail");
         return;
     }
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "loop for SetGrantUriPermission");
+    bool isNeedPersistance = OHOS::system::GetBoolParameter("const.pasteboard.uri_persistable_permission", false);
     for (size_t i = 0; i < indexs.size(); i++) {
         auto item = pasteData.GetRecordAt(indexs[i]);
         if (item == nullptr || item->GetOriginUri() == nullptr) {
             continue;
         }
-        item->SetGrantUriPermission(checkResults[i]);
+        item->SetGrantUriPermission(checkReadResults[i]);
+        SetUriPermission(item, checkReadResults[i], checkWriteResults[i], isNeedPersistance);
     }
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "leave");
+}
+
+void PasteboardWebController::SetUriPermission(
+    std::shared_ptr<PasteDataRecord> &record, bool isRead, bool isWrite, bool isNeedPersistance)
+{
+    if (!isRead) {
+        return;
+    }
+    if (isNeedPersistance && isWrite) {
+        record->SetUriPermission(PasteDataRecord::READ_WRITE_PERMISSION);
+        return;
+    }
+    record->SetUriPermission(PasteDataRecord::READ_PERMISSION);
 }
 
 int32_t PasteboardWebController::GetNeedCheckUris(PasteData &pasteData, std::vector<std::string> &uris,
     std::vector<size_t> &indexs, bool ancoFlag)
 {
     int32_t uriCount = 0;
+    bool isNeedPersistance = OHOS::system::GetBoolParameter("const.pasteboard.uri_persistable_permission", false);
+    uint32_t flag = isNeedPersistance ? PasteDataRecord::READ_WRITE_PERMISSION : PasteDataRecord::READ_PERMISSION;
     for (size_t i = 0; i < pasteData.GetRecordCount(); i++) {
         auto item = pasteData.GetRecordAt(i);
         if (item == nullptr || item->GetOriginUri() == nullptr) {
@@ -177,6 +199,7 @@ int32_t PasteboardWebController::GetNeedCheckUris(PasteData &pasteData, std::vec
         uriCount++;
         if (ancoFlag) {
             item->SetGrantUriPermission(true);
+            item->SetUriPermission(flag);
             continue;
         }
         auto uri = item->GetOriginUri()->ToString();

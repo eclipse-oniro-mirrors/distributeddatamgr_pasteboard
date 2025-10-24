@@ -260,11 +260,12 @@ PasteDataRecord::~PasteDataRecord()
 
 PasteDataRecord::PasteDataRecord(const PasteDataRecord &record)
     : isDelay_(record.isDelay_), hasGrantUriPermission_(record.hasGrantUriPermission_), udType_(record.udType_),
-      dataId_(record.dataId_), recordId_(record.recordId_), from_(record.from_), convertUri_(record.convertUri_),
-      textContent_(record.textContent_), mimeType_(record.mimeType_), htmlText_(record.htmlText_),
-      want_(record.want_), plainText_(record.plainText_), uri_(record.uri_), pixelMap_(record.pixelMap_),
-      customData_(record.customData_), details_(record.details_), systemDefinedContents_(record.systemDefinedContents_),
-      udmfValue_(record.udmfValue_), entries_(record.entries_), entryGetter_(record.entryGetter_)
+      dataId_(record.dataId_), recordId_(record.recordId_), from_(record.from_), uriPermission_(record.uriPermission_),
+      convertUri_(record.convertUri_), textContent_(record.textContent_), mimeType_(record.mimeType_),
+      htmlText_(record.htmlText_), want_(record.want_), plainText_(record.plainText_), uri_(record.uri_),
+      pixelMap_(record.pixelMap_), customData_(record.customData_), details_(record.details_),
+      systemDefinedContents_(record.systemDefinedContents_), udmfValue_(record.udmfValue_), entries_(record.entries_),
+      entryGetter_(record.entryGetter_)
 { // LCOV_EXCL_START
     this->isConvertUriFromRemote = record.isConvertUriFromRemote;
 } // LCOV_EXCL_STOP
@@ -785,6 +786,16 @@ void PasteDataRecord::SetGrantUriPermission(bool hasPermission)
 bool PasteDataRecord::HasGrantUriPermission()
 { // LCOV_EXCL_START
     return hasGrantUriPermission_;
+} // LCOV_EXCL_STOP
+
+void PasteDataRecord::SetUriPermission(uint32_t uriPermission)
+{ // LCOV_EXCL_START
+    uriPermission_ = uriPermission;
+} // LCOV_EXCL_STOP
+
+uint32_t PasteDataRecord::GetUriPermission()
+{ // LCOV_EXCL_START
+    return uriPermission_;
 } // LCOV_EXCL_STOP
 
 void PasteDataRecord::SetTextContent(const std::string &content)
