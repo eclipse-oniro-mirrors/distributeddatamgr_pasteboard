@@ -22,15 +22,25 @@
 
 namespace OHOS {
 namespace MiscServicesNapi {
-class PasteboardObserverInstance : public MiscServices::PasteboardObserver {
+class PasteboardObserverImpl : public std::enable_shared_from_this<PasteboardObserverImpl> {
 public:
-    explicit PasteboardObserverInstance(napi_threadsafe_function callback, napi_env env);
-    ~PasteboardObserverInstance();
+    explicit PasteboardObserverImpl(napi_threadsafe_function callback, napi_env env);
+    ~PasteboardObserverImpl();
     void OnPasteboardChanged() override;
 
 private:
     std::shared_ptr<napi_threadsafe_function> callback_ = nullptr;
     napi_env env_;
+};
+
+class PasteboardObserverInstance : public MiscServices::PasteboardObserver {
+public:
+    explicit PasteboardObserverInstance(napi_threadsafe_function callback, napi_env env);
+    ~PasteboardObserverInstance() = default;
+    void OnPasteboardChanged() override;
+
+private:
+    std::shared_ptr<PasteboardObserverImpl> impl_ = nullptr;
 };
 
 class PasteboardNapiScope {

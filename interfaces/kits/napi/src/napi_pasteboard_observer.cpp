@@ -24,33 +24,31 @@ using namespace OHOS::MiscServices;
 
 namespace OHOS {
 namespace MiscServicesNapi {
-PasteboardObserverInstance::PasteboardObserverInstance(napi_threadsafe_function callback, napi_env env)
-    : env_(env)
+PasteboardObserverImpl::PasteboardObserverImpl(napi_threadsafe_function callback, napi_env env)
+    : callback_(callback), env_(env)
 {
-    callback_ = std::make_shared<napi_threadsafe_function>(callback);
 }
 
-PasteboardObserverInstance::~PasteboardObserverInstance()
+PasteboardObserverImpl::~PasteboardObserverImpl()
 {
-    napi_status status = napi_release_threadsafe_function(*callback_, napi_tsfn_release);
-    PASTEBOARD_CHECK_AND_RETURN_LOGE(status == napi_ok, PASTEBOARD_MODULE_JS_NAPI,
-        "release callback failed, status=%{public}d", status);
+    napi_status status = napi_release_threadsafe_function(callback_, napi_tsfn_release);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_JS_NAPI, "object release and destroyed, status=%{public}d", status);
 }
 
-void PasteboardObserverInstance::OnPasteboardChanged()
+void PasteboardObserverImpl::OnPasteboardChanged()
 {
     pid_t threadId = syscall(SYS_gettid);
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "enter");
-    auto task = [callback = callback_, threadId]() {
+    auto self = shared_from_this();
+    auto task = [self, threadId]() {
         PASTEBOARD_HILOGI(PASTEBOARD_MODULE_JS_NAPI, "napi_send_event start, originTid=%{public}d", threadId);
-        napi_status status = napi_acquire_threadsafe_function(*callback);
+        napi_status status = napi_acquire_threadsafe_function(self->callback_);
         PASTEBOARD_CHECK_AND_RETURN_LOGE(status == napi_ok, PASTEBOARD_MODULE_JS_NAPI,
             "acquire callback failed, status=%{public}d", status);
-        status = napi_call_threadsafe_function(*callback, nullptr, napi_tsfn_blocking);
-        if (status != napi_ok) {
-            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "call callback failed, status=%{public}d", status);
-        }
-        status = napi_release_threadsafe_function(*callback, napi_tsfn_release);
+        status = napi_call_threadsafe_function(self->callback_, nullptr, napi_tsfn_blocking);
+        PASTEBOARD_CHECK_AND_RETURN_LOGE(status == napi_ok, PASTEBOARD_MODULE_JS_NAPI,
+            "call callback failed, status=%{public}d", status);
+        status = napi_release_threadsafe_function(self->callback_, napi_tsfn_release);
         PASTEBOARD_CHECK_AND_RETURN_LOGE(status == napi_ok, PASTEBOARD_MODULE_JS_NAPI,
             "release callback failed, status=%{public}d", status);
     };
@@ -59,5 +57,19 @@ void PasteboardObserverInstance::OnPasteboardChanged()
         "napi_send_event failed, result=%{public}d", ret);
 }
 
+PasteboardObserverInstance::PasteboardObserverInstance(napi_threadsafe_function callback, napi_env env)
+    : env_(env)
+{
+    impl_ = std::make_shared<PasteboardObserverImpl>(callback, env);
+}
+
+void PasteboardObserverInstance::OnPasteboardChanged()
+{
+    if (impl_ == nullptr) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "impl_ is nullptr");
+        return;
+    }
+    impl_->OnPasteboardChanged();
+}
 } // namespace MiscServicesNapi
 } // namespace OHOS
