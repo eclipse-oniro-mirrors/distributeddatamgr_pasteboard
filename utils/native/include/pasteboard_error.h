@@ -96,6 +96,7 @@ enum class PasteboardError : int32_t {
     ADD_OBSERVER_FAILED,
     INVALID_DATA_SIZE,
     INVALID_TOKEN_ID,
+    INVALID_URI_ERROR,
 };
 
 const std::map<PasteboardError, const char *> PasteboardErrorMap = {
@@ -169,6 +170,7 @@ const std::map<PasteboardError, const char *> PasteboardErrorMap = {
     {PasteboardError::ADD_OBSERVER_FAILED, "ADD_OBSERVER_FAILED"},
     {PasteboardError::INVALID_DATA_SIZE, "INVALID_DATA_SIZE"},
     {PasteboardError::INVALID_TOKEN_ID, "INVALID_TOKEN_ID"},
+    {PasteboardError::INVALID_URI_ERROR, "INVALID_URI_ERROR"},
 };
 
 } // namespace MiscServices

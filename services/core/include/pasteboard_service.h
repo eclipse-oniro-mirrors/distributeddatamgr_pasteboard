@@ -179,8 +179,8 @@ public:
     void PreSyncRemotePasteboardData();
     PastedSwitch switch_;
     static int32_t GetCurrentAccountId();
-    void RevokeUriOnUninstall(int32_t tokenId);
-    void RevokeAndClearUri(std::shared_ptr<PasteData> pasteData);
+    void ClearUriOnUninstall(int32_t tokenId);
+    void ClearUriOnUninstall(std::shared_ptr<PasteData> pasteData);
 
     static std::shared_mutex pasteDataMutex_;
 

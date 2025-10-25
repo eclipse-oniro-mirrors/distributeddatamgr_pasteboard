@@ -310,6 +310,7 @@ int32_t PasteboardClient::GetPasteData(PasteData &pasteData)
     ret = ConvertErrCode(realErrCode);
     int32_t result = ProcessPasteData<PasteData>(pasteData, rawDataSize, fd, recvTLV);
     PasteboardWebController::GetInstance().RetainUri(pasteData);
+    PasteboardWebController::GetInstance().RemoveInvalidUri(pasteData);
     PasteboardWebController::GetInstance().RebuildWebviewPasteData(pasteData);
     if (ret != static_cast<int32_t>(PasteboardError::E_OK)) {
         GetDataReport(pasteData, syncTime, currentId, currentPid, ret);
@@ -468,6 +469,7 @@ int32_t PasteboardClient::GetPasteDataFromService(PasteData &pasteData,
     int32_t result = ProcessPasteData<PasteData>(pasteData, rawDataSize, fd, recvTLV);
     ProgressSmoothToTwentyPercent(pasteData, progressKey, params);
     PasteboardWebController::GetInstance().RetainUri(pasteData);
+    PasteboardWebController::GetInstance().RemoveInvalidUri(pasteData);
     if (ret != static_cast<int32_t>(PasteboardError::E_OK)) {
         ProcessRadarReport(ret, pasteData, pasteDataFromServiceInfo, syncTime);
         return ret;

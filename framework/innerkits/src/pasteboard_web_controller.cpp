@@ -31,6 +31,7 @@ constexpr const char *IMG_TAG_SRC_HEAD = "src=\"";
 constexpr const char *IMG_LOCAL_URI = "file:///";
 constexpr const char *IMG_LOCAL_PATH = "://";
 constexpr const char *FILE_SCHEME_PREFIX = "file://";
+constexpr const char *FILE_SCHEME = "file";
 
 constexpr uint32_t FOUR_BYTES = 4;
 constexpr uint32_t EIGHT_BIT = 8;
@@ -236,6 +237,79 @@ void PasteboardWebController::RefreshUri(std::shared_ptr<PasteDataRecord> &recor
         record->SetConvertUri(realUri);
     } else {
         record->SetUri(std::make_shared<OHOS::Uri>(realUri));
+    }
+}
+
+bool PasteboardWebController::IsValidUri(const std::shared_ptr<OHOS::Uri> uriPtr) noexcept
+{
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(uriPtr != nullptr, false, PASTEBOARD_MODULE_COMMON, "uri is empty");
+
+    std::string scheme = uriPtr->GetScheme();
+    std::string authority = uriPtr->GetAuthority();
+    std::string uriStr = uriPtr->ToString();
+
+    if (scheme.empty() || (scheme == FILE_SCHEME && authority.empty())) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_COMMON, "invalid uri:%{private}s, scheme:%{public}s, authority:%{public}s",
+            uriStr.c_str(), scheme.c_str(), authority.c_str());
+        return false;
+    }
+    return true;
+}
+
+bool PasteboardWebController::RemoveInvalidUri(PasteDataEntry &entry)
+{
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(entry.GetMimeType() == MIMETYPE_TEXT_URI, false, PASTEBOARD_MODULE_COMMON,
+        "entry type invalid, type=%{public}s", entry.GetMimeType().c_str());
+
+    auto uriPtr = entry.ConvertToUri();
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(uriPtr != nullptr, false, PASTEBOARD_MODULE_COMMON,
+        "entry convert uri failed");
+
+    if (IsValidUri(uriPtr)) {
+        return false;
+    }
+
+    auto entryValue = entry.GetValue();
+    if (std::holds_alternative<std::string>(entryValue)) {
+        entry.SetValue("");
+    } else if (std::holds_alternative<std::shared_ptr<Object>>(entryValue)) {
+        auto object = std::get<std::shared_ptr<Object>>(entryValue);
+        auto newObject = std::make_shared<Object>();
+        newObject->value_ = object->value_;
+        newObject->value_[UDMF::FILE_URI_PARAM] = "";
+        entry.SetValue(newObject);
+    }
+    return true;
+}
+
+void PasteboardWebController::RemoveInvalidUri(PasteData &data)
+{
+    if (data.IsLocalPaste()) {
+        return;
+    }
+
+    uint32_t removeCount = 0;
+    auto emptyUri = std::make_shared<OHOS::Uri>("");
+    size_t recordCount = data.GetRecordCount();
+    for (size_t i = 0; i < recordCount; ++i) {
+        auto record = data.GetRecordAt(i);
+        if (record == nullptr) {
+            continue;
+        }
+        auto uriPtr = record->GetOriginUri();
+        if (uriPtr == nullptr) {
+            continue;
+        }
+        if (IsValidUri(uriPtr)) {
+            continue;
+        }
+        record->SetUri(emptyUri);
+        record->SetConvertUri("");
+        removeCount++;
+    }
+
+    if (removeCount > 0) {
+        PASTEBOARD_HILOGW(PASTEBOARD_MODULE_COMMON, "remove count=%{public}u", removeCount);
     }
 }
 
