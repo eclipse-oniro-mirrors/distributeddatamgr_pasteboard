@@ -304,11 +304,12 @@ void PasteboardWebController::RemoveInvalidUri(PasteData &data)
             continue;
         }
         record->SetUri(emptyUri);
+        record->SetConvertUri("");
         removeCount++;
     }
 
     if (removeCount > 0) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_COMMON, "remove count=%{public}u", removeCount);
+        PASTEBOARD_HILOGW(PASTEBOARD_MODULE_COMMON, "remove count=%{public}u", removeCount);
     }
 }
 
