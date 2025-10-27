@@ -73,7 +73,7 @@ static PasteboardClientInterface *GetPasteboardClientInterface()
     return reinterpret_cast<PasteboardClientInterface *>(g_interface);
 }
 
-bool TLVWriteable::Encode(std::vector<uint8_t> &buffer, bool isRemote) const
+bool TLVWriteable::Encode(size_t len, std::vector<uint8_t> &buffer, bool isRemote) const
 {
     (void)isRemote;
     if (GetPasteboardClientInterface() == nullptr) {
@@ -369,12 +369,12 @@ HWTEST_F(PasteboardClientMockTest, ProcessPasteData001, TestSize.Level0)
     // rawDataSize =< 0
     fd = 4;
     ret = PasteboardClient::GetInstance()->ProcessPasteData<PasteData>(pasteData, rawDataSize, fd, recvTLV);
-    EXPECT_EQ(static_cast<int32_t>(PasteboardError::DESERIALIZATION_ERROR), ret);
+    EXPECT_EQ(static_cast<int32_t>(PasteboardError::INVALID_DATA_SIZE), ret);
 
     // rawDataSize > DEFAULT_MAX_RAW_DATA_SIZE
     rawDataSize = DEFAULT_MAX_RAW_DATA_SIZE * 2;
     ret = PasteboardClient::GetInstance()->ProcessPasteData<PasteData>(pasteData, rawDataSize, fd, recvTLV);
-    EXPECT_EQ(static_cast<int32_t>(PasteboardError::DESERIALIZATION_ERROR), ret);
+    EXPECT_EQ(static_cast<int32_t>(PasteboardError::INVALID_DATA_SIZE), ret);
 
     // rawDataSize > MIN_ASHMEM_DATA_SIZE
     rawDataSize = MIN_ASHMEM_DATA_SIZE * 2;
