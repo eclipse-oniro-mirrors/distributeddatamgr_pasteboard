@@ -35,6 +35,7 @@ declare_args() {
   pasteboard_device_manager_part_enabled = true
   pasteboard_screenlock_mgr_part_enabled = true
   pasteboard_vixl_part_enabled = true
+  pasteboard_dataclassification_enabled = true
 
   if (defined(global_parts_info) &&
       !defined(global_parts_info.third_party_vixl)) {
@@ -55,5 +56,9 @@ declare_args() {
   if (defined(global_parts_info) &&
       !defined(global_parts_info.theme_screenlock_mgr)) {
     pasteboard_screenlock_mgr_part_enabled = false
+  }
+  if (defined(global_parts_info) &&
+      !defined(global_parts_info.security_dataclassification)) {
+    pasteboard_dataclassification_enabled = false
   }
 }

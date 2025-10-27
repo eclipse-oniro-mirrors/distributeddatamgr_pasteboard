@@ -40,6 +40,10 @@ struct RemoteRecordValue {
 
 class API_EXPORT PasteDataRecord : public TLVWriteable, public TLVReadable {
 public:
+    static constexpr unsigned int NO_PERMISSION = 0;
+    static constexpr unsigned int READ_PERMISSION = AAFwk::Want::FLAG_AUTH_READ_URI_PERMISSION;
+    static constexpr unsigned int READ_WRITE_PERMISSION = AAFwk::Want::FLAG_AUTH_READ_URI_PERMISSION |
+        AAFwk::Want::FLAG_AUTH_WRITE_URI_PERMISSION | AAFwk::Want::FLAG_AUTH_PERSISTABLE_URI_PERMISSION;
     PasteDataRecord();
     ~PasteDataRecord();
     PasteDataRecord(const PasteDataRecord &record);
@@ -70,6 +74,7 @@ public:
 
     bool isConvertUriFromRemote = false;
     std::string GetMimeType() const;
+    std::set<std::string> GetUtdTypes() const;
     std::set<std::string> GetMimeTypes() const;
     std::shared_ptr<std::string> GetHtmlTextV0() const;
     std::shared_ptr<std::string> GetHtmlText();
@@ -90,6 +95,8 @@ public:
     std::string GetConvertUri() const;
     void SetGrantUriPermission(bool hasPermission);
     bool HasGrantUriPermission();
+    void SetUriPermission(uint32_t uriPermission);
+    uint32_t GetUriPermission();
 
     void SetTextContent(const std::string &content);
     std::string GetTextContent() const;
@@ -142,7 +149,6 @@ public:
 private:
     std::string GetPassUri();
     void AddUriEntry();
-    std::set<std::string> GetUdtTypes() const;
     bool DecodeItem1(uint16_t tag, ReadOnlyBuffer &buffer, TLVHead &head);
     bool DecodeItem2(uint16_t tag, ReadOnlyBuffer &buffer, TLVHead &head);
     std::shared_ptr<PasteDataEntry> Remote2Local() const;
@@ -154,6 +160,7 @@ private:
     uint32_t dataId_ = 0;
     uint32_t recordId_ = 0;
     uint32_t from_ = 0;
+    uint32_t uriPermission_ = NO_PERMISSION;
     std::string convertUri_;
     std::string textContent_;
     std::string mimeType_;

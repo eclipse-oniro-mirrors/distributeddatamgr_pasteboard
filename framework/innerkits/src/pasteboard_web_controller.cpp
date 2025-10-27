@@ -18,6 +18,7 @@
 #include <regex>
 
 #include "file_uri.h"
+#include "parameters.h"
 #include "pasteboard_common.h"
 #include "uri_permission_manager_client.h"
 #include "pasteboard_hilog.h"
@@ -30,6 +31,7 @@ constexpr const char *IMG_TAG_SRC_HEAD = "src=\"";
 constexpr const char *IMG_LOCAL_URI = "file:///";
 constexpr const char *IMG_LOCAL_PATH = "://";
 constexpr const char *FILE_SCHEME_PREFIX = "file://";
+constexpr const char *FILE_SCHEME = "file";
 
 constexpr uint32_t FOUR_BYTES = 4;
 constexpr uint32_t EIGHT_BIT = 8;
@@ -127,7 +129,8 @@ void PasteboardWebController::CheckAppUriPermission(PasteData &pasteData)
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "enter");
     std::vector<std::string> uris;
     std::vector<size_t> indexs;
-    std::vector<bool> checkResults;
+    std::vector<bool> checkReadResults;
+    std::vector<bool> checkWriteResults;
     pid_t callingUid = IPCSkeleton::GetCallingUid();
     bool ancoFlag = (callingUid == ANCO_SERVICE_BROKER_UID);
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_COMMON, "callingUid=%{public}d, ancoFlag=%{public}u", callingUid, ancoFlag);
@@ -145,30 +148,50 @@ void PasteboardWebController::CheckAppUriPermission(PasteData &pasteData)
             count = length - offset;
         }
         auto sendValues = std::vector<std::string>(uris.begin() + offset, uris.begin() + offset + count);
-        std::vector<bool> ret = AAFwk::UriPermissionManagerClient::GetInstance().CheckUriAuthorization(
+        std::vector<bool> checkReadRet = AAFwk::UriPermissionManagerClient::GetInstance().CheckUriAuthorization(
             sendValues, AAFwk::Want::FLAG_AUTH_READ_URI_PERMISSION, pasteData.GetTokenId());
-        checkResults.insert(checkResults.end(), ret.begin(), ret.end());
+        checkReadResults.insert(checkReadResults.end(), checkReadRet.begin(), checkReadRet.end());
+        std::vector<bool> checkWriteRet = AAFwk::UriPermissionManagerClient::GetInstance().CheckUriAuthorization(
+            sendValues, AAFwk::Want::FLAG_AUTH_WRITE_URI_PERMISSION, pasteData.GetTokenId());
+        checkWriteResults.insert(checkWriteResults.end(), checkWriteRet.begin(), checkWriteRet.end());
         offset += count;
     }
-    if (checkResults.size() != indexs.size()) {
+    if (checkReadResults.size() != indexs.size() || checkWriteResults.size() != indexs.size()) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_COMMON, "check uri authorization fail");
         return;
     }
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "loop for SetGrantUriPermission");
+    bool isNeedPersistance = OHOS::system::GetBoolParameter("const.pasteboard.uri_persistable_permission", false);
     for (size_t i = 0; i < indexs.size(); i++) {
         auto item = pasteData.GetRecordAt(indexs[i]);
         if (item == nullptr || item->GetOriginUri() == nullptr) {
             continue;
         }
-        item->SetGrantUriPermission(checkResults[i]);
+        item->SetGrantUriPermission(checkReadResults[i]);
+        SetUriPermission(item, checkReadResults[i], checkWriteResults[i], isNeedPersistance);
     }
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "leave");
+}
+
+void PasteboardWebController::SetUriPermission(
+    std::shared_ptr<PasteDataRecord> &record, bool isRead, bool isWrite, bool isNeedPersistance)
+{
+    if (!isRead) {
+        return;
+    }
+    if (isNeedPersistance && isWrite) {
+        record->SetUriPermission(PasteDataRecord::READ_WRITE_PERMISSION);
+        return;
+    }
+    record->SetUriPermission(PasteDataRecord::READ_PERMISSION);
 }
 
 int32_t PasteboardWebController::GetNeedCheckUris(PasteData &pasteData, std::vector<std::string> &uris,
     std::vector<size_t> &indexs, bool ancoFlag)
 {
     int32_t uriCount = 0;
+    bool isNeedPersistance = OHOS::system::GetBoolParameter("const.pasteboard.uri_persistable_permission", false);
+    uint32_t flag = isNeedPersistance ? PasteDataRecord::READ_WRITE_PERMISSION : PasteDataRecord::READ_PERMISSION;
     for (size_t i = 0; i < pasteData.GetRecordCount(); i++) {
         auto item = pasteData.GetRecordAt(i);
         if (item == nullptr || item->GetOriginUri() == nullptr) {
@@ -177,6 +200,7 @@ int32_t PasteboardWebController::GetNeedCheckUris(PasteData &pasteData, std::vec
         uriCount++;
         if (ancoFlag) {
             item->SetGrantUriPermission(true);
+            item->SetUriPermission(flag);
             continue;
         }
         auto uri = item->GetOriginUri()->ToString();
@@ -213,6 +237,79 @@ void PasteboardWebController::RefreshUri(std::shared_ptr<PasteDataRecord> &recor
         record->SetConvertUri(realUri);
     } else {
         record->SetUri(std::make_shared<OHOS::Uri>(realUri));
+    }
+}
+
+bool PasteboardWebController::IsValidUri(const std::shared_ptr<OHOS::Uri> uriPtr) noexcept
+{
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(uriPtr != nullptr, false, PASTEBOARD_MODULE_COMMON, "uri is empty");
+
+    std::string scheme = uriPtr->GetScheme();
+    std::string authority = uriPtr->GetAuthority();
+    std::string uriStr = uriPtr->ToString();
+
+    if (scheme.empty() || (scheme == FILE_SCHEME && authority.empty())) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_COMMON, "invalid uri:%{private}s, scheme:%{public}s, authority:%{public}s",
+            uriStr.c_str(), scheme.c_str(), authority.c_str());
+        return false;
+    }
+    return true;
+}
+
+bool PasteboardWebController::RemoveInvalidUri(PasteDataEntry &entry)
+{
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(entry.GetMimeType() == MIMETYPE_TEXT_URI, false, PASTEBOARD_MODULE_COMMON,
+        "entry type invalid, type=%{public}s", entry.GetMimeType().c_str());
+
+    auto uriPtr = entry.ConvertToUri();
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(uriPtr != nullptr, false, PASTEBOARD_MODULE_COMMON,
+        "entry convert uri failed");
+
+    if (IsValidUri(uriPtr)) {
+        return false;
+    }
+
+    auto entryValue = entry.GetValue();
+    if (std::holds_alternative<std::string>(entryValue)) {
+        entry.SetValue("");
+    } else if (std::holds_alternative<std::shared_ptr<Object>>(entryValue)) {
+        auto object = std::get<std::shared_ptr<Object>>(entryValue);
+        auto newObject = std::make_shared<Object>();
+        newObject->value_ = object->value_;
+        newObject->value_[UDMF::FILE_URI_PARAM] = "";
+        entry.SetValue(newObject);
+    }
+    return true;
+}
+
+void PasteboardWebController::RemoveInvalidUri(PasteData &data)
+{
+    if (data.IsLocalPaste()) {
+        return;
+    }
+
+    uint32_t removeCount = 0;
+    auto emptyUri = std::make_shared<OHOS::Uri>("");
+    size_t recordCount = data.GetRecordCount();
+    for (size_t i = 0; i < recordCount; ++i) {
+        auto record = data.GetRecordAt(i);
+        if (record == nullptr) {
+            continue;
+        }
+        auto uriPtr = record->GetOriginUri();
+        if (uriPtr == nullptr) {
+            continue;
+        }
+        if (IsValidUri(uriPtr)) {
+            continue;
+        }
+        record->SetUri(emptyUri);
+        record->SetConvertUri("");
+        removeCount++;
+    }
+
+    if (removeCount > 0) {
+        PASTEBOARD_HILOGW(PASTEBOARD_MODULE_COMMON, "remove count=%{public}u", removeCount);
     }
 }
 
@@ -383,7 +480,7 @@ std::vector<std::shared_ptr<PasteDataRecord>> PasteboardWebController::BuildPast
 void PasteboardWebController::RemoveRecordById(PasteData &pasteData, uint32_t recordId) noexcept
 {
     for (uint32_t i = 0; i < pasteData.GetRecordCount(); i++) {
-        if (pasteData.GetRecordAt(i)->GetRecordId() == recordId) {
+        if (pasteData.GetRecordAt(i) != nullptr && pasteData.GetRecordAt(i)->GetRecordId() == recordId) {
             if (pasteData.RemoveRecordAt(i)) {
                 PASTEBOARD_HILOGD(PASTEBOARD_MODULE_COMMON,
                     "WebClipboardController RemoveRecord success, i=%{public}u", i);

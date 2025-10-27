@@ -32,7 +32,7 @@ void PasteboardObserver::OnPasteboardChanged()
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "changed callback.");
 }
 
-void PasteboardObserver::OnPasteboardEvent(std::string bundleName, int32_t status)
+void PasteboardObserver::OnPasteboardEvent(const PasteboardChangedEvent &event)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "event callback.");
 }

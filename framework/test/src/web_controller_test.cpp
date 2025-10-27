@@ -1006,3 +1006,487 @@ HWTEST_F(WebControllerTest, GetNeedCheckUrisTest_003, TestSize.Level1)
 
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "end");
 }
+
+/**
+ * @tc.name: DataRemoveInvalidUriCrossTest001
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(WebControllerTest, DataRemoveInvalidUriCrossTest001, TestSize.Level1)
+{
+    PasteData data;
+    data.SetLocalPasteFlag(false);
+    data.AddUriRecord(OHOS::Uri("file://media/111.png"));
+    data.AddUriRecord(OHOS::Uri("file://docs/111.txt"));
+    data.AddUriRecord(OHOS::Uri("file://com.pasteboard.test/111.png"));
+    std::vector<std::string> expectUris = {
+        "file://com.pasteboard.test/111.png",
+        "file://docs/111.txt",
+        "file://media/111.png",
+    };
+
+    PasteboardWebController::GetInstance().RemoveInvalidUri(data);
+    std::vector<std::string> actualUris;
+    for (uint32_t recordIndex = 0; recordIndex < data.GetRecordCount(); ++recordIndex) {
+        auto record = data.GetRecordAt(recordIndex);
+        ASSERT_NE(record, nullptr);
+        auto uri = record->GetUri();
+        ASSERT_NE(uri, nullptr);
+        auto uriStr = uri->ToString();
+        actualUris.push_back(uriStr);
+    }
+    EXPECT_EQ(actualUris, expectUris);
+}
+
+/**
+ * @tc.name: DataRemoveInvalidUriCrossTest002
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(WebControllerTest, DataRemoveInvalidUriCrossTest002, TestSize.Level1)
+{
+    PasteData data;
+    data.SetLocalPasteFlag(false);
+    data.AddUriRecord(OHOS::Uri("http://media/111.png"));
+    data.AddUriRecord(OHOS::Uri("media://docs/111.txt"));
+    data.AddUriRecord(OHOS::Uri("image://com.pasteboard.test/111.png"));
+    std::vector<std::string> expectUris = {
+        "image://com.pasteboard.test/111.png",
+        "media://docs/111.txt",
+        "http://media/111.png",
+    };
+
+    PasteboardWebController::GetInstance().RemoveInvalidUri(data);
+    std::vector<std::string> actualUris;
+    for (uint32_t recordIndex = 0; recordIndex < data.GetRecordCount(); ++recordIndex) {
+        auto record = data.GetRecordAt(recordIndex);
+        ASSERT_NE(record, nullptr);
+        auto uri = record->GetUri();
+        ASSERT_NE(uri, nullptr);
+        auto uriStr = uri->ToString();
+        actualUris.push_back(uriStr);
+    }
+    EXPECT_EQ(actualUris, expectUris);
+}
+
+/**
+ * @tc.name: DataRemoveInvalidUriCrossTest003
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(WebControllerTest, DataRemoveInvalidUriCrossTest003, TestSize.Level1)
+{
+    PasteData data;
+    data.SetLocalPasteFlag(false);
+    data.AddUriRecord(OHOS::Uri("file:///media/111.png"));
+    data.AddUriRecord(OHOS::Uri("file:///docs/111.txt"));
+    data.AddUriRecord(OHOS::Uri("file:///com.pasteboard.test/111.png"));
+    std::vector<std::string> expectUris = {
+        "",
+        "",
+        "",
+    };
+
+    PasteboardWebController::GetInstance().RemoveInvalidUri(data);
+    std::vector<std::string> actualUris;
+    for (uint32_t recordIndex = 0; recordIndex < data.GetRecordCount(); ++recordIndex) {
+        auto record = data.GetRecordAt(recordIndex);
+        ASSERT_NE(record, nullptr);
+        auto uri = record->GetUri();
+        ASSERT_NE(uri, nullptr);
+        auto uriStr = uri->ToString();
+        actualUris.push_back(uriStr);
+    }
+    EXPECT_EQ(actualUris, expectUris);
+}
+
+/**
+ * @tc.name: DataRemoveInvalidUriCrossTest004
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(WebControllerTest, DataRemoveInvalidUriCrossTest004, TestSize.Level1)
+{
+    PasteData data;
+    data.SetLocalPasteFlag(false);
+    data.AddUriRecord(OHOS::Uri("/media/111.png"));
+    data.AddUriRecord(OHOS::Uri("/docs/111.txt"));
+    data.AddUriRecord(OHOS::Uri("/data/111.png"));
+    std::vector<std::string> expectUris = {
+        "",
+        "",
+        "",
+    };
+
+    PasteboardWebController::GetInstance().RemoveInvalidUri(data);
+    std::vector<std::string> actualUris;
+    for (uint32_t recordIndex = 0; recordIndex < data.GetRecordCount(); ++recordIndex) {
+        auto record = data.GetRecordAt(recordIndex);
+        ASSERT_NE(record, nullptr);
+        auto uri = record->GetUri();
+        ASSERT_NE(uri, nullptr);
+        auto uriStr = uri->ToString();
+        actualUris.push_back(uriStr);
+    }
+    EXPECT_EQ(actualUris, expectUris);
+}
+
+/**
+ * @tc.name: DataRemoveInvalidUriCrossTest005
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(WebControllerTest, DataRemoveInvalidUriCrossTest005, TestSize.Level1)
+{
+    PasteData data;
+    data.SetLocalPasteFlag(false);
+    data.AddUriRecord(OHOS::Uri("file://media/111.png"));
+    data.AddUriRecord(OHOS::Uri("file://docs/111.txt"));
+    data.AddUriRecord(OHOS::Uri("file://com.pasteboard.test/111.png"));
+    data.AddUriRecord(OHOS::Uri("http://media/111.png"));
+    data.AddUriRecord(OHOS::Uri("meida://docs/111.txt"));
+    data.AddUriRecord(OHOS::Uri("image://com.pasteboard.test/111.png"));
+    data.AddUriRecord(OHOS::Uri("file:///media/111.png"));
+    data.AddUriRecord(OHOS::Uri("file:///docs/111.txt"));
+    data.AddUriRecord(OHOS::Uri("file:///com.pasteboard.test/111.png"));
+    data.AddUriRecord(OHOS::Uri("/media/111.png"));
+    data.AddUriRecord(OHOS::Uri("/docs/111.txt"));
+    data.AddUriRecord(OHOS::Uri("/data/111.png"));
+    std::vector<std::string> expectUris = {
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "image://com.pasteboard.test/111.png",
+        "meida://docs/111.txt",
+        "http://media/111.png",
+        "file://com.pasteboard.test/111.png",
+        "file://docs/111.txt",
+        "file://media/111.png",
+    };
+
+    PasteboardWebController::GetInstance().RemoveInvalidUri(data);
+    std::vector<std::string> actualUris;
+    for (uint32_t recordIndex = 0; recordIndex < data.GetRecordCount(); ++recordIndex) {
+        auto record = data.GetRecordAt(recordIndex);
+        ASSERT_NE(record, nullptr);
+        auto uri = record->GetUri();
+        ASSERT_NE(uri, nullptr);
+        auto uriStr = uri->ToString();
+        actualUris.push_back(uriStr);
+    }
+    EXPECT_EQ(actualUris, expectUris);
+}
+
+
+/**
+ * @tc.name: DataRemoveInvalidUriLocalTest001
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(WebControllerTest, DataRemoveInvalidUriLocalTest001, TestSize.Level1)
+{
+    PasteData data;
+    data.SetLocalPasteFlag(true);
+    data.AddUriRecord(OHOS::Uri("file://media/111.png"));
+    data.AddUriRecord(OHOS::Uri("file://docs/111.txt"));
+    data.AddUriRecord(OHOS::Uri("file://com.pasteboard.test/111.png"));
+    std::vector<std::string> expectUris = {
+        "file://com.pasteboard.test/111.png",
+        "file://docs/111.txt",
+        "file://media/111.png",
+    };
+
+    PasteboardWebController::GetInstance().RemoveInvalidUri(data);
+    std::vector<std::string> actualUris;
+    for (uint32_t recordIndex = 0; recordIndex < data.GetRecordCount(); ++recordIndex) {
+        auto record = data.GetRecordAt(recordIndex);
+        ASSERT_NE(record, nullptr);
+        auto uri = record->GetUri();
+        ASSERT_NE(uri, nullptr);
+        auto uriStr = uri->ToString();
+        actualUris.push_back(uriStr);
+    }
+    EXPECT_EQ(actualUris, expectUris);
+}
+
+/**
+ * @tc.name: DataRemoveInvalidUriLocalTest002
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(WebControllerTest, DataRemoveInvalidUriLocalTest002, TestSize.Level1)
+{
+    PasteData data;
+    data.SetLocalPasteFlag(true);
+    data.AddUriRecord(OHOS::Uri("http://media/111.png"));
+    data.AddUriRecord(OHOS::Uri("media://docs/111.txt"));
+    data.AddUriRecord(OHOS::Uri("image://com.pasteboard.test/111.png"));
+    std::vector<std::string> expectUris = {
+        "image://com.pasteboard.test/111.png",
+        "media://docs/111.txt",
+        "http://media/111.png",
+    };
+
+    PasteboardWebController::GetInstance().RemoveInvalidUri(data);
+    std::vector<std::string> actualUris;
+    for (uint32_t recordIndex = 0; recordIndex < data.GetRecordCount(); ++recordIndex) {
+        auto record = data.GetRecordAt(recordIndex);
+        ASSERT_NE(record, nullptr);
+        auto uri = record->GetUri();
+        ASSERT_NE(uri, nullptr);
+        auto uriStr = uri->ToString();
+        actualUris.push_back(uriStr);
+    }
+    EXPECT_EQ(actualUris, expectUris);
+}
+
+/**
+ * @tc.name: DataRemoveInvalidUriLocalTest003
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(WebControllerTest, DataRemoveInvalidUriLocalTest003, TestSize.Level1)
+{
+    PasteData data;
+    data.SetLocalPasteFlag(true);
+    data.AddUriRecord(OHOS::Uri("file:///media/111.png"));
+    data.AddUriRecord(OHOS::Uri("file:///docs/111.txt"));
+    data.AddUriRecord(OHOS::Uri("file:///com.pasteboard.test/111.png"));
+    std::vector<std::string> expectUris = {
+        "file:///com.pasteboard.test/111.png",
+        "file:///docs/111.txt",
+        "file:///media/111.png",
+    };
+
+    PasteboardWebController::GetInstance().RemoveInvalidUri(data);
+    std::vector<std::string> actualUris;
+    for (uint32_t recordIndex = 0; recordIndex < data.GetRecordCount(); ++recordIndex) {
+        auto record = data.GetRecordAt(recordIndex);
+        ASSERT_NE(record, nullptr);
+        auto uri = record->GetUri();
+        ASSERT_NE(uri, nullptr);
+        auto uriStr = uri->ToString();
+        actualUris.push_back(uriStr);
+    }
+    EXPECT_EQ(actualUris, expectUris);
+}
+
+/**
+ * @tc.name: DataRemoveInvalidUriLocalTest004
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(WebControllerTest, DataRemoveInvalidUriLocalTest004, TestSize.Level1)
+{
+    PasteData data;
+    data.SetLocalPasteFlag(true);
+    data.AddUriRecord(OHOS::Uri("/media/111.png"));
+    data.AddUriRecord(OHOS::Uri("/docs/111.txt"));
+    data.AddUriRecord(OHOS::Uri("/data/111.png"));
+    std::vector<std::string> expectUris = {
+        "/data/111.png",
+        "/docs/111.txt",
+        "/media/111.png",
+    };
+
+    PasteboardWebController::GetInstance().RemoveInvalidUri(data);
+    std::vector<std::string> actualUris;
+    for (uint32_t recordIndex = 0; recordIndex < data.GetRecordCount(); ++recordIndex) {
+        auto record = data.GetRecordAt(recordIndex);
+        ASSERT_NE(record, nullptr);
+        auto uri = record->GetUri();
+        ASSERT_NE(uri, nullptr);
+        auto uriStr = uri->ToString();
+        actualUris.push_back(uriStr);
+    }
+    EXPECT_EQ(actualUris, expectUris);
+}
+
+/**
+ * @tc.name: DataRemoveInvalidUriLocalTest005
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(WebControllerTest, DataRemoveInvalidUriLocalTest005, TestSize.Level1)
+{
+    PasteData data;
+    data.SetLocalPasteFlag(true);
+    data.AddUriRecord(OHOS::Uri("file://media/111.png"));
+    data.AddUriRecord(OHOS::Uri("file://docs/111.txt"));
+    data.AddUriRecord(OHOS::Uri("file://com.pasteboard.test/111.png"));
+    data.AddUriRecord(OHOS::Uri("http://media/111.png"));
+    data.AddUriRecord(OHOS::Uri("meida://docs/111.txt"));
+    data.AddUriRecord(OHOS::Uri("image://com.pasteboard.test/111.png"));
+    data.AddUriRecord(OHOS::Uri("file:///media/111.png"));
+    data.AddUriRecord(OHOS::Uri("file:///docs/111.txt"));
+    data.AddUriRecord(OHOS::Uri("file:///com.pasteboard.test/111.png"));
+    data.AddUriRecord(OHOS::Uri("/media/111.png"));
+    data.AddUriRecord(OHOS::Uri("/docs/111.txt"));
+    data.AddUriRecord(OHOS::Uri("/data/111.png"));
+    std::vector<std::string> expectUris = {
+        "/data/111.png",
+        "/docs/111.txt",
+        "/media/111.png",
+        "file:///com.pasteboard.test/111.png",
+        "file:///docs/111.txt",
+        "file:///media/111.png",
+        "image://com.pasteboard.test/111.png",
+        "meida://docs/111.txt",
+        "http://media/111.png",
+        "file://com.pasteboard.test/111.png",
+        "file://docs/111.txt",
+        "file://media/111.png",
+    };
+
+    PasteboardWebController::GetInstance().RemoveInvalidUri(data);
+    std::vector<std::string> actualUris;
+    for (uint32_t recordIndex = 0; recordIndex < data.GetRecordCount(); ++recordIndex) {
+        auto record = data.GetRecordAt(recordIndex);
+        ASSERT_NE(record, nullptr);
+        auto uri = record->GetUri();
+        ASSERT_NE(uri, nullptr);
+        auto uriStr = uri->ToString();
+        actualUris.push_back(uriStr);
+    }
+    EXPECT_EQ(actualUris, expectUris);
+}
+
+/**
+ * @tc.name: EntryRemoveInvalidUriTest001
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(WebControllerTest, EntryRemoveInvalidUriTest001, TestSize.Level1)
+{
+    PasteDataEntry entry;
+    entry.SetUtdId("general.file-uri");
+    entry.SetMimeType(MIMETYPE_TEXT_URI);
+
+    entry.SetValue("file://media/111.png");
+    bool ret = PasteboardWebController::GetInstance().RemoveInvalidUri(entry);
+    EXPECT_FALSE(ret);
+    auto uri = entry.ConvertToUri();
+    ASSERT_NE(uri, nullptr);
+    EXPECT_STREQ(uri->ToString().c_str(), "file://media/111.png");
+
+    entry.SetValue("file://docs/111.png");
+    ret = PasteboardWebController::GetInstance().RemoveInvalidUri(entry);
+    EXPECT_FALSE(ret);
+    uri = entry.ConvertToUri();
+    ASSERT_NE(uri, nullptr);
+    EXPECT_STREQ(uri->ToString().c_str(), "file://docs/111.png");
+
+    entry.SetValue("file://com.pasteboard.test/111.png");
+    ret = PasteboardWebController::GetInstance().RemoveInvalidUri(entry);
+    EXPECT_FALSE(ret);
+    uri = entry.ConvertToUri();
+    ASSERT_NE(uri, nullptr);
+    EXPECT_STREQ(uri->ToString().c_str(), "file://com.pasteboard.test/111.png");
+}
+
+/**
+ * @tc.name: EntryRemoveInvalidUriTest002
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(WebControllerTest, EntryRemoveInvalidUriTest002, TestSize.Level1)
+{
+    PasteDataEntry entry;
+    entry.SetUtdId("general.file-uri");
+    entry.SetMimeType(MIMETYPE_TEXT_URI);
+
+    entry.SetValue("http://media/111.png");
+    bool ret = PasteboardWebController::GetInstance().RemoveInvalidUri(entry);
+    EXPECT_FALSE(ret);
+    auto uri = entry.ConvertToUri();
+    ASSERT_NE(uri, nullptr);
+    EXPECT_STREQ(uri->ToString().c_str(), "http://media/111.png");
+
+    entry.SetValue("https://docs/111.png");
+    ret = PasteboardWebController::GetInstance().RemoveInvalidUri(entry);
+    EXPECT_FALSE(ret);
+    uri = entry.ConvertToUri();
+    ASSERT_NE(uri, nullptr);
+    EXPECT_STREQ(uri->ToString().c_str(), "https://docs/111.png");
+
+    entry.SetValue("media://com.pasteboard.test/111.png");
+    ret = PasteboardWebController::GetInstance().RemoveInvalidUri(entry);
+    EXPECT_FALSE(ret);
+    uri = entry.ConvertToUri();
+    ASSERT_NE(uri, nullptr);
+    EXPECT_STREQ(uri->ToString().c_str(), "media://com.pasteboard.test/111.png");
+}
+
+/**
+ * @tc.name: EntryRemoveInvalidUriTest003
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(WebControllerTest, EntryRemoveInvalidUriTest003, TestSize.Level1)
+{
+    PasteDataEntry entry;
+    entry.SetUtdId("general.file-uri");
+    entry.SetMimeType(MIMETYPE_TEXT_URI);
+
+    entry.SetValue("file:///media/111.png");
+    bool ret = PasteboardWebController::GetInstance().RemoveInvalidUri(entry);
+    EXPECT_TRUE(ret);
+    auto uri = entry.ConvertToUri();
+    ASSERT_NE(uri, nullptr);
+    EXPECT_TRUE(uri->ToString().empty());
+
+    entry.SetValue("file:///docs/111.png");
+    ret = PasteboardWebController::GetInstance().RemoveInvalidUri(entry);
+    EXPECT_TRUE(ret);
+    uri = entry.ConvertToUri();
+    ASSERT_NE(uri, nullptr);
+    EXPECT_TRUE(uri->ToString().empty());
+
+    entry.SetValue("file:///com.pasteboard.test/111.png");
+    ret = PasteboardWebController::GetInstance().RemoveInvalidUri(entry);
+    EXPECT_TRUE(ret);
+    uri = entry.ConvertToUri();
+    ASSERT_NE(uri, nullptr);
+    EXPECT_TRUE(uri->ToString().empty());
+}
+
+/**
+ * @tc.name: EntryRemoveInvalidUriTest004
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(WebControllerTest, EntryRemoveInvalidUriTest004, TestSize.Level1)
+{
+    PasteDataEntry entry;
+    bool ret = PasteboardWebController::GetInstance().RemoveInvalidUri(entry);
+    EXPECT_FALSE(ret);
+
+    entry.SetUtdId("general.file-uri");
+    entry.SetMimeType(MIMETYPE_TEXT_URI);
+    ret = PasteboardWebController::GetInstance().RemoveInvalidUri(entry);
+    EXPECT_FALSE(ret);
+
+    entry.SetValue("/media/111.png");
+    ret = PasteboardWebController::GetInstance().RemoveInvalidUri(entry);
+    EXPECT_TRUE(ret);
+    auto uri = entry.ConvertToUri();
+    ASSERT_NE(uri, nullptr);
+    EXPECT_TRUE(uri->ToString().empty());
+
+    entry.SetValue("/docs/111.png");
+    ret = PasteboardWebController::GetInstance().RemoveInvalidUri(entry);
+    EXPECT_TRUE(ret);
+    uri = entry.ConvertToUri();
+    ASSERT_NE(uri, nullptr);
+    EXPECT_TRUE(uri->ToString().empty());
+
+    entry.SetValue("/com.pasteboard.test/111.png");
+    ret = PasteboardWebController::GetInstance().RemoveInvalidUri(entry);
+    EXPECT_TRUE(ret);
+    uri = entry.ConvertToUri();
+    ASSERT_NE(uri, nullptr);
+    EXPECT_TRUE(uri->ToString().empty());
+}

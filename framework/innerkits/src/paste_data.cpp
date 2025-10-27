@@ -75,7 +75,8 @@ PasteData::~PasteData() {}
 PasteData::PasteData(const PasteData &data)
     : rawDataSize_(data.rawDataSize_), userId_(data.userId_), valid_(data.valid_), isDraggedData_(data.isDraggedData_),
       isLocalPaste_(data.isLocalPaste_), isDelayData_(data.isDelayData_), isDelayRecord_(data.isDelayRecord_),
-      dataId_(data.dataId_), recordId_(data.recordId_), originAuthority_(data.originAuthority_), pasteId_(data.pasteId_)
+      dataId_(data.dataId_), recordId_(data.recordId_), textSize_(data.textSize_),
+      originAuthority_(data.originAuthority_), pasteId_(data.pasteId_)
 { // LCOV_EXCL_START
     this->props_ = data.props_;
     for (const auto &item : data.records_) {
@@ -115,6 +116,7 @@ PasteData &PasteData::operator=(const PasteData &data)
         this->records_.emplace_back(std::make_shared<PasteDataRecord>(*item));
     }
     this->recordId_ = data.GetRecordId();
+    this->textSize_ = data.textSize_;
     this->rawDataSize_ = data.rawDataSize_;
     this->userId_ = data.userId_;
     return *this;
@@ -388,6 +390,17 @@ bool PasteData::HasMimeType(const std::string &mimeType)
     for (const auto &item : records_) {
         auto itemTypes = item->GetMimeTypes();
         if (itemTypes.find(mimeType) != itemTypes.end()) {
+            return true;
+        }
+    }
+    return false;
+} // LCOV_EXCL_STOP
+
+bool PasteData::HasUtdType(const std::string &utdType)
+{ // LCOV_EXCL_START
+    for (const auto &item : records_) {
+        auto itemTypes = item->GetUtdTypes();
+        if (itemTypes.find(utdType) != itemTypes.end()) {
             return true;
         }
     }
@@ -859,6 +872,16 @@ void PasteData::SetPasteId(const std::string &pasteId)
 std::string PasteData::GetPasteId() const
 { // LCOV_EXCL_START
     return pasteId_;
+} // LCOV_EXCL_STOP
+
+void PasteData::SetTextSize(size_t size)
+{ // LCOV_EXCL_START
+    textSize_ = size;
+} // LCOV_EXCL_STOP
+
+size_t PasteData::GetTextSize() const
+{ // LCOV_EXCL_START
+    return textSize_;
 } // LCOV_EXCL_STOP
 } // namespace MiscServices
 } // namespace OHOS

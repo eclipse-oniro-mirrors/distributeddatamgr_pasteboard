@@ -136,6 +136,7 @@ public:
     virtual int32_t IsRemoteData(bool &funcResult) override;
     virtual int32_t GetMimeTypes(std::vector<std::string> &funcResult) override;
     virtual int32_t HasDataType(const std::string &mimeType, bool &funcResult) override;
+    virtual int32_t HasUtdType(const std::string &utdType, bool &funcResult) override;
     virtual int32_t DetectPatterns(
         const std::vector<Pattern> &patternsToCheck, std::vector<Pattern>& funcResult) override;
     virtual int32_t GetDataSource(std::string &bundleNme) override;
@@ -178,8 +179,8 @@ public:
     void PreSyncRemotePasteboardData();
     PastedSwitch switch_;
     static int32_t GetCurrentAccountId();
-    void RevokeUriOnUninstall(int32_t tokenId);
-    void RevokeAndClearUri(std::shared_ptr<PasteData> pasteData);
+    void ClearUriOnUninstall(int32_t tokenId);
+    void ClearUriOnUninstall(std::shared_ptr<PasteData> pasteData);
 
     static std::shared_mutex pasteDataMutex_;
 
@@ -329,6 +330,14 @@ private:
         const std::string &pasteId, const std::string &deviceId, std::shared_ptr<BlockObject<int32_t>> pasteBlock);
     int32_t GetData(uint32_t tokenId, PasteData &data, int32_t &syncTime, bool &isPeerOnline, std::string &peerNetId,
         std::string &peerUdid);
+    void HandleInitFailure();
+    void InitializeDumpCommands();
+    void HandleNotificationsAndStatusChecks(const AppInfo &appInfo, const PasteData &data,
+        const std::string &peerNetId, bool &isPeerOnline);
+    void PublishServiceState(const PasteData &data, int32_t syncTime,
+        const std::string &peerNetId, std::shared_ptr<BlockObject<int32_t>> pasteBlock);
+    void HandleGetDataError(int32_t result, std::shared_ptr<BlockObject<int32_t>> pasteBlock,
+        const std::string &deviceId, const std::string &pasteId);
     CommonInfo GetCommonState(int64_t dataSize);
     void SetRadarEvent(const AppInfo &appInfo, PasteData &data, bool isPeerOnline,
         RadarReportInfo &radarReportInfo, const std::string &peerNetId);
@@ -344,9 +353,12 @@ private:
     void GetDelayPasteData(int32_t userId, PasteData &data);
     int32_t ProcessDelayHtmlEntry(PasteData &data, const AppInfo &targetAppInfo, PasteDataEntry &entry);
     int32_t PostProcessDelayHtmlEntry(PasteData &data, const AppInfo &targetInfo, PasteDataEntry &entry);
-    std::vector<Uri> CheckUriPermission(PasteData &data, const std::pair<std::string, int32_t> &targetBundleAppIndex);
-    int32_t GrantUriPermission(const std::vector<Uri> &grantUris, const std::string &targetBundleName,
-        bool isRemoteData, int32_t appIndex);
+    std::map<uint32_t, std::vector<Uri>> CheckUriPermission(
+        PasteData &data, const std::pair<std::string, int32_t> &targetBundleAppIndex);
+    int32_t GrantPermission(const std::vector<Uri> &grantUris, uint32_t permFlag, bool isRemoteData,
+        const std::string &targetBundleName, int32_t appIndex);
+    int32_t GrantUriPermission(std::map<uint32_t, std::vector<Uri>> &grantUris,
+        const std::string &targetBundleName, bool isRemoteData, int32_t appIndex);
     void GenerateDistributedUri(PasteData &data);
     bool IsBundleOwnUriPermission(const std::string &bundleName, Uri &uri);
     std::string GetAppLabel(uint32_t tokenId);
@@ -412,6 +424,7 @@ private:
     void OnRemoveDeviceProfile();
     void ReportUeCopyEvent(PasteData &pasteData, int64_t dataSize, int32_t result);
     bool HasDataType(const std::string &mimeType);
+    bool HasUtdType(const std::string &utdType);
     bool HasPasteData();
     bool IsRemoteData();
     int32_t GetRecordValueByType(uint32_t dataId, uint32_t recordId, PasteDataEntry &value);

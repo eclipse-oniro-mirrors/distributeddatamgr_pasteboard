@@ -41,15 +41,18 @@ bool TLVUtils::Raw2Parcel(const RawMem &rawMem, Parcel &parcel)
     }
     auto *temp = malloc(rawMem.bufferLen); // free by Parcel!
     if (temp == nullptr) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_COMMON, "malloc failed, size=%{public}zu", rawMem.bufferLen);
         return false;
     }
     auto err = memcpy_s(temp, rawMem.bufferLen, reinterpret_cast<const void *>(rawMem.buffer), rawMem.bufferLen);
     if (err != EOK) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_COMMON, "memcpy RawMem failed, size=%{public}zu", rawMem.bufferLen);
         free(temp);
         return false;
     }
     bool ret = parcel.ParseFrom(reinterpret_cast<uintptr_t>(temp), rawMem.bufferLen);
     if (!ret) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_COMMON, "parse from RawMem failed, size=%{public}zu", rawMem.bufferLen);
         free(temp);
         return false;
     }

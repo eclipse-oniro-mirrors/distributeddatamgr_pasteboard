@@ -43,7 +43,7 @@ void PasteboardObserverProxy::OnPasteboardChanged()
     return;
 }
 
-void PasteboardObserverProxy::OnPasteboardEvent(std::string bundleName, int32_t status)
+void PasteboardObserverProxy::OnPasteboardEvent(const PasteboardChangedEvent &event)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -53,9 +53,10 @@ void PasteboardObserverProxy::OnPasteboardEvent(std::string bundleName, int32_t 
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "write descriptor failed!");
         return;
     }
-    PASTEBOARD_CHECK_AND_RETURN_LOGE(data.WriteString(bundleName), PASTEBOARD_MODULE_SERVICE,
+    PASTEBOARD_CHECK_AND_RETURN_LOGE(data.WriteString(event.bundleName), PASTEBOARD_MODULE_SERVICE,
         "Write bundleName failed");
-    PASTEBOARD_CHECK_AND_RETURN_LOGE(data.WriteInt32(status), PASTEBOARD_MODULE_SERVICE, "Write status failed");
+    PASTEBOARD_CHECK_AND_RETURN_LOGE(data.WriteInt32(event.status), PASTEBOARD_MODULE_SERVICE, "Write status failed");
+    PASTEBOARD_CHECK_AND_RETURN_LOGE(data.WriteInt32(event.userId), PASTEBOARD_MODULE_SERVICE, "Write userId failed");
     int ret = Remote()->SendRequest(
         static_cast<int>(PasteboardObserverInterfaceCode::ON_PASTE_BOARD_EVENT), data, reply, option);
     if (ret != ERR_OK) {

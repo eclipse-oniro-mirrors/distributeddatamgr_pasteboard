@@ -310,6 +310,7 @@ int32_t PasteboardClient::GetPasteData(PasteData &pasteData)
     ret = ConvertErrCode(realErrCode);
     int32_t result = ProcessPasteData<PasteData>(pasteData, rawDataSize, fd, recvTLV);
     PasteboardWebController::GetInstance().RetainUri(pasteData);
+    PasteboardWebController::GetInstance().RemoveInvalidUri(pasteData);
     PasteboardWebController::GetInstance().RebuildWebviewPasteData(pasteData);
     if (ret != static_cast<int32_t>(PasteboardError::E_OK)) {
         GetDataReport(pasteData, syncTime, currentId, currentPid, ret);
@@ -468,6 +469,7 @@ int32_t PasteboardClient::GetPasteDataFromService(PasteData &pasteData,
     int32_t result = ProcessPasteData<PasteData>(pasteData, rawDataSize, fd, recvTLV);
     ProgressSmoothToTwentyPercent(pasteData, progressKey, params);
     PasteboardWebController::GetInstance().RetainUri(pasteData);
+    PasteboardWebController::GetInstance().RemoveInvalidUri(pasteData);
     if (ret != static_cast<int32_t>(PasteboardError::E_OK)) {
         ProcessRadarReport(ret, pasteData, pasteDataFromServiceInfo, syncTime);
         return ret;
@@ -1098,6 +1100,25 @@ bool PasteboardClient::HasDataType(const std::string &mimeType)
         return false;
     }
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_CLIENT, "HasDataType end.");
+    return ret;
+}
+
+bool PasteboardClient::HasUtdType(const std::string &utdType)
+{
+    PASTEBOARD_HILOGD(PASTEBOARD_MODULE_CLIENT, "HasUtdType start.");
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(!utdType.empty(), false, PASTEBOARD_MODULE_CLIENT, "parameter is invalid");
+    auto proxyService = GetPasteboardService();
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(proxyService != nullptr, false,
+        PASTEBOARD_MODULE_CLIENT, "proxyService is nullptr");
+    PASTEBOARD_HILOGD(PASTEBOARD_MODULE_CLIENT, "type is %{public}s", utdType.c_str());
+    bool ret = false;
+    int32_t retCode = proxyService->HasUtdType(utdType, ret);
+    if (retCode != ERR_OK) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CLIENT, "HasUtdType failed, retCode=%{public}d, type=%{public}s",
+            retCode, utdType.c_str());
+        return false;
+    }
+    PASTEBOARD_HILOGD(PASTEBOARD_MODULE_CLIENT, "HasUtdType end.");
     return ret;
 }
 

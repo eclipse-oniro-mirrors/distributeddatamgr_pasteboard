@@ -38,7 +38,7 @@ public:
     {
         PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "deconstructor.");
     };
-    void OnPasteboardEvent(std::string bundleName, int32_t status) override;
+    void OnPasteboardEvent(const PasteboardChangedEvent &event) override;
 };
 } // namespace MiscServices
 } // namespace OHOS

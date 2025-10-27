@@ -264,22 +264,6 @@ HWTEST_F(PasteboardServiceGetDataTest, GetPasteDataDotTest001, TestSize.Level0)
 }
 
 /**
- * @tc.name: GetDataSizeTest001
- * @tc.desc: test Func GetDataSize
- * @tc.type: FUNC
- */
-HWTEST_F(PasteboardServiceGetDataTest, GetDataSizeTest001, TestSize.Level0)
-{
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetDataSizeTest001 start");
-    PasteData data;
-    auto tempPasteboard = std::make_shared<PasteboardService>();
-    EXPECT_NE(tempPasteboard, nullptr);
-
-    tempPasteboard->GetDataSize(data);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetDataSizeTest001 end");
-}
-
-/**
  * @tc.name: GetRemoteDataTask001
  * @tc.desc: test Func GetRemoteDataTask
  * @tc.type: FUNC

@@ -24,6 +24,7 @@ namespace OHOS::MiscServices {
 constexpr size_t DMAdapter::MAX_ID_LEN;
 constexpr const char *PKG_NAME = "pasteboard_service";
 
+#ifdef PB_DEVICE_MANAGER_ENABLE
 DmStateObserver::DmStateObserver(const std::function<void(const DmDeviceInfo &)> online,
     const std::function<void(const DmDeviceInfo &)> onReady, const std::function<void(const DmDeviceInfo &)> offline)
     : online_(std::move(online)), onReady_(std::move(onReady)), offline_(std::move(offline))
@@ -84,12 +85,15 @@ void DmDeath::OnRemoteDied()
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "device manager died");
     DMAdapter::GetInstance().Initialize();
 }
+#endif
 
 DMAdapter::DMAdapter() {}
 
 DMAdapter::~DMAdapter()
 {
+#ifdef PB_DEVICE_MANAGER_ENABLE
     devices_.clear();
+#endif
 }
 
 DMAdapter &DMAdapter::GetInstance()
@@ -112,6 +116,7 @@ bool DMAdapter::Initialize()
     return false;
 }
 
+#ifdef PB_DEVICE_MANAGER_ENABLE
 std::shared_ptr<DmStateObserver> DMAdapter::GetDmStateObserver()
 {
     std::lock_guard lock(observerMutex_);
@@ -141,11 +146,14 @@ std::shared_ptr<DmStateObserver> DMAdapter::GetDmStateObserver()
         });
     return dmStateObserver_;
 }
+#endif
 
 void DMAdapter::DeInitialize()
 {
+#ifdef PB_DEVICE_MANAGER_ENABLE
     DeviceManager::GetInstance().UnRegisterDevStateCallback(PKG_NAME);
     DeviceManager::GetInstance().UnInitDeviceManager(PKG_NAME);
+#endif
 }
 
 const std::string &DMAdapter::GetLocalDeviceUdid()
@@ -196,9 +204,9 @@ const std::string DMAdapter::GetLocalNetworkId()
     return invalidNetworkId_;
 }
 
+#ifdef PB_DEVICE_MANAGER_ENABLE
 int32_t DMAdapter::GetRemoteDeviceInfo(const std::string &networkId, DmDeviceInfo &remoteDevice)
 {
-#ifdef PB_DEVICE_MANAGER_ENABLE
     auto devices = GetDevices();
     for (auto &device : devices) {
         if (device.networkId == networkId) {
@@ -206,9 +214,9 @@ int32_t DMAdapter::GetRemoteDeviceInfo(const std::string &networkId, DmDeviceInf
             return static_cast<int32_t>(PasteboardError::E_OK);
         }
     }
-#endif
     return static_cast<int32_t>(PasteboardError::NO_TRUST_DEVICE_ERROR);
 }
+#endif
 
 std::string DMAdapter::GetUdidByNetworkId(const std::string &networkId)
 {
@@ -285,6 +293,7 @@ bool DMAdapter::IsSameAccount(const std::string &networkId)
 
 void DMAdapter::SetDevices()
 {
+#ifdef PB_DEVICE_MANAGER_ENABLE
     std::vector<DmDeviceInfo> devices;
     int32_t ret = DeviceManager::GetInstance().GetTrustedDeviceList(PKG_NAME, "", devices);
     if (ret != 0) {
@@ -299,11 +308,14 @@ void DMAdapter::SetDevices()
     }
     std::unique_lock<std::shared_mutex> lock(dmMutex_);
     devices_ = std::move(networkIds);
+#endif
 }
 
+#ifdef PB_DEVICE_MANAGER_ENABLE
 std::vector<DmDeviceInfo> DMAdapter::GetDevices()
 {
     std::shared_lock<std::shared_mutex> lock(dmMutex_);
     return devices_;
 }
+#endif
 } // namespace OHOS::MiscServices

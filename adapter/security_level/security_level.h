@@ -17,17 +17,25 @@
 #define OHOS_PASTEBOARD_SECURITY_LEVEL_H
 #include <string>
 
+#ifdef PB_DATACLASSIFICATION_ENABLE
+#include <atomic>
 #include "dev_slinfo_mgr.h"
+#endif
 
 namespace OHOS::MiscServices {
 class SecurityLevel {
 public:
+#ifdef PB_DATACLASSIFICATION_ENABLE
+    SecurityLevel() : securityLevel_(DATA_SEC_LEVEL0) {}
+#endif
     uint32_t GetDeviceSecurityLevel();
 
 private:
+#ifdef PB_DATACLASSIFICATION_ENABLE
     bool InitDEVSLQueryParams(DEVSLQueryParams *params, const std::string &udid);
+    std::atomic<uint32_t> securityLevel_;
+#endif
     uint32_t GetSensitiveLevel();
-    uint32_t securityLevel_ = DATA_SEC_LEVEL0;
 };
 } // namespace OHOS::MiscServices
 #endif // OHOS_PASTEBOARD_SECURITY_LEVEL_H

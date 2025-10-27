@@ -78,6 +78,7 @@ public:
     bool ReplaceRecordAt(std::size_t number, std::shared_ptr<PasteDataRecord> record);
     void RemoveEmptyEntry();
     bool HasMimeType(const std::string &mimeType);
+    bool HasUtdType(const std::string &utdType);
     PasteDataProperty GetProperty() const;
     void SetProperty(const PasteDataProperty &property);
     ShareOption GetShareOption();
@@ -119,6 +120,8 @@ public:
 
     bool IsValid() const;
     void SetInvalid();
+    void SetTextSize(size_t size);
+    size_t GetTextSize() const;
 
     void SetDelayData(bool isDelay);
     bool IsDelayData() const;
@@ -157,6 +160,7 @@ private:
     bool isDelayRecord_ = false;
     uint32_t dataId_ = 0;
     uint32_t recordId_ = 0;
+    size_t textSize_ = 0;
     PasteDataProperty props_;
     std::vector<std::shared_ptr<PasteDataRecord>> records_;
     std::pair<std::string, int32_t> originAuthority_;

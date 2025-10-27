@@ -371,7 +371,7 @@ napi_status ConvertEntryValue(napi_env env, napi_value *result, std::string &mim
     std::shared_ptr<PasteDataEntry> value)
 {
     if (value == nullptr) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "failed to find dataEntry");
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "failed to find dataEntry, type=%{public}s", mimeType.c_str());
         return napi_generic_failure;
     }
     if (mimeType == MIMETYPE_TEXT_URI) {
