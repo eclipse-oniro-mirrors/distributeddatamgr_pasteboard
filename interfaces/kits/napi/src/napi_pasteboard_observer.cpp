@@ -58,7 +58,6 @@ void PasteboardObserverImpl::OnPasteboardChanged()
 }
 
 PasteboardObserverInstance::PasteboardObserverInstance(napi_threadsafe_function callback, napi_env env)
-    : env_(env)
 {
     impl_ = std::make_shared<PasteboardObserverImpl>(callback, env);
 }
