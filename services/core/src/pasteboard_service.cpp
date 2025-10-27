@@ -2038,6 +2038,10 @@ std::map<uint32_t, std::vector<Uri>> PasteboardService::CheckUriPermission(Paste
                 hasGrantUriPermission);
             continue;
         }
+        if (data.IsRemote()) {
+            readUris.emplace_back(*uri);
+            continue;
+        }
         auto uriPermission = item->GetUriPermission();
         if (uriPermission == PasteDataRecord::READ_PERMISSION) {
             readUris.emplace_back(*uri);
