@@ -26,7 +26,7 @@ class PasteboardObserverImpl : public std::enable_shared_from_this<PasteboardObs
 public:
     explicit PasteboardObserverImpl(napi_threadsafe_function callback, napi_env env);
     ~PasteboardObserverImpl();
-    void OnPasteboardChanged() override;
+    void OnPasteboardChanged();
 
 private:
     napi_threadsafe_function callback_ = nullptr;
