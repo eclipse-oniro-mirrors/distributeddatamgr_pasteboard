@@ -55,6 +55,7 @@ constexpr int32_t PASTEBOARD_PROGRESS_RETRY_TIMES = 10;
 constexpr int64_t REPORT_DUPLICATE_TIMEOUT = 2 * 60 * 1000; // 2 minutes
 constexpr uint32_t JSON_INDENT = 4;
 constexpr uint32_t RECORD_DISPLAY_UPPERBOUND = 3;
+constexpr uint32_t MAX_SIGNAL_VALUE_SIZE = 128;
 static constexpr int32_t HAP_PULL_UP_TIME = 500; // ms
 static constexpr int32_t HAP_MIN_SHOW_TIME = 300; // ms
 static sptr<PasteboardSaMgrListener> saCallback_ = nullptr;
@@ -1169,7 +1170,9 @@ int32_t PasteboardClient::HandleSignalValue(const std::string &signalValue)
     int32_t progressStatusValue = 0;
     std::shared_ptr<ProgressReportListener> progressReport = std::make_shared<ProgressReportListener>();
     progressReport->OnProgressFail = OnProgressAbnormal;
-
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(signalValue.size() <= MAX_SIGNAL_VALUE_SIZE,
+        static_cast<int32_t>(PasteboardError::INVALID_DATA_SIZE), PASTEBOARD_MODULE_CLIENT,
+        "progress invalid signalValue: %{public}s", signalValue.c_str());
     static const std::regex numberRegex(R"(^[+-]?\d+$)");
     if (!std::regex_match(signalValue, numberRegex)) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CLIENT, "progressStatusValue invalid = %{public}s", signalValue.c_str());
