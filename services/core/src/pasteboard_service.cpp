@@ -111,6 +111,7 @@ constexpr uid_t ANCO_SERVICE_BROKER_UID = 5557;
 constexpr float RECALCULATE_DATA_SIZE = 0.9;
 
 const bool G_REGISTER_RESULT = SystemAbility::MakeAndRegisterAbility(new PasteboardService());
+const std::string CONSTRAINT = "constraint.distributed.transmission.outgoing";
 } // namespace
 using namespace Security::AccessToken;
 using namespace OHOS::AppFileService::ModuleRemoteFileShare;
@@ -3634,15 +3635,13 @@ std::pair<std::shared_ptr<PasteData>, PasteDateResult> PasteboardService::GetDis
     return std::make_pair(pasteData, pasteDateResult);
 }
 
-bool PasteboardService::IsAllowSendData()
+bool PasteboardService::IsConstraintEnabled(int32_t user)
 {
-    auto controlType =
-        system::GetIntParameter(TRANSMIT_CONTROL_PROP_KEY, CONTROL_TYPE_ALLOW_SEND_RECEIVE, INT_MIN, INT_MAX);
-    if (controlType != CONTROL_TYPE_ALLOW_SEND_RECEIVE) {
-        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "control type is: %{public}d.", controlType);
-        return false;
-    }
-    return true;
+    bool isConstraintEnabled = false;
+    ErrCode err = AccountSA::OsAccountManager::CheckOsAccountConstraintEnabled(user, CONSTRAINT, isConstraintEnabled);
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(
+        err == ERR_OK, false, PASTEBOARD_MODULE_SERVICE, "CheckOsAccountConstraintEnabled failed, %{public}d", err);
+    return isConstraintEnabled;
 }
 
 bool PasteboardService::IsDisallowDistributed()
@@ -3672,7 +3671,8 @@ bool PasteboardService::SetDistributedData(int32_t user, PasteData &data)
     event.dataId = data.GetDataId();
     currentEvent_ = event;
 
-    if (!IsAllowSendData() || IsDisallowDistributed()) {
+    if (IsConstraintEnabled(user) || IsDisallowDistributed()) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "not allowed to send, user:%{public}d", user);
         return false;
     }
     auto clipPlugin = GetClipPlugin();

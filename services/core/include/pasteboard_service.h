@@ -519,7 +519,7 @@ private:
     bool HasLocalDataType(const std::string &mimeType);
     void AddPermissionRecord(uint32_t tokenId, bool isReadGrant, bool isSecureGrant);
     bool SubscribeKeyboardEvent();
-    bool IsAllowSendData();
+    bool IsConstraintEnabled(int32_t user);
     void UpdateShareOption(PasteData &pasteData);
     bool CheckMdmShareOption(PasteData &pasteData);
     void PasteboardEventSubscriber();
