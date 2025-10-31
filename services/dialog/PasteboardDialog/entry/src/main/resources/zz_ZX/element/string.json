@@ -6,7 +6,7 @@
         },
         {
             "name":"pasteboard_desc_text",
-            "value":"[TS_998183]_Copy on one device, paste on another. Devices must be near each other, logged in to the same HUAWEI ID, and have WLAN, Bluetooth, and this feature enabled. %s"
+            "value":"[TS_998183]_Copy on one device, paste on another. Devices must be near each other, logged in to the same ID, and have WLAN, Bluetooth, and this feature enabled. %s"
         },
         {
             "name":"PasteboardSwitchAbility_desc",

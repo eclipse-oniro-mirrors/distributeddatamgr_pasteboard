@@ -51,14 +51,6 @@
         "type": "service"
       },
       {
-        "name": "PasteboardSwitchAbility",
-        "srcEntry": "./ets/pasteboardswitchability/PasteboardSwitchAbility.ets",
-        "description": "$string:PasteboardSwitchAbility_desc",
-        "label": "$string:PasteboardSwitchAbility_label",
-        "type": "sys/commonUI",
-        "exported": true
-      },
-      {
         "name": "PasteboardProgressAbility",
         "srcEntry": "./ets/PasteboardProgressAbility/PasteboardProgressAbility.ets",
         "description": "$string:PasteboardProgressAbility_desc",
