@@ -48,6 +48,8 @@ private:
         const std::vector<std::pair<std::string, uint32_t>> &matchVec) noexcept;
     std::vector<std::shared_ptr<PasteDataRecord>> BuildPasteDataRecords(const std::map<std::string,
         std::vector<uint8_t>> &imgSrcMap, uint32_t recordId) noexcept;
+    void RemoveInvalidImgSrc(const std::vector<std::string> &validImgSrcList,
+        std::map<std::string, std::vector<uint8_t>> &imgSrcMap) noexcept;
 
     void RemoveAllRecord(std::shared_ptr<PasteData> pasteData) noexcept;
     void RemoveRecordById(PasteData &pasteData, uint32_t recordId) noexcept;
