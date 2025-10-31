@@ -64,6 +64,7 @@ ohos_shared_library("pasteboard_data") {
     "src/paste_data.cpp",
     "src/paste_data_entry.cpp",
     "src/paste_data_record.cpp",
+    "src/pasteboard_img_extractor.cpp",
     "src/pasteboard_load_callback.cpp",
     "src/pasteboard_service_loader.cpp",
     "src/pasteboard_web_controller.cpp",
@@ -103,6 +104,7 @@ ohos_shared_library("pasteboard_data") {
     "hilog:libhilog",
     "image_framework:image_native",
     "ipc:ipc_single",
+    "libxml2:libxml2",
     "samgr:samgr_proxy",
     "udmf:udmf_client",
   ]

@@ -18,11 +18,12 @@
 #include <regex>
 
 #include "file_uri.h"
+#include "ipc_skeleton.h"
 #include "parameters.h"
 #include "pasteboard_common.h"
-#include "uri_permission_manager_client.h"
 #include "pasteboard_hilog.h"
-#include "ipc_skeleton.h"
+#include "pasteboard_img_extractor.h"
+#include "uri_permission_manager_client.h"
 
 namespace {
 constexpr const char *IMG_TAG_PATTERN = "<img.*?>";
@@ -349,9 +350,26 @@ void PasteboardWebController::RebuildWebviewPasteData(PasteData &pasteData, cons
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_COMMON, "Rebuild end, record count=%{public}zu", pasteData.GetRecordCount());
 }
 
+void PasteboardWebController::RemoveInvalidImgSrc(const std::vector<std::string> &validImgSrcList,
+    std::map<std::string, std::vector<uint8_t>> &imgSrcMap) noexcept
+{
+    std::unordered_set<std::string> validImgSrcSet(validImgSrcList.begin(), validImgSrcList.end());
+    auto it = imgSrcMap.begin();
+    while (it != imgSrcMap.end()) {
+        if (validImgSrcSet.find(it->first) == validImgSrcSet.end()) {
+            it = imgSrcMap.erase(it);
+        } else {
+            ++it;
+        }
+    }
+}
+
 std::vector<std::shared_ptr<PasteDataRecord>> PasteboardWebController::SplitHtml2Records(
     const std::shared_ptr<std::string> &html, uint32_t recordId) noexcept
 {
+    if (html == nullptr) {
+        return {};
+    }
     std::vector<std::pair<std::string, uint32_t>> matchVec = SplitHtmlWithImgLabel(html);
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_COMMON, "matchVec size: %{public}zu", matchVec.size());
     if (matchVec.empty()) {
@@ -359,6 +377,14 @@ std::vector<std::shared_ptr<PasteDataRecord>> PasteboardWebController::SplitHtml
     }
     std::map<std::string, std::vector<uint8_t>> imgSrcMap = SplitHtmlWithImgSrcLabel(matchVec);
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_COMMON, "imgSrcMap size: %{public}zu", imgSrcMap.size());
+    if (imgSrcMap.empty()) {
+        return {};
+    }
+    auto validImgSrcList = PasteboardImgExtractor::GetInstance().ExtractImgSrc(*html);
+    RemoveInvalidImgSrc(validImgSrcList, imgSrcMap);
+    if (imgSrcMap.empty()) {
+        return {};
+    }
     return BuildPasteDataRecords(imgSrcMap, recordId);
 }
 
