@@ -1899,7 +1899,7 @@ HWTEST_F(PasteboardServiceMockTest, PasteboardEventSubscriberTest003, TestSize.L
 
 /**
  * @tc.name: SetDistributedDataTest001
- * @tc.desc: test Func SetDistributedData, IsAllowSendData is false
+ * @tc.desc: test Func SetDistributedData, IsConstraintEnabled is false
  * @tc.type: FUNC
  */
 HWTEST_F(PasteboardServiceMockTest, SetDistributedDataTest001, TestSize.Level0)
@@ -2725,8 +2725,10 @@ HWTEST_F(PasteboardServiceMockTest, GrantUriPermissionTest001, TestSize.Level0)
     std::string uriStr = URI_STRING;
     auto uri = OHOS::Uri(uriStr);
     grantUris.push_back(uri);
+    std::map<uint32_t, std::vector<Uri>> uriMap;
+    uriMap.insert(std::make_pair(PasteDataRecord::READ_PERMISSION, grantUris));
 
-    auto result = tempPasteboard->GrantUriPermission(grantUris, targetBundleName, false, appIndex);
+    auto result = tempPasteboard->GrantUriPermission(uriMap, targetBundleName, false, appIndex);
     EXPECT_NE(result, static_cast<int32_t>(PasteboardError::E_OK));
 }
 
@@ -2748,8 +2750,10 @@ HWTEST_F(PasteboardServiceMockTest, GrantUriPermissionTest002, TestSize.Level0)
     std::string uriStr = URI_STRING;
     auto uri = OHOS::Uri(uriStr);
     grantUris.push_back(uri);
+    std::map<uint32_t, std::vector<Uri>> uriMap;
+    uriMap.insert(std::make_pair(PasteDataRecord::READ_PERMISSION, grantUris));
 
-    auto result = tempPasteboard->GrantUriPermission(grantUris, targetBundleName, false, appIndex);
+    auto result = tempPasteboard->GrantUriPermission(uriMap, targetBundleName, false, appIndex);
     EXPECT_NE(result, static_cast<int32_t>(PasteboardError::E_OK));
 }
 
@@ -2771,8 +2775,10 @@ HWTEST_F(PasteboardServiceMockTest, GrantUriPermissionTest003, TestSize.Level0)
     std::string uriStr = URI_STRING;
     auto uri = OHOS::Uri(uriStr);
     grantUris.push_back(uri);
+    std::map<uint32_t, std::vector<Uri>> uriMap;
+    uriMap.insert(std::make_pair(PasteDataRecord::READ_PERMISSION, grantUris));
 
-    auto result = tempPasteboard->GrantUriPermission(grantUris, targetBundleName, true, appIndex);
+    auto result = tempPasteboard->GrantUriPermission(uriMap, targetBundleName, true, appIndex);
     EXPECT_NE(result, static_cast<int32_t>(PasteboardError::E_OK));
 }
 
@@ -2794,8 +2800,10 @@ HWTEST_F(PasteboardServiceMockTest, GrantUriPermissionTest004, TestSize.Level0)
     std::string uriStr = URI_STRING;
     auto uri = OHOS::Uri(uriStr);
     grantUris.push_back(uri);
+    std::map<uint32_t, std::vector<Uri>> uriMap;
+    uriMap.insert(std::make_pair(PasteDataRecord::READ_PERMISSION, grantUris));
 
-    auto result = tempPasteboard->GrantUriPermission(grantUris, targetBundleName, true, appIndex);
+    auto result = tempPasteboard->GrantUriPermission(uriMap, targetBundleName, true, appIndex);
     EXPECT_NE(result, static_cast<int32_t>(PasteboardError::E_OK));
 }
 

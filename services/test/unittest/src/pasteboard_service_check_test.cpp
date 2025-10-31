@@ -488,18 +488,19 @@ HWTEST_F(PasteboardServiceCheckTest, IsDisallowDistributedTest, TestSize.Level0)
 }
 
 /**
- * @tc.name: IsAllowSendDataTest001
- * @tc.desc: test Func IsAllowSendData
+ * @tc.name: IsConstraintEnabled001
+ * @tc.desc: test Func IsConstraintEnabled
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceCheckTest, IsAllowSendDataTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceCheckTest, IsConstraintEnabled001, TestSize.Level0)
 {
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "IsAllowSendDataTest001 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "IsConstraintEnabled001 start");
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
 
-    tempPasteboard->IsAllowSendData();
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "IsAllowSendDataTest001 end");
+    int32_t userId = 100;
+    tempPasteboard->IsConstraintEnable(userId);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "IsConstraintEnabled001 end");
 }
 
 /**
