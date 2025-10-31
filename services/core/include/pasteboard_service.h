@@ -367,7 +367,6 @@ private:
     void OnEstablishP2PLinkTask(const std::string &networkId, std::shared_ptr<BlockObject<int32_t>> pasteBlock);
     void ClearP2PEstablishTaskInfo();
     void CloseP2PLink(const std::string &networkId);
-    uint8_t GenerateDataType(PasteData &data);
     bool HasDistributedDataType(const std::string &mimeType);
 
     std::pair<std::shared_ptr<PasteData>, PasteDateResult> GetDistributedData(const Event &event, int32_t user);
