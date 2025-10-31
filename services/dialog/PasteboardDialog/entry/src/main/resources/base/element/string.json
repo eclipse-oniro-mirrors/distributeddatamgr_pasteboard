@@ -30,7 +30,7 @@
         },
         {
             "name":"pasteboard_desc_text",
-            "value":"Copy on one device, paste on another. Devices must be near each other, logged in to the same HUAWEI ID, and have WLAN, Bluetooth, and this feature enabled. %s"
+            "value":"Copy on one device, paste on another. Devices must be near each other, logged in to the same ID, and have WLAN, Bluetooth, and this feature enabled. %s"
         },
         {
             "name":"multi_device_collaboration",
