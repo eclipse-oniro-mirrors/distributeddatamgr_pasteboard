@@ -193,12 +193,6 @@ private:
         WINDOW_MANAGER_SERVICE_ID, MEMORY_MANAGER_SA_ID, DISTRIBUTED_DEVICE_PROFILE_SA_ID };
     static constexpr const char *PLUGIN_NAME = "distributed_clip";
     static constexpr const char *SET_CRITICAL_ID = "pasteboard_service_set_critical_id";
-    static constexpr uint32_t PLAIN_INDEX = 0;
-    static constexpr uint32_t HTML_INDEX = 1;
-    static constexpr uint32_t URI_INDEX = 2;
-    static constexpr uint32_t WANT_INDEX = 3;
-    static constexpr uint32_t PIXELMAP_INDEX = 4;
-    static constexpr uint32_t MAX_INDEX_LENGTH = 8;
     static constexpr const pid_t EDM_UID = 3057;
     static constexpr const pid_t ROOT_UID = 0;
     static constexpr uint32_t EXPIRATION_INTERVAL = 2 * 60 * 1000;
@@ -373,6 +367,7 @@ private:
     void OnEstablishP2PLinkTask(const std::string &networkId, std::shared_ptr<BlockObject<int32_t>> pasteBlock);
     void ClearP2PEstablishTaskInfo();
     void CloseP2PLink(const std::string &networkId);
+    uint8_t GenerateDataType(PasteData &data);
     bool HasDistributedDataType(const std::string &mimeType);
 
     std::pair<std::shared_ptr<PasteData>, PasteDateResult> GetDistributedData(const Event &event, int32_t user);
@@ -480,13 +475,6 @@ private:
     static std::shared_ptr<Command> copyHistory;
     static std::shared_ptr<Command> copyData;
     std::atomic<bool> setting_ = false;
-    std::map<std::string, int> typeMap_ = {
-        {MIMETYPE_TEXT_PLAIN, PLAIN_INDEX   },
-        { MIMETYPE_TEXT_HTML, HTML_INDEX    },
-        { MIMETYPE_TEXT_URI,  URI_INDEX     },
-        { MIMETYPE_TEXT_WANT, WANT_INDEX    },
-        { MIMETYPE_PIXELMAP,  PIXELMAP_INDEX}
-    };
 
     struct PasteboardP2pInfo {
         pid_t callPid;

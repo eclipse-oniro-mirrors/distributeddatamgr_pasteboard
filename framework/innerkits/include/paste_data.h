@@ -64,6 +64,7 @@ public:
     void AddRecord(const PasteDataRecord &record);
     std::vector<std::string> GetMimeTypes();
     std::vector<std::string> GetReportMimeTypes();
+    uint8_t GenerateDataType();
     DataDescription GetReportDescription();
     std::shared_ptr<std::string> GetPrimaryHtml();
     std::shared_ptr<OHOS::Media::PixelMap> GetPrimaryPixelMap();
@@ -153,6 +154,19 @@ public:
     int32_t userId_ = -1;
 
 private:
+    static constexpr uint32_t PLAIN_INDEX = 0;
+    static constexpr uint32_t HTML_INDEX = 1;
+    static constexpr uint32_t URI_INDEX = 2;
+    static constexpr uint32_t WANT_INDEX = 3;
+    static constexpr uint32_t PIXELMAP_INDEX = 4;
+    static constexpr uint32_t MAX_INDEX_LENGTH = 8;
+    std::map<std::string, int> typeMap_ = {
+        { MIMETYPE_TEXT_PLAIN, PLAIN_INDEX    },
+        { MIMETYPE_TEXT_HTML,  HTML_INDEX     },
+        { MIMETYPE_TEXT_URI,   URI_INDEX      },
+        { MIMETYPE_TEXT_WANT,  WANT_INDEX     },
+        { MIMETYPE_PIXELMAP,   PIXELMAP_INDEX }
+    };
     bool valid_ = true;
     bool isDraggedData_ = false;
     bool isLocalPaste_ = false; // local in app paste

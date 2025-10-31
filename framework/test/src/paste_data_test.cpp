@@ -1229,6 +1229,151 @@ HWTEST_F(PasteDataTest, SetDataIdTest001, TestSize.Level0)
     EXPECT_EQ(0, pasteData.GetDataId());
 }
 
+
+/**
+ * @tc.name: GenerateDataType001
+ * @tc.desc: Test GenerateDataType with empty PasteData
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteDataTest, GenerateDataType001, TestSize.Level0)
+{
+    PasteData data;
+    uint8_t result = data.GenerateDataType();
+    EXPECT_TRUE(result == 0);
+}
+
+/**
+ * @tc.name: GenerateDataType002
+ * @tc.desc: Test GenerateDataType with plain text record
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteDataTest, GenerateDataType002, TestSize.Level0)
+{
+    PasteData data;
+    data.AddTextRecord("plain text content");
+    uint8_t result = data.GenerateDataType();
+    EXPECT_TRUE(result == 1);
+}
+
+/**
+ * @tc.name: GenerateDataType003
+ * @tc.desc: Test GenerateDataType with html record
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteDataTest, GenerateDataType003, TestSize.Level0)
+{
+    PasteData data;
+    data.AddHtmlRecord("<div>html content</div>");
+    uint8_t result = data.GenerateDataType();
+    EXPECT_TRUE(result == 2);
+}
+
+/**
+ * @tc.name: GenerateDataType004
+ * @tc.desc: Test GenerateDataType with uri record
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteDataTest, GenerateDataType004, TestSize.Level0)
+{
+    PasteData data;
+    data.AddUriRecord(OHOS::Uri("file://test.txt"));
+    uint8_t result = data.GenerateDataType();
+    EXPECT_TRUE(result == 4);
+}
+
+/**
+ * @tc.name: GenerateDataType005
+ * @tc.desc: Test GenerateDataType with want record
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteDataTest, GenerateDataType005, TestSize.Level0)
+{
+    PasteData data;
+    std::shared_ptr<OHOS::AAFwk::Want> want = std::make_shared<OHOS::AAFwk::Want>();
+    data.AddWantRecord(want);
+    uint8_t result = data.GenerateDataType();
+    EXPECT_TRUE(result == 8);
+}
+
+/**
+ * @tc.name: GenerateDataType006
+ * @tc.desc: Test GenerateDataType with pixel map record
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteDataTest, GenerateDataType006, TestSize.Level0)
+{
+    PasteData data;
+    PasteDataRecord::Builder builder("pixelMap");
+    auto record = builder.Build();
+    data.AddRecord(record);
+    uint8_t result = data.GenerateDataType();
+    EXPECT_TRUE(result == 16);
+}
+
+/**
+ * @tc.name: GenerateDataType007
+ * @tc.desc: Test GenerateDataType with multiple records
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteDataTest, GenerateDataType007, TestSize.Level0)
+{
+    PasteData data;
+    data.AddTextRecord("plain text");
+    data.AddHtmlRecord("<div>html</div>");
+    uint8_t result = data.GenerateDataType();
+    EXPECT_TRUE(result == 3);
+}
+
+/**
+ * @tc.name: GenerateDataType008
+ * @tc.desc: Test GenerateDataType with webview tag and html
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteDataTest, GenerateDataType008, TestSize.Level0)
+{
+    PasteData data;
+    data.SetTag(PasteData::WEBVIEW_PASTEDATA_TAG);
+    data.AddHtmlRecord("<div>webview html</div>");
+    data.AddTextRecord("associated text");
+    uint8_t result = data.GenerateDataType();
+    EXPECT_TRUE(result == 2);
+}
+
+/**
+ * @tc.name: GenerateDataType009
+ * @tc.desc: Test GenerateDataType with unknown mime type
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteDataTest, GenerateDataType009, TestSize.Level0)
+{
+    PasteData data;
+    PasteDataRecord::Builder builder("unknown/mime-type");
+    auto record = builder.Build();
+    data.AddRecord(record);
+    uint8_t result = data.GenerateDataType();
+    EXPECT_TRUE(result == 0);
+}
+
+/**
+ * @tc.name: GenerateDataType010
+ * @tc.desc: Test GenerateDataType with all supported types
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteDataTest, GenerateDataType010, TestSize.Level0)
+{
+    PasteData data;
+    data.AddTextRecord("plain text");
+    data.AddHtmlRecord("<div>html</div>");
+    data.AddUriRecord(OHOS::Uri("file://test.txt"));
+    std::shared_ptr<OHOS::AAFwk::Want> want = std::make_shared<OHOS::AAFwk::Want>();
+    data.AddWantRecord(want);
+    PasteDataRecord::Builder builder("pixelMap");
+    auto record = builder.Build();
+    data.AddRecord(record);
+    uint8_t result = data.GenerateDataType();
+    EXPECT_TRUE(result == 31);
+}
+
 /**
  * @tc.name: GetReportDescriptionTest001
  * @tc.desc: GetReportDescription

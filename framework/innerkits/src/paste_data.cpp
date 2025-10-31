@@ -216,6 +216,32 @@ std::vector<std::string> PasteData::GetReportMimeTypes()
     return mimeTypes;
 } // LCOV_EXCL_STOP
 
+uint8_t PasteData::GenerateDataType()
+{ // LCOV_EXCL_START
+    std::vector<std::string> mimeTypes = GetMimeTypes();
+    if (mimeTypes.empty()) {
+        return 0;
+    }
+    std::bitset<MAX_INDEX_LENGTH> dataType(0);
+    for (size_t i = 0; i < mimeTypes.size(); i++) {
+        auto it = typeMap_.find(mimeTypes[i]);
+        if (it == typeMap_.end()) {
+            continue;
+        }
+        auto index = it->second;
+        PASTEBOARD_HILOGD(PASTEBOARD_MODULE_SERVICE, "mimetype is exist index=%{public}d", index);
+        if (it->second == HTML_INDEX && GetTag() == PasteData::WEBVIEW_PASTEDATA_TAG) {
+            dataType.reset();
+            dataType.set(index);
+            break;
+        }
+        dataType.set(index);
+    }
+    auto types = dataType.to_ulong();
+    uint8_t value = types & 0xff;
+    PASTEBOARD_HILOGD(PASTEBOARD_MODULE_SERVICE, "value = %{public}d", value);
+    return value;
+} // LCOV_EXCL_STOP
 DataDescription PasteData::GetReportDescription()
 { // LCOV_EXCL_START
     DataDescription description;
