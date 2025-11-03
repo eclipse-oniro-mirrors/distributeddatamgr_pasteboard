@@ -30,7 +30,12 @@
             "phone",
             "tablet",
             "2in1"
-          ]
+          ],
+          "checkItem": {
+            "type": "param",
+            "checkKey": "const.pasteboard.disable_crossdevice_clipboard",
+            "value": "false"
+          }
         }
       ]
     }
