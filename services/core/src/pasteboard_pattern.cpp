@@ -19,12 +19,9 @@
 #include <regex>
 
 #include "pasteboard_hilog.h"
-#include "pasteboard_lib_guard.h"
 #include "pasteboard_pattern.h"
 
 namespace OHOS::MiscServices {
-constexpr const char *LIBXML_SO_PATH = "libxml2.z.so";
-using htmlReadMemoryFuncPtr = htmlDocPtr (*)(const char *, int, const char *, const char *, int);
 std::map<uint32_t, std::string> PatternDetection::patterns_{
     { static_cast<uint32_t>(Pattern::URL), std::string("[a-zA-Z0-9+.-]+://[-a-zA-Z0-9+&@#/%?"
                                                        "=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_]") },
@@ -77,18 +74,6 @@ void PatternDetection::DetectPlainText(
 
 std::string PatternDetection::ExtractHtmlContent(const std::string &html_str)
 {
-    LibGuard libxmlGuard(LIBXML_SO_PATH);
-    void *libHandle = libxmlGuard.GetLibHandle();
-    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(libHandle != nullptr, "", PASTEBOARD_MODULE_SERVICE,
-        "dlopen libxml2 failed");
-
-    auto htmlReadMemory = reinterpret_cast<htmlReadMemoryFuncPtr>(dlsym(libHandle, "htmlReadMemory"));
-    auto xmlDocGetRootElement = reinterpret_cast<xmlNode *(*)(xmlDoc *)>(dlsym(libHandle, "xmlDocGetRootElement"));
-    auto xmlNodeGetContent = reinterpret_cast<xmlChar *(*)(xmlNode *)>(dlsym(libHandle, "xmlNodeGetContent"));
-    auto xmlFreeDoc = reinterpret_cast<void (*)(xmlDoc *)>(dlsym(libHandle, "xmlFreeDoc"));
-    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(htmlReadMemory != nullptr && xmlDocGetRootElement != nullptr &&
-        xmlNodeGetContent != nullptr && xmlFreeDoc != nullptr, "", PASTEBOARD_MODULE_SERVICE,
-        "dlsym libxml2 failed");
     xmlDocPtr doc = htmlReadMemory(html_str.c_str(), html_str.size(), nullptr, nullptr, 0);
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(doc != nullptr, "", PASTEBOARD_MODULE_SERVICE,
         "parse html failed, doc is null");
