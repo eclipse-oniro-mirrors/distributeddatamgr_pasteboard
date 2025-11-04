@@ -84,7 +84,6 @@ ohos_shared_library("pasteboard_service") {
     "core/src/pasteboard_dialog.cpp",
     "core/src/pasteboard_delay_manager.cpp",
     "core/src/pasteboard_disposable_manager.cpp",
-    "core/src/pasteboard_lib_guard.cpp",
     "core/src/pasteboard_pattern.cpp",
     "core/src/pasteboard_service.cpp",
     "core/src/pasteboard_window_manager.cpp",
