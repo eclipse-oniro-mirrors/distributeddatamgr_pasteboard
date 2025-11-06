@@ -17,6 +17,7 @@
 
 #include "datashare_delegate.h"
 #include "dev_profile.h"
+#include "parameters.h"
 #include "pasteboard_event_ue.h"
 #include "pasteboard_hilog.h"
 
@@ -26,7 +27,7 @@ const constexpr char *DISTRIBUTED_PASTEBOARD_SWITCH = "distributed_pasteboard_sw
 constexpr const char *SUPPORT_STATUS = "1";
 constexpr int32_t ERROR_USERID = -1;
 constexpr const char *UE_SWITCH_STATUS = "PASTEBOARD_SWITCH_STATUS";
-constexpr const char *DISABLE_DISTRIBUTED_PASTEBOARD = 'const.pasteboard.disable_crossdevice_clipboard';
+constexpr const char *DISABLE_DISTRIBUTED_PASTEBOARD = "const.pasteboard.disable_crossdevice_clipboard";
 PastedSwitch::PastedSwitch() : userId_(ERROR_USERID)
 {
     switchObserver_ = new (std::nothrow) PastedSwitchObserver([this]() -> void {
@@ -41,7 +42,7 @@ void PastedSwitch::Init(int32_t userId)
 {
     if (OHOS::system::GetBoolParameter(DISABLE_DISTRIBUTED_PASTEBOARD, false)) {
         DevProfile::GetInstance().PutDeviceStatus(false);
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "distributed pasteboard invalid.");
+        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "not support distributed pasteboard.");
         return;
     }
     if (userId == ERROR_USERID) {
