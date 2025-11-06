@@ -417,10 +417,16 @@ void PasteboardService::ReportUeCopyEvent(PasteData &pasteData, int64_t dataSize
     auto res = (result == static_cast<int32_t>(PasteboardError::E_OK)) ? E_OK_OPERATION : result;
     UeReportInfo reportInfo;
     reportInfo.ret = res;
+    reportInfo.dataType = pasteData.GenerateDataType();
     reportInfo.bundleName = appInfo.bundleName;
     reportInfo.description = pasteData.GetReportDescription();
     reportInfo.commonInfo = GetCommonState(dataSize);
-    UE_REPORT(UE_COPY, reportInfo);
+    UE_REPORT(UE_COPY, reportInfo,
+        "RECORD_NUM", reportInfo.description.recordNum,
+        "DATA_SIZE", reportInfo.commonInfo.dataSize,
+        "CURRENT_ACCOUNT_ID", reportInfo.commonInfo.currentAccountId,
+        "ENTRY_NUM", reportInfo.description.entryNum,
+        "MIMETYPES", reportInfo.description.mimeTypes);
 }
 
 void PasteboardService::InitServiceHandler()
@@ -1189,6 +1195,7 @@ void PasteboardService::SetUeEvent(const AppInfo &appInfo, PasteData &data, bool
     }
 #endif
     ueReportInfo.bundleName = appInfo.bundleName;
+    ueReportInfo.dataType = data.GenerateDataType();
     ueReportInfo.pasteInfo.peerBundleName = data.GetOriginAuthority().first;
     ueReportInfo.pasteInfo.isDistributed = data.IsRemote();
     ueReportInfo.pasteInfo.isPeerOnline = isPeerOnline;
@@ -1211,11 +1218,16 @@ int32_t PasteboardService::GetPasteData(int &fd, int64_t &size, std::vector<uint
     ueReportInfo.ret = (ret == static_cast<int32_t>(PasteboardError::E_OK) ? E_OK_OPERATION : ret);
     ueReportInfo.commonInfo = GetCommonState(size);
     UE_REPORT(UE_PASTE, ueReportInfo,
+        "IS_DISTRIBUTED_PASTEBOARD", ueReportInfo.pasteInfo.isDistributed,
+        "RECORD_NUM", ueReportInfo.description.recordNum,
+        "DATA_SIZE", ueReportInfo.commonInfo.dataSize,
+        "CURRENT_ACCOUNT_ID", ueReportInfo.commonInfo.currentAccountId,
         "PEER_BUNDLE_NAME", ueReportInfo.pasteInfo.peerBundleName,
-        "IS_DISTRIBUTED", ueReportInfo.pasteInfo.isDistributed,
         "IS_PEER_ONLINE", ueReportInfo.pasteInfo.isPeerOnline,
         "ONLINE_DEV_NUM", ueReportInfo.pasteInfo.onlineDevNum,
-        "NETWORK_TYPE", ueReportInfo.pasteInfo.networkType);
+        "NETWORK_TYPE", ueReportInfo.pasteInfo.networkType,
+        "ENTRY_NUM", ueReportInfo.description.entryNum,
+        "MIMETYPES", ueReportInfo.description.mimeTypes);
     realErrCode = ret;
     return 0;
 }

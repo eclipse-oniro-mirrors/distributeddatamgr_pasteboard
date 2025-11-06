@@ -61,6 +61,7 @@ struct UePasteInfo {
 
 struct UeReportInfo {
     int32_t ret = -1;
+    uint8_t dataType = 0;
     std::string bundleName = "";
     DataDescription description;
     CommonInfo commonInfo;
