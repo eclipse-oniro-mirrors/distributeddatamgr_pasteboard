@@ -242,6 +242,7 @@ uint8_t PasteData::GenerateDataType()
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_SERVICE, "value = %{public}d", value);
     return value;
 } // LCOV_EXCL_STOP
+
 DataDescription PasteData::GetReportDescription()
 { // LCOV_EXCL_START
     DataDescription description;
