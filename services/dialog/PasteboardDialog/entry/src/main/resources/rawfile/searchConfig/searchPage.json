@@ -19,7 +19,7 @@
       ],
       "searchItems": [
         {
-          "itemName": "settings_pasteboard",
+          "itemName": "settings_pasteboard_standard",
           "itemTitle": "$string:pasteboard_title",
           "itemDescription": "",
           "icon": "",
@@ -27,10 +27,26 @@
           "enable": "true",
           "childItems": "",
           "supportDevices": [
-            "phone",
             "tablet",
             "2in1"
           ]
+        },
+        {
+          "itemName": "settings_pasteboard_phone",
+          "itemTitle": "$string:pasteboard_title",
+          "itemDescription": "",
+          "icon": "",
+          "alias": "跨设备剪贴板",
+          "enable": "true",
+          "childItems": "",
+          "supportDevices": [
+            "phone"
+          ],
+          "checkItem": {
+            "type": "param",
+            "checkKey": "const.pasteboard.disable_crossdevice_clipboard",
+            "value": "false"
+          }
         }
       ]
     }
