@@ -1,0 +1,130 @@
+{
+    "string":[
+        {
+            "name":"progress_cancel_btn",
+            "value":"Abbrechen",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"prompttext_udmf_import",
+            "value":"Importieren ...",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"prompttext_udmf_copy_error",
+            "value":"Kopieren fehlgeschlagen, versuchen Sie es später erneut.",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"pasteboard_desc_text",
+            "value":"Auf einem Gerät kopieren und auf einem anderen einfügen. Die Geräte müssen sich nahe beieinander befinden und bei derselben ID angemeldet sein. WLAN, Bluetooth und diese Funktion müssen aktiviert sein. %s",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"prompttext_udmf_format_error",
+            "value":"Formatkonvertierung fehlgeschlagen, versuchen Sie es später erneut.",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"prompttext_udmf_format",
+            "value":"Format konvertieren ...",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"prompttext_udmf_download",
+            "value":"Herunterladen ...",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"prompttext_udmf_move_error",
+            "value":"Verschieben fehlgeschlagen, versuchen Sie es später erneut.",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"prompttext_pasteboard_local",
+            "value":"Einfügen ...",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"prompttext_udmf_copy",
+            "value":"Kopieren …",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"learn_more",
+            "value":"Mehr erfahren",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"prompttext_udmf_import_error",
+            "value":"Import fehlgeschlagen, versuchen Sie es später erneut.",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"prompttext_udmf_download_error",
+            "value":"Herunterladen nicht möglich, versuchen Sie es später erneut.",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"pasteboard_title",
+            "value":"Geräteübergreifende Zwischenablage",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"prompttext_pasteboard_remote",
+            "value":"Von „%s“ einfügen …",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"prompttext_udmf_move",
+            "value":"Verschieben ...",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"prompttext_pasteboard_error",
+            "value":"Einfügen nicht möglich, versuchen Sie es erneut.",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"progress_completed_percentage",
+            "value":"%s abgeschlossen",
+            "attr":{
+                "priority":"translate"
+            }
+        }
+    ]
+}

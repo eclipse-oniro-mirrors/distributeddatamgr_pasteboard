@@ -2,75 +2,129 @@
     "string":[
         {
             "name":"pasteboard_title",
-            "value":"ئۈسكۈنىلەر ئارا كېسىش تاختىسى"
+            "value":"ئۈسكۈنىلەر ئارا كېسىش تاختىسى",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"pasteboard_desc_text",
-            "value":"بىر ئۈسكۈنىدە كۆچۈرگەن مەزمۇننى ئەتراپتىكى ئوخشاش خۇاۋېي ھېسابىغا تىزىملاپ كىرگەن يەنە بىر ئۈسكۈنىدە چاپلاشقا بولىدۇ. ھەر ئىككى ئۈسكۈنىدە «ئۈسكۈنىلەر ئارا كېسىش تاختىسى»، WLAN ۋە كۆكچىش ئوچۇق بولۇشى كېرەك. %s"
+            "value":"بىر ئۈسكۈنىدە كۆچۈرگەن مەزمۇننى ئەتراپتىكى ئوخشاش خۇاۋېي ھېسابىغا تىزىملاپ كىرگەن يەنە بىر ئۈسكۈنىدە چاپلاشقا بولىدۇ. ھەر ئىككى ئۈسكۈنىدە «ئۈسكۈنىلەر ئارا كېسىش تاختىسى»، WLAN ۋە كۆكچىش ئوچۇق بولۇشى كېرەك. %s",
+            "attr":{
+                "priority":"LT"
+            }
         },
         {
             "name":"learn_more",
-            "value":"تەپسىلات"
+            "value":"تەپسىلات",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"progress_cancel_btn",
-            "value":"بىكار قىلىش"
+            "value":"بىكار قىلىش",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"prompttext_udmf_import",
-            "value":"كىرگۈزۈۋاتىدۇ..."
+            "value":"كىرگۈزۈۋاتىدۇ...",
+            "attr":{
+                "priority":"LT"
+            }
         },
         {
             "name":"prompttext_udmf_copy_error",
-            "value":"كۆچۈرۈلمىدى، كېيىنرەك قايتا سىناڭ."
+            "value":"كۆچۈرۈلمىدى، كېيىنرەك قايتا سىناڭ.",
+            "attr":{
+                "priority":"LT"
+            }
         },
         {
             "name":"prompttext_udmf_format_error",
-            "value":"فورمات ئايلانمىدى، كېيىنرەك قايتا سىناڭ."
+            "value":"فورمات ئايلانمىدى، كېيىنرەك قايتا سىناڭ.",
+            "attr":{
+                "priority":"LT"
+            }
         },
         {
             "name":"prompttext_udmf_format",
-            "value":"فورمات ئايلاندۇرۇۋاتىدۇ..."
+            "value":"فورمات ئايلاندۇرۇۋاتىدۇ...",
+            "attr":{
+                "priority":"LT"
+            }
         },
         {
             "name":"prompttext_udmf_download",
-            "value":"چۈشۈۋاتىدۇ..."
+            "value":"چۈشۈۋاتىدۇ...",
+            "attr":{
+                "priority":"LT"
+            }
         },
         {
             "name":"prompttext_udmf_move_error",
-            "value":"يۆتكەلمىدى، كېيىنرەك قايتا سىناڭ."
+            "value":"يۆتكەلمىدى، كېيىنرەك قايتا سىناڭ.",
+            "attr":{
+                "priority":"LT"
+            }
         },
         {
             "name":"prompttext_pasteboard_local",
-            "value":"چاپلاۋاتىدۇ..."
+            "value":"چاپلاۋاتىدۇ...",
+            "attr":{
+                "priority":"LT"
+            }
         },
         {
             "name":"prompttext_udmf_copy",
-            "value":"كۆچۈرۈۋاتىدۇ..."
+            "value":"كۆچۈرۈۋاتىدۇ...",
+            "attr":{
+                "priority":"LT"
+            }
         },
         {
             "name":"prompttext_udmf_import_error",
-            "value":"كىرگۈزۈلمىدى، كېيىنرەك قايتا سىناڭ."
+            "value":"كىرگۈزۈلمىدى، كېيىنرەك قايتا سىناڭ.",
+            "attr":{
+                "priority":"LT"
+            }
         },
         {
             "name":"prompttext_udmf_download_error",
-            "value":"چۈشمىدى، كېيىنرەك قايتا سىناڭ."
+            "value":"چۈشمىدى، كېيىنرەك قايتا سىناڭ.",
+            "attr":{
+                "priority":"LT"
+            }
         },
         {
             "name":"prompttext_pasteboard_remote",
-            "value":"مەنبە: %s"
+            "value":"مەنبە: %s",
+            "attr":{
+                "priority":"LT"
+            }
         },
         {
             "name":"prompttext_udmf_move",
-            "value":"يۆتكەۋاتىدۇ…"
+            "value":"يۆتكەۋاتىدۇ…",
+            "attr":{
+                "priority":"LT"
+            }
         },
         {
             "name":"prompttext_pasteboard_error",
-            "value":"چاپلانمىدى، قايتا سىناڭ."
+            "value":"چاپلانمىدى، قايتا سىناڭ.",
+            "attr":{
+                "priority":"LT"
+            }
         },
         {
             "name":"progress_completed_percentage",
-            "value":"پۈتكەن ‎%s"
+            "value":"پۈتكەن ‎%s",
+            "attr":{
+                "priority":"LT"
+            }
         }
     ]
 }

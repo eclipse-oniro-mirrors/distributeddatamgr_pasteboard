@@ -2,75 +2,129 @@
     "string":[
         {
             "name":"progress_cancel_btn",
-            "value":"Annuler"
+            "value":"Annuler",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"prompttext_udmf_import",
-            "value":"Importation en cours."
+            "value":"Importation en cours.",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"prompttext_udmf_format",
-            "value":"Conversion du format en cours."
+            "value":"Conversion du format en cours.",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"prompttext_udmf_download",
-            "value":"Téléchargement en cours."
+            "value":"Téléchargement en cours.",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"prompttext_pasteboard_local",
-            "value":"Collage en cours."
+            "value":"Collage en cours.",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"prompttext_udmf_copy",
-            "value":"Copie en cours."
+            "value":"Copie en cours.",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"learn_more",
-            "value":"En savoir plus"
+            "value":"En savoir plus",
+            "attr":{
+                "priority":"LT"
+            }
         },
         {
             "name":"prompttext_udmf_import_error",
-            "value":"L'importation a échoué. Veuillez réessayer ultérieurement."
+            "value":"L'importation a échoué. Veuillez réessayer ultérieurement.",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"prompttext_udmf_download_error",
-            "value":"Le téléchargement a échoué. Veuillez réessayer ultérieurement."
+            "value":"Le téléchargement a échoué. Veuillez réessayer ultérieurement.",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"prompttext_udmf_move",
-            "value":"Déplacement en cours"
+            "value":"Déplacement en cours",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"prompttext_pasteboard_error",
-            "value":"Le collage a échoué. Veuillez réessayer."
+            "value":"Le collage a échoué. Veuillez réessayer.",
+            "attr":{
+                "priority":"LT"
+            }
         },
         {
             "name":"progress_completed_percentage",
-            "value":"Terminé : %s"
+            "value":"Terminé : %s",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"prompttext_udmf_copy_error",
-            "value":"La copie a échoué. Veuillez réessayer ultérieurement."
+            "value":"La copie a échoué. Veuillez réessayer ultérieurement.",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"pasteboard_desc_text",
-            "value":"Copier sur un appareil, coller sur un autre. Les appareils doivent être proches les uns des autres et connectés au même Compte. De plus, le WLAN, le Bluetooth et cette fonctionnalité doivent être activés sur ces appareils. %s"
+            "value":"Copier sur un appareil, coller sur un autre. Les appareils doivent être proches les uns des autres et connectés au même Compte. De plus, le WLAN, le Bluetooth et cette fonctionnalité doivent être activés sur ces appareils. %s",
+            "attr":{
+                "priority":"LT"
+            }
         },
         {
             "name":"prompttext_udmf_format_error",
-            "value":"La conversion du format a échoué. Veuillez réessayer ultérieurement."
+            "value":"La conversion du format a échoué. Veuillez réessayer ultérieurement.",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"prompttext_udmf_move_error",
-            "value":"Le déplacement a échoué. Veuillez réessayer ultérieurement."
+            "value":"Le déplacement a échoué. Veuillez réessayer ultérieurement.",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"pasteboard_title",
-            "value":"Presse-papier multi-appareils"
+            "value":"Presse-papier multi-appareils",
+            "attr":{
+                "priority":"LT"
+            }
         },
         {
             "name":"prompttext_pasteboard_remote",
-            "value":"Collage depuis \"%s\" en cours."
+            "value":"Collage depuis \"%s\" en cours.",
+            "attr":{
+                "priority":"LT"
+            }
         }
     ]
 }

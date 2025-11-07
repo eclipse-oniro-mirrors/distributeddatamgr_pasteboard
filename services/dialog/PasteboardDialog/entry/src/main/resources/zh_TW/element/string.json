@@ -2,76 +2,129 @@
     "string":[
         {
             "name":"pasteboard_title",
-            "value":"跨裝置剪貼簿"
+            "value":"跨裝置剪貼簿",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"pasteboard_desc_text",
-            "value":"在一台裝置上複製，然後可以在附近登入相同 ID 的另一台裝置上貼上。此功能需要雙方裝置皆啟用「跨裝置剪貼簿」、WLAN 和藍牙。%s"
+            "value":"在一台裝置上複製，然後可以在附近登入相同 ID 的另一台裝置上貼上。此功能需要雙方裝置皆啟用「跨裝置剪貼簿」、WLAN 和藍牙。%s",
+            "attr":{
+                "priority":"LT"
+            }
         },
-
         {
             "name":"learn_more",
-            "value":"瞭解詳細資料"
+            "value":"瞭解詳細資料",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"progress_cancel_btn",
-            "value":"取消"
+            "value":"取消",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"prompttext_udmf_import",
-            "value":"正在匯入…"
+            "value":"正在匯入…",
+            "attr":{
+                "priority":"LT"
+            }
         },
         {
             "name":"prompttext_udmf_copy_error",
-            "value":"無法複製，請稍後再試"
+            "value":"無法複製，請稍後再試",
+            "attr":{
+                "priority":"LT"
+            }
         },
         {
             "name":"prompttext_udmf_format_error",
-            "value":"無法轉換格式，請稍後再試"
+            "value":"無法轉換格式，請稍後再試",
+            "attr":{
+                "priority":"LT"
+            }
         },
         {
             "name":"prompttext_udmf_format",
-            "value":"正在轉換格式…"
+            "value":"正在轉換格式…",
+            "attr":{
+                "priority":"LT"
+            }
         },
         {
             "name":"prompttext_udmf_download",
-            "value":"正在下載…"
+            "value":"正在下載…",
+            "attr":{
+                "priority":"LT"
+            }
         },
         {
             "name":"prompttext_udmf_move_error",
-            "value":"無法移動，請稍後再試"
+            "value":"無法移動，請稍後再試",
+            "attr":{
+                "priority":"LT"
+            }
         },
         {
             "name":"prompttext_pasteboard_local",
-            "value":"正在貼上…"
+            "value":"正在貼上…",
+            "attr":{
+                "priority":"LT"
+            }
         },
         {
             "name":"prompttext_udmf_copy",
-            "value":"正在複製…"
+            "value":"正在複製…",
+            "attr":{
+                "priority":"LT"
+            }
         },
         {
             "name":"prompttext_udmf_import_error",
-            "value":"無法匯入，請稍後再試"
+            "value":"無法匯入，請稍後再試",
+            "attr":{
+                "priority":"LT"
+            }
         },
         {
             "name":"prompttext_udmf_download_error",
-            "value":"下載失敗，請稍後再試"
+            "value":"下載失敗，請稍後再試",
+            "attr":{
+                "priority":"LT"
+            }
         },
         {
             "name":"prompttext_pasteboard_remote",
-            "value":"從「%s」貼上…"
+            "value":"從「%s」貼上…",
+            "attr":{
+                "priority":"LT"
+            }
         },
         {
             "name":"prompttext_udmf_move",
-            "value":"正在移動…"
+            "value":"正在移動…",
+            "attr":{
+                "priority":"LT"
+            }
         },
         {
             "name":"prompttext_pasteboard_error",
-            "value":"貼上失敗，請重試"
+            "value":"貼上失敗，請重試",
+            "attr":{
+                "priority":"LT"
+            }
         },
         {
             "name":"progress_completed_percentage",
-            "value":"已完成 %s"
+            "value":"已完成 %s",
+            "attr":{
+                "priority":"LT"
+            }
         }
     ]
 }

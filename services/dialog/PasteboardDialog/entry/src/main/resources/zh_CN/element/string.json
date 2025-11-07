@@ -26,11 +26,17 @@
         },
         {
             "name":"pasteboard_title",
-            "value":"跨设备剪贴板"
+            "value":"跨设备剪贴板",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"pasteboard_desc_text",
-            "value":"在一台设备上进行复制，然后可在附近另一台登录相同账号的设备上粘贴。此功能需双方设备开启“跨设备剪贴板”、WLAN 和蓝牙。%s"
+            "value":"在一台设备上进行复制，然后可在附近另一台登录相同账号的设备上粘贴。此功能需双方设备开启“跨设备剪贴板”、WLAN 和蓝牙。%s",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"multi_device_collaboration",
@@ -38,7 +44,10 @@
         },
         {
             "name":"learn_more",
-            "value":"了解详情"
+            "value":"了解详情",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"PasteboardProgressAbility_desc",
@@ -50,63 +59,108 @@
         },
         {
             "name":"prompttext_pasteboard_remote",
-            "value":"粘贴自“%s”…"
+            "value":"粘贴自“%s”…",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"prompttext_pasteboard_local",
-            "value":"粘贴中…"
+            "value":"粘贴中…",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"prompttext_pasteboard_error",
-            "value":"粘贴失败，请重试"
+            "value":"粘贴失败，请重试",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"progress_completed_percentage",
-            "value":"已完成 %s"
+            "value":"已完成 %s",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"progress_cancel_btn",
-            "value":"取消"
+            "value":"取消",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"prompttext_udmf_import",
-            "value":"正在导入…"
+            "value":"正在导入…",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"prompttext_udmf_move",
-            "value":"正在移动…"
+            "value":"正在移动…",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"prompttext_udmf_copy",
-            "value":"正在复制…"
+            "value":"正在复制…",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"prompttext_udmf_download",
-            "value":"正在下载…"
+            "value":"正在下载…",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"prompttext_udmf_format",
-            "value":"正在格式转换…"
+            "value":"正在格式转换…",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"prompttext_udmf_import_error",
-            "value":"导入失败，请稍后再试"
+            "value":"导入失败，请稍后再试",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"prompttext_udmf_move_error",
-            "value":"移动失败，请稍后再试"
+            "value":"移动失败，请稍后再试",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"prompttext_udmf_copy_error",
-            "value":"复制失败，请稍后再试"
+            "value":"复制失败，请稍后再试",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"prompttext_udmf_download_error",
-            "value":"下载失败，请稍后再试"
+            "value":"下载失败，请稍后再试",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"prompttext_udmf_format_error",
-            "value":"格式转换失败，请稍后再试"
+            "value":"格式转换失败，请稍后再试",
+            "attr":{
+                "priority":"translate"
+            }
         }
     ]
 }

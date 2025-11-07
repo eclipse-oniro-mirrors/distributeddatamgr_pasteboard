@@ -2,75 +2,129 @@
     "string":[
         {
             "name":"progress_cancel_btn",
-            "value":"Отмена"
+            "value":"Отмена",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"prompttext_udmf_import",
-            "value":"Импорт..."
+            "value":"Импорт...",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"prompttext_udmf_copy_error",
-            "value":"Сбой копирования. Повторите попытку позже."
+            "value":"Сбой копирования. Повторите попытку позже.",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"pasteboard_desc_text",
-            "value":"Копируйте на одном устройстве, вставляйте на другом. Устройства должны быть рядом друг с другом, на них должен быть выполнен вход в один аккаунт и включены WLAN, Bluetooth и эта функция. %s"
+            "value":"Копируйте на одном устройстве, вставляйте на другом. Устройства должны быть рядом друг с другом, на них должен быть выполнен вход в один аккаунт и включены WLAN, Bluetooth и эта функция. %s",
+            "attr":{
+                "priority":"LT"
+            }
         },
         {
             "name":"prompttext_udmf_format_error",
-            "value":"Сбой при преобразовании. Повторите попытку позже."
+            "value":"Сбой при преобразовании. Повторите попытку позже.",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"prompttext_udmf_format",
-            "value":"Преобразование формата…"
+            "value":"Преобразование формата…",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"prompttext_udmf_download",
-            "value":"Загрузка…"
+            "value":"Загрузка…",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"prompttext_udmf_move_error",
-            "value":"Сбой перемещения. Повторите попытку позже."
+            "value":"Сбой перемещения. Повторите попытку позже.",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"prompttext_pasteboard_local",
-            "value":"Вставка…"
+            "value":"Вставка…",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"prompttext_udmf_copy",
-            "value":"Копирование…"
+            "value":"Копирование…",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"learn_more",
-            "value":"Подробнее"
+            "value":"Подробнее",
+            "attr":{
+                "priority":"LT"
+            }
         },
         {
             "name":"prompttext_udmf_import_error",
-            "value":"Сбой импорта. Повторите попытку позже."
+            "value":"Сбой импорта. Повторите попытку позже.",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"prompttext_udmf_download_error",
-            "value":"Невозможно загрузить. Повторите попытку позже."
+            "value":"Невозможно загрузить. Повторите попытку позже.",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"pasteboard_title",
-            "value":"Общий буфер обмена"
+            "value":"Общий буфер обмена",
+            "attr":{
+                "priority":"LT"
+            }
         },
         {
             "name":"prompttext_pasteboard_remote",
-            "value":"Вставка из \"%s\"…"
+            "value":"Вставка из \"%s\"…",
+            "attr":{
+                "priority":"LT"
+            }
         },
         {
             "name":"prompttext_udmf_move",
-            "value":"Перемещение…"
+            "value":"Перемещение…",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"prompttext_pasteboard_error",
-            "value":"Сбой вставки. Повторите попытку."
+            "value":"Сбой вставки. Повторите попытку.",
+            "attr":{
+                "priority":"LT"
+            }
         },
         {
             "name":"progress_completed_percentage",
-            "value":"Выполнено: %s"
+            "value":"Выполнено: %s",
+            "attr":{
+                "priority":"translate"
+            }
         }
     ]
 }

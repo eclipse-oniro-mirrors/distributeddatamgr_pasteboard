@@ -1,0 +1,130 @@
+{
+    "string":[
+        {
+            "name":"progress_cancel_btn",
+            "value":"ပယ်ဖျက်မည်",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"prompttext_udmf_import",
+            "value":"သွင်းနေဆဲ…",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"prompttext_udmf_copy_error",
+            "value":"ကူးယူမှု မအောင်မြင်ပါ။ နောက်မှ ထပ်ကြိုးစားပါ။",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"pasteboard_desc_text",
+            "value":"စက်တစ်လုံးမှ ကူးယူပြီး နောက်စက်တစ်လုံးတွင် ကူးထည့်နိုင်ပါသည်။ စက်များ တစ်လုံးနှင့် တစ်လုံး နီးကပ်စွာ ရှိရပါမည်၊ တူညီသည့် ID အတွင်း ဝင်ရောက်ထားရပါမည်၊ WLAN ၊ ဘလူးတုသ်နှင့် ဤလုပ်ဆောင်ချက်ကို ဖွင့်ထားရပါမည်။ %s",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"prompttext_udmf_format_error",
+            "value":"အမျိုးအစား ပြောင်းလဲမှု မအောင်မြင်ပါ။ နောက်မှ ထပ်ကြိုးစားပါ။",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"prompttext_udmf_format",
+            "value":"အမျိုးအစား ပြောင်းနေဆဲ…",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"prompttext_udmf_download",
+            "value":"ဒေါင်းလုဒ်လုပ်နေဆဲ…",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"prompttext_udmf_move_error",
+            "value":"ပြောင်းရွှေ့မှု မအောင်မြင်ပါ။ နောက်မှ ထပ်ကြိုးစားပါ။",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"prompttext_pasteboard_local",
+            "value":"ကူးထည့်နေဆဲ…",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"prompttext_udmf_copy",
+            "value":"ကူးနေဆဲ…",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"learn_more",
+            "value":"ပိုမိုလေ့လာရန်",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"prompttext_udmf_import_error",
+            "value":"ထည့်သွင်းမှု မအောင်မြင်ပါ။ နောက်မှ ထပ်ကြိုးစားပါ။",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"prompttext_udmf_download_error",
+            "value":"ဒေါင်းလုဒ်လုပ်၍ မရနိုင်ပါ။ နောက်မှ ထပ်ကြိုးစားပါ။",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"pasteboard_title",
+            "value":"စက်များအကြား အပြန်အလှန်သုံး ကလစ်ဘုတ်",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"prompttext_pasteboard_remote",
+            "value":"\"%s\" မှ ကူးထည့်နေဆဲ…",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"prompttext_udmf_move",
+            "value":"ရွှေ့နေဆဲ...",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"prompttext_pasteboard_error",
+            "value":"ကူးထည့်၍ မရနိုင်ပါ။ ထပ်ကြိုးစားကြည့်ပါ။",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"progress_completed_percentage",
+            "value":"%s ပြီးပါပြီ",
+            "attr":{
+                "priority":"translate"
+            }
+        }
+    ]
+}

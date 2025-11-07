@@ -2,75 +2,129 @@
     "string":[
         {
             "name":"progress_cancel_btn",
-            "value":"Hủy"
+            "value":"Hủy",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"prompttext_udmf_import",
-            "value":"Đang nhập…"
+            "value":"Đang nhập…",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"prompttext_udmf_copy_error",
-            "value":"Sao chép không thành công. Hãy thử lại sau."
+            "value":"Sao chép không thành công. Hãy thử lại sau.",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"pasteboard_desc_text",
-            "value":"Sao chép trên một thiết bị, dán trên thiết bị khác. Các thiết bị phải ở gần nhau, đăng nhập vào cùng một ID, đồng thời đã bật WLAN, Bluetooth và tính năng này. %s"
+            "value":"Sao chép trên một thiết bị, dán trên thiết bị khác. Các thiết bị phải ở gần nhau, đăng nhập vào cùng một ID, đồng thời đã bật WLAN, Bluetooth và tính năng này. %s",
+            "attr":{
+                "priority":"LT"
+            }
         },
         {
             "name":"prompttext_udmf_format_error",
-            "value":"Chuyển đổi định dạng không thành công. Hãy thử lại sau."
+            "value":"Chuyển đổi định dạng không thành công. Hãy thử lại sau.",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"prompttext_udmf_format",
-            "value":"Đang chuyển đổi định dạng…"
+            "value":"Đang chuyển đổi định dạng…",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"prompttext_udmf_download",
-            "value":"Đang tải xuống…"
+            "value":"Đang tải xuống…",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"prompttext_udmf_move_error",
-            "value":"Di chuyển không thành công. Hãy thử lại sau."
+            "value":"Di chuyển không thành công. Hãy thử lại sau.",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"prompttext_pasteboard_local",
-            "value":"Đang dán…"
+            "value":"Đang dán…",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"prompttext_udmf_copy",
-            "value":"Đang sao chép…"
+            "value":"Đang sao chép…",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"learn_more",
-            "value":"Tìm hiểu thêm"
+            "value":"Tìm hiểu thêm",
+            "attr":{
+                "priority":"LT"
+            }
         },
         {
             "name":"prompttext_udmf_import_error",
-            "value":"Nhập không thành công. Hãy thử lại sau."
+            "value":"Nhập không thành công. Hãy thử lại sau.",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"prompttext_udmf_download_error",
-            "value":"Không tải xuống được. Hãy thử lại sau."
+            "value":"Không tải xuống được. Hãy thử lại sau.",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"pasteboard_title",
-            "value":"Bộ nhớ tạm giữa các thiết bị"
+            "value":"Bộ nhớ tạm giữa các thiết bị",
+            "attr":{
+                "priority":"LT"
+            }
         },
         {
             "name":"prompttext_pasteboard_remote",
-            "value":"Đang dán từ \"%s\"…"
+            "value":"Đang dán từ \"%s\"…",
+            "attr":{
+                "priority":"LT"
+            }
         },
         {
             "name":"prompttext_udmf_move",
-            "value":"Đang chuyển..."
+            "value":"Đang chuyển...",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"prompttext_pasteboard_error",
-            "value":"Không dán được. Vui lòng thử lại."
+            "value":"Không dán được. Vui lòng thử lại.",
+            "attr":{
+                "priority":"LT"
+            }
         },
         {
             "name":"progress_completed_percentage",
-            "value":"Đã hoàn thành %s"
+            "value":"Đã hoàn thành %s",
+            "attr":{
+                "priority":"translate"
+            }
         }
     ]
 }
