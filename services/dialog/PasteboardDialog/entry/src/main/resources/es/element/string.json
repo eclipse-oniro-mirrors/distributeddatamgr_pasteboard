@@ -2,75 +2,129 @@
     "string":[
         {
             "name":"progress_cancel_btn",
-            "value":"Cancelar"
+            "value":"Cancelar",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"prompttext_udmf_import",
-            "value":"Importando…"
+            "value":"Importando…",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"prompttext_udmf_format",
-            "value":"Convirtiendo formato..."
+            "value":"Convirtiendo formato...",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"prompttext_udmf_download",
-            "value":"Descargando…"
+            "value":"Descargando…",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"prompttext_pasteboard_local",
-            "value":"Pegando…"
+            "value":"Pegando…",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"prompttext_udmf_copy",
-            "value":"Copiando..."
+            "value":"Copiando...",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"learn_more",
-            "value":"Conocer más detalles"
+            "value":"Conocer más detalles",
+            "attr":{
+                "priority":"LT"
+            }
         },
         {
             "name":"prompttext_udmf_download_error",
-            "value":"No se puede descargar. Vuelve a intentarlo más tarde."
+            "value":"No se puede descargar. Vuelve a intentarlo más tarde.",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"prompttext_udmf_move",
-            "value":"Moviendo..."
+            "value":"Moviendo...",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"prompttext_pasteboard_error",
-            "value":"No se puede pegar. Vuelve a intentarlo."
+            "value":"No se puede pegar. Vuelve a intentarlo.",
+            "attr":{
+                "priority":"LT"
+            }
         },
         {
             "name":"progress_completed_percentage",
-            "value":"%s completado"
+            "value":"%s completado",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"prompttext_udmf_copy_error",
-            "value":"Error al copiar. Vuelve a intentarlo más tarde."
+            "value":"Error al copiar. Vuelve a intentarlo más tarde.",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"pasteboard_desc_text",
-            "value":"Copia en un dispositivo y pega en otro. Los dispositivos deben estar cerca el uno del otro, haber iniciado sesión en el mismo ID de y tener la WLAN, el Bluetooth y esta función habilitados. %s"
+            "value":"Copia en un dispositivo y pega en otro. Los dispositivos deben estar cerca el uno del otro, haber iniciado sesión en el mismo ID de y tener la WLAN, el Bluetooth y esta función habilitados. %s",
+            "attr":{
+                "priority":"LT"
+            }
         },
         {
             "name":"prompttext_udmf_format_error",
-            "value":"Error al convertir el formato. Vuelve a intentarlo más tarde."
+            "value":"Error al convertir el formato. Vuelve a intentarlo más tarde.",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"prompttext_udmf_move_error",
-            "value":"Error al mover. Vuelve a intentarlo más tarde."
+            "value":"Error al mover. Vuelve a intentarlo más tarde.",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"prompttext_udmf_import_error",
-            "value":"Error al importar. Vuelve a intentarlo más tarde."
+            "value":"Error al importar. Vuelve a intentarlo más tarde.",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"pasteboard_title",
-            "value":"Portapapeles entre dispositivos"
+            "value":"Portapapeles entre dispositivos",
+            "attr":{
+                "priority":"LT"
+            }
         },
         {
             "name":"prompttext_pasteboard_remote",
-            "value":"Pegando desde “%s”…"
+            "value":"Pegando desde “%s”…",
+            "attr":{
+                "priority":"LT"
+            }
         }
     ]
 }

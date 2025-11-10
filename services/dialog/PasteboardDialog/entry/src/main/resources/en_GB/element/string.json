@@ -1,0 +1,130 @@
+{
+    "string":[
+        {
+            "name":"progress_cancel_btn",
+            "value":"Cancel",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"prompttext_udmf_import",
+            "value":"Importing…",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"prompttext_udmf_copy_error",
+            "value":"Copy failed. Try again later.",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"pasteboard_desc_text",
+            "value":"Copy on one device, paste on another. Devices must be near each other, logged in to the same ID, and have WLAN, Bluetooth, and this feature enabled. %s",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"prompttext_udmf_format_error",
+            "value":"Format conversion failed. Try again later.",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"prompttext_udmf_format",
+            "value":"Converting format…",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"prompttext_udmf_download",
+            "value":"Downloading…",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"prompttext_udmf_move_error",
+            "value":"Move failed. Try again later.",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"prompttext_pasteboard_local",
+            "value":"Pasting…",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"prompttext_udmf_copy",
+            "value":"Copying…",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"learn_more",
+            "value":"Learn more",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"prompttext_udmf_import_error",
+            "value":"Import failed. Try again later.",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"prompttext_udmf_download_error",
+            "value":"Unable to download. Try again later.",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"pasteboard_title",
+            "value":"Cross-device clipboard",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"prompttext_pasteboard_remote",
+            "value":"Pasting from \"%s\"…",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"prompttext_udmf_move",
+            "value":"Moving…",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"prompttext_pasteboard_error",
+            "value":"Unable to paste. Please try again.",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"progress_completed_percentage",
+            "value":"%s completed",
+            "attr":{
+                "priority":"translate"
+            }
+        }
+    ]
+}

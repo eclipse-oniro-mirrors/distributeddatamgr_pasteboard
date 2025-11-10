@@ -2,75 +2,129 @@
     "string":[
         {
             "name":"progress_cancel_btn",
-            "value":"キャンセル"
+            "value":"キャンセル",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"prompttext_udmf_import",
-            "value":"インポート中..."
+            "value":"インポート中...",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"prompttext_udmf_format",
-            "value":"形式を変換中…"
+            "value":"形式を変換中…",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"prompttext_udmf_download",
-            "value":"ダウンロード中…"
+            "value":"ダウンロード中…",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"prompttext_pasteboard_local",
-            "value":"貼り付け中…"
+            "value":"貼り付け中…",
+            "attr":{
+                "priority":"LT"
+            }
         },
         {
             "name":"prompttext_udmf_copy",
-            "value":"コピー中…"
+            "value":"コピー中…",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"learn_more",
-            "value":"詳細を確認"
+            "value":"詳細を確認",
+            "attr":{
+                "priority":"LT"
+            }
         },
         {
             "name":"prompttext_udmf_download_error",
-            "value":"ダウンロードできません。後で再試行してください。"
+            "value":"ダウンロードできません。後で再試行してください。",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"prompttext_udmf_move",
-            "value":"移動中..."
+            "value":"移動中...",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"prompttext_pasteboard_error",
-            "value":"貼り付けられません。再試行してください。"
+            "value":"貼り付けられません。再試行してください。",
+            "attr":{
+                "priority":"LT"
+            }
         },
         {
             "name":"progress_completed_percentage",
-            "value":"%s完了"
+            "value":"%s完了",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"prompttext_udmf_copy_error",
-            "value":"コピーに失敗しました。後で再試行してください。"
+            "value":"コピーに失敗しました。後で再試行してください。",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"pasteboard_desc_text",
-            "value":"一方のデバイスからコピーし、もう一方のデバイスに貼り付けます。デバイスは互いの近くにあり、同じIDでログインしており、WLAN、Bluetooth、およびこの機能が有効になっている必要があります。%s"
+            "value":"一方のデバイスからコピーし、もう一方のデバイスに貼り付けます。デバイスは互いの近くにあり、同じIDでログインしており、WLAN、Bluetooth、およびこの機能が有効になっている必要があります。%s",
+            "attr":{
+                "priority":"LT"
+            }
         },
         {
             "name":"prompttext_udmf_format_error",
-            "value":"形式の変換に失敗しました。後で再試行してください。"
+            "value":"形式の変換に失敗しました。後で再試行してください。",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"prompttext_udmf_move_error",
-            "value":"移動できません。後で再試行してください。"
+            "value":"移動できません。後で再試行してください。",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"prompttext_udmf_import_error",
-            "value":"インポートに失敗しました。後で再試行してください。"
+            "value":"インポートに失敗しました。後で再試行してください。",
+            "attr":{
+                "priority":"translate"
+            }
         },
         {
             "name":"pasteboard_title",
-            "value":"クロスデバイスクリップボード"
+            "value":"クロスデバイスクリップボード",
+            "attr":{
+                "priority":"LT"
+            }
         },
         {
             "name":"prompttext_pasteboard_remote",
-            "value":"「%s」から貼り付け中…"
+            "value":"「%s」から貼り付け中…",
+            "attr":{
+                "priority":"LT"
+            }
         }
     ]
 }

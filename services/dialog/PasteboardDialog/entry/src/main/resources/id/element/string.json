@@ -1,0 +1,130 @@
+{
+    "string":[
+        {
+            "name":"progress_cancel_btn",
+            "value":"Batal",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"prompttext_udmf_import",
+            "value":"Mengimpor…",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"prompttext_udmf_copy_error",
+            "value":"Penyalinan gagal. Coba lagi nanti.",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"pasteboard_desc_text",
+            "value":"Salin di satu perangkat, tempelkan di perangkat lain. Perangkat tersebut harus saling berdekatan, masuk ke ID yang sama, serta telah mengaktifkan WLAN, Bluetooth, dan fitur ini. %s",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"prompttext_udmf_format_error",
+            "value":"Konversi format gagal. Coba lagi nanti.",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"prompttext_udmf_format",
+            "value":"Mengonversi format…",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"prompttext_udmf_download",
+            "value":"Mengunduh…",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"prompttext_udmf_move_error",
+            "value":"Pemindahan gagal. Coba lagi nanti.",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"prompttext_pasteboard_local",
+            "value":"Menempelkan…",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"prompttext_udmf_copy",
+            "value":"Menyalin…",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"learn_more",
+            "value":"Pelajari lebih lanjut",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"prompttext_udmf_import_error",
+            "value":"Impor gagal. Coba lagi nanti.",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"prompttext_udmf_download_error",
+            "value":"Tidak dapat mengunduh. Coba lagi nanti.",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"pasteboard_title",
+            "value":"Papan klip lintas perangkat",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"prompttext_pasteboard_remote",
+            "value":"Menempelkan dari \"%s\"…",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"prompttext_udmf_move",
+            "value":"Memindahkan...",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"prompttext_pasteboard_error",
+            "value":"Tidak dapat menempelkan. Coba lagi.",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"progress_completed_percentage",
+            "value":"%s selesai",
+            "attr":{
+                "priority":"translate"
+            }
+        }
+    ]
+}

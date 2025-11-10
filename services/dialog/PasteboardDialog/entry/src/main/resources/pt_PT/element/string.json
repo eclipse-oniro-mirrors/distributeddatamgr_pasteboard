@@ -1,0 +1,130 @@
+{
+    "string":[
+        {
+            "name":"progress_cancel_btn",
+            "value":"Cancelar",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"prompttext_udmf_import",
+            "value":"A importar...",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"prompttext_udmf_copy_error",
+            "value":"Falha ao copiar. Tente mais tarde.",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"pasteboard_desc_text",
+            "value":"Copie num dispositivo e cole noutro. Os dispositivos devem estar próximos um do outro, com a sessão iniciada na mesma Conta e ter a WLAN, o Bluetooth e esta funcionalidade ativada. %s",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"prompttext_udmf_format_error",
+            "value":"Falha ao converter o formato. Tente mais tarde.",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"prompttext_udmf_format",
+            "value":"A converter o formato...",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"prompttext_udmf_download",
+            "value":"A transferir...",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"prompttext_udmf_move_error",
+            "value":"Falha ao mover. Tente mais tarde.",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"prompttext_pasteboard_local",
+            "value":"A colar...",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"prompttext_udmf_copy",
+            "value":"A copiar...",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"learn_more",
+            "value":"Saber mais",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"prompttext_udmf_import_error",
+            "value":"Falha ao importar. Tente mais tarde.",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"prompttext_udmf_download_error",
+            "value":"Não é possível transferir. Tente mais tarde.",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"pasteboard_title",
+            "value":"Área de transferência entre dispositivos",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"prompttext_pasteboard_remote",
+            "value":"A colar de \"%s\"...",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"prompttext_udmf_move",
+            "value":"A mover...",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"prompttext_pasteboard_error",
+            "value":"Não é possível colar. Tente novamente.",
+            "attr":{
+                "priority":"translate"
+            }
+        },
+        {
+            "name":"progress_completed_percentage",
+            "value":"%s concluída",
+            "attr":{
+                "priority":"translate"
+            }
+        }
+    ]
+}
