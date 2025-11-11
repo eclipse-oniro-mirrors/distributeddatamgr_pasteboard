@@ -1398,7 +1398,7 @@ int32_t PasteboardService::GetData(uint32_t tokenId, PasteData &data, int32_t &s
 void PasteboardService::HandleNotificationsAndStatusChecks(const AppInfo &appInfo, const PasteData &data,
     const std::string &peerNetId, bool &isPeerOnline)
 {
-    auto observerMapSize = 0;
+    uint32_t observerMapSize = 0;
     {
         std::lock_guard<std::mutex> lock(observerMutex_);
         observerMapSize = observerEventMap_.size();
