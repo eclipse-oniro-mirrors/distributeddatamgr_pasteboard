@@ -1738,4 +1738,43 @@ HWTEST_F(PasteDataTest, GetOriginTokenIdTest002, TestSize.Level0)
     EXPECT_EQ(originTokenId, tokenId);
 }
 
+/**
+ * @tc.name: SetTextSize001
+ * @tc.desc: Test SetTextSize and GetTextSize functions
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteDataTest, SetTextSize001, TestSize.Level0)
+{
+    PasteData data;
+    size_t testSize = 1024;
+    data.SetTextSize(testSize);
+    EXPECT_EQ(data.GetTextSize(), testSize);
+}
+
+/**
+ * @tc.name: SetTextSize002
+ * @tc.desc: Test SetTextSize and GetTextSize functions with zero size
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteDataTest, SetTextSize002, TestSize.Level0)
+{
+    PasteData data;
+    size_t testSize = 0;
+    data.SetTextSize(testSize);
+    EXPECT_EQ(data.GetTextSize(), testSize);
+}
+
+/**
+ * @tc.name: SetTextSize003
+ * @tc.desc: Test SetTextSize and GetTextSize functions with large size
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteDataTest, SetTextSize003, TestSize.Level0)
+{
+    PasteData data;
+    size_t testSize = SIZE_MAX;
+    data.SetTextSize(testSize);
+    EXPECT_EQ(data.GetTextSize(), testSize);
+}
+
 } // namespace OHOS::MiscServices
