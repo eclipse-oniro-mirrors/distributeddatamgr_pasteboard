@@ -1777,4 +1777,17 @@ HWTEST_F(PasteDataTest, SetTextSize003, TestSize.Level0)
     EXPECT_EQ(data.GetTextSize(), testSize);
 }
 
+/**
+ * @tc.name: HasMimeTypeTest001
+ * @tc.desc: HasMimeType empty test
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteDataTest, HasMimeTypeTest001, TestSize.Level0)
+{
+    std::string plainText = "plain text";
+    auto pasteData = PasteboardClient::GetInstance()->CreatePlainTextData(plainText);
+    ASSERT_TRUE(pasteData != nullptr);
+    auto ret = pasteData->HasMimeType(MIMETYPE_TEXT_PLAIN);
+    EXPECT_EQ(ret, true);
+}
 } // namespace OHOS::MiscServices

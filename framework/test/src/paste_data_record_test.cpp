@@ -1439,4 +1439,20 @@ HWTEST_F(PasteDataRecordTest, DecodeTLVTest001, TestSize.Level2)
 
     EXPECT_EQ(ret, true);
 }
+
+/**
+ * @tc.name: GetUriPermissionTest001
+ * @tc.desc: GetUriPermissionTest001
+ * @tc.type: FUNC
+ * @tc.require:entries
+ * @tarowang
+ */
+HWTEST_F(PasteDataRecordTest, GetUriPermissionTest001, TestSize.Level2)
+{
+    std::shared_ptr<PasteDataRecord> record = std::make_shared<PasteDataRecord>();
+    EXPECT_NE(record, nullptr);
+    record->SetUriPermission(PasteDataRecord::READ_PERMISSION);
+    auto ret = record->GetUriPermission();
+    EXPECT_EQ(ret, PasteDataRecord::READ_PERMISSION);
+}
 } // namespace OHOS::MiscServices
