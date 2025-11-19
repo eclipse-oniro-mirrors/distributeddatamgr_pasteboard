@@ -58,7 +58,7 @@ union ValueType {
 }
 
 struct PasteDataProperty {
-    additions: @record Map<String, @sts_type("RecordData") Opaque>;
+    additions: @sts_type("Record<String, RecordData>") Opaque;
     @readonly mimeTypes: Array<String>;
     localOnly: bool;
     shareOption: ShareOption;

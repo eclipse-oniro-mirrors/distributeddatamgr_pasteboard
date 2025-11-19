@@ -389,43 +389,41 @@ public:
     pasteboardTaihe::PasteDataProperty GetProperty()
     {
         PasteDataProperty dataProperty = this->pasteData_->GetProperty();
-        taihe::map<taihe::string, uintptr_t> additions;
-        const std::map<std::string, OHOS::sptr<OHOS::AAFwk::IInterface>> &mapAdditions
-            = dataProperty.additions.GetParams();
-        for (const auto &itMapAdditions : mapAdditions) {
-            OHOS::AAFwk::ILong *addition = OHOS::AAFwk::ILong::Query(itMapAdditions.second);
-            if (addition != nullptr) {
-                additions.emplace(taihe::string(itMapAdditions.first), uintptr_t(OHOS::AAFwk::Long::Unbox(addition)));
-            } else {
-                PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI,
-                    "Get addition param failed, LongBox is nullptr, key is %{public}s", itMapAdditions.first.c_str());
-            }
-        }
+        auto additionsRef = OHOS::AppExecFwk::WrapWantParams(taihe::get_env(), dataProperty.additions);
         std::vector<taihe::string> vctMimeTypes;
         for (const auto &mimeType : dataProperty.mimeTypes) {
             vctMimeTypes.push_back(taihe::string(mimeType));
         }
         pasteboardTaihe::ShareOption shareOption = ShareOptionAdapter::ToTaihe(dataProperty.shareOption);
-        pasteboardTaihe::PasteDataProperty property = { additions, taihe::array<taihe::string>(vctMimeTypes),
-            dataProperty.localOnly, shareOption, dataProperty.timestamp, taihe::string(dataProperty.tag) };
+        pasteboardTaihe::PasteDataProperty property = {
+            .additions = reinterpret_cast<uintptr_t>(additionsRef),
+            .mimeTypes = taihe::array<taihe::string>(vctMimeTypes),
+            .localOnly = dataProperty.localOnly,
+            .shareOption = shareOption,
+            .timestamp = dataProperty.timestamp,
+            .tag = taihe::string(dataProperty.tag)
+        };
         return property;
     }
 
     void SetProperty(const pasteboardTaihe::PasteDataProperty &property)
     {
         PasteDataProperty dataProperty;
+        OHOS::AAFwk::WantParams additions;
+        auto object = reinterpret_cast<ani_object>(property.additions);
+        if (!OHOS::AppExecFwk::UnwrapWantParams(taihe::get_env(), object, additions)) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Unwrap want params failed");
+            return;
+        }
+        dataProperty.additions = additions;
         std::vector<std::string> vctMimeTypes;
         for (const auto &mimeType : property.mimeTypes) {
             vctMimeTypes.push_back(std::string(mimeType));
         }
-        ShareOption shareOption = ShareOptionAdapter::FromTaihe(property.shareOption);
-        for (const auto &itAdditions : property.additions) {
-            dataProperty.additions.SetParam(std::string(itAdditions.first),
-                OHOS::AAFwk::Long::Box(itAdditions.second));
-        }
         dataProperty.mimeTypes = vctMimeTypes;
-        dataProperty.localOnly = property.localOnly;
+        ShareOption shareOption = ShareOptionAdapter::FromTaihe(property.shareOption);
         dataProperty.shareOption = shareOption;
+        dataProperty.localOnly = property.localOnly;
         dataProperty.timestamp = property.timestamp;
         dataProperty.tag = std::string(property.tag);
         this->pasteData_->SetProperty(dataProperty);
