@@ -19,7 +19,7 @@
 static { loadLibraryWithPermissionCheck("pasteboard_taihe_native.z", "@ohos.pasteboard") }
 """)
 
-@!sts_inject_into_module("import { BusinessError } from '@ohos.base';")
+@!sts_inject_into_module("import { BusinessError, RecordData } from '@ohos.base';")
 
 @!sts_inject_into_module("import Want from '@ohos.app.ability.Want';")
 
@@ -31,6 +31,12 @@ static { loadLibraryWithPermissionCheck("pasteboard_taihe_native.z", "@ohos.past
 
 @!sts_inject("const MIMETYPE_TEXT_URI: String = 'text/uri'")
 
+@!sts_inject("const MIMETYPE_TEXT_WANT: String = 'text/want'")
+
+@!sts_inject("const MIMETYPE_PIXELMAP: String = 'pixelMap'")
+
+@!sts_inject("const MAX_RECORD_NUM: int = 512")
+
 enum ShareOption: i32 {
     INAPP = 0,
     LOCALDEVICE = 1
@@ -39,6 +45,8 @@ enum ShareOption: i32 {
 enum Pattern: i32 {
     URL = 0,
     NUMBER = 1,
+    EMAIL_ADDRESS = 2,
+    COUNT
 }
 
 union ValueType {
@@ -48,6 +56,9 @@ union ValueType {
 }
 
 struct PasteDataProperty {
+    additions: @sts_type("Record<String, RecordData>") Opaque;
+    @readonly mimeTypes: Array<String>;
+    localOnly: bool;
     shareOption: ShareOption;
     @readonly timestamp: i64;
     tag: String;
@@ -155,6 +166,8 @@ function CreateDataByValue(mimeType: String, value: ValueType): PasteData;
 function CreateDataByRecord(data: @record Map<String, ValueType>): PasteData;
 
 function GetSystemPasteboard(): SystemPasteboard;
+
+function CreateRecord(mimeType: String, value: ValueType): PasteDataRecord;
 
 @!sts_inject("""
 export function pasteDataTransferStatic(input: Any): object {

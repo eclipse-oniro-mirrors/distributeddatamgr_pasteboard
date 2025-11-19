@@ -730,4 +730,18 @@ HWTEST_F(DMAdapterTest, DeInitialize, TestSize.Level0)
     DMAdapter::GetInstance().DeInitialize();
     ASSERT_TRUE(true);
 }
+
+/**
+ * @tc.name: DmDeathTest
+ * @tc.desc: De Initialize
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(DMAdapterTest, DmDeathTest, TestSize.Level0)
+{
+    auto dmDeath = std::make_shared<DmDeath>();
+    dmDeath->OnRemoteDied();
+    ASSERT_TRUE(true);
+}
 } // namespace OHOS::MiscServices

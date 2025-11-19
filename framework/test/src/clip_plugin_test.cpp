@@ -246,4 +246,19 @@ HWTEST_F(ClipPluginTest, NeedSyncTopEventTest, TestSize.Level0)
     clipPlugin.RegisterPreSyncMonitorCallback(preSyncMonitorCB);
     clipPlugin.SendPreSyncEvent(0);
 }
+
+/**
+ * @tc.name: ApplyAdvancedResourceTest
+ * @tc.desc: ApplyAdvancedResource.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(ClipPluginTest, ApplyAdvancedResourceTest, TestSize.Level0)
+{
+    CustomClipPlugin clipPlugin;
+    std::string deviceId = "test";
+    int32_t result = clipPlugin.ApplyAdvancedResource(deviceId);
+    ASSERT_EQ(0, result);
+}
 } // namespace OHOS::MiscServices

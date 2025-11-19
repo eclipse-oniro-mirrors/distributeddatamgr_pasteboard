@@ -18,6 +18,7 @@
 
 #include "ohos.pasteboard.pasteboard.proj.hpp"
 #include "paste_data.h"
+#include "pasteboard_client.h"
 
 namespace pasteboardTaihe = ohos::pasteboard::pasteboard;
 
@@ -29,6 +30,8 @@ public:
         const std::string &mimeType, const pasteboardTaihe::ValueType &value, std::shared_ptr<PasteData> pasteData) = 0;
     virtual void CreateData(const std::string &mimeType, const pasteboardTaihe::ValueType &value,
         std::shared_ptr<PasteData> &pasteData) = 0;
+    virtual std::shared_ptr<PasteDataRecord> CreateRecord(
+        const std::string &mimeType, const pasteboardTaihe::ValueType &value) = 0;
     virtual pasteboardTaihe::ValueType ConvertToValueType(
         const std::string &mimeType, std::shared_ptr<PasteDataEntry> entry) = 0;
     virtual EntryValue ConvertFromValueType(const std::string &mimeType, const pasteboardTaihe::ValueType &value) = 0;
@@ -41,6 +44,8 @@ public:
         std::shared_ptr<PasteData> pasteData) override;
     void CreateData(const std::string &mimeType, const pasteboardTaihe::ValueType &value,
         std::shared_ptr<PasteData> &pasteData) override;
+    std::shared_ptr<PasteDataRecord> CreateRecord(
+        const std::string &mimeType, const pasteboardTaihe::ValueType &value) override;
     pasteboardTaihe::ValueType ConvertToValueType(
         const std::string &mimeType, std::shared_ptr<PasteDataEntry> entry) override;
     EntryValue ConvertFromValueType(const std::string &mimeType, const pasteboardTaihe::ValueType &value) override;
@@ -52,6 +57,8 @@ public:
         std::shared_ptr<PasteData> pasteData) override;
     void CreateData(const std::string &mimeType, const pasteboardTaihe::ValueType &value,
         std::shared_ptr<PasteData> &pasteData) override;
+    std::shared_ptr<PasteDataRecord> CreateRecord(
+        const std::string &mimeType, const pasteboardTaihe::ValueType &value) override;
     pasteboardTaihe::ValueType ConvertToValueType(
         const std::string &mimeType, std::shared_ptr<PasteDataEntry> entry) override;
     EntryValue ConvertFromValueType(const std::string &mimeType, const pasteboardTaihe::ValueType &value) override;
@@ -63,6 +70,8 @@ public:
         std::shared_ptr<PasteData> pasteData) override;
     void CreateData(const std::string &mimeType, const pasteboardTaihe::ValueType &value,
         std::shared_ptr<PasteData> &pasteData) override;
+    std::shared_ptr<PasteDataRecord> CreateRecord(
+        const std::string &mimeType, const pasteboardTaihe::ValueType &value) override;
     pasteboardTaihe::ValueType ConvertToValueType(
         const std::string &mimeType, std::shared_ptr<PasteDataEntry> entry) override;
     EntryValue ConvertFromValueType(const std::string &mimeType, const pasteboardTaihe::ValueType &value) override;
@@ -74,6 +83,8 @@ public:
         std::shared_ptr<PasteData> pasteData) override;
     void CreateData(const std::string &mimeType, const pasteboardTaihe::ValueType &value,
         std::shared_ptr<PasteData> &pasteData) override;
+    std::shared_ptr<PasteDataRecord> CreateRecord(
+        const std::string &mimeType, const pasteboardTaihe::ValueType &value) override;
     pasteboardTaihe::ValueType ConvertToValueType(
         const std::string &mimeType, std::shared_ptr<PasteDataEntry> entry) override;
     EntryValue ConvertFromValueType(const std::string &mimeType, const pasteboardTaihe::ValueType &value) override;
@@ -85,6 +96,8 @@ public:
         std::shared_ptr<PasteData> pasteData) override;
     void CreateData(const std::string &mimeType, const pasteboardTaihe::ValueType &value,
         std::shared_ptr<PasteData> &pasteData) override;
+    std::shared_ptr<PasteDataRecord> CreateRecord(
+        const std::string &mimeType, const pasteboardTaihe::ValueType &value) override;
     pasteboardTaihe::ValueType ConvertToValueType(
         const std::string &mimeType, std::shared_ptr<PasteDataEntry> entry) override;
     EntryValue ConvertFromValueType(const std::string &mimeType, const pasteboardTaihe::ValueType &value) override;
@@ -96,6 +109,8 @@ public:
         std::shared_ptr<PasteData> pasteData) override;
     void CreateData(const std::string &mimeType, const pasteboardTaihe::ValueType &value,
         std::shared_ptr<PasteData> &pasteData) override;
+    std::shared_ptr<PasteDataRecord> CreateRecord(
+        const std::string &mimeType, const pasteboardTaihe::ValueType &value) override;
     pasteboardTaihe::ValueType ConvertToValueType(
         const std::string &mimeType, std::shared_ptr<PasteDataEntry> entry) override;
     EntryValue ConvertFromValueType(const std::string &mimeType, const pasteboardTaihe::ValueType &value) override;
@@ -112,6 +127,12 @@ class ShareOptionAdapter {
 public:
     static ShareOption FromTaihe(pasteboardTaihe::ShareOption value);
     static pasteboardTaihe::ShareOption ToTaihe(ShareOption value);
+};
+
+class PatternAdapter {
+public:
+    static MiscServices::Pattern FromTaihe(pasteboardTaihe::Pattern value);
+    static pasteboardTaihe::Pattern ToTaihe(MiscServices::Pattern value);
 };
 } // namespace MiscServices
 } // namespace OHOS

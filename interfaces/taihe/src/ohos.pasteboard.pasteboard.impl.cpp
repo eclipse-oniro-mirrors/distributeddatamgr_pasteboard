@@ -21,6 +21,7 @@
 
 #include "ani_common_want.h"
 #include "common/block_object.h"
+#include "ffrt_inner.h"
 #include "interop_js/arkts_esvalue.h"
 #include "interop_js/arkts_interop_js_api.h"
 #include "napi/native_api.h"
@@ -264,17 +265,41 @@ public:
     pasteboardTaihe::PasteDataProperty GetProperty()
     {
         PasteDataProperty dataProperty = this->pasteData_->GetProperty();
+        auto additionsRef = OHOS::AppExecFwk::WrapWantParams(taihe::get_env(), dataProperty.additions);
+        std::vector<taihe::string> vctMimeTypes;
+        for (const auto &mimeType : dataProperty.mimeTypes) {
+            vctMimeTypes.push_back(taihe::string(mimeType));
+        }
         pasteboardTaihe::ShareOption shareOption = ShareOptionAdapter::ToTaihe(dataProperty.shareOption);
-        pasteboardTaihe::PasteDataProperty property = { shareOption, dataProperty.timestamp,
-            taihe::string(dataProperty.tag) };
+        pasteboardTaihe::PasteDataProperty property = {
+            .additions = reinterpret_cast<uintptr_t>(additionsRef),
+            .mimeTypes = taihe::array<taihe::string>(vctMimeTypes),
+            .localOnly = dataProperty.localOnly,
+            .shareOption = shareOption,
+            .timestamp = dataProperty.timestamp,
+            .tag = taihe::string(dataProperty.tag)
+        };
         return property;
     }
 
     void SetProperty(const pasteboardTaihe::PasteDataProperty &property)
     {
+        OHOS::AAFwk::WantParams additions;
+        auto object = reinterpret_cast<ani_object>(property.additions);
+        if (!OHOS::AppExecFwk::UnwrapWantParams(taihe::get_env(), object, additions)) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Unwrap want params failed");
+            return;
+        }
         PasteDataProperty dataProperty;
+        dataProperty.additions = additions;
+        std::vector<std::string> vctMimeTypes;
+        for (const auto &mimeType : property.mimeTypes) {
+            vctMimeTypes.push_back(std::string(mimeType));
+        }
+        dataProperty.mimeTypes = vctMimeTypes;
         ShareOption shareOption = ShareOptionAdapter::FromTaihe(property.shareOption);
         dataProperty.shareOption = shareOption;
+        dataProperty.localOnly = property.localOnly;
         dataProperty.timestamp = property.timestamp;
         dataProperty.tag = std::string(property.tag);
         this->pasteData_->SetProperty(dataProperty);
@@ -525,12 +550,11 @@ public:
     {
         std::string mimeTypeStr = std::string(mimeType);
         auto block = std::make_shared<OHOS::BlockObject<std::shared_ptr<bool>>>(SYNC_TIMEOUT);
-        std::thread thread([block, mimeTypeStr]() mutable {
+        ffrt::submit([block, mimeTypeStr]() mutable {
             bool ret = PasteboardClient::GetInstance()->HasDataType(mimeTypeStr);
             auto ptr = std::make_shared<bool>(ret);
             block->SetValue(ptr);
-        });
-        thread.detach();
+            }, {}, {}, ffrt::task_attr().qos(static_cast<int32_t>(ffrt::qos_user_interactive)));
         std::shared_ptr<bool> value = block->GetValue();
         if (value == nullptr) {
             taihe::set_business_error(static_cast<int>(JSErrorCode::REQUEST_TIME_OUT), "Request timed out.");
@@ -895,6 +919,40 @@ uintptr_t PasteDataRecordTransferDynamicImpl(pasteboardTaihe::PasteDataRecord re
     arkts_napi_scope_close_n(jsenv, 1, &instance, reinterpret_cast<ani_ref*>(&result));
     return result;
 }
+
+ohos::pasteboard::pasteboard::PasteDataRecord CreateRecord(
+    taihe::string_view mimeType, ohos::pasteboard::pasteboard::ValueType const& value)
+{
+    auto record = taihe::make_holder<PasteDataRecordImpl, ::ohos::pasteboard::pasteboard::PasteDataRecord>();
+    auto recordImpl = reinterpret_cast<PasteDataRecordImpl *>(record->GetRecordImpl());
+    if (recordImpl == nullptr) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Get record impl is nullptr");
+        return record;
+    }
+    auto mimeTypeStr = std::string(mimeType);
+    if (mimeTypeStr == "") {
+        taihe::set_business_error(static_cast<int>(JSErrorCode::INVALID_PARAMETERS),
+            "Parameter error. the first param should be object or string.");
+        return record;
+    }
+    if (mimeTypeStr.size() > MIMETYPE_MAX_SIZE) {
+        taihe::set_business_error(static_cast<int>(JSErrorCode::INVALID_PARAMETERS),
+            "Parameter error. The length of mimeType cannot be greater than 1024 bytes.");
+        return record;
+    }
+    auto strategy = StrategyFactory::CreateStrategyForData(mimeTypeStr);
+    if (strategy == nullptr) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Create strategy for data failed");
+        return record;
+    }
+    auto dataRecord = strategy->CreateRecord(mimeTypeStr, value);
+    if (dataRecord == nullptr) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Create record failed");
+        return record;
+    }
+    recordImpl->SetRecord(dataRecord);
+    return record;
+}
 } // namespace
 
 // Since these macros are auto-generate, lint will cause false positive.
@@ -909,4 +967,5 @@ TH_EXPORT_CPP_API_PasteDataTransferDynamicImpl(PasteDataTransferDynamicImpl);
 TH_EXPORT_CPP_API_PasteDataRecordTransferStaticImpl(PasteDataRecordTransferStaticImpl);
 TH_EXPORT_CPP_API_PasteDataRecordTransferDynamicImpl(PasteDataRecordTransferDynamicImpl);
 TH_EXPORT_CPP_API_GetSystemPasteboard(GetSystemPasteboard);
+TH_EXPORT_CPP_API_CreateRecord(CreateRecord);
 // NOLINTEND
