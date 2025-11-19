@@ -740,7 +740,7 @@ HWTEST_F(DMAdapterTest, DeInitialize, TestSize.Level0)
  */
 HWTEST_F(DMAdapterTest, DmDeathTest, TestSize.Level0)
 {
-    auto dmDeath = std::shared_ptr<DmDeath>();
+    auto dmDeath = std::make_shared<DmDeath>();
     dmDeath->OnRemoteDied();
     ASSERT_TRUE(true);
 }

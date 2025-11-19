@@ -20,8 +20,8 @@
 #include <thread>
 
 #include "ani_common_want.h"
-#include "ffrt_inner.h"
 #include "common/block_object.h"
+#include "ffrt_inner.h"
 #include "interop_js/arkts_esvalue.h"
 #include "interop_js/arkts_interop_js_api.h"
 #include "napi/native_api.h"
