@@ -15,6 +15,7 @@
 
 #include "pasteboard_client.h"
 #include "pasteboard_hilog.h"
+#include "pasteboard_img_extractor.h"
 #include "pasteboard_web_controller.h"
 #include <gtest/gtest.h>
 
@@ -1504,4 +1505,42 @@ HWTEST_F(WebControllerTest, EntryRemoveInvalidUriTest004, TestSize.Level1)
     uri = entry.ConvertToUri();
     ASSERT_NE(uri, nullptr);
     EXPECT_TRUE(uri->ToString().empty());
+}
+
+/**
+ * @tc.name: MatchImgExtensionTest001
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(WebControllerTest, MatchImgExtensionTest001, TestSize.Level1)
+{
+    EXPECT_FALSE(PasteboardImgExtractor::MatchImgExtension(""));
+    EXPECT_FALSE(PasteboardImgExtractor::MatchImgExtension("file:///"));
+    EXPECT_FALSE(PasteboardImgExtractor::MatchImgExtension("file:////"));
+    EXPECT_FALSE(PasteboardImgExtractor::MatchImgExtension("file:///./"));
+    EXPECT_FALSE(PasteboardImgExtractor::MatchImgExtension("file:////."));
+    EXPECT_FALSE(PasteboardImgExtractor::MatchImgExtension("file:///png"));
+    EXPECT_FALSE(PasteboardImgExtractor::MatchImgExtension("file:///png."));
+    EXPECT_FALSE(PasteboardImgExtractor::MatchImgExtension("file:///png/"));
+    EXPECT_FALSE(PasteboardImgExtractor::MatchImgExtension("file:///.png"));
+    EXPECT_FALSE(PasteboardImgExtractor::MatchImgExtension("file:///png/bbb"));
+    EXPECT_FALSE(PasteboardImgExtractor::MatchImgExtension("file:///aaa/bbb/.png"));
+    EXPECT_FALSE(PasteboardImgExtractor::MatchImgExtension("file:///aaa/bbb/.png/ccc"));
+    EXPECT_FALSE(PasteboardImgExtractor::MatchImgExtension("file:///aaa/bbb/1.png/ccc"));
+}
+
+/**
+ * @tc.name: MatchImgExtensionTest002
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(WebControllerTest, MatchImgExtensionTest002, TestSize.Level1)
+{
+    EXPECT_TRUE(PasteboardImgExtractor::MatchImgExtension("file:///1.png"));
+    EXPECT_TRUE(PasteboardImgExtractor::MatchImgExtension("file:///1.jpg"));
+    EXPECT_TRUE(PasteboardImgExtractor::MatchImgExtension("file:///aaa/bbb/ccc.jpeg"));
+    EXPECT_TRUE(PasteboardImgExtractor::MatchImgExtension("file:///aaa/bbb/ccc.gif"));
+    EXPECT_TRUE(PasteboardImgExtractor::MatchImgExtension("file:///aaa/bbb/ccc.gif?query=aaa"));
+    EXPECT_TRUE(PasteboardImgExtractor::MatchImgExtension("file:///aaa/bbb/ccc.gif;version=1"));
+    EXPECT_TRUE(PasteboardImgExtractor::MatchImgExtension("file:///aaa/bbb/ccc.gif;version=1?query=aaa"));
 }

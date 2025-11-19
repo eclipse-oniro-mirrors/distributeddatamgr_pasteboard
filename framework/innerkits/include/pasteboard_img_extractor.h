@@ -32,7 +32,9 @@ public:
 private:
     PasteboardImgExtractor();
     ~PasteboardImgExtractor();
-    void FilterFileUris(std::vector<std::string> &uris);
+    static void FilterFileUris(std::vector<std::string> &uris);
+    static void FilterImgUris(std::vector<std::string> &uris);
+    static bool MatchImgExtension(const std::string &uri);
     std::vector<std::string> FindImgsExcludingSpan(xmlDocPtr doc);
     std::vector<std::string> ExecuteXPath(xmlDocPtr doc, const char *xpathExpr);
     std::string SafeXmlToString(const xmlChar *xmlStr);

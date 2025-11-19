@@ -54,6 +54,7 @@ ohos_unittest("PasteboardFrameworkTest") {
     "${pasteboard_framework_path}/eventcenter/pasteboard_event.cpp",
     "${pasteboard_framework_path}/serializable/serializable.cpp",
     "${pasteboard_innerkits_path}/src/pasteboard_copy.cpp",
+    "${pasteboard_innerkits_path}/src/pasteboard_img_extractor.cpp",
     "${pasteboard_service_path}/load/src/config.cpp",
     "mock/ffrt_utils_mock.cpp",
     "src/clip_plugin_test.cpp",
@@ -101,6 +102,7 @@ ohos_unittest("PasteboardFrameworkTest") {
     "init:libbegetutil",
     "ipc:ipc_core",
     "libuv:uv",
+    "libxml2:libxml2",
     "samgr:samgr_proxy",
     "udmf:udmf_client",
   ]
