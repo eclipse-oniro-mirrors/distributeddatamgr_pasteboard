@@ -1181,4 +1181,15 @@ HWTEST_F(PasteboardClientTest, GetPasteIdTest001, TestSize.Level0)
     std::string pasteId = getData.GetPasteId();
     EXPECT_STREQ(pasteId.c_str(), "");
 }
+
+/**
+ * @tc.name: ClearByUserTest001
+ * @tc.desc: ClearByUser empty test
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardClientTest, ClearByUserTest001, TestSize.Level0)
+{
+    PasteboardClient::GetInstance()-> ClearByUser(0);
+    ASSERT_TRUE(true);
+}
 } // namespace OHOS::MiscServices
