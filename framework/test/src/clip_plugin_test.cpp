@@ -258,7 +258,7 @@ HWTEST_F(ClipPluginTest, ApplyAdvancedResourceTest, TestSize.Level0)
 {
     CustomClipPlugin clipPlugin;
     std::string deviceId = "test";
-    int32_t result = clipPlugin.ApplyAdvancedResource();
+    int32_t result = clipPlugin.ApplyAdvancedResource(deviceId);
     ASSERT_EQ(0, result);
 }
 } // namespace OHOS::MiscServices
