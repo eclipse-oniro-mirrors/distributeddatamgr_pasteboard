@@ -134,6 +134,18 @@ public:
     static MiscServices::Pattern FromTaihe(pasteboardTaihe::Pattern value);
     static pasteboardTaihe::Pattern ToTaihe(MiscServices::Pattern value);
 };
+
+class ProgressIndicatorAdapter {
+public:
+    static ProgressIndicator FromTaihe(pasteboardTaihe::ProgressIndicator value);
+    static pasteboardTaihe::ProgressIndicator ToTaihe(ProgressIndicator value);
+};
+
+class FileConflictOptionAdapter {
+public:
+    static FileConflictOption FromTaihe(pasteboardTaihe::FileConflictOptions value);
+    static pasteboardTaihe::FileConflictOptions ToTaihe(FileConflictOption value);
+};
 } // namespace MiscServices
 } // namespace OHOS
 #endif // PASTEBOARD_TAIHE_UTILS_H

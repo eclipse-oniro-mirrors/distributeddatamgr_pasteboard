@@ -29,11 +29,13 @@
 #include "pasteboard_error.h"
 #include "pasteboard_hilog.h"
 #include "pasteboard_js_err.h"
+#include "pasteboard_progress_signal.h"
 #include "pasteboard_taihe_utils.h"
 #include "pasteboard_taihe_observer.h"
 #include "pastedata_napi.h"
 #include "pastedata_record_napi.h"
 #include "pixel_map_taihe_ani.h"
+#include "udmf_ani_converter_utils.h"
 #include "uri.h"
 
 using namespace OHOS::MiscServices;
@@ -43,6 +45,7 @@ using CreatePasteDataFn = napi_value (*)(napi_env, std::shared_ptr<PasteData>);
 using CreateRecordFn = napi_value (*)(napi_env, std::shared_ptr<PasteDataRecord>);
 namespace pasteboardTaihe = ohos::pasteboard::pasteboard;
 constexpr int32_t MIMETYPE_MAX_SIZE = 1024;
+constexpr int32_t PROGRESS_MAX_PERCENT = 100;
 
 namespace {
 constexpr uint32_t SYNC_TIMEOUT = 3500;
@@ -56,6 +59,41 @@ public:
     explicit PasteDataRecordImpl(std::shared_ptr<PasteDataRecord> record)
     {
         this->record_ = record;
+    }
+
+    taihe::string GetHtmlText()
+    {
+        if (this->record_ == nullptr) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Get object failed");
+            return taihe::string("");
+        }
+        std::shared_ptr<std::string> htmlText = this->record_->GetHtmlText();
+        if (htmlText == nullptr) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "record get htmlText get nullptr");
+            return taihe::string("");
+        }
+        return taihe::string(*htmlText);
+    }
+
+    uintptr_t GetWant()
+    {
+        uintptr_t wantPtr = 0;
+        if (this->record_ == nullptr) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Get object failed");
+            return wantPtr;
+        }
+        std::shared_ptr<OHOS::AAFwk::Want> want = this->record_->GetWant();
+        if (want == nullptr) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "record get want get nullptr");
+            return wantPtr;
+        }
+        ani_object wantObj = OHOS::AppExecFwk::WrapWant(taihe::get_env(), *want);
+        if (wantObj == nullptr) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "record get want wrap want failed");
+            return wantPtr;
+        }
+        wantPtr = reinterpret_cast<uintptr_t>(wantObj);
+        return wantPtr;
     }
 
     taihe::string GetMimeType()
@@ -104,6 +142,25 @@ public:
         return pixelMapPtr;
     }
 
+    taihe::map<taihe::string, taihe::array<uint8_t>> GetData()
+    {
+        taihe::map<taihe::string, taihe::array<uint8_t>> result;
+        if (this->record_ == nullptr) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Get object failed");
+            return result;
+        }
+        auto customData = this->record_->GetCustomData();
+        if (customData == nullptr) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Get custom data is nullptr");
+            return result;
+        }
+        auto data = customData->GetItemData();
+        for (auto &itData : data) {
+            result.emplace(taihe::string(itData.first), taihe::array<uint8_t>(itData.second));
+        }
+        return result;
+    }
+
     taihe::string ToPlainText()
     {
         if (this->record_ == nullptr) {
@@ -112,6 +169,51 @@ public:
         }
         taihe::string text(this->record_->ConvertToText());
         return text;
+    }
+
+    void AddEntry(taihe::string_view type, ohos::pasteboard::pasteboard::ValueType const& value)
+    {
+        if (this->record_ == nullptr) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Get object failed");
+            return;
+        }
+        std::string mimeType(type);
+        if (mimeType == "") {
+            taihe::set_business_error(static_cast<int>(JSErrorCode::INVALID_PARAMETERS),
+                "Parameter error. the first param should be object or string.");
+            return;
+        }
+        if (mimeType.size() > MIMETYPE_MAX_SIZE) {
+            taihe::set_business_error(static_cast<int>(JSErrorCode::INVALID_PARAMETERS),
+                "Parameter error. The length of mimeType cannot be greater than 1024 bytes.");
+            return;
+        }
+        auto strategy = StrategyFactory::CreateStrategyForEntry(mimeType);
+        if (strategy == nullptr) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Create strategy for entry failed");
+            return;
+        }
+        auto utdType = CommonUtils::Convert2UtdId(OHOS::UDMF::UD_BUTT, mimeType);
+        auto entry = std::make_shared<PasteDataEntry>(utdType, strategy->ConvertFromValueType(mimeType, value));
+        this->record_->AddEntry(utdType, entry);
+    }
+
+    taihe::array<taihe::string> GetValidTypes(taihe::array_view<taihe::string> types)
+    {
+        std::vector<taihe::string> vctValidTypes;
+        if (this->record_ == nullptr) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Get object failed");
+            return taihe::array<taihe::string>(vctValidTypes);
+        }
+        std::vector<std::string> validTypes;
+        for (const auto &type : types) {
+            validTypes.push_back(std::string(type));
+        }
+        auto result = this->record_->GetValidMimeTypes(validTypes);
+        for (const auto &validType : result) {
+            vctValidTypes.push_back(taihe::string(validType));
+        }
+        return taihe::array<taihe::string>(vctValidTypes);
     }
 
     pasteboardTaihe::ValueType GetRecordValueByType(taihe::string_view type)
@@ -262,6 +364,27 @@ public:
         return result;
     }
 
+    uintptr_t GetPrimaryPixelMap()
+    {
+        uintptr_t pixelMapPtr = 0;
+        if (this->pasteData_ == nullptr) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Get object failed");
+            return pixelMapPtr;
+        }
+        auto pixelMap = this->pasteData_->GetPrimaryPixelMap();
+        if (pixelMap == nullptr) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Get GetPrimaryPixelMap failed");
+            return pixelMapPtr;
+        }
+        auto pixelMapObj = OHOS::Media::PixelMapTaiheAni::CreateEtsPixelMap(taihe::get_env(), pixelMap);
+        if (pixelMapObj == nullptr) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Create ets pixelmap failed");
+            return pixelMapPtr;
+        }
+        pixelMapPtr = reinterpret_cast<uintptr_t>(pixelMapObj);
+        return pixelMapPtr;
+    }
+
     pasteboardTaihe::PasteDataProperty GetProperty()
     {
         PasteDataProperty dataProperty = this->pasteData_->GetProperty();
@@ -336,6 +459,68 @@ public:
         return tag;
     }
 
+    bool HasType(::taihe::string_view mimeType)
+    {
+        if (this->pasteData_ == nullptr) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Get object failed");
+            return false;
+        }
+        return this->pasteData_->HasMimeType(std::string(mimeType));
+    }
+
+    void RemoveRecord(int32_t index)
+    {
+        if (this->pasteData_ == nullptr) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Get object failed");
+            return;
+        }
+        if (index >= GetRecordCount()) {
+            taihe::set_business_error(static_cast<int>(JSErrorCode::OUT_OF_RANGE), "index out of range.");
+            return;
+        }
+        this->pasteData_->RemoveRecordAt(index);
+    }
+
+    void ReplaceRecord(int32_t index, ::ohos::pasteboard::pasteboard::weak::PasteDataRecord record)
+    {
+        if (this->pasteData_ == nullptr) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Get object failed");
+            return;
+        }
+        PasteDataRecordImpl *implPtr = reinterpret_cast<PasteDataRecordImpl *>(record->GetRecordImpl());
+        if (implPtr == nullptr) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Get record impl is nullptr");
+            return;
+        }
+        std::shared_ptr<PasteDataRecord> pasteDataRecord = implPtr->GetRecord();
+        if (pasteDataRecord == nullptr) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Get record is nullptr");
+        }
+        this->pasteData_->ReplaceRecordAt(index, pasteDataRecord);
+        implPtr = nullptr;
+    }
+
+    void PasteStart()
+    {
+        if (this->pasteData_ == nullptr) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Get object failed");
+            return;
+        }
+        std::string pasteId = this->pasteData_->GetPasteId();
+        PasteboardClient::GetInstance()->PasteStart(pasteId);
+    }
+
+    void PasteComplete()
+    {
+        if (this->pasteData_ == nullptr) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Get object failed");
+            return;
+        }
+        std::string deviceId = this->pasteData_->GetDeviceId();
+        std::string pasteId = this->pasteData_->GetPasteId();
+        PasteboardClient::GetInstance()->PasteComplete(deviceId, pasteId);
+    }
+
     int64_t GetPasteDataImpl()
     {
         return reinterpret_cast<int64_t>(this);
@@ -359,113 +544,54 @@ class SystemPasteboardImpl {
 public:
     SystemPasteboardImpl() {}
 
-    void DeleteObserver(const OHOS::sptr<PasteboardTaiheObserver> &observer)
+     void OnUpdate(::taihe::callback_view<void()> callback)
     {
-        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_JS_ANI, "observer == null: %{public}d, size: %{public}zu",
-            observer == nullptr, observers_.size());
-        ani_env *env = taihe::get_env();
-        if (env == nullptr) {
-            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Invalid ani environment.");
-            return;
-        }
-        std::vector<OHOS::sptr<PasteboardTaiheObserver>> observers;
-        {
-            for (auto it = observers_.begin(); it != observers_.end();) {
-                if (it->second == observer) {
-                    observers.push_back(observer);
-                    env->GlobalReference_Delete(it->first);
-                    it = observers_.erase(it);
-                    break;
-                }
-                if (observer == nullptr) {
-                    observers.push_back(it->second);
-                    env->GlobalReference_Delete(it->first);
-                    it = observers_.erase(it);
-                } else {
-                    it++;
-                }
-            }
-        }
-        PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_ANI, "Delete observer size: %{public}zu", observers.size());
-        for (auto &delObserver : observers) {
-            PasteboardClient::GetInstance()->Unsubscribe(PasteboardObserverType::OBSERVER_LOCAL,
-                delObserver);
-        }
-    }
-
-    void OnUpdate(::taihe::callback_view<void()> callback, uintptr_t cb)
-    {
-        ani_object callbackObj = reinterpret_cast<ani_object>(cb);
-        ani_ref callbackRef;
-        ani_env *env = taihe::get_env();
-        if (env == nullptr) {
-            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Failed to register, get environment failed");
-            return;
-        }
-        if (ANI_OK != env->GlobalReference_Create(callbackObj, &callbackRef)) {
-            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Failed to register, create reference failed");
-            return;
-        }
-
-        OHOS::sptr<PasteboardTaiheObserver> observer = nullptr;
-        ani_boolean isEqual = false;
-        for (const auto &[refKey, observerValue] : observers_) {
-            env->Reference_StrictEquals(refKey, callbackRef, &isEqual);
-            if (isEqual) {
-                observer = observerValue;
-                break;
-            }
-        }
-
-        if (observer != nullptr) {
-            env->GlobalReference_Delete(callbackRef);
+        auto it = std::find_if(observers_.begin(), observers_.end(),
+            [&callback](std::pair<::taihe::callback_view<void()>, OHOS::sptr<PasteboardTaiheObserver>> item) {
+                return callback == item.first;
+            });
+        if (it != observers_.end()) {
             PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Already registered.");
             return;
         }
-
         auto callbackPtr = std::make_shared<::taihe::callback<void()>>(callback);
-        observer = OHOS::sptr<PasteboardTaiheObserver>::MakeSptr(callbackPtr);
-        if (observer == nullptr) {
-            env->GlobalReference_Delete(callbackRef);
-            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Malloc observer failed.");
+        if (callbackPtr == nullptr) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Malloc callback ptr failed.");
             return;
         }
-
+        auto observer = OHOS::sptr<PasteboardTaiheObserver>::MakeSptr(callbackPtr);
+        if (observer == nullptr) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Malloc observer ptr failed.");
+            return;
+        }
         PasteboardClient::GetInstance()->Subscribe(PasteboardObserverType::OBSERVER_LOCAL, observer);
-        observers_[callbackRef] = observer;
+        observers_.push_back(std::make_pair(callback, observer));
     }
 
-    void OffUpdate(::taihe::optional_view<uintptr_t> cb)
+    void OffUpdate(::taihe::optional_view<::taihe::callback<void()>> callback)
     {
-        OHOS::sptr<PasteboardTaiheObserver> observer = nullptr;
-        if (cb.has_value()) {
-            ani_object callbackObj = reinterpret_cast<ani_object>(cb.value());
-            ani_ref callbackRef;
-            ani_env *env = taihe::get_env();
-            if (env == nullptr) {
-                PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Failed to register, get environment failed");
+        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_JS_ANI, "callback declared: %{public}d, size: %{public}zu",
+            callback.has_value(), observers_.size());
+        if (callback.has_value()) {
+            ::taihe::callback_view<void()> func = callback.value();
+            auto it = std::find_if(observers_.begin(), observers_.end(),
+                [&func](std::pair<::taihe::callback_view<void()>, OHOS::sptr<PasteboardTaiheObserver>> item) {
+                    return func == item.first;
+                });
+            if (it == observers_.end()) {
+                PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "callback not found.");
                 return;
             }
-            if (ANI_OK != env->GlobalReference_Create(callbackObj, &callbackRef)) {
-                PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Failed to register, create reference failed");
-                return;
-            }
-            ani_boolean isEqual = false;
-            for (const auto &[refKey, observerValue] : observers_) {
-                env->Reference_StrictEquals(refKey, callbackRef, &isEqual);
-                if (isEqual) {
-                    observer = observerValue;
-                    break;
-                }
-            }
-            env->GlobalReference_Delete(callbackRef);
-            if (!isEqual) {
-                PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Unregister failed, please register first.");
-                return;
-            }
+            PasteboardClient::GetInstance()->Unsubscribe(PasteboardObserverType::OBSERVER_LOCAL, it->second);
+            observers_.erase(it);
+            return;
         }
-
-        DeleteObserver(observer);
+        for (const auto& item : observers_) {
+            PasteboardClient::GetInstance()->Unsubscribe(PasteboardObserverType::OBSERVER_LOCAL,
+                item.second);
+        }
+        observers_.clear();
+        observers_.shrink_to_fit();
     }
 
     void OnRemoteUpdate(::taihe::callback_view<void()> callback)
@@ -699,27 +825,252 @@ public:
         return mimeTypeArr;
     }
 
+    bool IsRemoteData()
+    {
+        auto block = std::make_shared<OHOS::BlockObject<std::shared_ptr<bool>>>(SYNC_TIMEOUT);
+        std::thread thread([block]() mutable {
+            bool ret = PasteboardClient::GetInstance()->IsRemoteData();
+            auto ptr = std::make_shared<bool>(ret);
+            block->SetValue(ptr);
+        });
+        thread.detach();
+        std::shared_ptr<bool> value = block->GetValue();
+        if (value == nullptr) {
+            taihe::set_business_error(static_cast<int>(JSErrorCode::REQUEST_TIME_OUT), "Request timed out.");
+            return false;
+        }
+        return *value;
+    }
+
+    uintptr_t GetUnifiedDataImpl()
+    {
+        uintptr_t unifiedDataPtr = 0;
+        std::shared_ptr<OHOS::UDMF::UnifiedData> unifiedData = std::make_shared<OHOS::UDMF::UnifiedData>();
+        auto ret = PasteboardClient::GetInstance()->GetUnifiedData(*unifiedData);
+        if (ret == static_cast<int32_t>(PasteboardError::TASK_PROCESSING)) {
+            taihe::set_business_error(ret, "Another getData is being processed.");
+            return unifiedDataPtr;
+        }
+        auto unifiedDataObj = OHOS::UDMF::AniConverter::WrapUnifiedData(taihe::get_env(), unifiedData);
+        if (unifiedDataObj != nullptr) {
+            unifiedDataPtr = reinterpret_cast<uintptr_t>(unifiedDataObj);
+        } else {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Wrap UnifiedData failed");
+        }
+        return unifiedDataPtr;
+    }
+
+    uintptr_t GetUnifiedDataSync()
+    {
+        uintptr_t unifiedDataPtr = 0;
+        std::shared_ptr<OHOS::UDMF::UnifiedData> unifiedData = std::make_shared<OHOS::UDMF::UnifiedData>();
+        auto block = std::make_shared<OHOS::BlockObject<std::shared_ptr<int32_t>>>(SYNC_TIMEOUT);
+        std::thread thread([block, unifiedData]() {
+            auto ret = PasteboardClient::GetInstance()->GetUnifiedData(*unifiedData);
+            auto ptr = std::make_shared<int32_t>(ret);
+            block->SetValue(ptr);
+        });
+        thread.detach();
+        std::shared_ptr<int32_t> value = block->GetValue();
+        if (value == nullptr) {
+            taihe::set_business_error(static_cast<int>(JSErrorCode::REQUEST_TIME_OUT), "Request timed out.");
+            return unifiedDataPtr;
+        }
+        auto unifiedDataObj = OHOS::UDMF::AniConverter::WrapUnifiedData(taihe::get_env(), unifiedData);
+        if (unifiedDataObj != nullptr) {
+            unifiedDataPtr = reinterpret_cast<uintptr_t>(unifiedDataObj);
+        } else {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Wrap UnifiedData failed");
+        }
+        return unifiedDataPtr;
+    }
+
+    void SetUnifiedDataImpl(uintptr_t data)
+    {
+        auto unifiedDataObj = reinterpret_cast<ani_object>(data);
+        if (unifiedDataObj == nullptr) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Input ani_object is nullptr");
+            return;
+        }
+        auto unifiedData = OHOS::UDMF::AniConverter::UnwrapUnifiedData(taihe::get_env(), unifiedDataObj);
+        if (unifiedData == nullptr) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Unwrap UnifiedData failed");
+            return;
+        }
+        auto ret = PasteboardClient::GetInstance()->SetUnifiedData(*unifiedData);
+        if (ret == static_cast<int>(PasteboardError::PROHIBIT_COPY)) {
+            taihe::set_business_error(ret, "The system prohibits copying.");
+        } else if (ret == static_cast<int>(PasteboardError::TASK_PROCESSING)) {
+            taihe::set_business_error(ret, "Another setData is being processed.");
+        }
+    }
+
+    void SetUnifiedDataSync(uintptr_t data)
+    {
+        auto unifiedDataObj = reinterpret_cast<ani_object>(data);
+        if (unifiedDataObj == nullptr) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Input ani_object is nullptr");
+            return;
+        }
+        auto unifiedData = OHOS::UDMF::AniConverter::UnwrapUnifiedData(taihe::get_env(), unifiedDataObj);
+        if (unifiedData == nullptr) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Unwrap UnifiedData failed");
+            return;
+        }
+        auto block = std::make_shared<OHOS::BlockObject<std::shared_ptr<int32_t>>>(SYNC_TIMEOUT);
+        std::thread thread([block, unifiedData]() {
+            auto ret = PasteboardClient::GetInstance()->SetUnifiedData(*unifiedData);
+            auto ptr = std::make_shared<int32_t>(ret);
+            block->SetValue(ptr);
+        });
+        thread.detach();
+        std::shared_ptr<int32_t> value = block->GetValue();
+        if (value == nullptr) {
+            taihe::set_business_error(static_cast<int>(JSErrorCode::REQUEST_TIME_OUT), "Request timed out.");
+            return;
+        }
+        auto ret = *value;
+        if (ret == static_cast<int>(PasteboardError::PROHIBIT_COPY)) {
+            taihe::set_business_error(ret, "The system prohibits copying.");
+        } else if (ret == static_cast<int>(PasteboardError::TASK_PROCESSING)) {
+            taihe::set_business_error(ret, "Another setData is being processed.");
+        }
+    }
+
+    void SetAppShareOptions(ohos::pasteboard::pasteboard::ShareOption shareOptions)
+    {
+        ShareOption realShareOption = ShareOptionAdapter::FromTaihe(shareOptions);
+        auto ret = PasteboardClient::GetInstance()->SetAppShareOptions(realShareOption);
+        if (ret == static_cast<int32_t>(PasteboardError::INVALID_PARAM_ERROR)) {
+            taihe::set_business_error(static_cast<int>(JSErrorCode::INVALID_PARAMETERS),
+                "Parameter error. Parameter verification failed.");
+        } else if (ret == static_cast<int32_t>(PasteboardError::PERMISSION_VERIFICATION_ERROR)) {
+            taihe::set_business_error(static_cast<int>(JSErrorCode::NO_PERMISSION),
+                "Permission verification failed. A non-permission application calls a API.");
+        } else if (ret == static_cast<int32_t>(PasteboardError::INVALID_OPERATION_ERROR)) {
+            taihe::set_business_error(static_cast<int>(JSErrorCode::SETTINGS_ALREADY_EXIST),
+                "Settings already exist.");
+        }
+    }
+
+    void RemoveAppShareOptions()
+    {
+        auto ret = PasteboardClient::GetInstance()->RemoveAppShareOptions();
+        if (ret == static_cast<int32_t>(PasteboardError::PERMISSION_VERIFICATION_ERROR)) {
+            taihe::set_business_error(static_cast<int>(JSErrorCode::NO_PERMISSION),
+                "Permission verification failed. A non-permission application calls a API.");
+        }
+    }
+
+    taihe::array<ohos::pasteboard::pasteboard::Pattern> DetectPatternsImpl(
+        taihe::array_view<ohos::pasteboard::pasteboard::Pattern> patterns)
+    {
+        std::set<OHOS::MiscServices::Pattern> patternsToCheck;
+        for (const auto &pattern : patterns) {
+            patternsToCheck.insert(PatternAdapter::FromTaihe(pattern));
+        }
+        std::vector<ohos::pasteboard::pasteboard::Pattern> vctPatterns;
+        auto result = PasteboardClient::GetInstance()->DetectPatterns(patternsToCheck);
+        for (const auto &pattern : result) {
+            vctPatterns.push_back(PatternAdapter::ToTaihe(pattern));
+        }
+        return taihe::array<ohos::pasteboard::pasteboard::Pattern>(vctPatterns);
+    }
+
+    int64_t GetChangeCount()
+    {
+        uint32_t changeCount = 0;
+        PasteboardClient::GetInstance()->GetChangeCount(changeCount);
+        return static_cast<int64_t>(changeCount);
+    }
+
+    ohos::pasteboard::pasteboard::PasteData GetDataWithProgressImpl(
+        ohos::pasteboard::pasteboard::GetDataParams const& params)
+    {
+        auto data = taihe::make_holder<PasteDataImpl, ::ohos::pasteboard::pasteboard::PasteData>();
+        auto pasteData = std::make_shared<PasteData>();
+        auto getDataParams = std::make_shared<GetDataParams>();
+        getDataParams->info = new (std::nothrow) ProgressInfo();
+        if (getDataParams->info == nullptr) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Malloc failed");
+            return data;
+        }
+        getDataParams->progressIndicator = ProgressIndicatorAdapter::FromTaihe(params.progressIndicator);
+        if (params.destUri.has_value()) {
+            getDataParams->destUri = params.destUri.value();
+        }
+        if (params.fileConflictOptions.has_value()) {
+            getDataParams->fileConflictOption =
+                FileConflictOptionAdapter::FromTaihe(params.fileConflictOptions.value());
+        }
+        if (params.progressListener.has_value()) {
+            std::lock_guard<std::mutex> locker(getDataParamsMtx_);
+            getDataParams->listener.ProgressNotify = ForwardProgressNotify;
+            getDataParams_.insert(std::make_pair(getDataParams, params));
+        }
+        auto ret = PasteboardClient::GetInstance()->GetDataWithProgress(*pasteData, getDataParams);
+        if (ret != static_cast<int32_t>(PasteboardError::E_OK)) {
+            taihe::set_business_error(static_cast<int>(JSErrorCode::ERR_GET_DATA_FAILED),
+                "System error occurred during paste execution.");
+        }
+        if (getDataParams->info != nullptr) {
+            delete getDataParams->info;
+            getDataParams->info = nullptr;
+        }
+        PasteDataImpl *dataImpl = reinterpret_cast<PasteDataImpl *>(data->GetPasteDataImpl());
+        if (dataImpl == nullptr) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Get paste data impl is nullptr");
+            return data;
+        }
+        dataImpl->SetPasteData(pasteData);
+        dataImpl = nullptr;
+        return data;
+    }
+
 private:
-    static thread_local std::map<ani_ref, OHOS::sptr<PasteboardTaiheObserver>> observers_;
+    static thread_local ObserverList observers_;
     static thread_local ObserverList remoteObservers_;
+    static std::mutex getDataParamsMtx_;
+    static std::map<std::shared_ptr<GetDataParams>, ohos::pasteboard::pasteboard::GetDataParams> getDataParams_;
+private:
+    static void ForwardProgressNotify(std::shared_ptr<GetDataParams> getDataParams)
+    {
+        std::lock_guard<std::mutex> locker(getDataParamsMtx_);
+        auto it = getDataParams_.find(getDataParams);
+        if (it != getDataParams_.end()) {
+            auto &params = it->second;
+            ohos::pasteboard::pasteboard::ProgressInfo progress;
+            progress.progress = 0;
+            if (getDataParams->info != nullptr) {
+                progress.progress = getDataParams->info->percentage;
+            }
+            if (params.progressListener.has_value()) {
+                params.progressListener.value()(progress);
+            }
+            if (progress.progress == PROGRESS_MAX_PERCENT) {
+                getDataParams_.erase(it);
+            }
+        }
+    }
 };
-thread_local std::map<ani_ref, OHOS::sptr<PasteboardTaiheObserver>> SystemPasteboardImpl::observers_;
+
+class ProgressSignalImpl {
+    public:
+    ProgressSignalImpl()
+    {
+    }
+
+    void Cancel()
+    {
+        ProgressSignalClient::GetInstance().Cancel();
+    }
+};
+
+thread_local ObserverList SystemPasteboardImpl::observers_;
 thread_local ObserverList SystemPasteboardImpl::remoteObservers_;
-
-pasteboardTaihe::PasteDataRecord MakePasteDataRecord()
-{
-    return taihe::make_holder<PasteDataRecordImpl, pasteboardTaihe::PasteDataRecord>();
-}
-
-pasteboardTaihe::PasteData CreatePasteData()
-{
-    return taihe::make_holder<PasteDataImpl, pasteboardTaihe::PasteData>();
-}
-
-pasteboardTaihe::SystemPasteboard CreateSystemPasteboard()
-{
-    return taihe::make_holder<SystemPasteboardImpl, pasteboardTaihe::SystemPasteboard>();
-}
+std::mutex SystemPasteboardImpl::getDataParamsMtx_;
+std::map<std::shared_ptr<GetDataParams>, ohos::pasteboard::pasteboard::GetDataParams>
+    SystemPasteboardImpl::getDataParams_;
 
 pasteboardTaihe::PasteData CreateDataByValue(
     taihe::string_view mimeType, const pasteboardTaihe::ValueType &value)
@@ -953,13 +1304,15 @@ ohos::pasteboard::pasteboard::PasteDataRecord CreateRecord(
     recordImpl->SetRecord(dataRecord);
     return record;
 }
+
+ohos::pasteboard::pasteboard::ProgressSignal getProgressSignal()
+{
+    return taihe::make_holder<ProgressSignalImpl, ::ohos::pasteboard::pasteboard::ProgressSignal>();
+}
 } // namespace
 
 // Since these macros are auto-generate, lint will cause false positive.
 // NOLINTBEGIN
-TH_EXPORT_CPP_API_MakePasteDataRecord(MakePasteDataRecord);
-TH_EXPORT_CPP_API_CreatePasteData(CreatePasteData);
-TH_EXPORT_CPP_API_CreateSystemPasteboard(CreateSystemPasteboard);
 TH_EXPORT_CPP_API_CreateDataByValue(CreateDataByValue);
 TH_EXPORT_CPP_API_CreateDataByRecord(CreateDataByRecord);
 TH_EXPORT_CPP_API_PasteDataTransferStaticImpl(PasteDataTransferStaticImpl);
@@ -968,4 +1321,5 @@ TH_EXPORT_CPP_API_PasteDataRecordTransferStaticImpl(PasteDataRecordTransferStati
 TH_EXPORT_CPP_API_PasteDataRecordTransferDynamicImpl(PasteDataRecordTransferDynamicImpl);
 TH_EXPORT_CPP_API_GetSystemPasteboard(GetSystemPasteboard);
 TH_EXPORT_CPP_API_CreateRecord(CreateRecord);
+TH_EXPORT_CPP_API_getProgressSignal(getProgressSignal);
 // NOLINTEND

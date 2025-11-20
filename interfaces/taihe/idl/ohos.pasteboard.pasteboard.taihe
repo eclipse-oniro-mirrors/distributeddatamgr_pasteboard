@@ -25,6 +25,8 @@ static { loadLibraryWithPermissionCheck("pasteboard_taihe_native.z", "@ohos.past
 
 @!sts_inject_into_module("import image from '@ohos.multimedia.image';")
 
+@!sts_inject_into_module("import unifiedDataChannel from '@ohos.data.unifiedDataChannel';")
+
 @!sts_inject("const MIMETYPE_TEXT_HTML: String = 'text/html'")
 
 @!sts_inject("const MIMETYPE_TEXT_PLAIN: String = 'text/plain'")
@@ -64,7 +66,13 @@ struct PasteDataProperty {
     tag: String;
 }
 
-interface PasteDataRecord {      
+interface PasteDataRecord {
+    @get("htmlText")
+    GetHtmlText(): String;
+
+    @get("want")
+    GetWant(): @sts_type("Want") Opaque;
+
     @get("mimeType")
     GetMimeType(): String;
 
@@ -77,13 +85,18 @@ interface PasteDataRecord {
     @get("pixelMap")
     GetPixelMap(): @sts_type("image.PixelMap") Opaque;
 
+    @get("data")
+    GetData(): @record Map<String, @arraybuffer Array<u8>>;
+
     @gen_promise("getData")
     GetRecordValueByType(type: String): ValueType;
 
     ToPlainText(): String;
+    AddEntry(type: String, value: ValueType): void;
+    GetValidTypes(types: Array<String>): Array<String>;
+
     GetRecordImpl(): i64;
 }
-function MakePasteDataRecord(): PasteDataRecord;
 
 interface PasteData {
     @overload("addRecord")
@@ -97,40 +110,48 @@ interface PasteData {
     GetPrimaryMimeType(): String;
     GetPrimaryText(): String;
     GetPrimaryUri(): String;
+    GetPrimaryPixelMap(): @sts_type("image.PixelMap") Opaque;
     GetProperty(): PasteDataProperty;
     SetProperty(property: PasteDataProperty): void;
     GetRecord(index: i32): PasteDataRecord;
     GetRecordCount(): i32;
     GetTag(): String;
 
+    HasType(mimeType: String): bool;
+    RemoveRecord(index: i32): void;
+    ReplaceRecord(index: i32, record: PasteDataRecord): void;
+    PasteStart(): void;
+    PasteComplete(): void;
+
     GetPasteDataImpl(): i64;
 }
-function CreatePasteData(): PasteData;
+
+enum FileConflictOptions : i32 {
+    OVERWRITE = 0,
+    SKIP = 1,
+    RENAME
+}
+
+enum ProgressIndicator : i32 {
+    NONE = 0,
+    DEFAULT = 1
+}
+
+struct ProgressInfo {
+    progress: i32;
+}
+
+struct GetDataParams {
+    destUri: Optional<String>;
+    fileConflictOptions: Optional<FileConflictOptions>;
+    progressIndicator: ProgressIndicator;
+    progressListener: Optional<(progress: ProgressInfo) => void>;
+    progressSignal: Optional<ProgressSignal>;
+}
 
 interface SystemPasteboard {
-    OnRemoteUpdate(callback: () => void): void;
-    OffRemoteUpdate(callback: Optional<() => void>): void;
-
-    @!sts_inject_into_interface("""
-        on(type: string, callback: () => void): void;
-        off(type: string, callback?: () => void): void;
-    """)
-    @!sts_inject_into_class("""
-        on(type: string, cb: object) {
-            switch(type) {
-                case "update": return this.onUpdate(cb as () => void, cb);
-                default: throw new BusinessError(401, new Error("Parameter error. The value of type must be update."));
-            }
-        }
-        off(type: string, cb?: object) {
-            switch(type) {
-                case "update": return this.offUpdate(cb);
-                default: throw new BusinessError(401, new Error("Parameter error. The value of type must be update."));
-            }
-        }
-    """)
-    OnUpdate(callback: () => void, cb: Opaque);
-    OffUpdate(cb: Optional<Opaque>);
+    OnUpdate(callback: () => void): void;
+    OffUpdate(callback: Optional<() => void>): void;
 
     @gen_async("clearData")
     @gen_promise("clearData")
@@ -156,8 +177,28 @@ interface SystemPasteboard {
     ClearDataSync(): void;
     GetDataSync(): PasteData;
     HasDataSync(): bool;
+    IsRemoteData(): bool;
+    SetDataSync(data: PasteData): void;
+
+    @gen_promise("getUnifiedData")
+    GetUnifiedDataImpl(): @sts_type("unifiedDataChannel.UnifiedData") Opaque;
+    GetUnifiedDataSync(): @sts_type("unifiedDataChannel.UnifiedData") Opaque;
+
+    @gen_promise("setUnifiedData")
+    SetUnifiedDataImpl(data: @sts_type("unifiedDataChannel.UnifiedData") Opaque): void;
+    SetUnifiedDataSync(data: @sts_type("unifiedDataChannel.UnifiedData") Opaque): void;
+
+    SetAppShareOptions(shareOptions: ShareOption): void;
+    RemoveAppShareOptions(): void;
+
+    @gen_promise("detectPatterns")
+    DetectPatternsImpl(patterns: Array<Pattern>): Array<Pattern>;
+
+    GetChangeCount(): i64;
+
+    @gen_promise("getDataWithProgress")
+    GetDataWithProgressImpl(params: GetDataParams): PasteData;
 }
-function CreateSystemPasteboard(): SystemPasteboard;
 
 @overload("createData")
 function CreateDataByValue(mimeType: String, value: ValueType): PasteData;
@@ -168,6 +209,14 @@ function CreateDataByRecord(data: @record Map<String, ValueType>): PasteData;
 function GetSystemPasteboard(): SystemPasteboard;
 
 function CreateRecord(mimeType: String, value: ValueType): PasteDataRecord;
+
+@class
+interface ProgressSignal {
+    Cancel(): void;
+}
+
+@rename @constructor("ProgressSignal")
+function getProgressSignal(): ProgressSignal;
 
 @!sts_inject("""
 export function pasteDataTransferStatic(input: Any): object {
