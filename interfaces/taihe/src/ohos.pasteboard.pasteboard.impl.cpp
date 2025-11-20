@@ -477,26 +477,27 @@ public:
 
     PasteboardTaihe::PasteDataRecord GetRecord(int32_t index)
     {
-        if (index < 0 || index >= this->GetRecordCount()) {
-            taihe::set_business_error(static_cast<int>(JSErrorCode::OUT_OF_RANGE), "index out of range.");
-            return taihe::make_holder<PasteDataRecordImpl, PasteboardTaihe::PasteDataRecord>();
-        }
-        if (this->pasteData_ == nullptr) {
-            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Get pasteData failed");
-            return taihe::make_holder<PasteDataRecordImpl, PasteboardTaihe::PasteDataRecord>();
-        }
-        std::shared_ptr<PasteDataRecord> dataRecord = this->pasteData_->GetRecordAt(index);
-        if (dataRecord == nullptr) {
-            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "invalid parameter record");
-            return taihe::make_holder<PasteDataRecordImpl, PasteboardTaihe::PasteDataRecord>();
-        }
         PasteboardTaihe::PasteDataRecord record =
             taihe::make_holder<PasteDataRecordImpl, PasteboardTaihe::PasteDataRecord>();
         PasteDataRecordImpl *recordImpl = reinterpret_cast<PasteDataRecordImpl *>(record->GetRecordImpl());
         if (recordImpl == nullptr) {
             PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Get impl failed");
-            return taihe::make_holder<PasteDataRecordImpl, PasteboardTaihe::PasteDataRecord>();
+            return record;
         }
+        if (index < 0 || index >= this->GetRecordCount()) {
+            taihe::set_business_error(static_cast<int>(JSErrorCode::OUT_OF_RANGE), "index out of range.");
+            return record;
+        }
+        if (this->pasteData_ == nullptr) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Get pasteData failed");
+            return record;
+        }
+        std::shared_ptr<PasteDataRecord> dataRecord = this->pasteData_->GetRecordAt(index);
+        if (dataRecord == nullptr) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "invalid parameter record");
+            return record;
+        }
+        
         recordImpl->SetRecord(dataRecord);
         recordImpl = nullptr;
         return record;
@@ -776,7 +777,7 @@ public:
         PasteDataImpl *implPtr = reinterpret_cast<PasteDataImpl *>(implRawPtr);
         if (implPtr == nullptr) {
             PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Get impl failed");
-            return taihe::make_holder<PasteDataImpl, PasteboardTaihe::PasteData>();
+            return pasteDataTH;
         }
         auto pasteData = std::make_shared<PasteData>();
         auto block = std::make_shared<OHOS::BlockObject<std::shared_ptr<int32_t>>>(SYNC_TIMEOUT);
@@ -789,7 +790,7 @@ public:
         auto value = block->GetValue();
         if (value == nullptr) {
             taihe::set_business_error(static_cast<int>(JSErrorCode::REQUEST_TIME_OUT), "Request timed out.");
-            return taihe::make_holder<PasteDataImpl, PasteboardTaihe::PasteData>();
+            return pasteDataTH;
         }
         implPtr->SetPasteData(pasteData);
         implPtr = nullptr;
@@ -803,13 +804,13 @@ public:
         PasteDataImpl *implPtr = reinterpret_cast<PasteDataImpl *>(implRawPtr);
         if (implPtr == nullptr) {
             PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Get impl failed");
-            return taihe::make_holder<PasteDataImpl, PasteboardTaihe::PasteData>();
+            return pasteDataTH;
         }
         auto pasteData = std::make_shared<PasteData>();
         int32_t ret = PasteboardClient::GetInstance()->GetPasteData(*pasteData);
         if (ret == static_cast<int32_t>(PasteboardError::TASK_PROCESSING)) {
             taihe::set_business_error(ret, "Another copy or paste operation is in progress.");
-            return taihe::make_holder<PasteDataImpl, PasteboardTaihe::PasteData>();
+            return pasteDataTH;
         }
         implPtr->SetPasteData(pasteData);
         implPtr = nullptr;
