@@ -17,6 +17,7 @@
 
 #include <algorithm>
 #include <memory>
+#include <unordered_set>
 
 #include "pasteboard_hilog.h"
 
@@ -51,6 +52,7 @@ std::vector<std::string> PasteboardImgExtractor::ExtractImgSrc(const std::string
     std::unique_ptr<xmlDoc, decltype(&xmlFreeDoc)> docGuard(doc, xmlFreeDoc);
     auto uris = FindImgsExcludingSpan(doc);
     FilterFileUris(uris);
+    FilterImgUris(uris);
     return uris;
 }
 
@@ -65,9 +67,66 @@ void PasteboardImgExtractor::FilterFileUris(std::vector<std::string> &uris)
     );
 }
 
+void PasteboardImgExtractor::FilterImgUris(std::vector<std::string> &uris)
+{
+    uris.erase(
+        std::remove_if(uris.begin(), uris.end(),
+            [](const std::string &str) {
+                return !MatchImgExtension(str);
+            }),
+        uris.end()
+    );
+}
+
+bool PasteboardImgExtractor::MatchImgExtension(const std::string &uri)
+{
+    static const std::unordered_set<std::string> IMG_EXTENSIONS = {
+        "png", "jpg", "jpeg", "gif", "bmp", "webp", "svg", "ico", "tiff", "tif", "heic", "avif",
+    };
+
+    if (uri.empty()) {
+        return false;
+    }
+
+    size_t startPos = uri.size() - 1;
+    while (startPos > 0) {
+        char chr = uri.at(startPos);
+        if (chr == '/' || chr == '\\') {
+            break;
+        }
+        startPos--;
+    }
+    if (startPos + 1 >= uri.size()) {
+        return false;
+    }
+
+    std::string fileName = uri.substr(startPos + 1);
+    size_t dotPos = fileName.find_last_of('.');
+    if (dotPos == std::string::npos || dotPos == 0 || dotPos + 1 >= fileName.size()) {
+        return false;
+    }
+
+    size_t endPos = dotPos + 1;
+    size_t length = fileName.size();
+    size_t extCount = 0;
+    while (endPos < length) {
+        char chr = fileName.at(endPos);
+        if ((chr >= 'a' && chr <= 'z') || (chr >= 'A' && chr <= 'Z') || (chr >= '0' && chr <= '9')) {
+            endPos++;
+            extCount++;
+            continue;
+        }
+        break;
+    }
+
+    std::string extension = fileName.substr(dotPos + 1, extCount);
+    std::transform(extension.begin(), extension.end(), extension.begin(), std::tolower);
+    return IMG_EXTENSIONS.find(extension) != IMG_EXTENSIONS.end();
+}
+
 std::vector<std::string> PasteboardImgExtractor::FindImgsExcludingSpan(xmlDocPtr doc)
 {
-    return ExecuteXPath(doc, "//img[@src and not(ancestor::span)]");
+    return ExecuteXPath(doc, "//img[@src]");
 }
 
 std::vector<std::string> PasteboardImgExtractor::ExecuteXPath(xmlDocPtr doc, const char *xpathExpr)
