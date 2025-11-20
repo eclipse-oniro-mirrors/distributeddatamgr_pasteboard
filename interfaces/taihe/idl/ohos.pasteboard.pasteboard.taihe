@@ -152,6 +152,8 @@ struct GetDataParams {
 interface SystemPasteboard {
     OnUpdate(callback: () => void): void;
     OffUpdate(callback: Optional<() => void>): void;
+    OnRemoteUpdate(callback: () => void): void;
+    OffRemoteUpdate(callback: Optional<() => void>): void;
 
     @gen_async("clearData")
     @gen_promise("clearData")
