@@ -1197,10 +1197,6 @@ PasteboardTaihe::PasteData CreateDataByRecord(
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Get impl failed");
         return pasteDataTH;
     }
-    if (typeValueMap.size() == 0) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "valueType is empty");
-        return pasteDataTH;
-    }
     std::shared_ptr<EntryValueMap> entryValueMap = std::make_shared<EntryValueMap>();
     std::string primaryMimeType = "";
     for (const auto &item : typeValueMap) {

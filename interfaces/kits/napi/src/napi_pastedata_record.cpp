@@ -665,7 +665,8 @@ void PastedataRecordEntryGetterInstance::PastedataRecordEntryGetterImpl::SetEntr
     wrapper_ = entryGetterInstance;
 }
 
-napi_value PasteDataRecordNapi::CreateInstance(napi_env env, const std::shared_ptr<MiscServices::PasteDataRecord> record)
+napi_value PasteDataRecordNapi::CreateInstance(
+    napi_env env, const std::shared_ptr<MiscServices::PasteDataRecord> record)
 {
     napi_value instance = nullptr;
     napi_status status = NewInstance(env, instance);

@@ -110,7 +110,8 @@ private:
 };
 
 extern "C" {
-    API_EXPORT napi_value GetEtsPasteDataRecord(napi_env env, const std::shared_ptr<MiscServices::PasteDataRecord> record);
+    API_EXPORT napi_value GetEtsPasteDataRecord(
+        napi_env env, const std::shared_ptr<MiscServices::PasteDataRecord> record);
 }
 } // namespace MiscServicesNapi
 } // namespace OHOS
