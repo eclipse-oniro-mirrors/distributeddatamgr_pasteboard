@@ -1089,14 +1089,16 @@ public:
                 FileConflictOptionAdapter::FromTaihe(params.fileConflictOptions.value());
         }
         if (params.progressListener.has_value()) {
-            std::lock_guard<std::mutex> locker(getDataParamsMtx_);
             getDataParams->listener.ProgressNotify = ForwardProgressNotify;
-            getDataParams_.insert(std::make_pair(getDataParams, params));
         }
         auto ret = PasteboardClient::GetInstance()->GetDataWithProgress(*pasteData, getDataParams);
         if (ret != static_cast<int32_t>(PasteboardError::E_OK)) {
             taihe::set_business_error(static_cast<int>(JSErrorCode::ERR_GET_DATA_FAILED),
                 "System error occurred during paste execution.");
+        }
+        {
+            std::lock_guard<std::mutex> locker(getDataParamsMtx_);
+            getDataParams_.insert(std::make_pair(getDataParams, params));
         }
         if (getDataParams->info != nullptr) {
             delete getDataParams->info;
