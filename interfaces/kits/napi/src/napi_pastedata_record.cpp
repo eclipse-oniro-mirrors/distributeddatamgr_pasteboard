@@ -665,18 +665,18 @@ void PastedataRecordEntryGetterInstance::PastedataRecordEntryGetterImpl::SetEntr
     wrapper_ = entryGetterInstance;
 }
 
-napi_value PasteDataRecordNapi::CreateInstance(napi_env env, std::shared_ptr<MiscServices::PasteDataRecord> record)
+napi_value PasteDataRecordNapi::CreateInstance(napi_env env, const std::shared_ptr<MiscServices::PasteDataRecord> record)
 {
     napi_value instance = nullptr;
     napi_status status = NewInstance(env, instance);
     if (status != napi_ok) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "new instance failed");
-        return instance;
+        return nullptr;
     }
     PasteDataRecordNapi *obj = new (std::nothrow) PasteDataRecordNapi();
     if (obj == nullptr) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "create PasteDataRecordNapi failed");
-        return instance;
+        return nullptr;
     }
     obj->value_ = record;
     status = napi_wrap(
@@ -690,12 +690,13 @@ napi_value PasteDataRecordNapi::CreateInstance(napi_env env, std::shared_ptr<Mis
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "napi_wrap failed, status=%{public}d",
             static_cast<int32_t>(status));
         delete obj;
+        return nullptr;
     }
     return instance;
 }
 
 extern "C" {
-napi_value GetEtsPasteDataRecord(napi_env env, std::shared_ptr<MiscServices::PasteDataRecord> record)
+napi_value GetEtsPasteDataRecord(napi_env env, const std::shared_ptr<MiscServices::PasteDataRecord> record)
 {
     return PasteDataRecordNapi::CreateInstance(env, record);
 }

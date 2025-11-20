@@ -23,6 +23,6 @@ void PasteboardTaiheObserver::OnPasteboardChanged()
         (*cb_)();
     }
 }
- 
+
 } // namespace MiscServices
 } // namespace OHOS

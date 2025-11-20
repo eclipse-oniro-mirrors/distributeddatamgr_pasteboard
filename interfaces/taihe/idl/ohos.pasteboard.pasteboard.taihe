@@ -170,7 +170,7 @@ interface SystemPasteboard {
     SetDataImpl(data: PasteData): void;
 
     @gen_promise("getMimeTypes")
-    GetMimeTypesSync(): Array<String>;
+    GetMimeTypesImpl(): Array<String>;
 
     GetDataSource(): String;
     HasDataType(mimeType: String): bool;

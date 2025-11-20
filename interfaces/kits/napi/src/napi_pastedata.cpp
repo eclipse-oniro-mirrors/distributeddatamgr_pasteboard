@@ -1127,18 +1127,18 @@ napi_value PasteDataNapi::PasteComplete(napi_env env, napi_callback_info info)
     return nullptr;
 }
 
-napi_value PasteDataNapi::CreateInstance(napi_env env, std::shared_ptr<MiscServices::PasteData> pasteData)
+napi_value PasteDataNapi::CreateInstance(napi_env env, const std::shared_ptr<MiscServices::PasteData> pasteData)
 {
     napi_value instance = nullptr;
     napi_status status = NewInstance(env, instance);
     if (status != napi_ok) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "new instance failed");
-        return instance;
+        return nullptr;
     }
     PasteDataNapi *obj = new (std::nothrow) PasteDataNapi();
     if (obj == nullptr) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "create PasteDataNapi failed");
-        return instance;
+        return nullptr;
     }
     obj->value_ = pasteData;
     status = napi_wrap(
@@ -1152,12 +1152,13 @@ napi_value PasteDataNapi::CreateInstance(napi_env env, std::shared_ptr<MiscServi
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "napi_wrap failed, status=%{public}d",
             static_cast<int32_t>(status));
         delete obj;
+        return nullptr;
     }
     return instance;
 }
 
 extern "C" {
-napi_value GetEtsPasteData(napi_env env, std::shared_ptr<MiscServices::PasteData> pasteData)
+napi_value GetEtsPasteData(napi_env env, const std::shared_ptr<MiscServices::PasteData> pasteData)
 {
     return PasteDataNapi::CreateInstance(env, pasteData);
 }
