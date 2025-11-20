@@ -481,6 +481,10 @@ public:
             taihe::set_business_error(static_cast<int>(JSErrorCode::OUT_OF_RANGE), "index out of range.");
             return taihe::make_holder<PasteDataRecordImpl, PasteboardTaihe::PasteDataRecord>();
         }
+        if (this->pasteData_ == nullptr) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Get pasteData failed");
+            return taihe::make_holder<PasteDataRecordImpl, PasteboardTaihe::PasteDataRecord>();
+        }
         std::shared_ptr<PasteDataRecord> dataRecord = this->pasteData_->GetRecordAt(index);
         if (dataRecord == nullptr) {
             PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "invalid parameter record");
@@ -1154,29 +1158,29 @@ PasteboardTaihe::PasteData CreateDataByValue(
     PasteDataImpl *dataImpl = reinterpret_cast<PasteDataImpl *>(data->GetPasteDataImpl());
     if (dataImpl == nullptr) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Get impl failed");
-        return data
+        return data;
     }
     std::string mimeTypeStr = std::string(mimeType);
     if (mimeTypeStr.empty()) {
         taihe::set_business_error(
             static_cast<int>(JSErrorCode::INVALID_PARAMETERS), "Parameter error. mimeType cannot be empty.");
-        return data
+        return data;
     }
     if (mimeTypeStr.size() > MIMETYPE_MAX_SIZE) {
         taihe::set_business_error(static_cast<int>(JSErrorCode::INVALID_PARAMETERS),
             "Parameter error. The length of mimeType cannot be greater than 1024 bytes.");
-        return data
+        return data;
     }
     std::shared_ptr<PasteData> pasteData;
     auto strategy = StrategyFactory::CreateStrategyForData(mimeTypeStr);
     if (strategy == nullptr) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Create strategy failed");
-        return data
+        return data;
     }
     strategy->CreateData(mimeTypeStr, value, pasteData);
     if (pasteData == nullptr) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Create pasteData failed");
-        return data
+        return data;
     }
     dataImpl->SetPasteData(pasteData);
     dataImpl = nullptr;
