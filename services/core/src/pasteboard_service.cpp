@@ -1950,6 +1950,16 @@ int32_t PasteboardService::GetRemoteDeviceName(std::string &deviceName, bool &is
     return ERR_OK;
 }
 
+void PasteboardService::RemoveInvalidRemoteUri(std::vector<Uri> &grantUris)
+{
+    auto newEnd = std::remove_if(grantUris.begin(), grantUris.end(),
+        [](const Uri& uri) {
+            std::string puri = uri.ToString();
+            return puri.find("networkid=") == std::string::npos;
+        });
+    grantUris.erase(newEnd, grantUris.end());
+}
+
 int32_t PasteboardService::GrantPermission(const std::vector<Uri> &grantUris, uint32_t permFlag, bool isRemoteData,
     const std::string &targetBundleName, int32_t appIndex)
 {
@@ -2003,6 +2013,10 @@ int32_t PasteboardService::GrantUriPermission(std::map<uint32_t, std::vector<Uri
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGD(callingUid != ANCO_SERVICE_BROKER_UID,
         static_cast<int32_t>(PasteboardError::E_OK), PASTEBOARD_MODULE_SERVICE, "callingUid = ANCO_SERVICE_BROKER_UID");
     int32_t ret = 0;
+    if (isRemoteData) {
+        RemoveInvalidRemoteUri(readUris);
+        RemoveInvalidRemoteUri(writeUris);
+    }
     auto permFlag = PasteDataRecord::READ_PERMISSION;
     ret = GrantPermission(readUris, permFlag, isRemoteData, targetBundleName, appIndex);
     if (!isRemoteData) {
@@ -4257,8 +4271,11 @@ void PasteboardService::GenerateDistributedUri(PasteData &data)
     std::unordered_map<std::string, HmdfsUriInfo> dfsUris;
     if (!uris.empty()) {
         int ret = Storage::DistributedFile::FileMountManager::GetDfsUrisDirFromLocal(uris, userId, dfsUris);
-        PASTEBOARD_CHECK_AND_RETURN_LOGE((ret == 0 && !dfsUris.empty()), PASTEBOARD_MODULE_SERVICE,
-            "Get remoteUri failed, ret:%{public}d, userId:%{public}d, uri size:%{public}zu.", ret, userId, uris.size());
+        if (ret != 0 || dfsUris.empty()) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE,
+                "Get remoteUri failed, ret:%{public}d, userId:%{public}d, uri size:%{public}zu.",
+                ret, userId, uris.size());
+        }
         for (size_t i = 0; i < indexes.size(); i++) {
             auto item = data.GetRecordAt(indexes[i]);
             if (item == nullptr || item->GetOriginUri() == nullptr) {
@@ -4268,6 +4285,8 @@ void PasteboardService::GenerateDistributedUri(PasteData &data)
             if (it != dfsUris.end()) {
                 item->SetConvertUri(it->second.uriStr);
                 fileSize += it->second.fileSize;
+            } else {
+                item->SetConvertUri(" ");
             }
         }
     }

@@ -349,6 +349,7 @@ private:
     int32_t PostProcessDelayHtmlEntry(PasteData &data, const AppInfo &targetInfo, PasteDataEntry &entry);
     std::map<uint32_t, std::vector<Uri>> CheckUriPermission(
         PasteData &data, const std::pair<std::string, int32_t> &targetBundleAppIndex);
+    void RemoveInvalidRemoteUri(std::vector<Uri> &grantUris);
     int32_t GrantPermission(const std::vector<Uri> &grantUris, uint32_t permFlag, bool isRemoteData,
         const std::string &targetBundleName, int32_t appIndex);
     int32_t GrantUriPermission(std::map<uint32_t, std::vector<Uri>> &grantUris,
