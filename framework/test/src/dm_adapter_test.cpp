@@ -741,7 +741,7 @@ HWTEST_F(DMAdapterTest, DeInitialize, TestSize.Level0)
 HWTEST_F(DMAdapterTest, DmDeathTest, TestSize.Level0)
 {
     auto dmDeath = std::make_shared<DmDeath>();
+    ASSERT_TRUE(dmDeath != nullptr);
     dmDeath->OnRemoteDied();
-    ASSERT_TRUE(true);
 }
 } // namespace OHOS::MiscServices

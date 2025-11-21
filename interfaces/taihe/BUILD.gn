@@ -76,6 +76,7 @@ taihe_shared_library("pasteboard_taihe_native") {
     "runtime_core:ani",
     "runtime_core:ani_helpers",
     "udmf:udmf_data_napi",
+    "udmf:udmf_taihe_native",
   ]
 }
 

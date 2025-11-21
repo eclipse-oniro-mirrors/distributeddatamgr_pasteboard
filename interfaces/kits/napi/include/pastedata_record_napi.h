@@ -88,7 +88,7 @@ public:
         napi_value &instance);
     static napi_value CreatKvData(napi_env env, std::shared_ptr<MiscServices::MineCustomData> customData);
     static std::shared_ptr<MiscServices::MineCustomData> GetNativeKvData(napi_env env, napi_value napiValue);
-    static napi_value CreateInstance(napi_env env, std::shared_ptr<MiscServices::PasteDataRecord> record);
+    static napi_value CreateInstance(napi_env env, const std::shared_ptr<MiscServices::PasteDataRecord> record);
     napi_value SetNapiKvData(napi_env env, std::shared_ptr<MiscServices::MineCustomData> customData);
     PasteDataRecordNapi();
     ~PasteDataRecordNapi();
@@ -110,7 +110,8 @@ private:
 };
 
 extern "C" {
-    API_EXPORT napi_value GetEtsPasteDataRecord(napi_env env, std::shared_ptr<MiscServices::PasteDataRecord> record);
+    API_EXPORT napi_value GetEtsPasteDataRecord(
+        napi_env env, const std::shared_ptr<MiscServices::PasteDataRecord> record);
 }
 } // namespace MiscServicesNapi
 } // namespace OHOS

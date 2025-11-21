@@ -35,4 +35,4 @@ private:
 
 } // namespace MiscServices
 } // namespace OHOS
-#endif
+#endif // PASTEBOARD_TAIHE_OBSERVER_H

@@ -1189,7 +1189,8 @@ HWTEST_F(PasteboardClientTest, GetPasteIdTest001, TestSize.Level0)
  */
 HWTEST_F(PasteboardClientTest, ClearByUserTest001, TestSize.Level0)
 {
-    PasteboardClient::GetInstance()-> ClearByUser(0);
-    ASSERT_TRUE(true);
+    auto client = PasteboardClient::GetInstance();
+    ASSERT_TRUE(client != nullptr);
+    client->ClearByUser(0);
 }
 } // namespace OHOS::MiscServices

@@ -599,5 +599,49 @@ pasteboardTaihe::Pattern PatternAdapter::ToTaihe(MiscServices::Pattern value)
             return pasteboardTaihe::Pattern::key_t::COUNT;
     }
 }
+
+ProgressIndicator ProgressIndicatorAdapter::FromTaihe(pasteboardTaihe::ProgressIndicator value)
+{
+    switch (value.get_key()) {
+        case pasteboardTaihe::ProgressIndicator::key_t::NONE:
+            return ProgressIndicator::NONE_PROGRESS_INDICATOR;
+        default:
+            return ProgressIndicator::DEFAULT_PROGRESS_INDICATOR;
+    }
+}
+
+pasteboardTaihe::ProgressIndicator ProgressIndicatorAdapter::ToTaihe(ProgressIndicator value)
+{
+    switch (value) {
+        case ProgressIndicator::NONE_PROGRESS_INDICATOR:
+            return pasteboardTaihe::ProgressIndicator::key_t::NONE;
+        default:
+            return pasteboardTaihe::ProgressIndicator::key_t::DEFAULT;
+    }
+}
+
+FileConflictOption FileConflictOptionAdapter::FromTaihe(pasteboardTaihe::FileConflictOptions value)
+{
+    switch (value.get_key()) {
+        case pasteboardTaihe::FileConflictOptions::key_t::OVERWRITE:
+            return FileConflictOption::FILE_OVERWRITE;
+        case pasteboardTaihe::FileConflictOptions::key_t::SKIP:
+            return FileConflictOption::FILE_SKIP;
+        default:
+            return FileConflictOption::FILE_RENAME;
+    }
+}
+
+pasteboardTaihe::FileConflictOptions FileConflictOptionAdapter::ToTaihe(FileConflictOption value)
+{
+    switch (value) {
+        case FileConflictOption::FILE_OVERWRITE:
+            return pasteboardTaihe::FileConflictOptions::key_t::OVERWRITE;
+        case FileConflictOption::FILE_SKIP:
+            return pasteboardTaihe::FileConflictOptions::key_t::SKIP;
+        default:
+            return pasteboardTaihe::FileConflictOptions::key_t::RENAME;
+    }
+}
 } // namespace MiscServices
 } // namespace OHOS
