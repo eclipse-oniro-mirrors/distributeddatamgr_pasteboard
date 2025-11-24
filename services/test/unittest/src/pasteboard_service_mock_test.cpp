@@ -297,13 +297,13 @@ int DMAdapter::GetRemoteDeviceInfo(const std::string &networkId, DmDeviceInfo &r
     return interface->GetRemoteDeviceInfo(networkId, remoteDevice);
 }
 
-int DistributedFileDaemonManager::CloseP2PConnection(DmDeviceInfo &remoteDevice)
+int DistributedFileDaemonManager::DisconnectDfs(const std::string &networkId)
 {
     PasteboardServiceInterface *interface = GetPasteboardServiceInterface();
     if (interface == nullptr) {
         return false;
     }
-    return interface->CloseP2PConnection(remoteDevice);
+    return interface->DisconnectDfs(networkId);
 }
 
 std::shared_ptr<PasteDataEntry> PasteDataRecord::GetEntry(const std::string &utdType)
