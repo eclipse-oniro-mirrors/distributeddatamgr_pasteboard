@@ -27,13 +27,20 @@ namespace MiscServices {
 class PasteboardImgExtractor {
 public:
     static PasteboardImgExtractor &GetInstance();
-    std::vector<std::string> ExtractImgSrc(const std::string &htmlContent);
+    std::vector<std::string> ExtractImgSrc(const std::string &htmlContent, const std::string &bundleIndex,
+        int32_t userId);
+
+    static constexpr const char *IMG_LOCAL_URI = "file:///";
+    static constexpr const char *FILE_SCHEME_PREFIX = "file://";
+    static constexpr const char *DOC_LOCAL_URI = "file:///docs/";
+    static constexpr const char *DOC_URI_PREFIX = "file://docs/";
 
 private:
     PasteboardImgExtractor();
     ~PasteboardImgExtractor();
     static void FilterFileUris(std::vector<std::string> &uris);
     static void FilterImgUris(std::vector<std::string> &uris);
+    static void FilterExistFileUris(std::vector<std::string> &uris, const std::string &bundleIndex, int32_t userId);
     static bool MatchImgExtension(const std::string &uri);
     std::vector<std::string> FindImgsExcludingSpan(xmlDocPtr doc);
     std::vector<std::string> ExecuteXPath(xmlDocPtr doc, const char *xpathExpr);

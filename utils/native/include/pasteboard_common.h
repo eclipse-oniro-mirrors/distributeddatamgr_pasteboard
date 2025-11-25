@@ -37,6 +37,7 @@ public:
     int32_t GetApiTargetVersionForSelf(void);
     static int32_t GetDirByBundleNameAndAppIndex(const std::string &bundleName, int32_t appIndex,
         std::string &dataDir);
+    static std::string GetDirByAuthority(const std::pair<std::string, int32_t> &authority);
 
 private:
     int32_t apiTargetVersion_ = 0;

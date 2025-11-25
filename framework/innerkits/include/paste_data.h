@@ -141,11 +141,6 @@ public:
     static bool IsValidShareOption(int32_t shareOption);
     static std::string WEBVIEW_PASTEDATA_TAG;
     static constexpr const char *DISTRIBUTEDFILES_TAG = "distributedfiles";
-    static constexpr const char *PATH_SHARE = "/data/storage/el2/share/r/";
-    static constexpr const char *IMG_LOCAL_URI = "file:///";
-    static constexpr const char *SHARE_PATH_PREFIX = "/mnt/hmdfs/";
-    static constexpr const char *SHARE_PATH_PREFIX_ACCOUNT = "/account/merge_view/services/";
-    static constexpr const char *DOCS_LOCAL_TAG = "/docs/";
     static constexpr size_t URI_BATCH_SIZE = 10000;
     static constexpr uint32_t MAX_REPORT_RECORD_NUM = 30;
     static constexpr int32_t INVALID_TOKEN_ID = -1;
