@@ -29,14 +29,11 @@ namespace {
 constexpr const char *IMG_TAG_PATTERN = "<img.*?>";
 constexpr const char *IMG_TAG_SRC_PATTERN = "src=(['\"])(.*?)\\1";
 constexpr const char *IMG_TAG_SRC_HEAD = "src=\"";
-constexpr const char *IMG_LOCAL_URI = "file:///";
 constexpr const char *IMG_LOCAL_PATH = "://";
-constexpr const char *FILE_SCHEME_PREFIX = "file://";
 constexpr const char *FILE_SCHEME = "file";
 
 constexpr uint32_t FOUR_BYTES = 4;
 constexpr uint32_t EIGHT_BIT = 8;
-constexpr int32_t DOCS_LOCAL_PATH_SUBSTR_START_INDEX = 1;
 constexpr uid_t ANCO_SERVICE_BROKER_UID = 5557;
 
 struct Cmp {
@@ -57,7 +54,8 @@ PasteboardWebController &PasteboardWebController::GetInstance()
     return instance;
 }
 
-bool PasteboardWebController::SplitWebviewPasteData(PasteData &pasteData)
+bool PasteboardWebController::SplitWebviewPasteData(PasteData &pasteData, const std::string &bundleIndex,
+    int32_t userId)
 {
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_COMMON, "start");
     auto hasExtraRecord = false;
@@ -73,7 +71,8 @@ bool PasteboardWebController::SplitWebviewPasteData(PasteData &pasteData)
         if (html == nullptr || html->empty()) {
             continue;
         }
-        std::vector<std::shared_ptr<PasteDataRecord>> extraUriRecords = SplitHtml2Records(html, record->GetRecordId());
+        std::vector<std::shared_ptr<PasteDataRecord>> extraUriRecords = SplitHtml2Records(html, record->GetRecordId(),
+            bundleIndex, userId);
         PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "split html, recordId=%{public}u, uri count=%{public}zu",
             record->GetRecordId(), extraUriRecords.size());
         if (extraUriRecords.empty()) {
@@ -92,8 +91,7 @@ bool PasteboardWebController::SplitWebviewPasteData(PasteData &pasteData)
     return hasExtraRecord;
 }
 
-void PasteboardWebController::SetWebviewPasteData(PasteData &pasteData,
-    const std::pair<std::string, int32_t> &bundleIndex)
+void PasteboardWebController::SetWebviewPasteData(PasteData &pasteData, const std::string &bundleIndex)
 {
     if (pasteData.GetTag() != PasteData::WEBVIEW_PASTEDATA_TAG) {
         return;
@@ -103,23 +101,18 @@ void PasteboardWebController::SetWebviewPasteData(PasteData &pasteData,
             continue;
         }
         std::shared_ptr<Uri> uri = item->GetUriV0();
-        std::string puri = uri->ToString();
-        if (puri.substr(0, strlen(IMG_LOCAL_URI)) == PasteData::IMG_LOCAL_URI &&
-            puri.find(std::string(FILE_SCHEME_PREFIX) + PasteData::PATH_SHARE) == std::string::npos) {
-            std::string path = uri->GetPath();
-            std::string newUriStr = "";
-            if (path.substr(0, std::string(PasteData::DOCS_LOCAL_TAG).size()) == PasteData::DOCS_LOCAL_TAG) {
-                newUriStr = FILE_SCHEME_PREFIX;
-                newUriStr += path.substr(DOCS_LOCAL_PATH_SUBSTR_START_INDEX);
+        std::string uriStr = uri->ToString();
+        std::string newUriStr;
+        if (uriStr.find(PasteboardImgExtractor::IMG_LOCAL_URI) == 0) {
+            if (uriStr.find(PasteboardImgExtractor::DOC_LOCAL_URI) == 0) {
+                newUriStr = uriStr.replace(0, std::strlen(PasteboardImgExtractor::DOC_LOCAL_URI),
+                    PasteboardImgExtractor::DOC_URI_PREFIX);
             } else {
-                newUriStr = FILE_SCHEME_PREFIX;
-                std::string bundleIndexName;
-                PasteBoardCommon::GetDirByBundleNameAndAppIndex(bundleIndex.first,
-                    bundleIndex.second, bundleIndexName);
-                newUriStr += bundleIndexName + path;
+                newUriStr = uriStr.replace(0, std::strlen(PasteboardImgExtractor::IMG_LOCAL_URI),
+                    PasteboardImgExtractor::FILE_SCHEME_PREFIX + bundleIndex + "/");
             }
             item->SetUri(std::make_shared<OHOS::Uri>(newUriStr));
-            PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "uri: %{private}s -> %{private}s", puri.c_str(),
+            PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "uri: %{private}s -> %{private}s", uriStr.c_str(),
                 newUriStr.c_str());
         }
     }
@@ -224,13 +217,13 @@ void PasteboardWebController::RefreshUri(std::shared_ptr<PasteDataRecord> &recor
     std::shared_ptr<Uri> uri = record->GetUriV0();
     std::string puri = uri->ToString();
     std::string realUri = puri;
-    if (puri.substr(0, strlen(FILE_SCHEME_PREFIX)) == FILE_SCHEME_PREFIX) {
+    if (puri.find(PasteboardImgExtractor::FILE_SCHEME_PREFIX) == 0) {
         AppFileService::ModuleFileUri::FileUri fileUri(puri);
         std::string realPath = PasteBoardCommon::IsPasteboardService() ? fileUri.GetRealPathBySA(bundleIndex) :
             fileUri.GetRealPath();
         PASTEBOARD_CHECK_AND_RETURN_LOGE(!realPath.empty(), PASTEBOARD_MODULE_COMMON,
             "file not exist, id=%{public}u, uri=%{public}s", record->GetRecordId(), puri.c_str());
-        realUri = FILE_SCHEME_PREFIX;
+        realUri = PasteboardImgExtractor::FILE_SCHEME_PREFIX;
         realUri += realPath;
         PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "uri: %{private}s -> %{private}s", puri.c_str(), realUri.c_str());
     }
@@ -365,7 +358,8 @@ void PasteboardWebController::RemoveInvalidImgSrc(const std::vector<std::string>
 }
 
 std::vector<std::shared_ptr<PasteDataRecord>> PasteboardWebController::SplitHtml2Records(
-    const std::shared_ptr<std::string> &html, uint32_t recordId) noexcept
+    const std::shared_ptr<std::string> &html, uint32_t recordId, const std::string &bundleIndex,
+    int32_t userId) noexcept
 {
     if (html == nullptr) {
         return {};
@@ -380,7 +374,7 @@ std::vector<std::shared_ptr<PasteDataRecord>> PasteboardWebController::SplitHtml
     if (imgSrcMap.empty()) {
         return {};
     }
-    auto validImgSrcList = PasteboardImgExtractor::GetInstance().ExtractImgSrc(*html);
+    auto validImgSrcList = PasteboardImgExtractor::GetInstance().ExtractImgSrc(*html, bundleIndex, userId);
     RemoveInvalidImgSrc(validImgSrcList, imgSrcMap);
     if (imgSrcMap.empty()) {
         return {};
@@ -531,7 +525,7 @@ void PasteboardWebController::RemoveAllRecord(std::shared_ptr<PasteData> pasteDa
 
 bool PasteboardWebController::IsLocalURI(std::string &uri) noexcept
 {
-    return uri.substr(0, strlen(IMG_LOCAL_URI)) == std::string(IMG_LOCAL_URI) ||
+    return uri.find(PasteboardImgExtractor::IMG_LOCAL_URI) == 0 ||
         uri.find(IMG_LOCAL_PATH) == std::string::npos;
 }
 

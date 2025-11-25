@@ -27,8 +27,8 @@ public:
     virtual ~PasteboardWebController() = default;
 
     static PasteboardWebController &GetInstance();
-    bool SplitWebviewPasteData(PasteData &pasteData);
-    void SetWebviewPasteData(PasteData &pasteData, const std::pair<std::string, int32_t> &bundleIndex);
+    bool SplitWebviewPasteData(PasteData &pasteData, const std::string &bundleIndex, int32_t userId);
+    void SetWebviewPasteData(PasteData &pasteData, const std::string &bundleIndex);
     void CheckAppUriPermission(PasteData &pasteData);
     void RetainUri(PasteData &pasteData);
     void RemoveInvalidUri(PasteData &data);
@@ -40,7 +40,7 @@ private:
     void RefreshUri(std::shared_ptr<PasteDataRecord> &record, const std::string &targetBundle, int32_t appInedx);
     std::shared_ptr<std::string> RebuildHtml(std::shared_ptr<PasteData> pasteData) noexcept;
     std::vector<std::shared_ptr<PasteDataRecord>> SplitHtml2Records(const std::shared_ptr<std::string> &html,
-        uint32_t recordId) noexcept;
+        uint32_t recordId, const std::string &bundleIndex, int32_t userId) noexcept;
     void MergeExtraUris2Html(PasteData &data);
     std::vector<std::pair<std::string, uint32_t>> SplitHtmlWithImgLabel(
         const std::shared_ptr<std::string> html) noexcept;

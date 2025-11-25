@@ -83,6 +83,13 @@ int32_t PasteBoardCommon::GetDirByBundleNameAndAppIndex(const std::string &bundl
     return ERR_OK;
 }
 
+std::string PasteBoardCommon::GetDirByAuthority(const std::pair<std::string, int32_t> &authority)
+{
+    std::string bundleIndex;
+    int32_t ret = GetDirByBundleNameAndAppIndex(authority.first, authority.second, bundleIndex);
+    return ret == ERR_OK ? bundleIndex : authority.first;
+}
+
 bool PasteBoardCommon::IsValidMimeType(const std::string &mimeType)
 {
     const bool isNonEmpty = !mimeType.empty();

@@ -16,10 +16,14 @@
 #include "pasteboard_img_extractor.h"
 
 #include <algorithm>
+#include <cerrno>
+#include <cstring>
 #include <memory>
+#include <sys/stat.h>
 #include <unordered_set>
 
 #include "pasteboard_hilog.h"
+#include "sandbox_helper.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -42,7 +46,8 @@ PasteboardImgExtractor::~PasteboardImgExtractor()
     xmlCleanupParser();
 }
 
-std::vector<std::string> PasteboardImgExtractor::ExtractImgSrc(const std::string &htmlContent)
+std::vector<std::string> PasteboardImgExtractor::ExtractImgSrc(const std::string &htmlContent,
+    const std::string &bundleIndex, int32_t userId)
 {
     std::lock_guard lock(mutex_);
     int options = HTML_PARSE_RECOVER | HTML_PARSE_NOERROR | HTML_PARSE_NOWARNING;
@@ -53,7 +58,57 @@ std::vector<std::string> PasteboardImgExtractor::ExtractImgSrc(const std::string
     auto uris = FindImgsExcludingSpan(doc);
     FilterFileUris(uris);
     FilterImgUris(uris);
+    FilterExistFileUris(uris, bundleIndex, userId);
     return uris;
+}
+
+void PasteboardImgExtractor::FilterExistFileUris(std::vector<std::string> &uris, const std::string &bundleIndex,
+    int32_t userId)
+{
+    std::vector<std::string> existFileUris;
+    std::string userIdStr = std::to_string(userId);
+    for (const std::string &uriStr : uris) {
+        std::string oldUriStr = uriStr;
+        std::string newUriStr;
+        if (oldUriStr.find(PasteboardImgExtractor::IMG_LOCAL_URI) != 0) {
+            continue;
+        } else if (oldUriStr.find(PasteboardImgExtractor::DOC_LOCAL_URI) == 0) {
+            newUriStr = oldUriStr.replace(0, std::strlen(PasteboardImgExtractor::DOC_LOCAL_URI),
+                PasteboardImgExtractor::DOC_URI_PREFIX);
+        } else {
+            newUriStr = oldUriStr.replace(0, std::strlen(PasteboardImgExtractor::IMG_LOCAL_URI),
+                PasteboardImgExtractor::FILE_SCHEME_PREFIX + bundleIndex + "/");
+        }
+
+        std::string physicalPath;
+        int32_t ret = AppFileService::SandboxHelper::GetPhysicalPath(newUriStr, userIdStr, physicalPath);
+        if (ret != 0) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_COMMON, "get phy path fail, uri=%{private}s", newUriStr.c_str());
+            continue;
+        }
+
+        errno = 0;
+        struct stat buf = {};
+        if (stat(physicalPath.c_str(), &buf) != 0) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_COMMON, "stat fail, uri=%{private}s, path=%{private}s, err=%{public}d",
+                newUriStr.c_str(), physicalPath.c_str(), errno);
+            if (errno == EACCES) {
+                existFileUris.push_back(uriStr);
+            }
+            continue;
+        }
+
+        if ((buf.st_mode & S_IFMT) == S_IFDIR) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_COMMON, "is dir, uri=%{private}s, path=%{private}s",
+                newUriStr.c_str(), physicalPath.c_str());
+            continue;
+        }
+
+        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "uri=%{private}s, path=%{private}s, size=%{public}zu",
+            newUriStr.c_str(), physicalPath.c_str(), static_cast<size_t>(buf.st_size));
+        existFileUris.push_back(uriStr);
+    }
+    uris = existFileUris;
 }
 
 void PasteboardImgExtractor::FilterFileUris(std::vector<std::string> &uris)
@@ -145,7 +200,7 @@ std::vector<std::string> PasteboardImgExtractor::ExecuteXPath(xmlDocPtr doc, con
 
     std::vector<std::string> results;
     xmlNodeSetPtr nodeSet = result->nodesetval;
-    for (size_t i = 0; i < nodeSet->nodeNr; ++i) {
+    for (auto i = 0; i < nodeSet->nodeNr; ++i) {
         xmlNodePtr node = nodeSet->nodeTab[i];
         if (node == nullptr) {
             continue;
