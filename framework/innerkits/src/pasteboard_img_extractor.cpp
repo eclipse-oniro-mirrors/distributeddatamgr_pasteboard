@@ -22,11 +22,13 @@
 #include <sys/stat.h>
 #include <unordered_set>
 
+#include "ipc_skeleton.h"
 #include "pasteboard_hilog.h"
 #include "sandbox_helper.h"
 
 namespace OHOS {
 namespace MiscServices {
+constexpr uid_t HWF_SERVICE_UID = 7700;
 
 PasteboardImgExtractor &PasteboardImgExtractor::GetInstance()
 {
@@ -67,7 +69,12 @@ void PasteboardImgExtractor::FilterExistFileUris(std::vector<std::string> &uris,
 {
     std::vector<std::string> existFileUris;
     std::string userIdStr = std::to_string(userId);
+    uid_t callingUid = IPCSkeleton::GetCallingUid();
     for (const std::string &uriStr : uris) {
+        if (!AppFileService::SandboxHelper::IsValidPath(uriStr)) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_COMMON, "uri path invalid, uri=%{private}s", uriStr.c_str());
+            continue;
+        }
         std::string oldUriStr = uriStr;
         std::string newUriStr;
         if (oldUriStr.find(PasteboardImgExtractor::IMG_LOCAL_URI) != 0) {
@@ -81,10 +88,14 @@ void PasteboardImgExtractor::FilterExistFileUris(std::vector<std::string> &uris,
         }
 
         std::string physicalPath;
-        int32_t ret = AppFileService::SandboxHelper::GetPhysicalPath(newUriStr, userIdStr, physicalPath);
-        if (ret != 0) {
-            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_COMMON, "get phy path fail, uri=%{private}s", newUriStr.c_str());
-            continue;
+        if (callingUid == HWF_SERVICE_UID && oldUriStr.find("file://docs/storage/Users/currentUser/") == 0) {
+            physicalPath = oldUriStr.replace(0, std::strlen("file://docs/storage/Users/currentUser/"), "/mnt/");
+        } else {
+            int32_t ret = AppFileService::SandboxHelper::GetPhysicalPath(newUriStr, userIdStr, physicalPath);
+            if (ret != 0) {
+                PASTEBOARD_HILOGE(PASTEBOARD_MODULE_COMMON, "get phy path fail, uri=%{private}s", newUriStr.c_str());
+                continue;
+            }
         }
 
         errno = 0;
@@ -92,9 +103,6 @@ void PasteboardImgExtractor::FilterExistFileUris(std::vector<std::string> &uris,
         if (stat(physicalPath.c_str(), &buf) != 0) {
             PASTEBOARD_HILOGE(PASTEBOARD_MODULE_COMMON, "stat fail, uri=%{private}s, path=%{private}s, err=%{public}d",
                 newUriStr.c_str(), physicalPath.c_str(), errno);
-            if (errno == EACCES) {
-                existFileUris.push_back(uriStr);
-            }
             continue;
         }
 
@@ -136,7 +144,11 @@ void PasteboardImgExtractor::FilterImgUris(std::vector<std::string> &uris)
 bool PasteboardImgExtractor::MatchImgExtension(const std::string &uri)
 {
     static const std::unordered_set<std::string> IMG_EXTENSIONS = {
-        "png", "jpg", "jpeg", "gif", "bmp", "webp", "svg", "ico", "tiff", "tif", "heic", "avif",
+        "png", "jpg", "jpeg", "jpe", "tif", "tiff", "xbm", "gif", "djv", "djvu", "jng", "pcx", "pbm", "pgm", "pnm",
+        "ppm", "rgb", "svg", "svgz", "wbmp", "xpm", "xwd", "heif", "heifs", "hif", "heic", "heics", "jp2", "jpg2",
+        "jpx", "jpf", "jpm", "ief", "bmp", "bm", "ico", "cur", "dds", "odi", "oti", "psd", "ai", "dng", "ras", "dwg",
+        "dxf", "tga", "sgi", "exr", "fpx", "cdr", "cdt", "cpt", "pat", "ilbm", "avif", "webp", "xcf", "art", "cr2",
+        "cr3", "crw", "arw", "nef", "nrw", "raf", "rw2", "raw", "pef", "srw", "erf", "orf", "apng",
     };
 
     if (uri.empty()) {
@@ -175,7 +187,7 @@ bool PasteboardImgExtractor::MatchImgExtension(const std::string &uri)
     }
 
     std::string extension = fileName.substr(dotPos + 1, extCount);
-    std::transform(extension.begin(), extension.end(), extension.begin(), std::tolower);
+    std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
     return IMG_EXTENSIONS.find(extension) != IMG_EXTENSIONS.end();
 }
 
