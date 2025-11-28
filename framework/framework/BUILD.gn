@@ -77,6 +77,7 @@ ohos_shared_library("pasteboard_framework") {
 
   external_deps = [
     "access_token:libaccesstoken_sdk",
+    "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "cJSON:cjson",
     "c_utils:utils",
