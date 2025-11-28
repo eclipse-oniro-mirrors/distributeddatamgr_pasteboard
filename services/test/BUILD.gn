@@ -606,6 +606,7 @@ ohos_unittest("PasteboardDisposableManagerTest") {
   ]
 
   external_deps = [
+    "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
     "ffrt:libffrt",
