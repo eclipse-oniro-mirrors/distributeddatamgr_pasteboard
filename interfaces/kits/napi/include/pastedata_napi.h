@@ -72,7 +72,7 @@ private:
     static napi_value PasteStart(napi_env env, napi_callback_info info);
     static napi_value PasteComplete(napi_env env, napi_callback_info info);
     static bool ParseProperty(napi_env env, const std::string& propName, napi_value propValueNapi,
-        MiscServices::PasteDataRecord::Builder& builder);
+        MiscServices::PasteDataRecord::Builder &builder);
 };
 
 extern "C" {
