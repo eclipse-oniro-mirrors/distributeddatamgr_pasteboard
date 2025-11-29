@@ -96,6 +96,9 @@ void PasteboardImgExtractor::FilterExistFileUris(std::vector<std::string> &uris,
                 PASTEBOARD_HILOGE(PASTEBOARD_MODULE_COMMON, "get phy path fail, uri=%{private}s", newUriStr.c_str());
                 continue;
             }
+            if (errno == EACCES) {
+                existFileUris.push_back(uriStr);
+            }
         }
 
         errno = 0;
