@@ -578,7 +578,8 @@ std::shared_ptr<MiscServices::PasteDataRecord> PasteDataNapi::ParseRecord(napi_e
     return result;
 }
 
-bool PasteDataNapi::ParseProperty(napi_env env, const std::string& propName, napi_value propValueNapi, PasteDataRecord::Builder& builder)
+bool PasteDataNapi::ParseProperty(napi_env env, const std::string& propName, napi_value propValueNapi,
+    PasteDataRecord::Builder& builder)
 {
     if (propName == "mimeType" || propName == "htmlText" || propName == "plainText" || propName == "uri") {
         if (!SetStringProp(env, propName, propValueNapi, builder)) {
