@@ -2267,7 +2267,8 @@ void PasteboardService::HandleDelayDataAndRecord(PasteData &pasteData, const spt
 
 bool PasteboardService::IsBasicType(const std::string &mimeType)
 {
-    if (mimeType == MIMETYPE_TEXT_HTML || mimeType == MIMETYPE_TEXT_PLAIN || mimeType == MIMETYPE_TEXT_URI) {
+    if (mimeType == MIMETYPE_TEXT_HTML || mimeType == MIMETYPE_TEXT_PLAIN || mimeType == MIMETYPE_TEXT_URI ||
+        mimeType == MIMETYPE_PIXELMAP || mimeType == MIMETYPE_AUTOFILL_SECURE) {
         return true;
     }
     return false;
