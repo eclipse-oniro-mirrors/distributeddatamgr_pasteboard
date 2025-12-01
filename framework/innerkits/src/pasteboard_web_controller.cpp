@@ -234,7 +234,7 @@ void PasteboardWebController::RefreshUri(std::shared_ptr<PasteDataRecord> &recor
     }
 }
 
-bool PasteboardWebController::IsValidUri(const std::shared_ptr<OHOS::Uri> uriPtr) noexcept
+bool PasteboardWebController::IsValidUri(const std::shared_ptr<OHOS::Uri> uriPtr, bool hasPermission) noexcept
 {
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(uriPtr != nullptr, false, PASTEBOARD_MODULE_COMMON, "uri is empty");
 
@@ -244,6 +244,11 @@ bool PasteboardWebController::IsValidUri(const std::shared_ptr<OHOS::Uri> uriPtr
 
     if (scheme.empty() || (scheme == FILE_SCHEME && authority.empty())) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_COMMON, "invalid uri:%{private}s, scheme:%{public}s, authority:%{public}s",
+            uriStr.c_str(), scheme.c_str(), authority.c_str());
+        return false;
+    }
+    if (scheme == FILE_SCHEME && !hasPermission) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_COMMON, "no perm uri:%{private}s, scheme:%{public}s, authority:%{public}s",
             uriStr.c_str(), scheme.c_str(), authority.c_str());
         return false;
     }
@@ -259,7 +264,7 @@ bool PasteboardWebController::RemoveInvalidUri(PasteDataEntry &entry)
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(uriPtr != nullptr, false, PASTEBOARD_MODULE_COMMON,
         "entry convert uri failed");
 
-    if (IsValidUri(uriPtr)) {
+    if (IsValidUri(uriPtr, true)) {
         return false;
     }
 
@@ -294,7 +299,7 @@ void PasteboardWebController::RemoveInvalidUri(PasteData &data)
         if (uriPtr == nullptr) {
             continue;
         }
-        if (IsValidUri(uriPtr)) {
+        if (IsValidUri(uriPtr, record->HasGrantUriPermission())) {
             continue;
         }
         record->SetUri(emptyUri);

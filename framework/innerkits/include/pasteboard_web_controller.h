@@ -54,7 +54,7 @@ private:
     void RemoveAllRecord(std::shared_ptr<PasteData> pasteData) noexcept;
     void RemoveRecordById(PasteData &pasteData, uint32_t recordId) noexcept;
     bool IsLocalURI(std::string &uri) noexcept;
-    bool IsValidUri(const std::shared_ptr<OHOS::Uri> uriPtr) noexcept;
+    bool IsValidUri(const std::shared_ptr<OHOS::Uri> uriPtr, bool hasPermission) noexcept;
     std::map<std::uint32_t, std::vector<std::shared_ptr<PasteDataRecord>>> GroupRecordWithFrom(PasteData &data);
 
     void RemoveExtraUris(PasteData &data);
