@@ -14,7 +14,8 @@
             "value": "on"
           }
         ]
-      }
+      },
+      "min_hdi_proxy_version": []
     }
   ]
 }
