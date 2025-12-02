@@ -1710,7 +1710,7 @@ void PasteboardService::OpenP2PLink(const std::string &networkId)
         "publish CONNECT_SUCC failed, deviceId=%{public}.5s, status=%{public}d", networkId.c_str(), status);
 
 #ifdef PB_DEVICE_MANAGER_ENABLE
-    status = DistributedFileDaemonManager::GetInstance().OpenP2PConnection(remoteDevice);
+    status = DistributedFileDaemonManager::GetInstance().ConnectDfs(networkId);
     if (status != RESULT_OK) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "open p2p error, status:%{public}d", status);
         plugin->PublishServiceState(networkId, ClipPlugin::ServiceStatus::IDLE);
@@ -1881,7 +1881,7 @@ void PasteboardService::CloseP2PLink(const std::string &networkId)
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "remote device is not exist");
         return;
     }
-    auto status = DistributedFileDaemonManager::GetInstance().CloseP2PConnection(remoteDevice);
+    auto status = DistributedFileDaemonManager::GetInstance().DisconnectDfs(networkId);
     if (status != RESULT_OK) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "close p2p error, status:%{public}d", status);
     }
@@ -3381,7 +3381,7 @@ bool PasteboardService::OpenP2PLinkForPreEstablish(const std::string &networkId,
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "remote device is not exist, ret:%{public}d", ret);
         return false;
     }
-    auto status = DistributedFileDaemonManager::GetInstance().OpenP2PConnection(remoteDevice);
+    auto status = DistributedFileDaemonManager::GetInstance().ConnectDfs(networkId);
     if (status != RESULT_OK) {
         DeletePreSyncP2pFromP2pMap(networkId);
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "open p2p error, status:%{public}d", status);
