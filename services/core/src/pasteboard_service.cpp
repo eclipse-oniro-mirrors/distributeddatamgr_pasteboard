@@ -421,12 +421,14 @@ void PasteboardService::ReportUeCopyEvent(PasteData &pasteData, int64_t dataSize
     reportInfo.bundleName = appInfo.bundleName;
     reportInfo.description = pasteData.GetReportDescription();
     reportInfo.commonInfo = GetCommonState(dataSize);
+    reportInfo.timestamp = pasteData.GetProperty().timestamp;
     UE_REPORT(UE_COPY, reportInfo,
         "RECORD_NUM", reportInfo.description.recordNum,
         "DATA_SIZE", reportInfo.commonInfo.dataSize,
         "CURRENT_ACCOUNT_ID", reportInfo.commonInfo.currentAccountId,
         "ENTRY_NUM", reportInfo.description.entryNum,
-        "MIMETYPES", reportInfo.description.mimeTypes);
+        "MIMETYPES", reportInfo.description.mimeTypes,
+        "DATA_TIMESTAMP", reportInfo.timestamp);
 }
 
 void PasteboardService::InitServiceHandler()
@@ -1203,6 +1205,7 @@ void PasteboardService::SetUeEvent(const AppInfo &appInfo, PasteData &data, bool
     ueReportInfo.pasteInfo.isPeerOnline = isPeerOnline;
     ueReportInfo.pasteInfo.onlineDevNum = DMAdapter::GetInstance().GetNetworkIds().size();
     ueReportInfo.description = data.GetReportDescription();
+    ueReportInfo.timestamp = data.GetProperty().timestamp;
 }
 
 int32_t PasteboardService::GetPasteData(int &fd, int64_t &size, std::vector<uint8_t> &rawData,
@@ -1229,7 +1232,8 @@ int32_t PasteboardService::GetPasteData(int &fd, int64_t &size, std::vector<uint
         "ONLINE_DEV_NUM", ueReportInfo.pasteInfo.onlineDevNum,
         "NETWORK_TYPE", ueReportInfo.pasteInfo.networkType,
         "ENTRY_NUM", ueReportInfo.description.entryNum,
-        "MIMETYPES", ueReportInfo.description.mimeTypes);
+        "MIMETYPES", ueReportInfo.description.mimeTypes,
+        "DATA_TIMESTAMP", ueReportInfo.timestamp);
     realErrCode = ret;
     return 0;
 }
