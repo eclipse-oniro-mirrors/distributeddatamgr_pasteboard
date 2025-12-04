@@ -46,7 +46,8 @@ enum SwitchStatus : std::int32_t {
         HiSysEventWrite(UeReporter::UE_DOMAIN, eventName, UeReporter::UE_OPERATION_TYPE, "PNAMEID",                 \
             "pasteboard_service", "PVERSIONID", UeReporter::VERSION,                                                \
             "PASTEDATA_TYPE", reportInfo.dataType, "BUNDLE_NAME", reportInfo.bundleName,                            \
-            "PASTE_RESULT", reportInfo.ret, "DEVICE_TYPE", reportInfo.commonInfo.deviceType, ##__VA_ARGS__);        \
+            "PASTE_RESULT", reportInfo.ret, "DEVICE_TYPE", reportInfo.commonInfo.deviceType,                        \
+            "DATA_TIMESTAMP", reportInfo.timestamp, ##__VA_ARGS__);                                                 \
     })
 } // namespace UeReporter
 } // namespace MiscServices

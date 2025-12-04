@@ -66,6 +66,7 @@ struct UeReportInfo {
     DataDescription description;
     CommonInfo commonInfo;
     UePasteInfo pasteInfo;
+    std::int64_t timestamp = 0;
 };
 } // namespace OHOS
 #endif // DISTRIBUTEDDATAMGR_PASTEBOARD_EVENT_COMMON_H
