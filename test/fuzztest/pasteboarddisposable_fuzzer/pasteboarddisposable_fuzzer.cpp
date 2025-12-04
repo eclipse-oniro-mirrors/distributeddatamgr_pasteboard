@@ -107,6 +107,7 @@ public:
     void TearDown()
     {
         FFRTPool::Clear();
+        std::lock_guard lock(DisposableManager::GetInstance().disposableInfoMutex_);
         DisposableManager::GetInstance().disposableInfoList_.clear();
     }
 };
@@ -154,7 +155,10 @@ void TestTryProcessDisposableData(const uint8_t *data, size_t size)
     entryGetter->text_ = text;
     WindowManager::SetFocusWindowId(windowId);
 
-    DisposableManager::GetInstance().disposableInfoList_ = {info, info2};
+    {
+        std::lock_guard lock(DisposableManager::GetInstance().disposableInfoMutex_);
+        DisposableManager::GetInstance().disposableInfoList_ = {info, info2};
+    }
     DisposableManager::GetInstance().TryProcessDisposableData(pasteData, delayGetter, entryGetter);
 }
 
@@ -178,7 +182,10 @@ void TestRemoveDisposableInfo(const uint8_t *data, size_t size)
     auto observer2 = fdp.ConsumeBool() ? nullptr : OHOS::sptr<DisposableObserverImpl>::MakeSptr();
     DisposableInfo info2(pid2, tokenId2, windowId2, type2, maxLen2, observer2);
 
-    DisposableManager::GetInstance().disposableInfoList_ = {info, info2};
+    {
+        std::lock_guard lock(DisposableManager::GetInstance().disposableInfoMutex_);
+        DisposableManager::GetInstance().disposableInfoList_ = {info, info2};
+    }
     DisposableManager::GetInstance().RemoveDisposableInfo(pid, fdp.ConsumeBool());
 }
 } // anonymous namespace
