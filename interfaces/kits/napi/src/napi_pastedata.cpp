@@ -543,9 +543,9 @@ std::shared_ptr<MiscServices::PasteDataRecord> PasteDataNapi::ParseRecord(napi_e
         std::string propName = str;
         PASTEBOARD_HILOGI(PASTEBOARD_MODULE_JS_NAPI, "propName = %{public}s,", propName.c_str());
 
-        if (propName == "mimeType" || propName == "htmlText" || propName == "plainText" || propName == "uri") {	
-            if (!SetStringProp(env, propName, propValueNapi, builder)) {	
-                PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "SetStringProp fail");	
+        if (propName == "mimeType" || propName == "htmlText" || propName == "plainText" || propName == "uri") {
+            if (!SetStringProp(env, propName, propValueNapi, builder)) {
+                PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "SetStringProp fail");
                 return nullptr;
             }
         } else if (propName == "want") {
@@ -581,12 +581,12 @@ std::shared_ptr<MiscServices::PasteDataRecord> PasteDataNapi::ParseRecord(napi_e
         result->SetDelayRecordFlag(true);
     }
 
-    if (record != nullptr && record->value_ != nullptr && !record->value_->GetEntries().empty()) {	
-        for (const auto& pasteDataEntry : record->value_->GetEntries()) {	
-            result->AddEntry(pasteDataEntry->GetUtdId(), pasteDataEntry);	
-        }	
+    if (record != nullptr && record->value_ != nullptr && !record->value_->GetEntries().empty()) {
+        for (const auto& pasteDataEntry : record->value_->GetEntries()) {
+            result->AddEntry(pasteDataEntry->GetUtdId(), pasteDataEntry);
+        }
     }
-    
+
     return result;
 }
 
