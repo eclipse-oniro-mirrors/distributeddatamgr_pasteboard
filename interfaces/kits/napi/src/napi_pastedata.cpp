@@ -543,9 +543,28 @@ std::shared_ptr<MiscServices::PasteDataRecord> PasteDataNapi::ParseRecord(napi_e
         std::string propName = str;
         PASTEBOARD_HILOGI(PASTEBOARD_MODULE_JS_NAPI, "propName = %{public}s,", propName.c_str());
 
-        if (!ParseProperty(env, propName, propValueNapi, builder)) {
-            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "ParseProperty failed for %{public}s", propName.c_str());
-            return nullptr;
+        if (propName == "mimeType" || propName == "htmlText" || propName == "plainText" || propName == "uri") {
+            if (!SetStringProp(env, propName, propValueNapi, builder)) {
+                PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "SetStringProp fail");
+                return nullptr;
+            }
+        } else if (propName == "want") {
+            AAFwk::Want want;
+            if (OHOS::AppExecFwk::UnwrapWant(env, propValueNapi, want) != true) {
+                PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "UnwrapWant fail");
+                return nullptr;
+            }
+            builder.SetWant(std::make_shared<AAFwk::Want>(want));
+        } else if (propName == "pixelMap") {
+            std::shared_ptr<PixelMap> pixelMap = PixelMapNapi::GetPixelMap(env, propValueNapi);
+            PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(pixelMap != nullptr, nullptr, PASTEBOARD_MODULE_CLIENT,
+                "GetPixelMap fail, pixelMap is null");
+            builder.SetPixelMap(pixelMap);
+        } else if (propName == "data") {
+            std::shared_ptr<MineCustomData> customData = PasteDataRecordNapi::GetNativeKvData(env, propValueNapi);
+            PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(customData != nullptr, nullptr, PASTEBOARD_MODULE_CLIENT,
+                "GetNativeKvData fail, customData is null");
+            builder.SetCustomData(customData);
         }
     }
     std::shared_ptr<PasteDataRecord> result = builder.Build();
@@ -562,49 +581,16 @@ std::shared_ptr<MiscServices::PasteDataRecord> PasteDataNapi::ParseRecord(napi_e
         result->SetDelayRecordFlag(true);
     }
 
-    auto types = result->GetUtdTypes();
-    if (record != nullptr && record->value_ != nullptr) {
+    if (record != nullptr && record->value_ != nullptr && !record->value_->GetEntries().empty()) {
         for (const auto& pasteDataEntry : record->value_->GetEntries()) {
             if (pasteDataEntry == nullptr) {
                 continue;
             }
-            auto udtId = pasteDataEntry->GetUtdId();
-            if (types.count(udtId)) {
-                continue;
-            }
-            result->AddEntry(udtId, pasteDataEntry);
+            result->AddEntry(pasteDataEntry->GetUtdId(), pasteDataEntry);
         }
     }
-    return result;
-}
 
-bool PasteDataNapi::ParseProperty(napi_env env, const std::string &propName, napi_value propValueNapi,
-    PasteDataRecord::Builder &builder)
-{
-    if (propName == "mimeType" || propName == "htmlText" || propName == "plainText" || propName == "uri") {
-        if (!SetStringProp(env, propName, propValueNapi, builder)) {
-            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "SetStringProp fail");
-            return false;
-        }
-    } else if (propName == "want") {
-        AAFwk::Want want;
-        if (OHOS::AppExecFwk::UnwrapWant(env, propValueNapi, want) != true) {
-            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "UnwrapWant fail");
-            return false;
-        }
-        builder.SetWant(std::make_shared<AAFwk::Want>(want));
-    } else if (propName == "pixelMap") {
-        std::shared_ptr<PixelMap> pixelMap = PixelMapNapi::GetPixelMap(env, propValueNapi);
-        PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(pixelMap != nullptr, false, PASTEBOARD_MODULE_CLIENT,
-            "GetPixelMap fail, pixelMap is null");
-        builder.SetPixelMap(pixelMap);
-    } else if (propName == "data") {
-        std::shared_ptr<MineCustomData> customData = PasteDataRecordNapi::GetNativeKvData(env, propValueNapi);
-        PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(customData != nullptr, false, PASTEBOARD_MODULE_CLIENT,
-            "GetNativeKvData fail, customData is null");
-        builder.SetCustomData(customData);
-    }
-    return true;
+    return result;
 }
 
 void PasteDataNapi::AddRecord(napi_env env, napi_value argv, PasteDataNapi *obj)
