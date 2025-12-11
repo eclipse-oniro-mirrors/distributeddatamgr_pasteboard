@@ -583,6 +583,9 @@ std::shared_ptr<MiscServices::PasteDataRecord> PasteDataNapi::ParseRecord(napi_e
 
     if (record != nullptr && record->value_ != nullptr && !record->value_->GetEntries().empty()) {
         for (const auto& pasteDataEntry : record->value_->GetEntries()) {
+            if (pasteDataEntry == nullptr) {
+                continue;
+            }
             result->AddEntry(pasteDataEntry->GetUtdId(), pasteDataEntry);
         }
     }
