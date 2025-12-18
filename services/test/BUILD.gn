@@ -91,6 +91,7 @@ ohos_unittest("PasteServInterfaceTest") {
     "${pasteboard_root_path}/adapter/data_share/datashare_delegate.cpp",
     "${pasteboard_root_path}/adapter/security_level/security_level.cpp",
     "${pasteboard_service_path}/account/src/account_manager.cpp",
+    "${pasteboard_service_path}/core/src/pasteboard_ability_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_delay_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_dialog.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_disposable_manager.cpp",
@@ -228,8 +229,9 @@ ohos_unittest("PasteServInterfaceMockTest") {
     "${pasteboard_framework_path}/clip/default_clip.cpp",
     "${pasteboard_root_path}/adapter/data_share/datashare_delegate.cpp",
     "${pasteboard_root_path}/adapter/security_level/security_level.cpp",
-    "${pasteboard_service_path}/core/src/pasteboard_delay_manager.cpp",
     "${pasteboard_service_path}/account/src/account_manager.cpp",
+    "${pasteboard_service_path}/core/src/pasteboard_ability_manager.cpp",
+    "${pasteboard_service_path}/core/src/pasteboard_delay_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_disposable_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_dialog.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_pattern.cpp",
@@ -359,36 +361,17 @@ ohos_unittest("PasteServInterfaceMockTest") {
   }
 }
 
-ohos_unittest("PasteboardDialogNormalTest") {
+ohos_unittest("PasteboardDialogTest") {
   module_out_path = module_output_path
+
   sources = [
+    "${pasteboard_service_path}/core/src/pasteboard_ability_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_dialog.cpp",
-    "unittest/src/pasteboard_dialog_normal_branch_test.cpp",
+    "unittest/src/pasteboard_dialog_test.cpp",
   ]
   configs = [ ":module_private_config" ]
   external_deps = [
     "ability_base:want",
-    "ability_runtime:ability_connect_callback_stub",
-    "ability_runtime:ability_manager",
-    "c_utils:utils",
-    "googletest:gtest_main",
-    "hilog:libhilog",
-    "ipc:ipc_core",
-    "samgr:samgr_proxy",
-  ]
-}
-
-ohos_unittest("PasteboardDialogAbnormalTest") {
-  module_out_path = module_output_path
-
-  sources = [
-    "${pasteboard_service_path}/core/src/pasteboard_dialog.cpp",
-    "unittest/src/pasteboard_dialog_abnormal_branch_test.cpp",
-  ]
-  configs = [ ":module_private_config" ]
-  external_deps = [
-    "ability_base:want",
-    "ability_runtime:ability_connect_callback_stub",
     "ability_runtime:ability_manager",
     "c_utils:utils",
     "googletest:gtest_main",
@@ -692,6 +675,7 @@ ohos_unittest("PasteServGetLocalDataTest") {
     "${pasteboard_root_path}/adapter/data_share/datashare_delegate.cpp",
     "${pasteboard_root_path}/adapter/security_level/security_level.cpp",
     "${pasteboard_service_path}/account/src/account_manager.cpp",
+    "${pasteboard_service_path}/core/src/pasteboard_ability_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_delay_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_dialog.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_disposable_manager.cpp",
@@ -828,6 +812,7 @@ ohos_unittest("PasteServSubscribeTest") {
     "${pasteboard_root_path}/adapter/data_share/datashare_delegate.cpp",
     "${pasteboard_root_path}/adapter/security_level/security_level.cpp",
     "${pasteboard_service_path}/account/src/account_manager.cpp",
+    "${pasteboard_service_path}/core/src/pasteboard_ability_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_delay_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_dialog.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_disposable_manager.cpp",
@@ -964,6 +949,7 @@ ohos_unittest("PasteServNotifyTest") {
     "${pasteboard_root_path}/adapter/data_share/datashare_delegate.cpp",
     "${pasteboard_root_path}/adapter/security_level/security_level.cpp",
     "${pasteboard_service_path}/account/src/account_manager.cpp",
+    "${pasteboard_service_path}/core/src/pasteboard_ability_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_delay_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_dialog.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_disposable_manager.cpp",
@@ -1100,6 +1086,7 @@ ohos_unittest("PasteServSetDataTest") {
     "${pasteboard_root_path}/adapter/data_share/datashare_delegate.cpp",
     "${pasteboard_root_path}/adapter/security_level/security_level.cpp",
     "${pasteboard_service_path}/account/src/account_manager.cpp",
+    "${pasteboard_service_path}/core/src/pasteboard_ability_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_delay_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_dialog.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_disposable_manager.cpp",
@@ -1236,6 +1223,7 @@ ohos_unittest("PasteServGetDataTest") {
     "${pasteboard_root_path}/adapter/data_share/datashare_delegate.cpp",
     "${pasteboard_root_path}/adapter/security_level/security_level.cpp",
     "${pasteboard_service_path}/account/src/account_manager.cpp",
+    "${pasteboard_service_path}/core/src/pasteboard_ability_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_delay_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_dialog.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_disposable_manager.cpp",
@@ -1372,6 +1360,7 @@ ohos_unittest("PasteServEventTest") {
     "${pasteboard_root_path}/adapter/data_share/datashare_delegate.cpp",
     "${pasteboard_root_path}/adapter/security_level/security_level.cpp",
     "${pasteboard_service_path}/account/src/account_manager.cpp",
+    "${pasteboard_service_path}/core/src/pasteboard_ability_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_delay_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_dialog.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_disposable_manager.cpp",
@@ -1509,6 +1498,7 @@ ohos_unittest("PasteServGetTest") {
     "${pasteboard_root_path}/adapter/data_share/datashare_delegate.cpp",
     "${pasteboard_root_path}/adapter/security_level/security_level.cpp",
     "${pasteboard_service_path}/account/src/account_manager.cpp",
+    "${pasteboard_service_path}/core/src/pasteboard_ability_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_delay_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_dialog.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_disposable_manager.cpp",
@@ -1646,6 +1636,7 @@ ohos_unittest("PasteServCheckTest") {
     "${pasteboard_root_path}/adapter/data_share/datashare_delegate.cpp",
     "${pasteboard_root_path}/adapter/security_level/security_level.cpp",
     "${pasteboard_service_path}/account/src/account_manager.cpp",
+    "${pasteboard_service_path}/core/src/pasteboard_ability_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_delay_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_dialog.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_disposable_manager.cpp",
@@ -1783,6 +1774,7 @@ ohos_unittest("PasteServCleanTest") {
     "${pasteboard_root_path}/adapter/data_share/datashare_delegate.cpp",
     "${pasteboard_root_path}/adapter/security_level/security_level.cpp",
     "${pasteboard_service_path}/account/src/account_manager.cpp",
+    "${pasteboard_service_path}/core/src/pasteboard_ability_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_delay_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_dialog.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_disposable_manager.cpp",
@@ -1921,6 +1913,7 @@ ohos_unittest("PasteServRemoteTest") {
     "${pasteboard_root_path}/adapter/data_share/datashare_delegate.cpp",
     "${pasteboard_root_path}/adapter/security_level/security_level.cpp",
     "${pasteboard_service_path}/account/src/account_manager.cpp",
+    "${pasteboard_service_path}/core/src/pasteboard_ability_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_delay_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_dialog.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_disposable_manager.cpp",
@@ -2058,8 +2051,7 @@ group("unittest") {
     ":PasteboardDelayManagerTest",
     ":PasteboardDelayProxyTest",
     ":PasteboardDelayStubTest",
-    ":PasteboardDialogAbnormalTest",
-    ":PasteboardDialogNormalTest",
+    ":PasteboardDialogTest",
     ":PasteboardDisposableManagerTest",
     ":PasteboardEntryGetterProxyTest",
     ":PasteboardEntryGetterStubTest",

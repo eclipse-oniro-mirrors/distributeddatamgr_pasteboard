@@ -407,7 +407,6 @@ private:
     static void SetLocalPasteFlag(bool isCrossPaste, uint32_t tokenId, PasteData &pasteData);
     void RecognizePasteData(PasteData &pasteData);
     void OnRecognizePasteData(const std::string &primaryText);
-    void ShowHintToast(uint32_t tokenId, uint32_t pid);
     void OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override;
     void OnRemoveSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override;
     void UpdateAgedTime();

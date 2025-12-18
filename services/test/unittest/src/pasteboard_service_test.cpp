@@ -1019,23 +1019,6 @@ HWTEST_F(PasteboardServiceTest, RecognizePasteDataTest001, TestSize.Level0)
 }
 
 /**
- * @tc.name: ShowHintToastTest001
- * @tc.desc: test Func ShowHintToast
- * @tc.type: FUNC
- */
-HWTEST_F(PasteboardServiceTest, ShowHintToastTest001, TestSize.Level0)
-{
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ShowHintToastTest001 start");
-    auto tempPasteboard = std::make_shared<PasteboardService>();
-    EXPECT_NE(tempPasteboard, nullptr);
-
-    uint32_t tokenId = UINT32_ONE;
-    uint32_t pid = 0;
-    tempPasteboard->ShowHintToast(tokenId, pid);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ShowHintToastTest001 end");
-}
-
-/**
  * @tc.name: CancelCriticalTimerTest001
  * @tc.desc: test Func CancelCriticalTimer
  * @tc.type: FUNC
