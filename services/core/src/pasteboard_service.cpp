@@ -355,9 +355,8 @@ void PasteboardService::NotifyEntryGetterDied(int32_t userId)
 
 void PasteboardService::UpdateAgedTime()
 {
-    static bool developerMode = OHOS::system::GetBoolParameter("const.security.developermode.state", false);
-    int32_t agedTime = developerMode ? system::GetIntParameter("const.pasteboard.rd_test_aged_time",
-        ONE_HOUR_MINUTES, MIN_AGED_TIME, MAX_AGED_TIME) : ONE_HOUR_MINUTES;
+    int32_t agedTime = system::GetIntParameter("const.pasteboard.local_data_aging_time", ONE_HOUR_MINUTES, MIN_AGED_TIME,
+        MAX_AGED_TIME);
     agedTime_.store(agedTime * MINUTES_TO_MILLISECONDS);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "agedTime_: %{public}d", agedTime_.load());
 }
