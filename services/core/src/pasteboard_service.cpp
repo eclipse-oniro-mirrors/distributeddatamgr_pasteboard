@@ -18,7 +18,6 @@
 #include <sys/mman.h>
 
 #include "ashmem.h"
-#include "ability_manager_client.h"
 #include "accesstoken_kit.h"
 #include "account_manager.h"
 #include "calculate_time_consuming.h"
@@ -39,6 +38,7 @@
 #include "message_parcel_warp.h"
 #include "os_account_manager.h"
 #include "parameters.h"
+#include "pasteboard_ability_manager.h"
 #include "pasteboard_common.h"
 #include "pasteboard_delay_manager.h"
 #include "pasteboard_dialog.h"
@@ -1100,7 +1100,7 @@ int32_t PasteboardService::ShowProgress(const std::string &progressKey, const sp
         PASTEBOARD_HILOGD(PASTEBOARD_MODULE_SERVICE, "not focused app, no need to show progress.");
         return static_cast<int32_t>(PasteboardError::INVALID_DATA_ERROR);
     }
-    PasteBoardDialog::ProgressMessageInfo message;
+    PasteboardDialog::ProgressMessageInfo message;
     std::string deviceName = "";
     bool isRemote = false;
     auto result = (GetRemoteDeviceName(deviceName, isRemote) == ERR_OK);
@@ -1118,7 +1118,7 @@ int32_t PasteboardService::ShowProgress(const std::string &progressKey, const sp
     message.windowId = appInfo.windowId;
     message.callerToken = appInfo.abilityToken;
     message.clientCallback = observer;
-    PasteBoardDialog::GetInstance().ShowProgress(message);
+    PasteboardDialog::ShowProgress(message);
     return ERR_OK;
 }
 
@@ -2094,13 +2094,6 @@ std::map<uint32_t, std::vector<Uri>> PasteboardService::CheckUriPermission(Paste
 bool PasteboardService::IsBundleOwnUriPermission(const std::string &bundleName, Uri &uri)
 {
     return (bundleName.compare(uri.GetAuthority()) == 0);
-}
-
-void PasteboardService::ShowHintToast(uint32_t tokenId, uint32_t pid)
-{
-    PasteBoardDialog::ToastMessageInfo message;
-    message.appName = GetAppLabel(tokenId);
-    PasteBoardDialog::GetInstance().ShowToast(message);
 }
 
 int32_t PasteboardService::HasPasteData(bool &funcResult)
@@ -3328,7 +3321,7 @@ bool PasteboardService::IsFocusedApp(uint32_t tokenId)
         return true;
     }
     bool isFocused = false;
-    auto ret = AAFwk::AbilityManagerClient::GetInstance()->CheckUIExtensionIsFocused(tokenId, isFocused);
+    int32_t ret = PasteboardAbilityManager::CheckUIExtensionIsFocused(tokenId, isFocused);
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_SERVICE, "check result:%{public}d, isFocused:%{public}d", ret, isFocused);
     return ret == NO_ERROR && isFocused;
 }
@@ -4406,17 +4399,17 @@ std::string PasteboardService::GetAppLabel(uint32_t tokenId)
     auto iBundleMgr = GetAppBundleManager();
     if (iBundleMgr == nullptr) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, " Failed to cast bundle mgr service.");
-        return PasteBoardDialog::DEFAULT_LABEL;
+        return PasteboardDialog::DEFAULT_LABEL;
     }
     AppInfo info = GetAppInfo(tokenId);
     AppExecFwk::ApplicationInfo appInfo;
     auto result = iBundleMgr->GetApplicationInfo(info.bundleName, 0, info.userId, appInfo);
     if (!result) {
-        return PasteBoardDialog::DEFAULT_LABEL;
+        return PasteboardDialog::DEFAULT_LABEL;
     }
     auto &resource = appInfo.labelResource;
     auto label = iBundleMgr->GetStringById(resource.bundleName, resource.moduleName, resource.id, info.userId);
-    return label.empty() ? PasteBoardDialog::DEFAULT_LABEL : label;
+    return label.empty() ? PasteboardDialog::DEFAULT_LABEL : label;
 }
 
 sptr<AppExecFwk::IBundleMgr> PasteboardService::GetAppBundleManager()

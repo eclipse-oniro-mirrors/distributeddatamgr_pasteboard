@@ -396,7 +396,6 @@ ohos_unittest("PasteboardClientMockTest") {
     "${pasteboard_root_path}/framework/innerkits/src/pasteboard_samgr_listener.cpp",
     "${pasteboard_root_path}/framework/innerkits/src/pasteboard_signal_callback.cpp",
     "${pasteboard_service_path}/account/src/account_manager.cpp",
-    "${pasteboard_service_path}/core/src/pasteboard_dialog.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_pattern.cpp",
     "${pasteboard_service_path}/dfx/src/behaviour/pasteboard_behaviour_reporter_impl.cpp",
     "${pasteboard_service_path}/dfx/src/calculate_time_consuming.cpp",
