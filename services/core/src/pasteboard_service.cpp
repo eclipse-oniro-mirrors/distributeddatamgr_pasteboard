@@ -1377,6 +1377,13 @@ int32_t PasteboardService::GetData(uint32_t tokenId, PasteData &data, int32_t &s
     std::shared_ptr<BlockObject<int32_t>> pasteBlock = nullptr;
     auto [distRet, distEvt] = GetValidDistributeEvent(appInfo.userId);
     pasteBlock = EstablishP2PLinkTask(pasteId, distEvt);
+    if (distRet == static_cast<int32_t>(PasteboardError::GET_SAME_REMOTE_DATA)) {
+        auto [task, isPasting] = taskMgr_.GetRemoteDataTask(distEvt);
+        if (isPasting) {
+            PASTEBOARD_HILOGW(PASTEBOARD_MODULE_SERVICE, "wait remote data, seqId=%{public}u", distEvt.seqId);
+            taskMgr_.WaitRemoteData(distEvt);
+        }
+    }
     if (distRet != static_cast<int32_t>(PasteboardError::E_OK) ||
         GetCurrentScreenStatus() != ScreenEvent::ScreenUnlocked) {
         result = GetLocalData(appInfo, data);
