@@ -1253,8 +1253,8 @@ HWTEST_F(PasteboardServiceTest, UpdateAgedTimeTest001, TestSize.Level0)
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
     tempPasteboard->UpdateAgedTime();
-    int32_t agedTime = system::GetIntParameter("const.pasteboard.local_data_aging_time", ONE_HOUR_MINUTES, MIN_AGED_TIME,
-        MAX_AGED_TIME);
+    int32_t agedTime = system::GetIntParameter("const.pasteboard.local_data_aging_time", ONE_HOUR_MINUTES,
+        MIN_AGED_TIME, MAX_AGED_TIME);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "UpdateAgedTimeTest001 end");
 }
 } // namespace MiscServices
