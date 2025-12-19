@@ -4367,7 +4367,7 @@ void PasteboardService::OnConfigChange(bool isOn)
 void PasteboardService::OnConfigChangeInner(bool isOn)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ConfigChange isOn: %{public}d.", isOn);
-    {
+    if (!isOn) {
         std::lock_guard<std::mutex> tmpMutex(p2pMapMutex_);
         p2pMap_.ForEach([this](const auto &deviceId, auto &value) {
             PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "configChange is off, need close p2p link.");
