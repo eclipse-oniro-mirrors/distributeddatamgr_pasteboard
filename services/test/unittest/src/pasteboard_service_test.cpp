@@ -19,6 +19,7 @@
 
 #include "ipc_skeleton.h"
 #include "message_parcel_warp.h"
+#include "parameters.h"
 #include "pasteboard_error.h"
 #include "pasteboard_hilog.h"
 #include "pasteboard_observer_stub.h"
@@ -36,6 +37,9 @@ using namespace OHOS::Security::AccessToken;
 namespace OHOS {
 namespace {
 constexpr int64_t MIN_ASHMEM_DATA_SIZE = 32 * 1024;
+constexpr int32_t ONE_HOUR_MINUTES = 60;
+constexpr int32_t MAX_AGED_TIME = 24 * 60; // minute
+constexpr int32_t MIN_AGED_TIME = 1; // minute
 const int32_t ACCOUNT_IDS_RANDOM = 1121;
 const uint32_t UINT32_ONE = 1;
 const std::string TEST_ENTITY_TEXT =
@@ -1236,6 +1240,22 @@ HWTEST_F(PasteboardServiceTest, CheckMdmShareOptionTest001, TestSize.Level0)
 
     tempPasteboard->CheckMdmShareOption(pasteData);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "CheckMdmShareOptionTest001 end");
+}
+
+/**
+ * @tc.name: UpdateAgedTimeTest001
+ * @tc.desc: test Func UpdateAgedTime
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceTest, UpdateAgedTimeTest001, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "UpdateAgedTimeTest001 start");
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+    tempPasteboard->UpdateAgedTime();
+    int32_t agedTime = system::GetIntParameter("const.pasteboard.local_data_aging_time", ONE_HOUR_MINUTES, MIN_AGED_TIME,
+        MAX_AGED_TIME);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "UpdateAgedTimeTest001 end");
 }
 } // namespace MiscServices
 } // namespace OHOS
