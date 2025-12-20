@@ -2178,9 +2178,9 @@ int32_t PasteboardService::SaveData(PasteData &pasteData, int64_t dataSize,
         appInfo.userId);
     PasteboardWebController::GetInstance().SetWebviewPasteData(pasteData, bundleIndex);
     PasteboardWebController::GetInstance().CheckAppUriPermission(pasteData);
-    if (hasSplited || dataSize > static_cast<int64_t>(maxLocalCapacity_ * RECALCULATE_DATA_SIZE)) {
+    if (hasSplited || dataSize > static_cast<int64_t>(maxLocalCapacity_.load() * RECALCULATE_DATA_SIZE)) {
         int64_t newDataSize = static_cast<int64_t>(pasteData.Count());
-        if (newDataSize > maxLocalCapacity_) {
+        if (newDataSize > maxLocalCapacity_.load()) {
             setting_.store(false);
             PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "invalid data size, dataSize=%{public}" PRId64, newDataSize);
             return static_cast<int32_t>(PasteboardError::INVALID_DATA_SIZE);
@@ -3646,7 +3646,7 @@ std::pair<std::shared_ptr<PasteData>, PasteDateResult> PasteboardService::GetDis
         pasteDateResult.errorCode = result.first;
         return std::make_pair(nullptr, pasteDateResult);
     }
-    if (static_cast<int64_t>(rawData.size()) > maxLocalCapacity_) {
+    if (static_cast<int64_t>(rawData.size()) > maxLocalCapacity_.load()) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "remote dataSize exceeded, dataSize=%{public}zu");
         pasteDateResult.syncTime = 0;
         pasteDateResult.errorCode = static_cast<int32_t>(PasteboardError::REMOTE_DATA_SIZE_EXCEEDED);
@@ -4022,7 +4022,7 @@ int32_t PasteboardService::GetLocalEntryValue(int32_t userId, PasteData &data, P
 
     {
         std::unique_lock<std::shared_mutex> write(pasteDataMutex_);
-        if (data.rawDataSize_ + value.rawDataSize_ < maxLocalCapacity_) {
+        if (data.rawDataSize_ + value.rawDataSize_ < maxLocalCapacity_.load()) {
             record.AddEntry(utdId, std::make_shared<PasteDataEntry>(value));
             data.rawDataSize_ += value.rawDataSize_;
             PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "add entry, dataSize=%{public}" PRId64
@@ -4066,7 +4066,7 @@ int32_t PasteboardService::GetRemoteEntryValue(const AppInfo &appInfo, PasteData
     entry.rawDataSize_ = static_cast<int64_t>(rawData.size());
     {
         std::unique_lock<std::shared_mutex> write(pasteDataMutex_);
-        if (data.rawDataSize_ + entry.rawDataSize_ < maxLocalCapacity_) {
+        if (data.rawDataSize_ + entry.rawDataSize_ < maxLocalCapacity_.load()) {
             record.AddEntry(utdId, std::make_shared<PasteDataEntry>(entry));
             data.rawDataSize_ += entry.rawDataSize_;
             PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "add entry, dataSize=%{public}" PRId64
@@ -4130,7 +4130,7 @@ int32_t PasteboardService::ProcessRemoteDelayHtml(const std::string &remoteDevic
     entry.rawDataSize_ = static_cast<int64_t>(rawData.size());
     {
         std::unique_lock<std::shared_mutex> write(pasteDataMutex_);
-        if (data.rawDataSize_ + entry.rawDataSize_ < maxLocalCapacity_) {
+        if (data.rawDataSize_ + entry.rawDataSize_ < maxLocalCapacity_.load()) {
             record.AddEntry(entry.GetUtdId(), std::make_shared<PasteDataEntry>(entry));
             data.rawDataSize_ += entry.rawDataSize_;
             PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "add entry, dataSize=%{public}" PRId64
