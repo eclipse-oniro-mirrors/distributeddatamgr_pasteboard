@@ -43,7 +43,7 @@ namespace MiscServices {
 constexpr int32_t ERROR_USERID = -1;
 constexpr int32_t RESULT_OK = 0;
 constexpr int64_t SIZE_K = 1024;
-constexpr int64_t DEFAULT_LOCAL_CAPACITY = 128; //128M
+constexpr int64_t DEFAULT_LOCAL_CAPACITY = 128; // 128M
 enum class ServiceRunningState {
     STATE_NOT_START,
     STATE_RUNNING
