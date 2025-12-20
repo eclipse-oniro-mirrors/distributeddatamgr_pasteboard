@@ -519,7 +519,7 @@ private:
     std::shared_ptr<InputEventCallback> inputEventCallback_;
     DistributedModuleConfig moduleConfig_;
     int32_t uid_ = -1;
-    int64_t maxLocalCapacity_ = DEFAULT_LOCAL_CAPACITY * SIZE_K * SIZE_K;
+    std::atomic<int64_t> maxLocalCapacity_ = DEFAULT_LOCAL_CAPACITY * SIZE_K * SIZE_K;
     RemoteDataTaskManager taskMgr_;
     pid_t setPasteDataUId_ = 0;
     static constexpr pid_t TEST_SERVER_UID = 3500;
