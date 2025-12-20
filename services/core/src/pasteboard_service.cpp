@@ -470,6 +470,7 @@ int32_t PasteboardService::ClearByUser(int32_t userId)
 int32_t PasteboardService::ClearInner(int32_t userId, const AppInfo &appInfo)
 {
     RADAR_REPORT(DFX_CLEAR_PASTEBOARD, DFX_MANUAL_CLEAR, DFX_SUCCESS);
+    CleanDistributedData(userId);
     auto it = clips_.Find(userId);
     if (it.first) {
         clips_.Erase(userId);
@@ -478,7 +479,6 @@ int32_t PasteboardService::ClearInner(int32_t userId, const AppInfo &appInfo)
         std::string bundleName = GetAppBundleName(appInfo);
         NotifyObservers(bundleName, userId, PasteboardEventStatus::PASTEBOARD_CLEAR);
     }
-    CleanDistributedData(userId);
     CancelCriticalTimer();
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "leave, clips_.Size=%{public}zu, appInfo.userId = %{public}d",
         clips_.Size(), userId);
