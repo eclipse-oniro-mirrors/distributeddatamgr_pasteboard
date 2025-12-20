@@ -3650,7 +3650,7 @@ std::pair<std::shared_ptr<PasteData>, PasteDateResult> PasteboardService::GetDis
         return std::make_pair(nullptr, pasteDateResult);
     }
     if (static_cast<int64_t>(rawData.size()) > maxLocalCapacity_.load()) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "remote dataSize exceeded, dataSize=%{public}zu");
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "remote dataSize exceeded, dataSize=%{public}zu", rawData.size());
         pasteDateResult.syncTime = 0;
         pasteDateResult.errorCode = static_cast<int32_t>(PasteboardError::REMOTE_DATA_SIZE_EXCEEDED);
         return std::make_pair(nullptr, pasteDateResult);
