@@ -1341,7 +1341,7 @@ void PasteboardService::AddPermissionRecord(uint32_t tokenId, bool isReadGrant, 
 }
 
 int32_t PasteboardService::CheckAndGrantRemoteUri(PasteData &data, const AppInfo &appInfo,
-    const std::string &pasteId, const std::string &deviceId, std::shared_ptr<BlockObject<int32_t>> pasteBlock)
+    const std::string &pasteId, std::shared_ptr<BlockObject<int32_t>> pasteBlock)
 {
     int64_t fileSize = data.GetFileSize();
     bool isRemoteData = data.IsRemote();
@@ -1352,13 +1352,12 @@ int32_t PasteboardService::CheckAndGrantRemoteUri(PasteData &data, const AppInfo
         data, std::make_pair(appInfo.bundleName, appInfo.appIndex));
     if (isRemoteData) {
         data.SetPasteId(pasteId);
-        data.deviceId_ = deviceId;
         if (pasteBlock) {
             if (!grantUris.empty()) {
                 pasteBlock->GetValue();
                 PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "wait P2PEstablish finish");
             } else {
-                PasteComplete(deviceId, pasteId);
+                PasteComplete(data.deviceId_, pasteId);
             }
         }
     }
@@ -1385,19 +1384,22 @@ int32_t PasteboardService::GetData(uint32_t tokenId, PasteData &data, int32_t &s
         }
     } else {
         result = GetRemoteData(appInfo.userId, distEvt, data, syncTime);
-        peerNetId = distEvt.deviceId;
-        peerUdid = DMAdapter::GetInstance().GetUdidByNetworkId(peerNetId);
+        if (result == static_cast<int32_t>(PasteboardError::REMOTE_DATA_SIZE_EXCEEDED)) {
+            HandleGetDataError(result, pasteBlock, distEvt.deviceId, pasteId);
+            result = GetLocalData(appInfo, data);
+        } else {
+            peerNetId = distEvt.deviceId;
+            peerUdid = DMAdapter::GetInstance().GetUdidByNetworkId(peerNetId);
+        }
     }
-    
     HandleNotificationsAndStatusChecks(appInfo, data, peerNetId, isPeerOnline);
-
     PublishServiceState(data, syncTime, peerNetId, pasteBlock);
     
     if (result != static_cast<int32_t>(PasteboardError::E_OK)) {
         HandleGetDataError(result, pasteBlock, distEvt.deviceId, pasteId);
         return result;
     }
-    return CheckAndGrantRemoteUri(data, appInfo, pasteId, distEvt.deviceId, pasteBlock);
+    return CheckAndGrantRemoteUri(data, appInfo, pasteId, pasteBlock);
 }
 
 void PasteboardService::HandleNotificationsAndStatusChecks(const AppInfo &appInfo, const PasteData &data,
@@ -2166,6 +2168,7 @@ int32_t PasteboardService::SaveData(PasteData &pasteData, int64_t dataSize,
         return static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR);
     }
     pasteData.userId_ = appInfo.userId;
+    pasteData.deviceId_ = DMAdapter::GetInstance().GetLocalNetworkId();
     SetPasteDataInfo(pasteData, appInfo);
     auto authority = std::make_pair(appInfo.bundleName, appInfo.appIndex);
     std::string bundleIndex = PasteBoardCommon::GetDirByAuthority(authority);
@@ -3641,7 +3644,12 @@ std::pair<std::shared_ptr<PasteData>, PasteDateResult> PasteboardService::GetDis
         pasteDateResult.errorCode = result.first;
         return std::make_pair(nullptr, pasteDateResult);
     }
-
+    if (static_cast<int64_t>(rawData.size()) > MessageParcelWarp::GetRawDataSize()) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "remote dataSize exceeded, dataSize=%{public}zu");
+        pasteDateResult.syncTime = 0;
+        pasteDateResult.errorCode = static_cast<int32_t>(PasteboardError::REMOTE_DATA_SIZE_EXCEEDED);
+        return std::make_pair(nullptr, pasteDateResult);
+    }
     currentEvent_ = std::move(event);
     std::shared_ptr<PasteData> pasteData = std::make_shared<PasteData>();
     pasteData->Decode(rawData);

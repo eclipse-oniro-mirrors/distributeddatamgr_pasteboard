@@ -73,10 +73,10 @@ PasteData::PasteData()
 PasteData::~PasteData() {}
 
 PasteData::PasteData(const PasteData &data)
-    : rawDataSize_(data.rawDataSize_), userId_(data.userId_), valid_(data.valid_), isDraggedData_(data.isDraggedData_),
-      isLocalPaste_(data.isLocalPaste_), isDelayData_(data.isDelayData_), isDelayRecord_(data.isDelayRecord_),
-      dataId_(data.dataId_), recordId_(data.recordId_), textSize_(data.textSize_),
-      originAuthority_(data.originAuthority_), pasteId_(data.pasteId_)
+    : rawDataSize_(data.rawDataSize_), deviceId_(data.deviceId_), userId_(data.userId_), valid_(data.valid_),
+      isDraggedData_(data.isDraggedData_), isLocalPaste_(data.isLocalPaste_), isDelayData_(data.isDelayData_),
+      isDelayRecord_(data.isDelayRecord_), dataId_(data.dataId_), recordId_(data.recordId_),
+      textSize_(data.textSize_), originAuthority_(data.originAuthority_), pasteId_(data.pasteId_)
 { // LCOV_EXCL_START
     this->props_ = data.props_;
     for (const auto &item : data.records_) {

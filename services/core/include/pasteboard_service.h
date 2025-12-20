@@ -321,7 +321,7 @@ private:
     int32_t GetSdkVersion(uint32_t tokenId);
     bool IsPermissionGranted(const std::string &perm, uint32_t tokenId);
     int32_t CheckAndGrantRemoteUri(PasteData &data, const AppInfo &appInfo,
-        const std::string &pasteId, const std::string &deviceId, std::shared_ptr<BlockObject<int32_t>> pasteBlock);
+        const std::string &pasteId, std::shared_ptr<BlockObject<int32_t>> pasteBlock);
     int32_t GetData(uint32_t tokenId, PasteData &data, int32_t &syncTime, bool &isPeerOnline, std::string &peerNetId,
         std::string &peerUdid);
     void HandleInitFailure();
