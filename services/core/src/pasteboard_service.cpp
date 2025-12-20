@@ -182,7 +182,8 @@ void PasteboardService::OnStart()
     uid_ = loader.LoadUid();
     int32_t capacity = OHOS::system::GetIntParameter("const.pasteboard.local_data_capacity",
         DEFAULT_LOCAL_CAPACITY);
-    int64_t maxLocalCapacity = (capacity >= MIN_LOCAL_CAPACITY && capacity <= MAX_LOCAL_CAPACITY) ? capacity : DEFAULT_LOCAL_CAPACITY;
+    int64_t maxLocalCapacity =
+        (capacity >= MIN_LOCAL_CAPACITY && capacity <= MAX_LOCAL_CAPACITY) ? capacity : DEFAULT_LOCAL_CAPACITY;
     maxLocalCapacity_.store(maxLocalCapacity * SIZE_K * SIZE_K);
     moduleConfig_.Init();
 #ifdef PB_DATACLASSIFICATION_ENABLE
