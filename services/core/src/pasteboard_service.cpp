@@ -180,8 +180,10 @@ void PasteboardService::OnStart()
     auto appInfo = GetAppInfo(IPCSkeleton::GetCallingTokenID());
     Loader loader;
     uid_ = loader.LoadUid();
-    maxLocalCapacity_.store(OHOS::system::GetIntParameter("const.pasteboard.local_data_capacity",
-        DEFAULT_LOCAL_CAPACITY) * SIZE_K * SIZE_K);
+    int32_t capacity = OHOS::system::GetIntParameter("const.pasteboard.local_data_capacity",
+        DEFAULT_LOCAL_CAPACITY);
+    int64_t maxLocalCapacity = (capacity >= MIN_LOCAL_CAPACITY && capacity <= MAX_LOCAL_CAPACITY) ? capacity : DEFAULT_LOCAL_CAPACITY;
+    maxLocalCapacity_.store(maxLocalCapacity * SIZE_K * SIZE_K);
     moduleConfig_.Init();
 #ifdef PB_DATACLASSIFICATION_ENABLE
     auto status = DATASL_OnStart();
