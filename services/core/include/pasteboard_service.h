@@ -42,6 +42,8 @@ namespace OHOS {
 namespace MiscServices {
 constexpr int32_t ERROR_USERID = -1;
 constexpr int32_t RESULT_OK = 0;
+constexpr int64_t SIZE_K = 1024;
+constexpr int64_t DEFAULT_LOCAL_CAPACITY = 128; //128M
 enum class ServiceRunningState {
     STATE_NOT_START,
     STATE_RUNNING
@@ -517,6 +519,7 @@ private:
     std::shared_ptr<InputEventCallback> inputEventCallback_;
     DistributedModuleConfig moduleConfig_;
     int32_t uid_ = -1;
+    int64_t maxLocalCapacity_ = DEFAULT_LOCAL_CAPACITY * SIZE_K * SIZE_K;
     RemoteDataTaskManager taskMgr_;
     pid_t setPasteDataUId_ = 0;
     static constexpr pid_t TEST_SERVER_UID = 3500;

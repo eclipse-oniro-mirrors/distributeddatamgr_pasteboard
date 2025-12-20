@@ -180,6 +180,8 @@ void PasteboardService::OnStart()
     auto appInfo = GetAppInfo(IPCSkeleton::GetCallingTokenID());
     Loader loader;
     uid_ = loader.LoadUid();
+    maxLocalCapacity_ = OHOS::system::GetIntParameter("const.pasteboard.local_data_capacity",
+        DEFAULT_LOCAL_CAPACITY) * SIZE_K * SIZE_K;
     moduleConfig_.Init();
 #ifdef PB_DATACLASSIFICATION_ENABLE
     auto status = DATASL_OnStart();
@@ -3644,7 +3646,7 @@ std::pair<std::shared_ptr<PasteData>, PasteDateResult> PasteboardService::GetDis
         pasteDateResult.errorCode = result.first;
         return std::make_pair(nullptr, pasteDateResult);
     }
-    if (static_cast<int64_t>(rawData.size()) > MessageParcelWarp::GetRawDataSize()) {
+    if (static_cast<int64_t>(rawData.size()) > maxLocalCapacity_) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "remote dataSize exceeded, dataSize=%{public}zu");
         pasteDateResult.syncTime = 0;
         pasteDateResult.errorCode = static_cast<int32_t>(PasteboardError::REMOTE_DATA_SIZE_EXCEEDED);
