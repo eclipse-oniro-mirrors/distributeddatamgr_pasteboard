@@ -30,6 +30,7 @@ namespace OHOS {
 namespace MiscServices {
 
 constexpr int64_t SIZE_K = 1024;
+constexpr int32_t KERNEL_MIN_SIZE = 1; // 1M
 constexpr int32_t KERNEL_MAX_SIZE = 2048; // 2G
 constexpr size_t MIN_RAW_SIZE = 32 * 1024; // 32k
 constexpr int32_t DEFAULT_LOCAL_CAPACITY = 128;
@@ -47,7 +48,7 @@ MessageParcelWarp::MessageParcelWarp()
     canRead_ = true;
     static int32_t paramMaxSize =
         OHOS::system::GetIntParameter("const.pasteboard.local_data_capacity", DEFAULT_LOCAL_CAPACITY);
-    PASTEBOARD_CHECK_AND_RETURN_LOGE(paramMaxSize >= DEFAULT_LOCAL_CAPACITY && paramMaxSize <= KERNEL_MAX_SIZE,
+    PASTEBOARD_CHECK_AND_RETURN_LOGE(paramMaxSize >= KERNEL_MIN_SIZE && paramMaxSize <= KERNEL_MAX_SIZE,
         PASTEBOARD_MODULE_COMMON, "invalid param, max_raw_size=%{public}d", paramMaxSize);
     maxRawDataSize_ = paramMaxSize * SIZE_K * SIZE_K;
 }

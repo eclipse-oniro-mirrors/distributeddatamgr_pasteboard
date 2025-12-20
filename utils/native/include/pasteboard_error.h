@@ -97,6 +97,7 @@ enum class PasteboardError : int32_t {
     INVALID_DATA_SIZE,
     INVALID_TOKEN_ID,
     INVALID_URI_ERROR,
+    REMOTE_DATA_SIZE_EXCEEDED
 };
 
 const std::map<PasteboardError, const char *> PasteboardErrorMap = {
@@ -171,6 +172,7 @@ const std::map<PasteboardError, const char *> PasteboardErrorMap = {
     {PasteboardError::INVALID_DATA_SIZE, "INVALID_DATA_SIZE"},
     {PasteboardError::INVALID_TOKEN_ID, "INVALID_TOKEN_ID"},
     {PasteboardError::INVALID_URI_ERROR, "INVALID_URI_ERROR"},
+    {PasteboardError::REMOTE_DATA_SIZE_EXCEEDED, "REMOTE_DATA_SIZE_EXCEEDED"},
 };
 
 } // namespace MiscServices

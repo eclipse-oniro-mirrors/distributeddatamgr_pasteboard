@@ -42,6 +42,10 @@ namespace OHOS {
 namespace MiscServices {
 constexpr int32_t ERROR_USERID = -1;
 constexpr int32_t RESULT_OK = 0;
+constexpr int64_t SIZE_K = 1024;
+constexpr int64_t MIN_LOCAL_CAPACITY = 1; // 1M
+constexpr int64_t DEFAULT_LOCAL_CAPACITY = 128; // 128M
+constexpr int64_t MAX_LOCAL_CAPACITY = 2048; // 2G
 enum class ServiceRunningState {
     STATE_NOT_START,
     STATE_RUNNING
@@ -321,7 +325,7 @@ private:
     int32_t GetSdkVersion(uint32_t tokenId);
     bool IsPermissionGranted(const std::string &perm, uint32_t tokenId);
     int32_t CheckAndGrantRemoteUri(PasteData &data, const AppInfo &appInfo,
-        const std::string &pasteId, const std::string &deviceId, std::shared_ptr<BlockObject<int32_t>> pasteBlock);
+        const std::string &pasteId, std::shared_ptr<BlockObject<int32_t>> pasteBlock);
     int32_t GetData(uint32_t tokenId, PasteData &data, int32_t &syncTime, bool &isPeerOnline, std::string &peerNetId,
         std::string &peerUdid);
     void HandleInitFailure();
@@ -517,6 +521,7 @@ private:
     std::shared_ptr<InputEventCallback> inputEventCallback_;
     DistributedModuleConfig moduleConfig_;
     int32_t uid_ = -1;
+    std::atomic<int64_t> maxLocalCapacity_ = DEFAULT_LOCAL_CAPACITY * SIZE_K * SIZE_K;
     RemoteDataTaskManager taskMgr_;
     pid_t setPasteDataUId_ = 0;
     static constexpr pid_t TEST_SERVER_UID = 3500;
