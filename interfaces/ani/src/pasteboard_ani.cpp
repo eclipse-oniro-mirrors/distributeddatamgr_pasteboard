@@ -42,14 +42,14 @@ static void ThrowBusinessError(ani_env *env, int errCode, std::string&& errMsg)
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "into ThrowBusinessError. env is null, return.");
         return;
     }
-    static const char *errorClsName = "L@ohos/base/BusinessError;";
+    static const char *errorClsName = "@ohos.base.BusinessError";
     ani_class cls {};
     if (env->FindClass(errorClsName, &cls) != ANI_OK) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "findClass BusinessError failed.");
         return;
     }
     ani_method ctor;
-    if (env->Class_FindMethod(cls, "<ctor>", ":V", &ctor) != ANI_OK) {
+    if (env->Class_FindMethod(cls, "<ctor>", ":", &ctor) != ANI_OK) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "find method BusinessError.constructor failed.");
         return;
     }
@@ -99,7 +99,7 @@ ani_object Create([[maybe_unused]] ani_env *env, std::shared_ptr<PasteData> &ptr
     if (env == nullptr) {
         return nullptr;
     }
-    static const char *className = "L@ohos/pasteboard/PasteDataImpl;";
+    static const char *className = "@ohos.pasteboard.PasteDataImpl";
     ani_class cls;
     if (ANI_OK != env->FindClass(className, &cls)) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "create failed.");
@@ -158,7 +158,7 @@ std::string GetStdStringFromUnion([[maybe_unused]] ani_env *env, ani_object unio
     }
     UnionAccessor unionAccessor(env, union_obj);
     ani_string str;
-    if (!unionAccessor.IsInstanceOf("Lstd/core/String;")) {
+    if (!unionAccessor.IsInstanceOf("std.core.String")) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "[GetStdStringFromUnion] union_obj is not string!");
         ThrowBusinessError(env, static_cast<int32_t>(JSErrorCode::INVALID_PARAMETERS),
             "The type of mimeType must be string.");
@@ -178,7 +178,7 @@ bool GetArrayBuffer([[maybe_unused]] ani_env *env, ani_object unionObj, std::vec
     if (env == nullptr) {
         return false;
     }
-    std::string classname("Lescompat/ArrayBuffer;");
+    std::string classname("std.core.ArrayBuffer");
     bool isArrayBuffer = ANIUtils_UnionIsInstanceOf(env, unionObj, classname);
     if (!isArrayBuffer) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI,
@@ -230,14 +230,14 @@ static ani_enum_item GetEnumItem(ani_env *env, ani_int shareOption)
         return nullptr;
     }
     ani_namespace ns;
-    const char *nameSpaceName = "L@ohos/pasteboard/pasteboard;";
+    const char *nameSpaceName = "@ohos.pasteboard.pasteboard";
     if (ANI_OK != env->FindNamespace(nameSpaceName, &ns)) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "[GetEnumItem] Not found namespace: %{public}s", nameSpaceName);
         return nullptr;
     }
 
     ani_enum enumType;
-    const char *enumName = "LShareOption;";
+    const char *enumName = "ShareOption";
     if (ANI_OK != env->Namespace_FindEnum(ns, enumName, &enumType)) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "[GetEnumItem] Find Enum failed: %{public}s", enumName);
         return nullptr;
@@ -403,7 +403,7 @@ static void FillPasteDataRecordObject(ani_env *env, std::shared_ptr<PasteDataRec
     }
 
     ani_class cls;
-    if (ANI_OK != env->FindClass("L@ohos/pasteboard/PasteDataRecordImpl;", &cls)) {
+    if (ANI_OK != env->FindClass("@ohos.pasteboard.PasteDataRecordImpl", &cls)) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "[FillPasteDataRecordObject] Not found class.");
         return;
     }
@@ -447,7 +447,7 @@ static ani_object GetRecord([[maybe_unused]] ani_env *env, [[maybe_unused]] ani_
         return GetNullObject(env);
     }
 
-    ani_object record = CreateObjectFromClass(env, "L@ohos/pasteboard/PasteDataRecordImpl;");
+    ani_object record = CreateObjectFromClass(env, "@ohos.pasteboard.PasteDataRecordImpl");
     if (record == nullptr) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "[GetRecord] CreateObjectFromClass failed.");
         return GetNullObject(env);
@@ -524,7 +524,7 @@ static void FillPasteDataPropertyObject(ani_env *env, PasteDataProperty &propert
     }
 
     ani_class cls;
-    if (ANI_OK != env->FindClass("L@ohos/pasteboard/PasteDataPropertyImpl;", &cls)) {
+    if (ANI_OK != env->FindClass("@ohos.pasteboard.PasteDataPropertyImpl", &cls)) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "[FillPasteDataPropertyObject] Not found class.");
         return;
     }
@@ -558,7 +558,7 @@ static ani_object GetProperty([[maybe_unused]] ani_env *env, [[maybe_unused]] an
 
     PasteDataProperty property = pPasteData->GetProperty();
 
-    ani_object propertyToAbove = CreateObjectFromClass(env, "L@ohos/pasteboard/PasteDataPropertyImpl;");
+    ani_object propertyToAbove = CreateObjectFromClass(env, "@ohos.pasteboard.PasteDataPropertyImpl");
     if (propertyToAbove == nullptr) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "[GetProperty] CreateObjectFromClass failed.");
         return GetNullObject(env);
@@ -694,7 +694,7 @@ static ani_object CreateDataTypeValue([[maybe_unused]] ani_env *env, ani_string 
         return ProcessSpecialMimeType(env, union_obj, type_str);
     }
 
-    std::string classname("Lescompat/ArrayBuffer;");
+    std::string classname("std.core.ArrayBuffer");
     bool isArrayBuffer = ANIUtils_UnionIsInstanceOf(env, union_obj, classname);
     if (!isArrayBuffer) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "[CreateDataTypeValue] not ArrayBuffer.");
@@ -779,7 +779,7 @@ bool ForEachMapEntry(ani_env *env, ani_object map_object,
         return false;
     }
     ani_ref keys;
-    if (ANI_OK != env->Object_CallMethodByName_Ref(map_object, "keys", ":Lstd/core/IterableIterator;", &keys)) {
+    if (ANI_OK != env->Object_CallMethodByName_Ref(map_object, "keys", ":C{std.core.IterableIterator}", &keys)) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "[forEachMapEntry] Failed to get keys iterator.");
         return false;
     }
@@ -861,7 +861,7 @@ static ani_object GetSystemPasteboard([[maybe_unused]] ani_env *env)
         return nullptr;
     }
     ani_object systemPasteboard = nullptr;
-    static const char *className = "L@ohos/pasteboard/SystemPasteboardImpl;";
+    static const char *className = "@ohos.pasteboard.SystemPasteboardImpl";
     ani_class cls;
     if (ANI_OK != env->FindClass(className, &cls)) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "[GetSystemPasteboard] Not found classname.");
@@ -1009,7 +1009,7 @@ ANI_EXPORT ani_status ANI_Constructor_Namespace(ani_env *env)
         return ANI_ERROR;
     }
     ani_namespace ns;
-    static const char *nameSpaceName = "L@ohos/pasteboard/pasteboard;";
+    static const char *nameSpaceName = "@ohos.pasteboard.pasteboard";
     if (ANI_OK != env->FindNamespace(nameSpaceName, &ns)) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI,
             "[ANI_Constructor_Namespace] Not found namespace: %s", nameSpaceName);
@@ -1036,7 +1036,7 @@ ANI_EXPORT ani_status ANI_Constructor_PasteData(ani_env *env)
     if (env == nullptr) {
         return ANI_ERROR;
     }
-    static const char *className = "L@ohos/pasteboard/PasteDataImpl;";
+    static const char *className = "@ohos.pasteboard.PasteDataImpl";
     ani_class cls;
     if (ANI_OK != env->FindClass(className, &cls)) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "[ANI_Constructor_PasteData] Not found %s.", className);
@@ -1067,7 +1067,7 @@ ANI_EXPORT ani_status ANI_Constructor_SystemPasteboard(ani_env *env)
     if (env == nullptr) {
         return ANI_ERROR;
     }
-    static const char *className = "L@ohos/pasteboard/SystemPasteboardImpl;";
+    static const char *className = "@ohos.pasteboard.SystemPasteboardImpl";
     ani_class cls;
     if (ANI_OK != env->FindClass(className, &cls)) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "[ANI_Constructor_SystemPasteboard] Not found %s.", className);
@@ -1098,7 +1098,7 @@ static ani_status BindCleanerclassMethods(ani_env *env)
         return ANI_ERROR;
     }
 
-    static const char *className = "L@ohos/pasteboard/Cleaner;";
+    static const char *className = "@ohos.pasteboard.Cleaner";
     ani_class cleanerCls;
     ani_status status = env->FindClass(className, &cleanerCls);
     if (ANI_OK != status) {

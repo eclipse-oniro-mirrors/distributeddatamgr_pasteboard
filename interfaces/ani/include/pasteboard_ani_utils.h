@@ -47,7 +47,7 @@ public:
             return nullptr;
         }
         ani_method ctor;
-        if (ANI_OK != env->Class_FindMethod(clazz, "<ctor>", "J:V", &ctor)) {
+        if (ANI_OK != env->Class_FindMethod(clazz, "<ctor>", "l:", &ctor)) {
             ani_object nullobj = nullptr;
             return nullobj;
         }
