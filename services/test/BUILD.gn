@@ -361,15 +361,20 @@ ohos_unittest("PasteServInterfaceMockTest") {
   }
 }
 
-ohos_unittest("PasteboardDialogTest") {
+ohos_unittest("PasteboardAbilityManagerTest") {
   module_out_path = module_output_path
 
   sources = [
+    "${pasteboard_innerkits_path}/src/pasteboard_signal_callback.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_ability_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_dialog.cpp",
-    "unittest/src/pasteboard_dialog_test.cpp",
+    "unittest/src/pasteboard_ability_manager_test.cpp",
   ]
   configs = [ ":module_private_config" ]
+  deps = [
+    "${pasteboard_innerkits_path}:pasteboard_client",
+    "${pasteboard_service_path}:pasteboard_client_idl",
+  ]
   external_deps = [
     "ability_base:want",
     "ability_runtime:ability_manager",
@@ -2047,11 +2052,11 @@ ohos_unittest("PasteServRemoteTest") {
 group("unittest") {
   testonly = true
   deps = [
+    ":PasteboardAbilityManagerTest",
     ":PasteboardDeduplicateMemoryTest",
     ":PasteboardDelayManagerTest",
     ":PasteboardDelayProxyTest",
     ":PasteboardDelayStubTest",
-    ":PasteboardDialogTest",
     ":PasteboardDisposableManagerTest",
     ":PasteboardEntryGetterProxyTest",
     ":PasteboardEntryGetterStubTest",
