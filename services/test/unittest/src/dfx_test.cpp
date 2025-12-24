@@ -34,16 +34,16 @@ public:
     void TearDown();
 };
 
-void DFXTest::SetUpTestCase(void) { }
+void DFXTest::SetUpTestCase(void) {}
 
-void DFXTest::TearDownTestCase(void) { }
+void DFXTest::TearDownTestCase(void) {}
 
 void DFXTest::SetUp(void)
 {
     HiViewAdapter::StartTimerThread();
 }
 
-void DFXTest::TearDown(void) { }
+void DFXTest::TearDown(void) {}
 
 /**
  * @tc.name: DFXTest001
