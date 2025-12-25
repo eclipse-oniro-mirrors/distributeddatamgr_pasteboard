@@ -52,7 +52,7 @@ void DFXTest::TearDown(void) {}
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(DFXTest, DFXTest001, TestSize.Level0)
+HWTEST_F(DFXTest, DFXTest001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_INNERKIT, "DFXTest001 Start.");
     PasteboardFaultMsg faultMsg = { .userId = 1, .errorCode = "error" };
@@ -68,7 +68,7 @@ HWTEST_F(DFXTest, DFXTest001, TestSize.Level0)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(DFXTest, DFXTest002, TestSize.Level0)
+HWTEST_F(DFXTest, DFXTest002, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_INNERKIT, "DFXTest002 Start.");
     TimeConsumingStat timeConsumingStat = { .pasteboardState = SPS_COPY_STATE, .dataSize = -1, .timeConsuming = -1 };
@@ -95,7 +95,7 @@ HWTEST_F(DFXTest, DFXTest002, TestSize.Level0)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(DFXTest, DFXTest003, TestSize.Level0)
+HWTEST_F(DFXTest, DFXTest003, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_INNERKIT, "DFXTest003 Start.");
     TimeConsumingStat timeConsumingStat = { .pasteboardState = SPS_PASTE_STATE, .dataSize = -1, .timeConsuming = -1 };
@@ -121,7 +121,7 @@ HWTEST_F(DFXTest, DFXTest003, TestSize.Level0)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(DFXTest, DFXTest004, TestSize.Level0)
+HWTEST_F(DFXTest, DFXTest004, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_INNERKIT, "DFXTest004 Start.");
     TimeConsumingStat timeConsumingStat = { .pasteboardState = SPS_REMOTE_PASTE_STATE,
@@ -149,7 +149,7 @@ HWTEST_F(DFXTest, DFXTest004, TestSize.Level0)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(DFXTest, DFXTest005, TestSize.Level0)
+HWTEST_F(DFXTest, DFXTest005, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_INNERKIT, "DFXTest005 Start.");
     TimeConsumingStat timeConsumingStat = { .pasteboardState = SPS_INVALID_STATE,
@@ -167,7 +167,7 @@ HWTEST_F(DFXTest, DFXTest005, TestSize.Level0)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(DFXTest, DFXTest006, TestSize.Level0)
+HWTEST_F(DFXTest, DFXTest006, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_INNERKIT, "DFXTest006 Start.");
     PasteboardBehaviourMsg behaviourMsg = { .pasteboardState = BPS_COPY_STATE, .bundleName = "com.paste.test" };
@@ -201,7 +201,7 @@ HWTEST_F(DFXTest, DFXTest006, TestSize.Level0)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(DFXTest, DFXTest007, TestSize.Level0)
+HWTEST_F(DFXTest, DFXTest007, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_INNERKIT, "DFXTest007 Start.");
     std::shared_ptr<DfxAppEvent> processorEvent = std::make_shared<DfxAppEvent>();
@@ -217,7 +217,7 @@ HWTEST_F(DFXTest, DFXTest007, TestSize.Level0)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(DFXTest, DFXTest008, TestSize.Level0)
+HWTEST_F(DFXTest, DFXTest008, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_INNERKIT, "DFXTest008 Start.");
     DfxAppEvent::processorId_ = NOT_APP_PROCESSORID;

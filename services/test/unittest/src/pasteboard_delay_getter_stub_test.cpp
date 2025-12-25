@@ -149,7 +149,7 @@ bool Parcel::WriteInt64(int64_t data)
  * @tc.desc: remoteDescriptor != localDescriptor
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardDelayStubTest, OnRemoteRequestTest001, TestSize.Level0)
+HWTEST_F(PasteboardDelayStubTest, OnRemoteRequestTest001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnRemoteRequestTest001 start");
     auto tempDelayGetter = std::make_shared<PasteboardDelayGetterStubTest>();
@@ -169,7 +169,7 @@ HWTEST_F(PasteboardDelayStubTest, OnRemoteRequestTest001, TestSize.Level0)
  * @tc.desc: code >= TRANS_BUTT
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardDelayStubTest, OnRemoteRequestTest002, TestSize.Level0)
+HWTEST_F(PasteboardDelayStubTest, OnRemoteRequestTest002, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnRemoteRequestTest002 start");
     auto tempDelayGetter = std::make_shared<PasteboardDelayGetterStubTest>();
@@ -190,7 +190,7 @@ HWTEST_F(PasteboardDelayStubTest, OnRemoteRequestTest002, TestSize.Level0)
  * @tc.desc: code >= TRANS_BUTT
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardDelayStubTest, OnRemoteRequestTest003, TestSize.Level0)
+HWTEST_F(PasteboardDelayStubTest, OnRemoteRequestTest003, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnRemoteRequestTest003 start");
     auto tempDelayGetter = std::make_shared<PasteboardDelayGetterStubTest>();
@@ -211,7 +211,7 @@ HWTEST_F(PasteboardDelayStubTest, OnRemoteRequestTest003, TestSize.Level0)
  * @tc.desc: code >= TRANS_BUTT
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardDelayStubTest, OnRemoteRequestTest004, TestSize.Level0)
+HWTEST_F(PasteboardDelayStubTest, OnRemoteRequestTest004, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnRemoteRequestTest004 start");
     auto pasteboardObserverStub = std::make_shared<PasteboardObserverImpl>();
@@ -231,7 +231,7 @@ HWTEST_F(PasteboardDelayStubTest, OnRemoteRequestTest004, TestSize.Level0)
  * @tc.desc: code >= TRANS_BUTT
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardDelayStubTest, OnRemoteRequestTest005, TestSize.Level0)
+HWTEST_F(PasteboardDelayStubTest, OnRemoteRequestTest005, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnRemoteRequestTest005 start");
     auto pasteboardObserverStub = std::make_shared<PasteboardObserverImpl>();
@@ -252,7 +252,7 @@ HWTEST_F(PasteboardDelayStubTest, OnRemoteRequestTest005, TestSize.Level0)
  * @tc.desc: code >= TRANS_BUTT
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardDelayStubTest, OnRemoteRequestTest006, TestSize.Level0)
+HWTEST_F(PasteboardDelayStubTest, OnRemoteRequestTest006, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnRemoteRequestTest006 start");
     auto pasteboardObserverStub = std::make_shared<PasteboardObserverImpl>();
@@ -274,7 +274,7 @@ HWTEST_F(PasteboardDelayStubTest, OnRemoteRequestTest006, TestSize.Level0)
  * @tc.desc: pasteData.Encode(pasteDataTlv) return error
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardDelayStubTest, OnGetPasteDataTest001, TestSize.Level0)
+HWTEST_F(PasteboardDelayStubTest, OnGetPasteDataTest001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnGetPasteDataTest001 start");
     auto tempDelayGetter = std::make_shared<PasteboardDelayGetterStubTest>();
@@ -292,7 +292,7 @@ HWTEST_F(PasteboardDelayStubTest, OnGetPasteDataTest001, TestSize.Level0)
  * @tc.desc: WriteInt64 return error
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardDelayStubTest, OnGetPasteDataTest002, TestSize.Level0)
+HWTEST_F(PasteboardDelayStubTest, OnGetPasteDataTest002, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnGetPasteDataTest002 start");
     auto tempDelayGetter = std::make_shared<PasteboardDelayGetterStubTest>();
@@ -311,7 +311,7 @@ HWTEST_F(PasteboardDelayStubTest, OnGetPasteDataTest002, TestSize.Level0)
  * @tc.desc: reply.WriteInt64 return error
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardDelayStubTest, OnGetPasteDataTest003, TestSize.Level0)
+HWTEST_F(PasteboardDelayStubTest, OnGetPasteDataTest003, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnGetPasteDataTest003 start");
     auto tempDelayGetter = std::make_shared<PasteboardDelayGetterStubTest>();
@@ -331,7 +331,7 @@ HWTEST_F(PasteboardDelayStubTest, OnGetPasteDataTest003, TestSize.Level0)
  * @tc.desc: OnGetUnifiedData
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardDelayStubTest, OnGetUnifiedDataTest001, TestSize.Level0)
+HWTEST_F(PasteboardDelayStubTest, OnGetUnifiedDataTest001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnGetUnifiedDataTest001 start");
     auto tempDelayGetter = std::make_shared<PasteboardDelayGetterStubTest>();

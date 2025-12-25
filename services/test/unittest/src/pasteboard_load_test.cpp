@@ -94,7 +94,7 @@ namespace MiscServices {
  * @tc.desc: LoadComponents when component.lib == ""
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardLoadTest, LoadComponentsTest001, TestSize.Level0)
+HWTEST_F(PasteboardLoadTest, LoadComponentsTest001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "LoadComponentsTest001 start");
     Loader loader;
@@ -108,7 +108,7 @@ HWTEST_F(PasteboardLoadTest, LoadComponentsTest001, TestSize.Level0)
  * @tc.desc: LoadComponents when Loader::ComponentIsExist(component.lib) return true
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardLoadTest, LoadComponentsTest002, TestSize.Level0)
+HWTEST_F(PasteboardLoadTest, LoadComponentsTest002, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "LoadComponentsTest002 start");
     Loader loader;
@@ -124,7 +124,7 @@ HWTEST_F(PasteboardLoadTest, LoadComponentsTest002, TestSize.Level0)
  * @tc.desc: LoadComponents when dlopen return nullptr
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardLoadTest, LoadComponentsTest003, TestSize.Level0)
+HWTEST_F(PasteboardLoadTest, LoadComponentsTest003, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "LoadComponentsTest003 start");
     Loader loader;
@@ -140,7 +140,7 @@ HWTEST_F(PasteboardLoadTest, LoadComponentsTest003, TestSize.Level0)
  * @tc.desc: LoadComponents when component.constructor.empty() return true
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardLoadTest, LoadComponentsTest004, TestSize.Level0)
+HWTEST_F(PasteboardLoadTest, LoadComponentsTest004, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "LoadComponentsTest004 start");
     Loader loader;
@@ -157,7 +157,7 @@ HWTEST_F(PasteboardLoadTest, LoadComponentsTest004, TestSize.Level0)
  * @tc.desc: LoadComponents dlsym return false
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardLoadTest, LoadComponentsTest005, TestSize.Level0)
+HWTEST_F(PasteboardLoadTest, LoadComponentsTest005, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "LoadComponentsTest005 start");
     Loader loader;
@@ -175,7 +175,7 @@ HWTEST_F(PasteboardLoadTest, LoadComponentsTest005, TestSize.Level0)
  * @tc.desc: LoadUid
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardLoadTest, LoadUidTest, TestSize.Level0)
+HWTEST_F(PasteboardLoadTest, LoadUidTest, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "LoadUidTest start");
     Loader loader;
@@ -188,7 +188,7 @@ HWTEST_F(PasteboardLoadTest, LoadUidTest, TestSize.Level0)
  * @tc.desc: LoadConfig
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardLoadTest, LoadConfigTest, TestSize.Level0)
+HWTEST_F(PasteboardLoadTest, LoadConfigTest, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "LoadConfigTest start");
     Loader loader;
@@ -201,7 +201,7 @@ HWTEST_F(PasteboardLoadTest, LoadConfigTest, TestSize.Level0)
  * @tc.desc: ComponentIsExist
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardLoadTest, ComponentIsExistTest, TestSize.Level0)
+HWTEST_F(PasteboardLoadTest, ComponentIsExistTest, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ComponentIsExistTest start");
     Loader loader;

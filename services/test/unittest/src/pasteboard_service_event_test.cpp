@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -59,6 +59,8 @@ const std::string TEST_ENTITY_TEXT =
     "和谐与宁静。如果你时间充裕，可以选择在湖畔的咖啡馆稍作休息，回味这一天的旅程。这条路线涵盖了西湖的主要经典景点，从"
     "湖滨路到南山路，再到杨公堤、北山街，最后回到杭州市中心，整个行程大约需要一天时间。沿着这条路线，你可以领略西湖的自"
     "然风光和文化底蕴，感受人间天堂的独特魅力。";
+const std::string TEST_ENTITY_TEXT_CN_50 =
+    "清晨,从杭州市中心出发，沿着湖滨路缓缓前行。湖滨路是杭州市中心通往西湖的主要街道之一，两旁绿树成荫。";
 const int64_t DEFAULT_MAX_RAW_DATA_SIZE = 128 * 1024 * 1024;
 constexpr int32_t MIMETYPE_MAX_SIZE = 1024;
 static constexpr uint64_t ONE_HOUR_MILLISECONDS = 60 * 60 * 1000;
@@ -194,7 +196,7 @@ namespace MiscServices {
  * @tc.desc: test Func OnInputEvent
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceEventTest, OnInputEventTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceEventTest, OnInputEventTest001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnInputEventTest001 start");
     auto tempPasteboard = std::make_shared<InputEventCallback>();
@@ -217,7 +219,7 @@ HWTEST_F(PasteboardServiceEventTest, OnInputEventTest001, TestSize.Level0)
  * @tc.desc: test Func OnInputEvent
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceEventTest, OnInputEventTest002, TestSize.Level0)
+HWTEST_F(PasteboardServiceEventTest, OnInputEventTest002, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnInputEventTest002 start");
     auto tempPasteboard = std::make_shared<InputEventCallback>();
@@ -240,7 +242,7 @@ HWTEST_F(PasteboardServiceEventTest, OnInputEventTest002, TestSize.Level0)
  * @tc.desc: test Func OnInputEvent
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceEventTest, OnInputEventTest003, TestSize.Level0)
+HWTEST_F(PasteboardServiceEventTest, OnInputEventTest003, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnInputEventTest003 start");
     auto tempPasteboard = std::make_shared<InputEventCallback>();
@@ -267,7 +269,7 @@ HWTEST_F(PasteboardServiceEventTest, OnInputEventTest003, TestSize.Level0)
  * @tc.desc: test Func OnInputEvent
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceEventTest, OnInputEventTest004, TestSize.Level0)
+HWTEST_F(PasteboardServiceEventTest, OnInputEventTest004, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnInputEventTest004 start");
     auto pasteboardServer = std::make_shared<PasteboardService>();
@@ -297,7 +299,7 @@ HWTEST_F(PasteboardServiceEventTest, OnInputEventTest004, TestSize.Level0)
  * @tc.desc: test Func IsCtrlVProcess
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceEventTest, IsCtrlVProcessTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceEventTest, IsCtrlVProcessTest001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "IsCtrlVProcessTest001 start");
     auto tempPasteboard = std::make_shared<InputEventCallback>();
@@ -315,7 +317,7 @@ HWTEST_F(PasteboardServiceEventTest, IsCtrlVProcessTest001, TestSize.Level0)
  * @tc.desc: test Func IsCtrlVProcess
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceEventTest, IsCtrlVProcessTest002, TestSize.Level0)
+HWTEST_F(PasteboardServiceEventTest, IsCtrlVProcessTest002, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "IsCtrlVProcessTest002 start");
     auto tempPasteboard = std::make_shared<InputEventCallback>();
@@ -339,7 +341,7 @@ HWTEST_F(PasteboardServiceEventTest, IsCtrlVProcessTest002, TestSize.Level0)
  * @tc.desc: test Func IsCtrlVProcess
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceEventTest, IsCtrlVProcessTest003, TestSize.Level0)
+HWTEST_F(PasteboardServiceEventTest, IsCtrlVProcessTest003, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "IsCtrlVProcessTest003 start");
     auto tempPasteboard = std::make_shared<InputEventCallback>();
@@ -362,7 +364,7 @@ HWTEST_F(PasteboardServiceEventTest, IsCtrlVProcessTest003, TestSize.Level0)
  * @tc.desc: test Func IsCtrlVProcess
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceEventTest, IsCtrlVProcessTest004, TestSize.Level0)
+HWTEST_F(PasteboardServiceEventTest, IsCtrlVProcessTest004, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "IsCtrlVProcessTest004 start");
     auto tempPasteboard = std::make_shared<InputEventCallback>();
@@ -383,7 +385,7 @@ HWTEST_F(PasteboardServiceEventTest, IsCtrlVProcessTest004, TestSize.Level0)
  * @tc.desc: test Func IsCtrlVProcess
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceEventTest, IsCtrlVProcessTest005, TestSize.Level0)
+HWTEST_F(PasteboardServiceEventTest, IsCtrlVProcessTest005, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "IsCtrlVProcessTest005 start");
     auto tempPasteboard = std::make_shared<InputEventCallback>();
@@ -405,7 +407,7 @@ HWTEST_F(PasteboardServiceEventTest, IsCtrlVProcessTest005, TestSize.Level0)
  * @tc.desc: test Func IsCtrlVProcess
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceEventTest, IsCtrlVProcessTest006, TestSize.Level0)
+HWTEST_F(PasteboardServiceEventTest, IsCtrlVProcessTest006, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "IsCtrlVProcessTest006 start");
     auto tempPasteboard = std::make_shared<InputEventCallback>();
@@ -470,7 +472,7 @@ HWTEST_F(PasteboardServiceEventTest, GetValidDistributeEventTest002, TestSize.Le
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(PasteboardServiceEventTest, GetValidDistributeEventTest003, TestSize.Level0)
+HWTEST_F(PasteboardServiceEventTest, GetValidDistributeEventTest003, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetValidDistributeEventTest003 start");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -487,7 +489,7 @@ HWTEST_F(PasteboardServiceEventTest, GetValidDistributeEventTest003, TestSize.Le
  * @tc.desc: test Func SetRadarEvent
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceEventTest, SetRadarEventTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceEventTest, SetRadarEventTest001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetRadarEventTest001 start");
     std::shared_ptr<PasteboardService> tempPasteboard = std::make_shared<PasteboardService>();
@@ -508,7 +510,7 @@ HWTEST_F(PasteboardServiceEventTest, SetRadarEventTest001, TestSize.Level0)
  * @tc.desc: test Func SetUeEvent
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceEventTest, SetUeEventTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceEventTest, SetUeEventTest001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetUeEventTest001 start");
     std::shared_ptr<PasteboardService> tempPasteboard = std::make_shared<PasteboardService>();
@@ -529,7 +531,7 @@ HWTEST_F(PasteboardServiceEventTest, SetUeEventTest001, TestSize.Level0)
  * @tc.desc: test Func ReportUeCopyEvent
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceEventTest, ReportUeCopyEventTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceEventTest, ReportUeCopyEventTest001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ReportUeCopyEventTest001 start");
     constexpr int32_t result = 111;
@@ -546,7 +548,7 @@ HWTEST_F(PasteboardServiceEventTest, ReportUeCopyEventTest001, TestSize.Level0)
  * @tc.desc: test Func OnReceiveEvent
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceEventTest, OnReceiveEventTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceEventTest, OnReceiveEventTest001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnReceiveEventTest001 start");
     EventFwk::CommonEventSubscribeInfo subscribeInfo;
@@ -564,7 +566,7 @@ HWTEST_F(PasteboardServiceEventTest, OnReceiveEventTest001, TestSize.Level0)
  * @tc.desc: test Func OnReceiveEvent
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceEventTest, OnReceiveEventTest002, TestSize.Level0)
+HWTEST_F(PasteboardServiceEventTest, OnReceiveEventTest002, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnReceiveEventTest002 start");
     EventFwk::CommonEventSubscribeInfo subscribeInfo;
@@ -585,7 +587,7 @@ HWTEST_F(PasteboardServiceEventTest, OnReceiveEventTest002, TestSize.Level0)
  * @tc.desc: test Func OnReceiveEvent
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceEventTest, OnReceiveEventTest003, TestSize.Level0)
+HWTEST_F(PasteboardServiceEventTest, OnReceiveEventTest003, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnReceiveEventTest003 start");
     EventFwk::CommonEventSubscribeInfo subscribeInfo;
@@ -606,7 +608,7 @@ HWTEST_F(PasteboardServiceEventTest, OnReceiveEventTest003, TestSize.Level0)
  * @tc.desc: test Func OnReceiveEvent
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceEventTest, OnReceiveEventTest004, TestSize.Level0)
+HWTEST_F(PasteboardServiceEventTest, OnReceiveEventTest004, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnReceiveEventTest004 start");
     EventFwk::CommonEventSubscribeInfo subscribeInfo;
@@ -627,7 +629,7 @@ HWTEST_F(PasteboardServiceEventTest, OnReceiveEventTest004, TestSize.Level0)
  * @tc.desc: test Func OnReceiveEvent
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceEventTest, OnReceiveEventTest005, TestSize.Level0)
+HWTEST_F(PasteboardServiceEventTest, OnReceiveEventTest005, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnReceiveEventTest005 start");
     EventFwk::CommonEventSubscribeInfo subscribeInfo;
@@ -648,7 +650,7 @@ HWTEST_F(PasteboardServiceEventTest, OnReceiveEventTest005, TestSize.Level0)
  * @tc.desc: test Func OnStateChanged
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceEventTest, OnStateChangedTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceEventTest, OnStateChangedTest001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnStateChangedTest001 start");
     AccountSA::OsAccountSubscribeInfo subscribeInfo;
@@ -666,7 +668,7 @@ HWTEST_F(PasteboardServiceEventTest, OnStateChangedTest001, TestSize.Level0)
  * @tc.desc: test Func OnStateChanged
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceEventTest, OnStateChangedTest002, TestSize.Level0)
+HWTEST_F(PasteboardServiceEventTest, OnStateChangedTest002, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnStateChangedTest002 start");
     AccountSA::OsAccountSubscribeInfo subscribeInfo;
@@ -688,7 +690,7 @@ HWTEST_F(PasteboardServiceEventTest, OnStateChangedTest002, TestSize.Level0)
  * @tc.desc: test Func OnStateChanged
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceEventTest, OnStateChangedTest003, TestSize.Level0)
+HWTEST_F(PasteboardServiceEventTest, OnStateChangedTest003, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnStateChangedTest003 start");
     AccountSA::OsAccountSubscribeInfo subscribeInfo;
@@ -710,7 +712,7 @@ HWTEST_F(PasteboardServiceEventTest, OnStateChangedTest003, TestSize.Level0)
  * @tc.desc: test Func OnStateChanged
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceEventTest, OnStateChangedTest004, TestSize.Level0)
+HWTEST_F(PasteboardServiceEventTest, OnStateChangedTest004, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnStateChangedTest004 start");
     AccountSA::OsAccountSubscribeInfo subscribeInfo;
@@ -733,7 +735,7 @@ HWTEST_F(PasteboardServiceEventTest, OnStateChangedTest004, TestSize.Level0)
  * @tc.desc: test Func OnAddDeviceManager
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceEventTest, OnAddDeviceManagerTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceEventTest, OnAddDeviceManagerTest001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnAddDeviceManagerTest001 start");
     constexpr int32_t userId = 111;
@@ -748,7 +750,7 @@ HWTEST_F(PasteboardServiceEventTest, OnAddDeviceManagerTest001, TestSize.Level0)
  * @tc.desc: test Func OnAddMemoryManager
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceEventTest, OnAddMemoryManagerTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceEventTest, OnAddMemoryManagerTest001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnAddMemoryManagerTest001 start");
     constexpr int32_t userId = 111;
@@ -763,7 +765,7 @@ HWTEST_F(PasteboardServiceEventTest, OnAddMemoryManagerTest001, TestSize.Level0)
  * @tc.desc: test Func OnAddSystemAbility
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceEventTest, OnAddSystemAbilityTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceEventTest, OnAddSystemAbilityTest001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnAddSystemAbilityTest001 start");
     int32_t systemAbilityId = 1;
@@ -779,7 +781,7 @@ HWTEST_F(PasteboardServiceEventTest, OnAddSystemAbilityTest001, TestSize.Level0)
  * @tc.desc: test Func OnAddSystemAbility
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceEventTest, OnAddSystemAbilityTest002, TestSize.Level0)
+HWTEST_F(PasteboardServiceEventTest, OnAddSystemAbilityTest002, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnAddSystemAbilityTest002 start");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -794,7 +796,7 @@ HWTEST_F(PasteboardServiceEventTest, OnAddSystemAbilityTest002, TestSize.Level0)
  * @tc.desc: test Func OnAddSystemAbility
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceEventTest, OnAddSystemAbilityTest003, TestSize.Level0)
+HWTEST_F(PasteboardServiceEventTest, OnAddSystemAbilityTest003, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnAddSystemAbilityTest003 start");
     auto pbs = std::make_shared<PasteboardService>();
@@ -812,7 +814,7 @@ HWTEST_F(PasteboardServiceEventTest, OnAddSystemAbilityTest003, TestSize.Level0)
  * @tc.desc: test Func OnRemoveSystemAbility
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceEventTest, OnRemoveSystemAbilityTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceEventTest, OnRemoveSystemAbilityTest001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnRemoveSystemAbilityTest001 start");
     auto pbs = std::make_shared<PasteboardService>();
@@ -830,7 +832,7 @@ HWTEST_F(PasteboardServiceEventTest, OnRemoveSystemAbilityTest001, TestSize.Leve
  * @tc.desc: test Func OnConfigChange
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceEventTest, OnConfigChangeTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceEventTest, OnConfigChangeTest001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnConfigChangeTest001 start");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -845,7 +847,7 @@ HWTEST_F(PasteboardServiceEventTest, OnConfigChangeTest001, TestSize.Level0)
  * @tc.desc: test Func OnRemoteDied
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceEventTest, OnRemoteDiedTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceEventTest, OnRemoteDiedTest001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnRemoteDiedTest001 start");
     wptr<IRemoteObject> deadRemote;
@@ -863,7 +865,7 @@ HWTEST_F(PasteboardServiceEventTest, OnRemoteDiedTest001, TestSize.Level0)
  * @tc.desc: test Func OnRemoteDied
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceEventTest, OnRemoteDiedTest002, TestSize.Level0)
+HWTEST_F(PasteboardServiceEventTest, OnRemoteDiedTest002, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnRemoteDiedTest002 start");
     constexpr int32_t userId = 111;
@@ -881,7 +883,7 @@ HWTEST_F(PasteboardServiceEventTest, OnRemoteDiedTest002, TestSize.Level0)
  * @tc.desc: test Func OnRemoteDied
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceEventTest, OnRemoteDiedTest003, TestSize.Level0)
+HWTEST_F(PasteboardServiceEventTest, OnRemoteDiedTest003, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnRemoteDiedTest003 start");
     PasteboardService service;
@@ -898,7 +900,7 @@ HWTEST_F(PasteboardServiceEventTest, OnRemoteDiedTest003, TestSize.Level0)
  * @tc.desc: test Func OnStop
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceEventTest, OnStopTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceEventTest, OnStopTest001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnStopTest001 start");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -913,7 +915,7 @@ HWTEST_F(PasteboardServiceEventTest, OnStopTest001, TestSize.Level0)
  * @tc.desc: test Func OnEstablishP2PLinkTask
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceEventTest, OnEstablishP2PLinkTaskTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceEventTest, OnEstablishP2PLinkTaskTest001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnEstablishP2PLinkTaskTest001 start");
     std::shared_ptr<PasteboardService> tempPasteboard = std::make_shared<PasteboardService>();
@@ -930,7 +932,7 @@ HWTEST_F(PasteboardServiceEventTest, OnEstablishP2PLinkTaskTest001, TestSize.Lev
  * @tc.desc: test Func GetChangeCount
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceEventTest, GetChangeCountTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceEventTest, GetChangeCountTest001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetChangeCountTest001 start");
     auto service = std::make_shared<PasteboardService>();
@@ -947,7 +949,7 @@ HWTEST_F(PasteboardServiceEventTest, GetChangeCountTest001, TestSize.Level0)
  * @tc.desc: test Func ChangeStoreStatus
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceEventTest, ChangeStoreStatusTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceEventTest, ChangeStoreStatusTest001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ChangeStoreStatusTest001 start");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -963,7 +965,7 @@ HWTEST_F(PasteboardServiceEventTest, ChangeStoreStatusTest001, TestSize.Level0)
  * @tc.desc: test Func IncreaseChangeCount, should reset to 0 after reach maximum limit.
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceEventTest, IncreaseChangeCountTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceEventTest, IncreaseChangeCountTest001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "IncreaseChangeCountTest001 start");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -992,7 +994,7 @@ HWTEST_F(PasteboardServiceEventTest, IncreaseChangeCountTest001, TestSize.Level0
  * @tc.desc: test Func IncreaseChangeCount, should reset to 0 after switch to a new user.
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceEventTest, IncreaseChangeCountTest002, TestSize.Level0)
+HWTEST_F(PasteboardServiceEventTest, IncreaseChangeCountTest002, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "IncreaseChangeCountTest002 start");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -1017,7 +1019,7 @@ HWTEST_F(PasteboardServiceEventTest, IncreaseChangeCountTest002, TestSize.Level0
  * @tc.desc: test Func RemotePasteboardChange
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceEventTest, RemotePasteboardChangeTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceEventTest, RemotePasteboardChangeTest001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "RemotePasteboardChangeTest001 start");
     auto tempPasteboard = std::make_shared<PasteboardService>();

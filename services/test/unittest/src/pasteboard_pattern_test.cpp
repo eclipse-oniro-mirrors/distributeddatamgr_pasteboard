@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -47,7 +47,7 @@ void PasteboardPatternTest::TearDown(void) { }
  * @tc.desc: detect test.
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardPatternTest, PasteboardPatternTest001, TestSize.Level0)
+HWTEST_F(PasteboardPatternTest, PasteboardPatternTest001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteboardPatternTest001 start");
     bool hasPlain = true;
@@ -87,7 +87,7 @@ HWTEST_F(PasteboardPatternTest, PasteboardPatternTest001, TestSize.Level0)
  * @tc.desc: detect test.
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardPatternTest, PasteboardPatternTest002, TestSize.Level0)
+HWTEST_F(PasteboardPatternTest, PasteboardPatternTest002, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteboardPatternTest002 start");
     bool hasPlain = true;
@@ -127,7 +127,7 @@ HWTEST_F(PasteboardPatternTest, PasteboardPatternTest002, TestSize.Level0)
  * @tc.desc: detect test.
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardPatternTest, PasteboardPatternTest003, TestSize.Level0)
+HWTEST_F(PasteboardPatternTest, PasteboardPatternTest003, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteboardPatternTest003 start");
     bool hasPlain = true;
@@ -167,7 +167,7 @@ HWTEST_F(PasteboardPatternTest, PasteboardPatternTest003, TestSize.Level0)
  * @tc.desc: detect test.
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardPatternTest, PasteboardPatternTest004, TestSize.Level0)
+HWTEST_F(PasteboardPatternTest, PasteboardPatternTest004, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteboardPatternTest004 start");
     bool hasPlain = false;
@@ -206,7 +206,7 @@ HWTEST_F(PasteboardPatternTest, PasteboardPatternTest004, TestSize.Level0)
  * @tc.desc: detect test.
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardPatternTest, PasteboardPatternTest005, TestSize.Level0)
+HWTEST_F(PasteboardPatternTest, PasteboardPatternTest005, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteboardPatternTest005 start");
     bool hasPlain = false;
@@ -246,7 +246,7 @@ HWTEST_F(PasteboardPatternTest, PasteboardPatternTest005, TestSize.Level0)
  * @tc.desc: detect test.
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardPatternTest, PasteboardPatternTest006, TestSize.Level0)
+HWTEST_F(PasteboardPatternTest, PasteboardPatternTest006, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteboardPatternTest006 start");
     bool hasPlain = true;
@@ -285,7 +285,7 @@ HWTEST_F(PasteboardPatternTest, PasteboardPatternTest006, TestSize.Level0)
  * @tc.desc: detect test.
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardPatternTest, PasteboardPatternTest007, TestSize.Level0)
+HWTEST_F(PasteboardPatternTest, PasteboardPatternTest007, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteboardPatternTest007 start");
     bool hasPlain = true;
@@ -324,7 +324,7 @@ HWTEST_F(PasteboardPatternTest, PasteboardPatternTest007, TestSize.Level0)
  * @tc.desc: detect test.
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardPatternTest, PasteboardPatternTest008, TestSize.Level0)
+HWTEST_F(PasteboardPatternTest, PasteboardPatternTest008, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteboardPatternTest008 start");
     bool hasPlain = false;
@@ -363,7 +363,7 @@ HWTEST_F(PasteboardPatternTest, PasteboardPatternTest008, TestSize.Level0)
  * @tc.desc: detect test.
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardPatternTest, PasteboardPatternTest009, TestSize.Level0)
+HWTEST_F(PasteboardPatternTest, PasteboardPatternTest009, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteboardPatternTest009 start");
     bool hasPlain = false;
@@ -402,7 +402,7 @@ HWTEST_F(PasteboardPatternTest, PasteboardPatternTest009, TestSize.Level0)
  * @tc.desc: IsValid test.
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardPatternTest, PasteboardPatternTest010, TestSize.Level0)
+HWTEST_F(PasteboardPatternTest, PasteboardPatternTest010, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteboardPatternTest010 start");
 

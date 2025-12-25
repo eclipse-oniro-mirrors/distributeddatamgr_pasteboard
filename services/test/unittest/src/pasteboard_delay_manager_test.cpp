@@ -86,7 +86,7 @@ public:
  * @tc.desc:
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardDelayManagerTest, GetEntryPriorityTest001, TestSize.Level0)
+HWTEST_F(PasteboardDelayManagerTest, GetEntryPriorityTest001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetEntryPriorityTest001 start");
     uint8_t priority = DelayManager::GetEntryPriority(UTDID_PLAIN_TEXT);
@@ -114,7 +114,7 @@ HWTEST_F(PasteboardDelayManagerTest, GetEntryPriorityTest001, TestSize.Level0)
  * @tc.desc:
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardDelayManagerTest, GetAllDelayEntryInfoTest001, TestSize.Level0)
+HWTEST_F(PasteboardDelayManagerTest, GetAllDelayEntryInfoTest001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetAllDelayEntryInfoTest001 start");
     PasteData pasteData;
@@ -144,7 +144,7 @@ HWTEST_F(PasteboardDelayManagerTest, GetAllDelayEntryInfoTest001, TestSize.Level
  * @tc.desc:
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardDelayManagerTest, GetAllDelayEntryInfoTest002, TestSize.Level0)
+HWTEST_F(PasteboardDelayManagerTest, GetAllDelayEntryInfoTest002, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetAllDelayEntryInfoTest002 start");
     PasteData pasteData;
@@ -194,7 +194,7 @@ HWTEST_F(PasteboardDelayManagerTest, GetAllDelayEntryInfoTest002, TestSize.Level
  * @tc.desc:
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardDelayManagerTest, GetPrimaryDelayEntryInfoTest001, TestSize.Level0)
+HWTEST_F(PasteboardDelayManagerTest, GetPrimaryDelayEntryInfoTest001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetPrimaryDelayEntryInfoTest001 start");
     PasteData pasteData;
@@ -243,7 +243,7 @@ HWTEST_F(PasteboardDelayManagerTest, GetPrimaryDelayEntryInfoTest001, TestSize.L
  * @tc.desc:
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardDelayManagerTest, GetLocalEntryValueTest001, TestSize.Level0)
+HWTEST_F(PasteboardDelayManagerTest, GetLocalEntryValueTest001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetLocalEntryValueTest001 start");
     uint64_t initDataSize = 100;

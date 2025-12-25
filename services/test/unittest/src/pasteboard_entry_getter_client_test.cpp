@@ -54,7 +54,7 @@ public:
  * @tc.desc: Test function GetRecordValueByType
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardEntryGetterClientTest, GetRecordValueByTypeTest001, TestSize.Level0)
+HWTEST_F(PasteboardEntryGetterClientTest, GetRecordValueByTypeTest001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetRecordValueByTypeTest001 start");
     std::map<uint32_t, std::shared_ptr<UDMF::EntryGetter>> entryGetters;
@@ -72,7 +72,7 @@ HWTEST_F(PasteboardEntryGetterClientTest, GetRecordValueByTypeTest001, TestSize.
  * @tc.desc: Test function GetRecordValueByType
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardEntryGetterClientTest, GetRecordValueByTypeTest002, TestSize.Level0)
+HWTEST_F(PasteboardEntryGetterClientTest, GetRecordValueByTypeTest002, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetRecordValueByTypeTest002 start");
     std::map<uint32_t, std::shared_ptr<UDMF::EntryGetter>> entryGetters;

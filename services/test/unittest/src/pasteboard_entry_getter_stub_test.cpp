@@ -207,7 +207,7 @@ void PasteboardEntryGetterStubTest::TearDown(void) { }
  * @tc.desc: Test function OnGetRecordValueByType when rawDataSize == -1
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardEntryGetterStubTest, OnGetRecordValueByTypeTest001, TestSize.Level0)
+HWTEST_F(PasteboardEntryGetterStubTest, OnGetRecordValueByTypeTest001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnGetRecordValueByTypeTest001 start");
     PasteboardEntryGetterStubI stub;
@@ -227,7 +227,7 @@ HWTEST_F(PasteboardEntryGetterStubTest, OnGetRecordValueByTypeTest001, TestSize.
  * @tc.desc: Test function OnGetRecordValueByType when rawDataSize == 1 and rawDataSize > messageData.GetRawDataSize()
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardEntryGetterStubTest, OnGetRecordValueByTypeTest002, TestSize.Level0)
+HWTEST_F(PasteboardEntryGetterStubTest, OnGetRecordValueByTypeTest002, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnGetRecordValueByTypeTest002 start");
     PasteboardEntryGetterStubI stub;
@@ -246,7 +246,7 @@ HWTEST_F(PasteboardEntryGetterStubTest, OnGetRecordValueByTypeTest002, TestSize.
  * @tc.desc: Test function OnGetRecordValueByType when rawData == nullptr
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardEntryGetterStubTest, OnGetRecordValueByTypeTest003, TestSize.Level0)
+HWTEST_F(PasteboardEntryGetterStubTest, OnGetRecordValueByTypeTest003, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnGetRecordValueByTypeTest003 start");
     PasteboardEntryGetterStubI stub;
@@ -266,7 +266,7 @@ HWTEST_F(PasteboardEntryGetterStubTest, OnGetRecordValueByTypeTest003, TestSize.
  * @tc.desc: Test function OnGetRecordValueByType when Decode return false
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardEntryGetterStubTest, OnGetRecordValueByTypeTest004, TestSize.Level0)
+HWTEST_F(PasteboardEntryGetterStubTest, OnGetRecordValueByTypeTest004, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnGetRecordValueByTypeTest004 start");
     PasteboardEntryGetterStubI stub;
@@ -289,7 +289,7 @@ HWTEST_F(PasteboardEntryGetterStubTest, OnGetRecordValueByTypeTest004, TestSize.
  * @tc.desc: Test function OnGetRecordValueByType when WriteInt32 return false
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardEntryGetterStubTest, OnGetRecordValueByTypeTest005, TestSize.Level0)
+HWTEST_F(PasteboardEntryGetterStubTest, OnGetRecordValueByTypeTest005, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnGetRecordValueByTypeTest005 start");
     PasteboardEntryGetterStubI stub;
@@ -313,7 +313,7 @@ HWTEST_F(PasteboardEntryGetterStubTest, OnGetRecordValueByTypeTest005, TestSize.
  * @tc.desc: Test function OnGetRecordValueByType when Encode return false
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardEntryGetterStubTest, OnGetRecordValueByTypeTest006, TestSize.Level0)
+HWTEST_F(PasteboardEntryGetterStubTest, OnGetRecordValueByTypeTest006, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnGetRecordValueByTypeTest006 start");
     PasteboardEntryGetterStubI stub;
@@ -338,7 +338,7 @@ HWTEST_F(PasteboardEntryGetterStubTest, OnGetRecordValueByTypeTest006, TestSize.
  * @tc.desc: Test function OnGetRecordValueByType when WriteInt64 return false
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardEntryGetterStubTest, OnGetRecordValueByTypeTest007, TestSize.Level0)
+HWTEST_F(PasteboardEntryGetterStubTest, OnGetRecordValueByTypeTest007, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnGetRecordValueByTypeTest007 start");
     PasteboardEntryGetterStubI stub;
@@ -365,7 +365,7 @@ HWTEST_F(PasteboardEntryGetterStubTest, OnGetRecordValueByTypeTest007, TestSize.
  * @tc.desc: Test function OnGetRecordValueByType when done
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardEntryGetterStubTest, OnGetRecordValueByTypeTest008, TestSize.Level0)
+HWTEST_F(PasteboardEntryGetterStubTest, OnGetRecordValueByTypeTest008, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnGetRecordValueByTypeTest008 start");
     PasteboardEntryGetterStubI stub;
@@ -392,7 +392,7 @@ HWTEST_F(PasteboardEntryGetterStubTest, OnGetRecordValueByTypeTest008, TestSize.
  * @tc.desc: Test function OnRemoteRequest when remoteDescriptor != localDescriptor
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardEntryGetterStubTest, OnRemoteRequestTest001, TestSize.Level0)
+HWTEST_F(PasteboardEntryGetterStubTest, OnRemoteRequestTest001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnRemoteRequestTest001 start");
     PasteboardEntryGetterStubI stub;
@@ -413,7 +413,7 @@ HWTEST_F(PasteboardEntryGetterStubTest, OnRemoteRequestTest001, TestSize.Level0)
  * @tc.desc: Test function OnRemoteRequest when itFunc != memberFuncMap_.end()
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardEntryGetterStubTest, OnRemoteRequestTest002, TestSize.Level0)
+HWTEST_F(PasteboardEntryGetterStubTest, OnRemoteRequestTest002, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnRemoteRequestTest002 start");
     PasteboardEntryGetterStubI stub;
@@ -435,7 +435,7 @@ HWTEST_F(PasteboardEntryGetterStubTest, OnRemoteRequestTest002, TestSize.Level0)
  * @tc.desc: Test function OnRemoteRequest when memberFuncMap_ not find code
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardEntryGetterStubTest, OnRemoteRequestTest003, TestSize.Level0)
+HWTEST_F(PasteboardEntryGetterStubTest, OnRemoteRequestTest003, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnRemoteRequestTest003 start");
     PasteboardEntryGetterStubI stub;

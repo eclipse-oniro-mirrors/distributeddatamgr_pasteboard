@@ -173,7 +173,7 @@ extern "C" {
  * @tc.desc: Function GetPasteData when WriteInterfaceToken return error
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardDelayProxyTest, GetPasteDataTest001, TestSize.Level0)
+HWTEST_F(PasteboardDelayProxyTest, GetPasteDataTest001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetPasteDataTest001 start");
     std::string testType = "text/plain";
@@ -192,7 +192,7 @@ HWTEST_F(PasteboardDelayProxyTest, GetPasteDataTest001, TestSize.Level0)
  * @tc.desc: Function GetPasteData when WriteString return error
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardDelayProxyTest, GetPasteDataTest002, TestSize.Level0)
+HWTEST_F(PasteboardDelayProxyTest, GetPasteDataTest002, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetPasteDataTest002 start");
     std::string testType = "text/plain";
@@ -212,7 +212,7 @@ HWTEST_F(PasteboardDelayProxyTest, GetPasteDataTest002, TestSize.Level0)
  * @tc.desc: Function GetPasteData when SendRequest return error
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardDelayProxyTest, GetPasteDataTest003, TestSize.Level0)
+HWTEST_F(PasteboardDelayProxyTest, GetPasteDataTest003, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetPasteDataTest003 start");
     std::string testType = "text/plain";
@@ -233,7 +233,7 @@ HWTEST_F(PasteboardDelayProxyTest, GetPasteDataTest003, TestSize.Level0)
  * @tc.desc: Function GetPasteData when ReadInt64 return error
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardDelayProxyTest, GetPasteDataTest004, TestSize.Level0)
+HWTEST_F(PasteboardDelayProxyTest, GetPasteDataTest004, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetPasteDataTest004 start");
     std::string testType = "text/plain";
@@ -255,7 +255,7 @@ HWTEST_F(PasteboardDelayProxyTest, GetPasteDataTest004, TestSize.Level0)
  * @tc.desc: Function GetPasteData when ReadInt64 return error
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardDelayProxyTest, GetPasteDataTest005, TestSize.Level0)
+HWTEST_F(PasteboardDelayProxyTest, GetPasteDataTest005, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetPasteDataTest005 start");
     std::string testType = "text/plain";
@@ -277,7 +277,7 @@ HWTEST_F(PasteboardDelayProxyTest, GetPasteDataTest005, TestSize.Level0)
  * @tc.desc: Function GetUnifiedData
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardDelayProxyTest, GetPasteDataTest006, TestSize.Level0)
+HWTEST_F(PasteboardDelayProxyTest, GetPasteDataTest006, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetPasteDataTest006 start");
     std::string testType = "text/plain";

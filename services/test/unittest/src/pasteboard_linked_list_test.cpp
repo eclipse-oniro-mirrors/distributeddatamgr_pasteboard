@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -50,7 +50,7 @@ void PasteboardLinkedListTest::TearDown(void)
  * @tc.desc: Test InsertFront
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardLinkedListTest, TestInsert001, TestSize.Level0)
+HWTEST_F(PasteboardLinkedListTest, TestInsert001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "TestInsert001 start");
     LinkedList<int32_t> lst;
@@ -75,7 +75,7 @@ HWTEST_F(PasteboardLinkedListTest, TestInsert001, TestSize.Level0)
  * @tc.desc: Test InsertTail
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardLinkedListTest, TestInsert002, TestSize.Level0)
+HWTEST_F(PasteboardLinkedListTest, TestInsert002, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "TestInsert002 start");
     LinkedList<int32_t> lst;
@@ -100,7 +100,7 @@ HWTEST_F(PasteboardLinkedListTest, TestInsert002, TestSize.Level0)
  * @tc.desc: Test InsertFront & InsertTail
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardLinkedListTest, TestInsert003, TestSize.Level0)
+HWTEST_F(PasteboardLinkedListTest, TestInsert003, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "TestInsert003 start");
     LinkedList<int32_t> lst;
@@ -125,7 +125,7 @@ HWTEST_F(PasteboardLinkedListTest, TestInsert003, TestSize.Level0)
  * @tc.desc: Test FindExist
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardLinkedListTest, TestFindExist001, TestSize.Level0)
+HWTEST_F(PasteboardLinkedListTest, TestFindExist001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "TestFindExist001 start");
     LinkedList<int32_t> lst;
@@ -163,7 +163,7 @@ HWTEST_F(PasteboardLinkedListTest, TestFindExist001, TestSize.Level0)
  * @tc.desc: Test RemoveIf
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardLinkedListTest, TestRemoveIf001, TestSize.Level0)
+HWTEST_F(PasteboardLinkedListTest, TestRemoveIf001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "TestRemoveIf001 start");
     LinkedList<int32_t> lst;

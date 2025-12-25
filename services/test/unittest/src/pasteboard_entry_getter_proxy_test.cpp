@@ -212,7 +212,7 @@ namespace MiscServices {
  * @tc.desc: Test function MakeRequest when WriteInterfaceToken return false
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardEntryGetterProxyTest, MakeRequestTest001, TestSize.Level0)
+HWTEST_F(PasteboardEntryGetterProxyTest, MakeRequestTest001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "MakeRequestTest001 start");
     sptr<IRemoteObject> rObject = nullptr;
@@ -231,7 +231,7 @@ HWTEST_F(PasteboardEntryGetterProxyTest, MakeRequestTest001, TestSize.Level0)
  * @tc.desc: Test function MakeRequest when WriteUint32 return false
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardEntryGetterProxyTest, MakeRequestTest002, TestSize.Level0)
+HWTEST_F(PasteboardEntryGetterProxyTest, MakeRequestTest002, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "MakeRequestTest002 start");
     sptr<IRemoteObject> rObject = nullptr;
@@ -251,7 +251,7 @@ HWTEST_F(PasteboardEntryGetterProxyTest, MakeRequestTest002, TestSize.Level0)
  * @tc.desc: Test function MakeRequest when Encode return false
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardEntryGetterProxyTest, MakeRequestTest003, TestSize.Level0)
+HWTEST_F(PasteboardEntryGetterProxyTest, MakeRequestTest003, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "MakeRequestTest003 start");
     sptr<IRemoteObject> rObject = nullptr;
@@ -272,7 +272,7 @@ HWTEST_F(PasteboardEntryGetterProxyTest, MakeRequestTest003, TestSize.Level0)
  * @tc.desc: Test function MakeRequest when WriteInt64 return false
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardEntryGetterProxyTest, MakeRequestTest004, TestSize.Level0)
+HWTEST_F(PasteboardEntryGetterProxyTest, MakeRequestTest004, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "MakeRequestTest004 start");
     sptr<IRemoteObject> rObject = nullptr;
@@ -294,7 +294,7 @@ HWTEST_F(PasteboardEntryGetterProxyTest, MakeRequestTest004, TestSize.Level0)
  * @tc.desc: Test function MakeRequest when sendEntryTLV.size() == 0
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardEntryGetterProxyTest, MakeRequestTest005, TestSize.Level0)
+HWTEST_F(PasteboardEntryGetterProxyTest, MakeRequestTest005, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "MakeRequestTest005 start");
     sptr<IRemoteObject> rObject = nullptr;
@@ -317,7 +317,7 @@ HWTEST_F(PasteboardEntryGetterProxyTest, MakeRequestTest005, TestSize.Level0)
  * @tc.desc: Test function MakeRequest when done
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardEntryGetterProxyTest, MakeRequestTest006, TestSize.Level0)
+HWTEST_F(PasteboardEntryGetterProxyTest, MakeRequestTest006, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "MakeRequestTest006 start");
     sptr<IRemoteObject> rObject = nullptr;
@@ -341,7 +341,7 @@ HWTEST_F(PasteboardEntryGetterProxyTest, MakeRequestTest006, TestSize.Level0)
  * @tc.desc: Test function GetRecordValueByType when MakeRequest return false
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardEntryGetterProxyTest, GetRecordValueByTypeTest001, TestSize.Level0)
+HWTEST_F(PasteboardEntryGetterProxyTest, GetRecordValueByTypeTest001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetRecordValueByTypeTest001 start");
     sptr<IRemoteObject> rObject = nullptr;
@@ -365,7 +365,7 @@ HWTEST_F(PasteboardEntryGetterProxyTest, GetRecordValueByTypeTest001, TestSize.L
  * @tc.desc: Test function GetRecordValueByType when SendRequest return SENDREQUEST_ONE
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardEntryGetterProxyTest, GetRecordValueByTypeTest002, TestSize.Level0)
+HWTEST_F(PasteboardEntryGetterProxyTest, GetRecordValueByTypeTest002, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetRecordValueByTypeTest002 start");
     sptr<IRemoteObject> rObject = sptr<TestIRemoteObject>::MakeSptr();
@@ -390,7 +390,7 @@ HWTEST_F(PasteboardEntryGetterProxyTest, GetRecordValueByTypeTest002, TestSize.L
  * @tc.desc: Test function GetRecordValueByType when rawDataSize <= 0
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardEntryGetterProxyTest, GetRecordValueByTypeTest003, TestSize.Level0)
+HWTEST_F(PasteboardEntryGetterProxyTest, GetRecordValueByTypeTest003, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetRecordValueByTypeTest003 start");
     sptr<IRemoteObject> rObject = sptr<TestIRemoteObject>::MakeSptr();
@@ -417,7 +417,7 @@ HWTEST_F(PasteboardEntryGetterProxyTest, GetRecordValueByTypeTest003, TestSize.L
  *           DEFAULT_MAX_RAW_DATA_SIZE (128 * 1024 * 1024; // 128M)
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardEntryGetterProxyTest, GetRecordValueByTypeTest004, TestSize.Level0)
+HWTEST_F(PasteboardEntryGetterProxyTest, GetRecordValueByTypeTest004, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetRecordValueByTypeTest004 start");
     sptr<IRemoteObject> rObject = sptr<TestIRemoteObject>::MakeSptr();
@@ -443,7 +443,7 @@ HWTEST_F(PasteboardEntryGetterProxyTest, GetRecordValueByTypeTest004, TestSize.L
  * @tc.desc: Test function GetRecordValueByType when Decode return false
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardEntryGetterProxyTest, GetRecordValueByTypeTest005, TestSize.Level0)
+HWTEST_F(PasteboardEntryGetterProxyTest, GetRecordValueByTypeTest005, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetRecordValueByTypeTest005 start");
     sptr<IRemoteObject> rObject = sptr<TestIRemoteObject>::MakeSptr();
@@ -472,7 +472,7 @@ HWTEST_F(PasteboardEntryGetterProxyTest, GetRecordValueByTypeTest005, TestSize.L
  * @tc.desc: Test function GetRecordValueByType when done
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardEntryGetterProxyTest, GetRecordValueByTypeTest006, TestSize.Level0)
+HWTEST_F(PasteboardEntryGetterProxyTest, GetRecordValueByTypeTest006, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetRecordValueByTypeTest006 start");
     sptr<IRemoteObject> rObject = sptr<TestIRemoteObject>::MakeSptr();

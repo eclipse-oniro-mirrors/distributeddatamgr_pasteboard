@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -54,6 +54,8 @@ const std::string TEST_ENTITY_TEXT =
     "和谐与宁静。如果你时间充裕，可以选择在湖畔的咖啡馆稍作休息，回味这一天的旅程。这条路线涵盖了西湖的主要经典景点，从"
     "湖滨路到南山路，再到杨公堤、北山街，最后回到杭州市中心，整个行程大约需要一天时间。沿着这条路线，你可以领略西湖的自"
     "然风光和文化底蕴，感受人间天堂的独特魅力。";
+const std::string TEST_ENTITY_TEXT_CN_50 =
+    "清晨,从杭州市中心出发，沿着湖滨路缓缓前行。湖滨路是杭州市中心通往西湖的主要街道之一，两旁绿树成荫。";
 const int64_t DEFAULT_MAX_RAW_DATA_SIZE = 128 * 1024 * 1024;
 } // namespace
 
@@ -281,7 +283,7 @@ HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataTest004, TestSize.Level1)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataTest005, TestSize.Level0)
+HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataTest005, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetPasteDataTest005 start");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -299,7 +301,7 @@ HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataTest005, TestSize.Level0)
  * @tc.desc: test Func SetPasteDataDelayData, return INVALID_PARAM_ERROR.
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataDelayDataTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataDelayDataTest001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetPasteDataDelayDataTest001 start");
     int fd = -1;
@@ -319,7 +321,7 @@ HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataDelayDataTest001, TestSize.Le
  * @tc.desc: test Func SetPasteDataDelayData, return INVALID_PARAM_ERROR.
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataDelayDataTest002, TestSize.Level0)
+HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataDelayDataTest002, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetPasteDataDelayDataTest002 start");
     int fd = -1;
@@ -339,7 +341,7 @@ HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataDelayDataTest002, TestSize.Le
  * @tc.desc: test Func SetPasteDataDelayData, fd is error, map failed, return INVALID_PARAM_ERROR.
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataDelayDataTest003, TestSize.Level0)
+HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataDelayDataTest003, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetPasteDataDelayDataTest003 start");
     int fd = -1;
@@ -359,7 +361,7 @@ HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataDelayDataTest003, TestSize.Le
  * @tc.desc: test Func SetPasteDataDelayData, fd is right, but buffer is empty, return NO_DATA_ERROR.
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataDelayDataTest004, TestSize.Level0)
+HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataDelayDataTest004, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetPasteDataDelayDataTest004 start");
     int fd = 0XF;
@@ -379,7 +381,7 @@ HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataDelayDataTest004, TestSize.Le
  * @tc.desc: test Func SetPasteDataDelayData, NOT goto map and buffer is empty, return INVALID_PARAM_ERROR.
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataDelayDataTest005, TestSize.Level0)
+HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataDelayDataTest005, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetPasteDataDelayDataTest005 start");
     int fd = -1;
@@ -399,7 +401,7 @@ HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataDelayDataTest005, TestSize.Le
  * @tc.desc: test Func SetPasteDataDelayData, NOT goto map and buffer is NOT empty, return ERR_OK.
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataDelayDataTest006, TestSize.Level0)
+HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataDelayDataTest006, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetPasteDataDelayDataTest006 start");
     int fd = -1;
@@ -419,7 +421,7 @@ HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataDelayDataTest006, TestSize.Le
  * @tc.desc: test Func SetPasteDataEntryData, NOT goto map and buffer is NOT empty.
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataEntryDataTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataEntryDataTest001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetPasteDataEntryDataTest001 start");
     int fd = -1;
@@ -439,7 +441,7 @@ HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataEntryDataTest001, TestSize.Le
  * @tc.desc: test Func SetPasteDataOnly, it will be return INVALID_PARAM_ERROR.
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataOnlyTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataOnlyTest001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetPasteDataOnlyTest001 start");
     auto mpw = std::make_shared<MessageParcelWarp>();
@@ -465,7 +467,7 @@ HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataOnlyTest001, TestSize.Level0)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataInfoTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataInfoTest001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetPasteDataInfoTest001 start");
     std::string bundleName = "com.pasteboard.test";
@@ -493,7 +495,7 @@ HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataInfoTest001, TestSize.Level0)
  * @tc.desc: test Func SetPasteDataDot
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataDotTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataDotTest001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetPasteDataDotTest001 start");
     PasteData pasteData;
@@ -510,7 +512,7 @@ HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataDotTest001, TestSize.Level0)
  * @tc.desc: test Func SetDistributedData
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceSetDataTest, SetDistributedDataTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceSetDataTest, SetDistributedDataTest001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetDistributedDataTest001 start");
     int32_t user = ACCOUNT_IDS_RANDOM;
@@ -527,7 +529,7 @@ HWTEST_F(PasteboardServiceSetDataTest, SetDistributedDataTest001, TestSize.Level
  * @tc.desc: test Func SetCurrentData
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceSetDataTest, SetCurrentDataTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceSetDataTest, SetCurrentDataTest001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetCurrentDataTest001 start");
     PasteData pasteData;
@@ -544,7 +546,7 @@ HWTEST_F(PasteboardServiceSetDataTest, SetCurrentDataTest001, TestSize.Level0)
  * @tc.desc: test Func SetCurrentDistributedData
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceSetDataTest, SetCurrentDistributedDataTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceSetDataTest, SetCurrentDistributedDataTest001, TestSize.Level1)
 {
     PasteData pasteData;
     ClipPlugin::GlobalEvent event{};
@@ -560,7 +562,7 @@ HWTEST_F(PasteboardServiceSetDataTest, SetCurrentDistributedDataTest001, TestSiz
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(PasteboardServiceSetDataTest, SetAppShareOptionsTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceSetDataTest, SetAppShareOptionsTest001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetAppShareOptionsTest001 start");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -578,7 +580,7 @@ HWTEST_F(PasteboardServiceSetDataTest, SetAppShareOptionsTest001, TestSize.Level
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(PasteboardServiceSetDataTest, SetAppShareOptionsTest002, TestSize.Level0)
+HWTEST_F(PasteboardServiceSetDataTest, SetAppShareOptionsTest002, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetAppShareOptionsTest002 start");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -595,7 +597,7 @@ HWTEST_F(PasteboardServiceSetDataTest, SetAppShareOptionsTest002, TestSize.Level
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(PasteboardServiceSetDataTest, SetAppShareOptionsTest003, TestSize.Level0)
+HWTEST_F(PasteboardServiceSetDataTest, SetAppShareOptionsTest003, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetAppShareOptionsTest003 start");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -614,7 +616,7 @@ HWTEST_F(PasteboardServiceSetDataTest, SetAppShareOptionsTest003, TestSize.Level
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(PasteboardServiceSetDataTest, SetAppShareOptionsTest004, TestSize.Level0)
+HWTEST_F(PasteboardServiceSetDataTest, SetAppShareOptionsTest004, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetAppShareOptionsTest004 start");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -631,7 +633,7 @@ HWTEST_F(PasteboardServiceSetDataTest, SetAppShareOptionsTest004, TestSize.Level
  * @tc.desc: test Func SetPasteboardHistory
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceSetDataTest, SetPasteboardHistoryTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceSetDataTest, SetPasteboardHistoryTest001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetPasteboardHistoryTest001 start");
     HistoryInfo info;
@@ -652,7 +654,7 @@ HWTEST_F(PasteboardServiceSetDataTest, SetPasteboardHistoryTest001, TestSize.Lev
  * @tc.desc: test Func SetInputMethodPid
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceSetDataTest, SetInputMethodPidTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceSetDataTest, SetInputMethodPidTest001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetInputMethodPidTest001 start");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -669,7 +671,7 @@ HWTEST_F(PasteboardServiceSetDataTest, SetInputMethodPidTest001, TestSize.Level0
  * @tc.desc: test Func SetInputMethodPid
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceSetDataTest, SetInputMethodPidTest002, TestSize.Level0)
+HWTEST_F(PasteboardServiceSetDataTest, SetInputMethodPidTest002, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetInputMethodPidTest002 start");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -694,7 +696,7 @@ HWTEST_F(PasteboardServiceSetDataTest, SetInputMethodPidTest002, TestSize.Level0
  * @tc.desc: test Func SetInputMethodPid
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceSetDataTest, SetInputMethodPidTest003, TestSize.Level0)
+HWTEST_F(PasteboardServiceSetDataTest, SetInputMethodPidTest003, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetInputMethodPidTest003 start");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -724,7 +726,7 @@ HWTEST_F(PasteboardServiceSetDataTest, SetInputMethodPidTest003, TestSize.Level0
  * @tc.desc: test Func SetInputMethodPid
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceSetDataTest, SetInputMethodPidTest004, TestSize.Level0)
+HWTEST_F(PasteboardServiceSetDataTest, SetInputMethodPidTest004, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetInputMethodPidTest004 start");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -754,7 +756,7 @@ HWTEST_F(PasteboardServiceSetDataTest, SetInputMethodPidTest004, TestSize.Level0
  * @tc.desc: test Func SetInputMethodPid
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceSetDataTest, SetInputMethodPidTest005, TestSize.Level0)
+HWTEST_F(PasteboardServiceSetDataTest, SetInputMethodPidTest005, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetInputMethodPidTest005 start");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -784,7 +786,7 @@ HWTEST_F(PasteboardServiceSetDataTest, SetInputMethodPidTest005, TestSize.Level0
  * @tc.desc: test Func SetInputMethodPid
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceSetDataTest, SetInputMethodPidTest006, TestSize.Level0)
+HWTEST_F(PasteboardServiceSetDataTest, SetInputMethodPidTest006, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetInputMethodPidTest006 start");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -814,7 +816,7 @@ HWTEST_F(PasteboardServiceSetDataTest, SetInputMethodPidTest006, TestSize.Level0
  * @tc.desc: test Func SetLocalPasteFlag
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceSetDataTest, SetLocalPasteFlag001, TestSize.Level0)
+HWTEST_F(PasteboardServiceSetDataTest, SetLocalPasteFlag001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetLocalPasteFlag001 start");
     std::shared_ptr<PasteboardService> tempPasteboard = std::make_shared<PasteboardService>();
@@ -897,7 +899,7 @@ HWTEST_F(PasteboardServiceSetDataTest, SetCriticalTimerTest004, TestSize.Level1)
  * @tc.desc: test Func SaveData
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceSetDataTest, SaveData001, TestSize.Level0)
+HWTEST_F(PasteboardServiceSetDataTest, SaveData001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SaveData001 start");
     std::shared_ptr<PasteboardService> tempPasteboard = std::make_shared<PasteboardService>();
@@ -920,7 +922,7 @@ HWTEST_F(PasteboardServiceSetDataTest, SaveData001, TestSize.Level0)
  * @tc.desc: SaveData002
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceSetDataTest, SaveData002, TestSize.Level0)
+HWTEST_F(PasteboardServiceSetDataTest, SaveData002, TestSize.Level1)
 {
     std::shared_ptr<PasteboardService> tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
@@ -938,7 +940,7 @@ HWTEST_F(PasteboardServiceSetDataTest, SaveData002, TestSize.Level0)
  * @tc.desc: SaveData003
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceSetDataTest, SaveData003, TestSize.Level0)
+HWTEST_F(PasteboardServiceSetDataTest, SaveData003, TestSize.Level1)
 {
     std::shared_ptr<PasteboardService> tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
@@ -956,7 +958,7 @@ HWTEST_F(PasteboardServiceSetDataTest, SaveData003, TestSize.Level0)
  * @tc.desc: SaveData004
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceSetDataTest, SaveData004, TestSize.Level0)
+HWTEST_F(PasteboardServiceSetDataTest, SaveData004, TestSize.Level1)
 {
     std::shared_ptr<PasteboardService> tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
@@ -975,7 +977,7 @@ HWTEST_F(PasteboardServiceSetDataTest, SaveData004, TestSize.Level0)
  * @tc.desc: test Func WriteRawData
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceSetDataTest, WriteRawDataTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceSetDataTest, WriteRawDataTest001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "WriteRawDataTest001 start");
     auto service = std::make_shared<PasteboardService>();
@@ -993,7 +995,7 @@ HWTEST_F(PasteboardServiceSetDataTest, WriteRawDataTest001, TestSize.Level0)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(PasteboardServiceSetDataTest, WriteRawDataTest002, TestSize.Level0)
+HWTEST_F(PasteboardServiceSetDataTest, WriteRawDataTest002, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "WriteRawDataTest002 start");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -1014,7 +1016,7 @@ HWTEST_F(PasteboardServiceSetDataTest, WriteRawDataTest002, TestSize.Level0)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(PasteboardServiceSetDataTest, WriteRawDataTest003, TestSize.Level0)
+HWTEST_F(PasteboardServiceSetDataTest, WriteRawDataTest003, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "WriteRawDataTest003 start");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -1035,7 +1037,7 @@ HWTEST_F(PasteboardServiceSetDataTest, WriteRawDataTest003, TestSize.Level0)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(PasteboardServiceSetDataTest, WritePasteDataTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceSetDataTest, WritePasteDataTest001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "WritePasteDataTest001 start");
     int fd = -1;
@@ -1069,7 +1071,7 @@ HWTEST_F(PasteboardServiceSetDataTest, WritePasteDataTest001, TestSize.Level0)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(PasteboardServiceSetDataTest, WritePasteDataTest002, TestSize.Level0)
+HWTEST_F(PasteboardServiceSetDataTest, WritePasteDataTest002, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "WritePasteDataTest002 start");
     int fd = -1;
@@ -1110,7 +1112,7 @@ HWTEST_F(PasteboardServiceSetDataTest, WritePasteDataTest002, TestSize.Level0)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(PasteboardServiceSetDataTest, WritePasteDataTest003, TestSize.Level0)
+HWTEST_F(PasteboardServiceSetDataTest, WritePasteDataTest003, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "WritePasteDataTest003 start");
     int fd = -1;
@@ -1142,6 +1144,88 @@ HWTEST_F(PasteboardServiceSetDataTest, WritePasteDataTest003, TestSize.Level0)
     auto ret = tempPasteboard->WritePasteData(fd, rawDataSize, buffer, output, hasData);
     EXPECT_EQ(static_cast<int32_t>(PasteboardError::INVALID_DATA_SIZE), ret);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "WritePasteDataTest003 end");
+}
+
+/**
+ * @tc.name: WritePasteDataTest004
+ * @tc.desc: test Func WritePasteDataTest
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(PasteboardServiceSetDataTest, WritePasteDataTest004, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "WritePasteDataTest004 start");
+    int fd = -1;
+    int64_t rawDataSize = 0;
+    std::vector<uint8_t> buffer;
+    PasteData output;
+    bool hasData = false;
+
+    PasteData input;
+    std::string text = "test";
+    for (uint32_t i = 0; i < LOOP_COUNT; ++i) {
+        text += TEST_ENTITY_TEXT_CN_50;
+    }
+    input.AddTextRecord(text);
+    bool result = input.Encode(buffer);
+    ASSERT_TRUE(result);
+
+    rawDataSize = static_cast<int64_t>(buffer.size());
+    MessageParcelWarp messageData;
+    MessageParcel parcelData;
+    ASSERT_TRUE(rawDataSize > MIN_ASHMEM_DATA_SIZE);
+
+    result = messageData.WriteRawData(parcelData, buffer.data(), buffer.size());
+    ASSERT_TRUE(result);
+
+    fd = messageData.GetWriteDataFd();
+    buffer.clear();
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    auto ret = tempPasteboard->WritePasteData(fd, rawDataSize, buffer, output, hasData);
+    EXPECT_EQ(static_cast<int32_t>(PasteboardError::E_OK), ret);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "WritePasteDataTest004 end");
+}
+
+/**
+ * @tc.name: WritePasteDataTest005
+ * @tc.desc: test Func WritePasteDataTest
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(PasteboardServiceSetDataTest, WritePasteDataTest005, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "WritePasteDataTest005 start");
+    int fd = -1;
+    int64_t rawDataSize = 0;
+    std::vector<uint8_t> buffer;
+    PasteData output;
+    bool hasData = false;
+
+    PasteData input;
+    std::string text = "test";
+    for (uint32_t i = 0; i < LOOP_COUNT; ++i) {
+        text += TEST_ENTITY_TEXT_CN_50;
+    }
+    input.AddTextRecord(text);
+    bool result = input.Encode(buffer);
+    ASSERT_TRUE(result);
+
+    rawDataSize = static_cast<int64_t>(buffer.size() + 1);
+    MessageParcelWarp messageData;
+    MessageParcel parcelData;
+    ASSERT_TRUE(rawDataSize > MIN_ASHMEM_DATA_SIZE);
+
+    result = messageData.WriteRawData(parcelData, buffer.data(), buffer.size());
+    ASSERT_TRUE(result);
+
+    fd = messageData.GetWriteDataFd();
+    buffer.clear();
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    auto ret = tempPasteboard->WritePasteData(fd, rawDataSize, buffer, output, hasData);
+    EXPECT_EQ(static_cast<int32_t>(PasteboardError::INVALID_DATA_SIZE), ret);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "WritePasteDataTest005 end");
 }
 
 } // namespace MiscServices

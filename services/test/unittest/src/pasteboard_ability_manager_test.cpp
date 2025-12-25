@@ -46,7 +46,7 @@ void PasteboardAbilityManagerTest::TearDown(void) { }
  * @tc.desc: should return error when has no permission
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardAbilityManagerTest, ShowProgressFailedTest, TestSize.Level0)
+HWTEST_F(PasteboardAbilityManagerTest, ShowProgressFailedTest, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ShowProgressFailedTest start");
     PasteboardDialog::ProgressMessageInfo message;
@@ -65,7 +65,7 @@ HWTEST_F(PasteboardAbilityManagerTest, ShowProgressFailedTest, TestSize.Level0)
  * @tc.desc: should return error when has no permission
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardAbilityManagerTest, CheckUIExtensionIsFocusedFailedTest, TestSize.Level0)
+HWTEST_F(PasteboardAbilityManagerTest, CheckUIExtensionIsFocusedFailedTest, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "CheckUIExtensionIsFocusedFailedTest start");
     uint32_t tokenId = 0;

@@ -132,7 +132,7 @@ bool operator==(const DisposableInfo &lhs, const DisposableInfo &rhs)
  * @tc.desc: should return INVALID_PARAM_ERROR when param invalid
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardDisposableManagerTest, AddDisposableInfoTest001, TestSize.Level0)
+HWTEST_F(PasteboardDisposableManagerTest, AddDisposableInfoTest001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "AddDisposableInfoTest001 start");
     pid_t pid = 1;
@@ -157,7 +157,7 @@ HWTEST_F(PasteboardDisposableManagerTest, AddDisposableInfoTest001, TestSize.Lev
  *           should return E_OK when verify permission granted
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardDisposableManagerTest, AddDisposableInfoTest002, TestSize.Level0)
+HWTEST_F(PasteboardDisposableManagerTest, AddDisposableInfoTest002, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "AddDisposableInfoTest002 start");
     NiceMock<Security::AccessToken::AccessTokenKitMock> accessTokenMock;
@@ -189,7 +189,7 @@ HWTEST_F(PasteboardDisposableManagerTest, AddDisposableInfoTest002, TestSize.Lev
  *           should append info when called twice with diff pid before timeout
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardDisposableManagerTest, AddDisposableInfoTest003, TestSize.Level0)
+HWTEST_F(PasteboardDisposableManagerTest, AddDisposableInfoTest003, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "AddDisposableInfoTest003 start");
     NiceMock<Security::AccessToken::AccessTokenKitMock> accessTokenMock;
@@ -233,7 +233,7 @@ HWTEST_F(PasteboardDisposableManagerTest, AddDisposableInfoTest003, TestSize.Lev
  *           should clear info after timeout
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardDisposableManagerTest, AddDisposableInfoTest004, TestSize.Level0)
+HWTEST_F(PasteboardDisposableManagerTest, AddDisposableInfoTest004, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "AddDisposableInfoTest004 start");
     NiceMock<Security::AccessToken::AccessTokenKitMock> accessTokenMock;
@@ -268,7 +268,7 @@ HWTEST_F(PasteboardDisposableManagerTest, AddDisposableInfoTest004, TestSize.Lev
  *           should remove info & callback ERR_TIMEOUT when pid find & observer not null
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardDisposableManagerTest, RemoveDisposableInfoTest001, TestSize.Level0)
+HWTEST_F(PasteboardDisposableManagerTest, RemoveDisposableInfoTest001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "RemoveDisposableInfoTest001 start");
     pid_t pid = 1;
@@ -303,7 +303,7 @@ HWTEST_F(PasteboardDisposableManagerTest, RemoveDisposableInfoTest001, TestSize.
  *           should remove info & callback ERR_TARGET_MISMATCH when windowId missmatch & observer not null
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardDisposableManagerTest, TryProcessDisposableDataTest001, TestSize.Level0)
+HWTEST_F(PasteboardDisposableManagerTest, TryProcessDisposableDataTest001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "TryProcessDisposableDataTest001 start");
     NiceMock<Security::AccessToken::AccessTokenKitMock> accessTokenMock;
@@ -348,7 +348,7 @@ HWTEST_F(PasteboardDisposableManagerTest, TryProcessDisposableDataTest001, TestS
  *           should callback ERR_NO_TEXT without text when paste data has no text
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardDisposableManagerTest, TryProcessDisposableDataTest002, TestSize.Level0)
+HWTEST_F(PasteboardDisposableManagerTest, TryProcessDisposableDataTest002, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "TryProcessDisposableDataTest002 start");
     NiceMock<Security::AccessToken::AccessTokenKitMock> accessTokenMock;
@@ -384,7 +384,7 @@ HWTEST_F(PasteboardDisposableManagerTest, TryProcessDisposableDataTest002, TestS
  *           else should callback ERR_OK with text
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardDisposableManagerTest, TryProcessDisposableDataTest003, TestSize.Level0)
+HWTEST_F(PasteboardDisposableManagerTest, TryProcessDisposableDataTest003, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "TryProcessDisposableDataTest003 start");
     NiceMock<Security::AccessToken::AccessTokenKitMock> accessTokenMock;
@@ -418,7 +418,7 @@ HWTEST_F(PasteboardDisposableManagerTest, TryProcessDisposableDataTest003, TestS
  *           should callback ERR_OK with text when paste data with ShareOption::CrossDevice
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardDisposableManagerTest, TryProcessDisposableDataTest004, TestSize.Level0)
+HWTEST_F(PasteboardDisposableManagerTest, TryProcessDisposableDataTest004, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "TryProcessDisposableDataTest004 start");
     NiceMock<Security::AccessToken::AccessTokenKitMock> accessTokenMock;
@@ -458,7 +458,7 @@ HWTEST_F(PasteboardDisposableManagerTest, TryProcessDisposableDataTest004, TestS
  * @tc.desc: get text from delay getter
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardDisposableManagerTest, GetPlainTextTest001, TestSize.Level0)
+HWTEST_F(PasteboardDisposableManagerTest, GetPlainTextTest001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetPlainTextTest001 start");
     PasteData pasteData;
@@ -478,7 +478,7 @@ HWTEST_F(PasteboardDisposableManagerTest, GetPlainTextTest001, TestSize.Level0)
  * @tc.desc: get text from entry getter
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardDisposableManagerTest, GetPlainTextTest002, TestSize.Level0)
+HWTEST_F(PasteboardDisposableManagerTest, GetPlainTextTest002, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetPlainTextTest002 start");
     constexpr size_t recordNum = 5;

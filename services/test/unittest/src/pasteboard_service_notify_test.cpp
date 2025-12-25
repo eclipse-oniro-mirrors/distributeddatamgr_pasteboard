@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -59,6 +59,8 @@ const std::string TEST_ENTITY_TEXT =
     "和谐与宁静。如果你时间充裕，可以选择在湖畔的咖啡馆稍作休息，回味这一天的旅程。这条路线涵盖了西湖的主要经典景点，从"
     "湖滨路到南山路，再到杨公堤、北山街，最后回到杭州市中心，整个行程大约需要一天时间。沿着这条路线，你可以领略西湖的自"
     "然风光和文化底蕴，感受人间天堂的独特魅力。";
+const std::string TEST_ENTITY_TEXT_CN_50 =
+    "清晨,从杭州市中心出发，沿着湖滨路缓缓前行。湖滨路是杭州市中心通往西湖的主要街道之一，两旁绿树成荫。";
 const int64_t DEFAULT_MAX_RAW_DATA_SIZE = 128 * 1024 * 1024;
 constexpr int32_t MIMETYPE_MAX_SIZE = 1024;
 static constexpr uint64_t ONE_HOUR_MILLISECONDS = 60 * 60 * 1000;
@@ -194,7 +196,7 @@ namespace MiscServices {
  * @tc.desc: test Func NotifyDelayGetterDied
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceNotifyTest, NotifyDelayGetterDiedTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceNotifyTest, NotifyDelayGetterDiedTest001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "NotifyDelayGetterDiedTest001 start");
     constexpr int32_t userId = 111;
@@ -210,7 +212,7 @@ HWTEST_F(PasteboardServiceNotifyTest, NotifyDelayGetterDiedTest001, TestSize.Lev
  * @tc.desc: test Func NotifyDelayGetterDied
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceNotifyTest, NotifyDelayGetterDiedTest002, TestSize.Level0)
+HWTEST_F(PasteboardServiceNotifyTest, NotifyDelayGetterDiedTest002, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "NotifyDelayGetterDiedTest002 start");
     constexpr int32_t userId = -1;
@@ -226,7 +228,7 @@ HWTEST_F(PasteboardServiceNotifyTest, NotifyDelayGetterDiedTest002, TestSize.Lev
  * @tc.desc: test Func NotifyEntryGetterDied
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceNotifyTest, NotifyEntryGetterDiedTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceNotifyTest, NotifyEntryGetterDiedTest001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "NotifyEntryGetterDiedTest001 start");
     constexpr int32_t userId = 111;
@@ -242,7 +244,7 @@ HWTEST_F(PasteboardServiceNotifyTest, NotifyEntryGetterDiedTest001, TestSize.Lev
  * @tc.desc: test Func NotifyEntryGetterDied
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceNotifyTest, NotifyEntryGetterDiedTest002, TestSize.Level0)
+HWTEST_F(PasteboardServiceNotifyTest, NotifyEntryGetterDiedTest002, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "NotifyEntryGetterDiedTest002 start");
     constexpr int32_t userId = -1;
@@ -258,7 +260,7 @@ HWTEST_F(PasteboardServiceNotifyTest, NotifyEntryGetterDiedTest002, TestSize.Lev
  * @tc.desc: test Func Notify
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceNotifyTest, Notify001, TestSize.Level0)
+HWTEST_F(PasteboardServiceNotifyTest, Notify001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "Notify001 start");
     std::shared_ptr<PasteboardService::RemoteDataTaskManager> remoteDataTaskManager =
@@ -276,7 +278,7 @@ HWTEST_F(PasteboardServiceNotifyTest, Notify001, TestSize.Level0)
  * @tc.desc: test Func Notify
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceNotifyTest, Notify002, TestSize.Level0)
+HWTEST_F(PasteboardServiceNotifyTest, Notify002, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "Notify002 start");
     std::shared_ptr<PasteboardService::RemoteDataTaskManager> remoteDataTaskManager =
@@ -301,7 +303,7 @@ HWTEST_F(PasteboardServiceNotifyTest, Notify002, TestSize.Level0)
  * @tc.desc: test Func NotifyEntityObservers
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceNotifyTest, NotifyEntityObserversTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceNotifyTest, NotifyEntityObserversTest001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "NotifyEntityObserversTest001 start");
     std::string entity = "hello";
@@ -318,7 +320,7 @@ HWTEST_F(PasteboardServiceNotifyTest, NotifyEntityObserversTest001, TestSize.Lev
  * @tc.desc: test Func NotifyEntityObservers
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceNotifyTest, NotifyEntityObserversTest002, TestSize.Level0)
+HWTEST_F(PasteboardServiceNotifyTest, NotifyEntityObserversTest002, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "NotifyEntityObserversTest002 start");
     std::string entity = "hello";
@@ -341,7 +343,7 @@ HWTEST_F(PasteboardServiceNotifyTest, NotifyEntityObserversTest002, TestSize.Lev
  * @tc.desc: test Func NotifyEntityObservers
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceNotifyTest, NotifyEntityObserversTest003, TestSize.Level0)
+HWTEST_F(PasteboardServiceNotifyTest, NotifyEntityObserversTest003, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "NotifyEntityObserversTest003 start");
     std::string entity = "hello";
@@ -364,7 +366,7 @@ HWTEST_F(PasteboardServiceNotifyTest, NotifyEntityObserversTest003, TestSize.Lev
  * @tc.desc: test Func NotifyEntityObservers
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceNotifyTest, NotifyEntityObserversTest004, TestSize.Level0)
+HWTEST_F(PasteboardServiceNotifyTest, NotifyEntityObserversTest004, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "NotifyEntityObserversTest004 start");
     std::string entity = "hello";
@@ -387,7 +389,7 @@ HWTEST_F(PasteboardServiceNotifyTest, NotifyEntityObserversTest004, TestSize.Lev
  * @tc.desc: test Func NotifyEntityObservers
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceNotifyTest, NotifyEntityObserversTest005, TestSize.Level0)
+HWTEST_F(PasteboardServiceNotifyTest, NotifyEntityObserversTest005, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "NotifyEntityObserversTest005 start");
     std::string entity = "hello";
@@ -410,7 +412,7 @@ HWTEST_F(PasteboardServiceNotifyTest, NotifyEntityObserversTest005, TestSize.Lev
  * @tc.desc: test Func NotifyObservers
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceNotifyTest, NotifyObserversTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceNotifyTest, NotifyObserversTest001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "NotifyObserversTest001 start");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -435,7 +437,7 @@ HWTEST_F(PasteboardServiceNotifyTest, NotifyObserversTest001, TestSize.Level0)
  * @tc.desc: test Func NotifyObservers
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceNotifyTest, NotifyObserversTest002, TestSize.Level0)
+HWTEST_F(PasteboardServiceNotifyTest, NotifyObserversTest002, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "NotifyObserversTest002 start");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -460,7 +462,7 @@ HWTEST_F(PasteboardServiceNotifyTest, NotifyObserversTest002, TestSize.Level0)
  * @tc.desc: test Func NotifyObservers
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceNotifyTest, NotifyObserversTest003, TestSize.Level0)
+HWTEST_F(PasteboardServiceNotifyTest, NotifyObserversTest003, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "NotifyObserversTest003 start");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -489,7 +491,7 @@ HWTEST_F(PasteboardServiceNotifyTest, NotifyObserversTest003, TestSize.Level0)
  * @tc.desc: test Func NotifyObservers
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceNotifyTest, NotifyObserversTest004, TestSize.Level0)
+HWTEST_F(PasteboardServiceNotifyTest, NotifyObserversTest004, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "NotifyObserversTest004 start");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -518,7 +520,7 @@ HWTEST_F(PasteboardServiceNotifyTest, NotifyObserversTest004, TestSize.Level0)
  * @tc.desc: test Func NotifyObservers
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceNotifyTest, NotifyObserversTest005, TestSize.Level0)
+HWTEST_F(PasteboardServiceNotifyTest, NotifyObserversTest005, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "NotifyObserversTest005 start");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -547,7 +549,7 @@ HWTEST_F(PasteboardServiceNotifyTest, NotifyObserversTest005, TestSize.Level0)
  * @tc.desc: test Func NotifyObservers
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceNotifyTest, NotifyObserversTest006, TestSize.Level0)
+HWTEST_F(PasteboardServiceNotifyTest, NotifyObserversTest006, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "NotifyObserversTest006 start");
     auto tempPasteboard = std::make_shared<PasteboardService>();
