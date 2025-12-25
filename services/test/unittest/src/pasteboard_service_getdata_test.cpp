@@ -61,6 +61,12 @@ const std::string TEST_ENTITY_TEXT =
     "然风光和文化底蕴，感受人间天堂的独特魅力。";
 const std::string TEST_ENTITY_TEXT_CN_50 =
     "清晨,从杭州市中心出发，沿着湖滨路缓缓前行。湖滨路是杭州市中心通往西湖的主要街道之一，两旁绿树成荫。";
+const std::string TEST_ENTITY_TEXT_CN_50 =
+    "清晨,从杭州市中心出发，沿着湖滨路缓缓前行。湖滨路是杭州市中心通往西湖的主要街道之一，两旁绿树成荫。";
+const std::string TEST_ENTITY_TEXT_CN_10 =
+    "清晨,从杭州市中心出";
+const std::string TEST_ENTITY_TEXT_CN_5 =
+    "清晨,从杭";
 const int64_t DEFAULT_MAX_RAW_DATA_SIZE = 128 * 1024 * 1024;
 constexpr int32_t MIMETYPE_MAX_SIZE = 1024;
 static constexpr uint64_t ONE_HOUR_MILLISECONDS = 60 * 60 * 1000;
@@ -722,37 +728,6 @@ HWTEST_F(PasteboardServiceGetDataTest, GetAllEntryPlainTextTest004, TestSize.Lev
     uint32_t dataId = 1;
     uint32_t recordId = 0;
     std::vector<std::shared_ptr<PasteDataEntry>> tempEntries;
-    tempEntries.emplace_back(std::make_shared<PasteDataEntry>());
-    std::string primaryText = TEST_ENTITY_TEXT_CN_50;
-    auto tempPasteboard = std::make_shared<PasteboardService>();
-    EXPECT_NE(tempPasteboard, nullptr);
-
-    std::shared_ptr<PasteData> pasteData = std::make_shared<PasteData>();
-    EXPECT_NE(pasteData, nullptr);
-
-    pasteData->SetDataId(dataId);
-    pasteData->AddTextRecord("test");
-    auto tokenId = IPCSkeleton::GetCallingTokenID();
-    auto appInfo = tempPasteboard->GetAppInfo(tokenId);
-    tempPasteboard->clips_.InsertOrAssign(appInfo.userId, pasteData);
-    auto ret = tempPasteboard->GetAllEntryPlainText(dataId, recordId, tempEntries, primaryText);
-    EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::EXCEEDING_LIMIT_EXCEPTION));
-
-    tempPasteboard->clips_.Clear();
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetAllEntryPlainTextTest004 end");
-}
-
-/**
- * @tc.name: GetAllEntryPlainTextTest004
- * @tc.desc: test Func GetAllEntryPlainText
- * @tc.type: FUNC
- */
-HWTEST_F(PasteboardServiceGetDataTest, GetAllEntryPlainTextTest004, TestSize.Level1)
-{
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetAllEntryPlainTextTest004 start");
-    uint32_t dataId = 1;
-    uint32_t recordId = 0;
-    std::vector<std::shared_ptr<PasteDataEntry>> tempEntries;
     std::shared_ptr<PasteDataEntry> entry = std::make_shared<PasteDataEntry>();
     EXPECT_NE(entry, nullptr);
 
@@ -847,6 +822,99 @@ HWTEST_F(PasteboardServiceGetDataTest, GetAllEntryPlainTextTest006, TestSize.Lev
 }
 
 /**
+ * @tc.name: GetAllEntryPlainTextTest007
+ * @tc.desc: test Func GetAllEntryPlainText
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceGetDataTest, GetAllEntryPlainTextTest007, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetAllEntryPlainTextTest007 start");
+    uint32_t dataId = 1;
+    uint32_t recordId = 0;
+    std::vector<std::shared_ptr<PasteDataEntry>> tempEntries;
+    tempEntries.emplace_back(std::make_shared<PasteDataEntry>());
+    std::string primaryText = TEST_ENTITY_TEXT_CN_50;
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+
+    std::shared_ptr<PasteData> pasteData = std::make_shared<PasteData>();
+    EXPECT_NE(pasteData, nullptr);
+
+    pasteData->SetDataId(dataId);
+    pasteData->AddTextRecord("test");
+    auto tokenId = IPCSkeleton::GetCallingTokenID();
+    auto appInfo = tempPasteboard->GetAppInfo(tokenId);
+    tempPasteboard->clips_.InsertOrAssign(appInfo.userId, pasteData);
+    auto ret = tempPasteboard->GetAllEntryPlainText(dataId, recordId, tempEntries, primaryText);
+    EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::EXCEEDING_LIMIT_EXCEPTION));
+
+    tempPasteboard->clips_.Clear();
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetAllEntryPlainTextTest007 end");
+}
+
+/**
+ * @tc.name: GetAllEntryPlainTextTest008
+ * @tc.desc: test Func GetAllEntryPlainText
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceGetDataTest, GetAllEntryPlainTextTest008, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetAllEntryPlainTextTest008 start");
+    uint32_t dataId = 1;
+    uint32_t recordId = 0;
+    std::vector<std::shared_ptr<PasteDataEntry>> tempEntries;
+    tempEntries.emplace_back(std::make_shared<PasteDataEntry>());
+    std::string primaryText = TEST_ENTITY_TEXT_CN_10;
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+
+    std::shared_ptr<PasteData> pasteData = std::make_shared<PasteData>();
+    EXPECT_NE(pasteData, nullptr);
+
+    pasteData->SetDataId(dataId);
+    pasteData->AddTextRecord("test");
+    auto tokenId = IPCSkeleton::GetCallingTokenID();
+    auto appInfo = tempPasteboard->GetAppInfo(tokenId);
+    tempPasteboard->clips_.InsertOrAssign(appInfo.userId, pasteData);
+    auto ret = tempPasteboard->GetAllEntryPlainText(dataId, recordId, tempEntries, primaryText);
+    EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::EXCEEDING_LIMIT_EXCEPTION));
+
+    tempPasteboard->clips_.Clear();
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetAllEntryPlainTextTest008 end");
+}
+
+/**
+ * @tc.name: GetAllEntryPlainTextTest009
+ * @tc.desc: test Func GetAllEntryPlainText
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceGetDataTest, GetAllEntryPlainTextTest009, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetAllEntryPlainTextTest009 start");
+    uint32_t dataId = 1;
+    uint32_t recordId = 0;
+    std::vector<std::shared_ptr<PasteDataEntry>> tempEntries;
+    tempEntries.emplace_back(std::make_shared<PasteDataEntry>());
+    std::string primaryText = TEST_ENTITY_TEXT_CN_5;
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+
+    std::shared_ptr<PasteData> pasteData = std::make_shared<PasteData>();
+    EXPECT_NE(pasteData, nullptr);
+
+    pasteData->SetDataId(dataId);
+    pasteData->AddTextRecord("test");
+    auto tokenId = IPCSkeleton::GetCallingTokenID();
+    auto appInfo = tempPasteboard->GetAppInfo(tokenId);
+    tempPasteboard->clips_.InsertOrAssign(appInfo.userId, pasteData);
+    auto ret = tempPasteboard->GetAllEntryPlainText(dataId, recordId, tempEntries, primaryText);
+    EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::EXCEEDING_LIMIT_EXCEPTION));
+
+    tempPasteboard->clips_.Clear();
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetAllEntryPlainTextTest009 end");
+}
+
+/**
  * @tc.name: GetAllPrimaryTextTest001
  * @tc.desc: test Func GetAllPrimaryText
  * @tc.type: FUNC
@@ -905,6 +973,50 @@ HWTEST_F(PasteboardServiceGetDataTest, GetAllPrimaryTextTest003, TestSize.Level1
     auto ret = tempPasteboard->GetAllPrimaryText(pasteData);
     EXPECT_EQ(ret, "");
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetAllPrimaryTextTest003 end");
+}
+
+/**
+ * @tc.name: GetAllPrimaryTextTest004
+ * @tc.desc: test Func GetAllPrimaryText
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceGetDataTest, GetAllPrimaryTextTest004, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetAllPrimaryTextTest004 start");
+    PasteData pasteData;
+    pasteData.AddHtmlRecord("<div class='disable'>helloWorld</div>");
+    pasteData.AddTextRecord("testRecord");
+    pasteData.AddTextRecord(TEST_ENTITY_TEXT_CN_10);
+    pasteData.AddTextRecord("testRecord");
+    pasteData.AddHtmlRecord("<div class='disable'>helloWorld</div>");
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+
+    auto ret = tempPasteboard->GetAllPrimaryText(pasteData);
+    EXPECT_EQ(ret, "");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetAllPrimaryTextTest004 end");
+}
+
+/**
+ * @tc.name: GetAllPrimaryTextTest005
+ * @tc.desc: test Func GetAllPrimaryText
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceGetDataTest, GetAllPrimaryTextTest005, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetAllPrimaryTextTest005 start");
+    PasteData pasteData;
+    pasteData.AddHtmlRecord("<div class='disable'>helloWorld</div>");
+    pasteData.AddTextRecord("testRecord");
+    pasteData.AddTextRecord(TEST_ENTITY_TEXT_CN_5);
+    pasteData.AddTextRecord("testRecord");
+    pasteData.AddHtmlRecord("<div class='disable'>helloWorld</div>");
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+
+    auto ret = tempPasteboard->GetAllPrimaryText(pasteData);
+    EXPECT_EQ(ret, "");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetAllPrimaryTextTest005 end");
 }
 
 /**

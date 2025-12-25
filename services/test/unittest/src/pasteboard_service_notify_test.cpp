@@ -61,6 +61,12 @@ const std::string TEST_ENTITY_TEXT =
     "然风光和文化底蕴，感受人间天堂的独特魅力。";
 const std::string TEST_ENTITY_TEXT_CN_50 =
     "清晨,从杭州市中心出发，沿着湖滨路缓缓前行。湖滨路是杭州市中心通往西湖的主要街道之一，两旁绿树成荫。";
+const std::string TEST_ENTITY_TEXT_CN_50 =
+    "清晨,从杭州市中心出发，沿着湖滨路缓缓前行。湖滨路是杭州市中心通往西湖的主要街道之一，两旁绿树成荫。";
+const std::string TEST_ENTITY_TEXT_CN_10 =
+    "清晨,从杭州市中心出";
+const std::string TEST_ENTITY_TEXT_CN_5 =
+    "清晨,从杭";
 const int64_t DEFAULT_MAX_RAW_DATA_SIZE = 128 * 1024 * 1024;
 constexpr int32_t MIMETYPE_MAX_SIZE = 1024;
 static constexpr uint64_t ONE_HOUR_MILLISECONDS = 60 * 60 * 1000;
