@@ -161,7 +161,7 @@ HWTEST_F(PasteboardDelayStubTest, OnRemoteRequestTest001, TestSize.Level0)
     MessageOption option;
     int32_t ret = tempDelayGetter->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(ret, -1);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnRemoteRequestTest001 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnRemoteRequestTest001 end");
 }
 
 /* *
@@ -182,7 +182,7 @@ HWTEST_F(PasteboardDelayStubTest, OnRemoteRequestTest002, TestSize.Level0)
     MessageOption option;
     int32_t ret = tempDelayGetter->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(ret, -1);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnRemoteRequestTest002 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnRemoteRequestTest002 end");
 }
 
 /* *
@@ -203,7 +203,7 @@ HWTEST_F(PasteboardDelayStubTest, OnRemoteRequestTest003, TestSize.Level0)
     MessageOption option;
     int32_t ret = tempDelayGetter->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(ret, ERR_OK);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnRemoteRequestTest003 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnRemoteRequestTest003 end");
 }
 
 /* *
@@ -223,7 +223,7 @@ HWTEST_F(PasteboardDelayStubTest, OnRemoteRequestTest004, TestSize.Level0)
     MessageOption option;
     int32_t ret = pasteboardObserverStub->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(ret, IPC_STUB_UNKNOW_TRANS_ERR);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnRemoteRequestTest004 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnRemoteRequestTest004 end");
 }
 
 /* *
@@ -244,7 +244,7 @@ HWTEST_F(PasteboardDelayStubTest, OnRemoteRequestTest005, TestSize.Level0)
     MessageOption option;
     int32_t ret = pasteboardObserverStub->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(ret, IPC_STUB_UNKNOW_TRANS_ERR);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnRemoteRequestTest005 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnRemoteRequestTest005 end");
 }
 
 /* *
@@ -266,7 +266,7 @@ HWTEST_F(PasteboardDelayStubTest, OnRemoteRequestTest006, TestSize.Level0)
     MessageOption option;
     int32_t ret = pasteboardObserverStub->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(ret, IPC_STUB_UNKNOW_TRANS_ERR);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnRemoteRequestTest006 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnRemoteRequestTest006 end");
 }
 
 /* *
@@ -284,7 +284,7 @@ HWTEST_F(PasteboardDelayStubTest, OnGetPasteDataTest001, TestSize.Level0)
     EXPECT_CALL(mock, Encode(testing::_)).WillOnce(Return(false));
     int32_t ret = tempDelayGetter->OnGetPasteData(data, reply);
     ASSERT_EQ(ret, ERR_INVALID_VALUE);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnGetPasteDataTest001 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnGetPasteDataTest001 end");
 }
 
 /* *
@@ -303,7 +303,7 @@ HWTEST_F(PasteboardDelayStubTest, OnGetPasteDataTest002, TestSize.Level0)
     EXPECT_CALL(mock, WriteInt64(testing::_)).WillRepeatedly(Return(false));
     int32_t ret = tempDelayGetter->OnGetPasteData(data, reply);
     ASSERT_EQ(ret, ERR_INVALID_VALUE);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnGetPasteDataTest002 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnGetPasteDataTest002 end");
 }
 
 /* *
@@ -323,7 +323,7 @@ HWTEST_F(PasteboardDelayStubTest, OnGetPasteDataTest003, TestSize.Level0)
     EXPECT_CALL(mock, WriteRawData(testing::_, testing::_, testing::_)).WillRepeatedly(Return(false));
     int32_t ret = tempDelayGetter->OnGetPasteData(data, reply);
     ASSERT_EQ(ret, ERR_INVALID_VALUE);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnGetPasteDataTest003 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnGetPasteDataTest003 end");
 }
 
 /* *
@@ -339,6 +339,6 @@ HWTEST_F(PasteboardDelayStubTest, OnGetUnifiedDataTest001, TestSize.Level0)
     MessageParcel reply;
     int32_t ret = tempDelayGetter->OnGetUnifiedData(data, reply);
     ASSERT_EQ(ret, ERR_OK);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnGetUnifiedDataTest001 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnGetUnifiedDataTest001 end");
 }
 } // namespace OHOS

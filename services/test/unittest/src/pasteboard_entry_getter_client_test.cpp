@@ -64,7 +64,7 @@ HWTEST_F(PasteboardEntryGetterClientTest, GetRecordValueByTypeTest001, TestSize.
     PasteDataEntry pasteDataEntry;
     int32_t result = pasteboardEntryGetterClient->GetRecordValueByType(1, pasteDataEntry);
     EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::INVALID_DATA_ERROR));
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetRecordValueByTypeTest001 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetRecordValueByTypeTest001 end");
 }
 
 /**
@@ -82,7 +82,7 @@ HWTEST_F(PasteboardEntryGetterClientTest, GetRecordValueByTypeTest002, TestSize.
     PasteDataEntry pasteDataEntry;
     int32_t result = pasteboardEntryGetterClient->GetRecordValueByType(0, pasteDataEntry);
     EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::E_OK));
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetRecordValueByTypeTest002 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetRecordValueByTypeTest002 end");
 }
 }
 } // namespace OHOS::MiscServices

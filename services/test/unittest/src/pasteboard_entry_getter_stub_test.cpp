@@ -219,7 +219,7 @@ HWTEST_F(PasteboardEntryGetterStubTest, OnGetRecordValueByTypeTest001, TestSize.
     int32_t result = stub.OnGetRecordValueByType(data, reply);
     std::cout << "OnGetRecordValueByType aaaaa" << std::endl;
     EXPECT_EQ(result, ERR_INVALID_VALUE);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnGetRecordValueByTypeTest001 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnGetRecordValueByTypeTest001 end");
 }
 
 /**
@@ -238,7 +238,7 @@ HWTEST_F(PasteboardEntryGetterStubTest, OnGetRecordValueByTypeTest002, TestSize.
     EXPECT_CALL(mock, ReadInt64()).WillRepeatedly(Return(DEFAULT_MAX_RAW_DATA_SIZE_ADD));
     int32_t result = stub.OnGetRecordValueByType(data, reply);
     EXPECT_EQ(result, ERR_INVALID_VALUE);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnGetRecordValueByTypeTest002 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnGetRecordValueByTypeTest002 end");
 }
 
 /**
@@ -258,7 +258,7 @@ HWTEST_F(PasteboardEntryGetterStubTest, OnGetRecordValueByTypeTest003, TestSize.
         .WillOnce(Return(UINT8_DATA_ARRAY_LENGTH + UINT8_DATA_ARRAY_LENGTH));
     int32_t result = stub.OnGetRecordValueByType(data, reply);
     EXPECT_EQ(result, ERR_INVALID_VALUE);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnGetRecordValueByTypeTest003 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnGetRecordValueByTypeTest003 end");
 }
 
 /**
@@ -281,7 +281,7 @@ HWTEST_F(PasteboardEntryGetterStubTest, OnGetRecordValueByTypeTest004, TestSize.
     EXPECT_CALL(mock, Decode(testing::_)).WillOnce(Return(false));
     int32_t result = stub.OnGetRecordValueByType(data, reply);
     EXPECT_EQ(result, ERR_INVALID_VALUE);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnGetRecordValueByTypeTest004 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnGetRecordValueByTypeTest004 end");
 }
 
 /**
@@ -305,7 +305,7 @@ HWTEST_F(PasteboardEntryGetterStubTest, OnGetRecordValueByTypeTest005, TestSize.
     
     int32_t result = stub.OnGetRecordValueByType(data, reply);
     EXPECT_EQ(result, ERR_INVALID_VALUE);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnGetRecordValueByTypeTest005 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnGetRecordValueByTypeTest005 end");
 }
 
 /**
@@ -330,7 +330,7 @@ HWTEST_F(PasteboardEntryGetterStubTest, OnGetRecordValueByTypeTest006, TestSize.
     
     int32_t result = stub.OnGetRecordValueByType(data, reply);
     EXPECT_EQ(result, ERR_INVALID_VALUE);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnGetRecordValueByTypeTest006 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnGetRecordValueByTypeTest006 end");
 }
 
 /**
@@ -357,7 +357,7 @@ HWTEST_F(PasteboardEntryGetterStubTest, OnGetRecordValueByTypeTest007, TestSize.
     
     int32_t result = stub.OnGetRecordValueByType(data, reply);
     EXPECT_EQ(result, ERR_INVALID_VALUE);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnGetRecordValueByTypeTest007 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnGetRecordValueByTypeTest007 end");
 }
 
 /**
@@ -384,7 +384,7 @@ HWTEST_F(PasteboardEntryGetterStubTest, OnGetRecordValueByTypeTest008, TestSize.
     
     int32_t result = stub.OnGetRecordValueByType(data, reply);
     EXPECT_EQ(result, ERR_OK);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnGetRecordValueByTypeTest008 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnGetRecordValueByTypeTest008 end");
 }
 
 /**
@@ -405,7 +405,7 @@ HWTEST_F(PasteboardEntryGetterStubTest, OnRemoteRequestTest001, TestSize.Level0)
     
     int32_t result = stub.OnRemoteRequest(UINT32_POSITIVE_NUMBER, data, reply, option);
     EXPECT_EQ(result, ERR_INVALID_VALUE);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnRemoteRequestTest001 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnRemoteRequestTest001 end");
 }
 
 /**
@@ -427,7 +427,7 @@ HWTEST_F(PasteboardEntryGetterStubTest, OnRemoteRequestTest002, TestSize.Level0)
     NiceMock<PasteboardEntryGetterStubMock> mock;
     int32_t result = stub.OnRemoteRequest(UINT32_POSITIVE_NUMBER, data, reply, option);
     EXPECT_EQ(result, INT32_POSITIVE_TWO_NUMBER);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnRemoteRequestTest002 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnRemoteRequestTest002 end");
 }
 
 /**
@@ -451,7 +451,7 @@ HWTEST_F(PasteboardEntryGetterStubTest, OnRemoteRequestTest003, TestSize.Level0)
     
     int32_t result = stub.OnRemoteRequest(UINT32_POSITIVE_NUMBER, data, reply, option);
     EXPECT_EQ(result, INT_POSITIVE_NUMBER_THREE);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnRemoteRequestTest003 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnRemoteRequestTest003 end");
 }
 }
 } // namespace OHOS::MiscServices

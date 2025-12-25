@@ -223,7 +223,7 @@ HWTEST_F(PasteboardEntryGetterProxyTest, MakeRequestTest001, TestSize.Level0)
     EXPECT_CALL(mock, WriteInterfaceToken(testing::_)).WillOnce(Return(false));
     int32_t result = proxy.MakeRequest(UINT32_RANDOM, entry, parcel);
     EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::SERIALIZATION_ERROR));
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "MakeRequestTest001 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "MakeRequestTest001 end");
 }
 
 /**
@@ -243,7 +243,7 @@ HWTEST_F(PasteboardEntryGetterProxyTest, MakeRequestTest002, TestSize.Level0)
     EXPECT_CALL(mock, WriteUint32(testing::_)).WillOnce(Return(false));
     int32_t result = proxy.MakeRequest(UINT32_RANDOM, entry, parcel);
     EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::SERIALIZATION_ERROR));
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "MakeRequestTest002 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "MakeRequestTest002 end");
 }
 
 /**
@@ -264,7 +264,7 @@ HWTEST_F(PasteboardEntryGetterProxyTest, MakeRequestTest003, TestSize.Level0)
     EXPECT_CALL(mock, Encode(testing::_)).WillOnce(Return(false));
     int32_t result = proxy.MakeRequest(UINT32_RANDOM, entry, parcel);
     EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::SERIALIZATION_ERROR));
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "MakeRequestTest003 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "MakeRequestTest003 end");
 }
 
 /**
@@ -286,7 +286,7 @@ HWTEST_F(PasteboardEntryGetterProxyTest, MakeRequestTest004, TestSize.Level0)
     EXPECT_CALL(mock, WriteInt64(testing::_)).WillOnce(Return(false));
     int32_t result = proxy.MakeRequest(UINT32_RANDOM, entry, parcel);
     EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::SERIALIZATION_ERROR));
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "MakeRequestTest004 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "MakeRequestTest004 end");
 }
 
 /**
@@ -309,7 +309,7 @@ HWTEST_F(PasteboardEntryGetterProxyTest, MakeRequestTest005, TestSize.Level0)
     EXPECT_CALL(mock, WriteInt64(testing::_)).WillOnce(Return(true));
     int32_t result = proxy.MakeRequest(UINT32_RANDOM, entry, parcel);
     EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::SERIALIZATION_ERROR));
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "MakeRequestTest005 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "MakeRequestTest005 end");
 }
 
 /**
@@ -333,7 +333,7 @@ HWTEST_F(PasteboardEntryGetterProxyTest, MakeRequestTest006, TestSize.Level0)
     EXPECT_CALL(mock, WriteUnpadBuffer(testing::_, testing::_)).WillOnce(Return(true));
     int32_t result = proxy.MakeRequest(UINT32_RANDOM, entry, parcel);
     EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::E_OK));
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "MakeRequestTest006 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "MakeRequestTest006 end");
 }
 
 /**
@@ -357,7 +357,7 @@ HWTEST_F(PasteboardEntryGetterProxyTest, GetRecordValueByTypeTest001, TestSize.L
     EXPECT_CALL(mock, WriteUnpadBuffer(testing::_, testing::_)).WillOnce(Return(false));
     int32_t result = proxy.GetRecordValueByType(UINT32_RANDOM, entry);
     EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::SERIALIZATION_ERROR));
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetRecordValueByTypeTest001 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetRecordValueByTypeTest001 end");
 }
 
 /**
@@ -382,7 +382,7 @@ HWTEST_F(PasteboardEntryGetterProxyTest, GetRecordValueByTypeTest002, TestSize.L
     EXPECT_CALL(mock, WriteUnpadBuffer(testing::_, testing::_)).WillOnce(Return(true));
     int32_t result = proxy.GetRecordValueByType(UINT32_RANDOM, entry);
     EXPECT_EQ(result, SENDREQUEST_ONE);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetRecordValueByTypeTest002 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetRecordValueByTypeTest002 end");
 }
 
 /**
@@ -408,7 +408,7 @@ HWTEST_F(PasteboardEntryGetterProxyTest, GetRecordValueByTypeTest003, TestSize.L
     EXPECT_CALL(mock, ReadInt64()).WillOnce(Return(INT64_NEGATIVE_NUMBER));
     int32_t result = proxy.GetRecordValueByType(UINT32_RANDOM, entry);
     EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::DESERIALIZATION_ERROR));
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetRecordValueByTypeTest003 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetRecordValueByTypeTest003 end");
 }
 
 /**
@@ -435,7 +435,7 @@ HWTEST_F(PasteboardEntryGetterProxyTest, GetRecordValueByTypeTest004, TestSize.L
     EXPECT_CALL(mock, ReadInt64()).WillRepeatedly(Return(DEFAULT_MAX_RAW_DATA_SIZE + DEFAULT_MAX_RAW_DATA_SIZE));
     int32_t result = proxy.GetRecordValueByType(UINT32_RANDOM, entry);
     EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::DESERIALIZATION_ERROR));
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetRecordValueByTypeTest004 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetRecordValueByTypeTest004 end");
 }
 
 /**
@@ -464,7 +464,7 @@ HWTEST_F(PasteboardEntryGetterProxyTest, GetRecordValueByTypeTest005, TestSize.L
     EXPECT_CALL(mock, ReadUnpadBuffer(testing::_)).WillOnce(Return(&randomValue));
     int32_t result = proxy.GetRecordValueByType(UINT32_RANDOM, entry);
     EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::DESERIALIZATION_ERROR));
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetRecordValueByTypeTest005 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetRecordValueByTypeTest005 end");
 }
 
 /**
@@ -493,7 +493,7 @@ HWTEST_F(PasteboardEntryGetterProxyTest, GetRecordValueByTypeTest006, TestSize.L
     EXPECT_CALL(mock, Decode(testing::_)).WillOnce(Return(true));
     int32_t result = proxy.GetRecordValueByType(UINT32_RANDOM, entry);
     EXPECT_EQ(result, ERR_OK);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetRecordValueByTypeTest006 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetRecordValueByTypeTest006 end");
 }
 }
 } // namespace OHOS::MiscServices

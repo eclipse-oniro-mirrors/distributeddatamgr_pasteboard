@@ -54,11 +54,11 @@ void DFXTest::TearDown(void) {}
  */
 HWTEST_F(DFXTest, DFXTest001, TestSize.Level0)
 {
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_INNERKIT, "Start.");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_INNERKIT, "DFXTest001 Start.");
     PasteboardFaultMsg faultMsg = { .userId = 1, .errorCode = "error" };
     auto status = Reporter::GetInstance().PasteboardFault().Report(faultMsg);
     ASSERT_EQ(status, ReportStatus::SUCCESS);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_INNERKIT, "End.");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_INNERKIT, "DFXTest001 End.");
 }
 
 /**
@@ -70,7 +70,7 @@ HWTEST_F(DFXTest, DFXTest001, TestSize.Level0)
  */
 HWTEST_F(DFXTest, DFXTest002, TestSize.Level0)
 {
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_INNERKIT, "Start.");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_INNERKIT, "DFXTest002 Start.");
     TimeConsumingStat timeConsumingStat = { .pasteboardState = SPS_COPY_STATE, .dataSize = -1, .timeConsuming = -1 };
     auto status = Reporter::GetInstance().TimeConsumingStatistic().Report(timeConsumingStat);
     ASSERT_EQ(status, ReportStatus::SUCCESS);
@@ -85,7 +85,7 @@ HWTEST_F(DFXTest, DFXTest002, TestSize.Level0)
     };
     status = Reporter::GetInstance().TimeConsumingStatistic().Report(timeConsumingStat);
     ASSERT_EQ(status, ReportStatus::SUCCESS);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_INNERKIT, "End.");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_INNERKIT, "DFXTest002 End.");
 }
 
 /**
@@ -97,7 +97,7 @@ HWTEST_F(DFXTest, DFXTest002, TestSize.Level0)
  */
 HWTEST_F(DFXTest, DFXTest003, TestSize.Level0)
 {
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_INNERKIT, "Start.");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_INNERKIT, "DFXTest003 Start.");
     TimeConsumingStat timeConsumingStat = { .pasteboardState = SPS_PASTE_STATE, .dataSize = -1, .timeConsuming = -1 };
     auto status = Reporter::GetInstance().TimeConsumingStatistic().Report(timeConsumingStat);
     ASSERT_EQ(status, ReportStatus::SUCCESS);
@@ -111,7 +111,7 @@ HWTEST_F(DFXTest, DFXTest003, TestSize.Level0)
         .timeConsuming = TCS_TIME_CONSUMING_LEVEL_ONE };
     status = Reporter::GetInstance().TimeConsumingStatistic().Report(timeConsumingStat);
     ASSERT_EQ(status, ReportStatus::SUCCESS);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_INNERKIT, "End.");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_INNERKIT, "DFXTest003 End.");
 }
 
 /**
@@ -123,7 +123,7 @@ HWTEST_F(DFXTest, DFXTest003, TestSize.Level0)
  */
 HWTEST_F(DFXTest, DFXTest004, TestSize.Level0)
 {
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_INNERKIT, "Start.");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_INNERKIT, "DFXTest004 Start.");
     TimeConsumingStat timeConsumingStat = { .pasteboardState = SPS_REMOTE_PASTE_STATE,
         .dataSize = -1,
         .timeConsuming = -1 };
@@ -139,7 +139,7 @@ HWTEST_F(DFXTest, DFXTest004, TestSize.Level0)
         .timeConsuming = TCS_TIME_CONSUMING_LEVEL_ONE };
     status = Reporter::GetInstance().TimeConsumingStatistic().Report(timeConsumingStat);
     ASSERT_EQ(status, ReportStatus::SUCCESS);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_INNERKIT, "End.");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_INNERKIT, "DFXTest004 End.");
 }
 
 /**
@@ -151,13 +151,13 @@ HWTEST_F(DFXTest, DFXTest004, TestSize.Level0)
  */
 HWTEST_F(DFXTest, DFXTest005, TestSize.Level0)
 {
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_INNERKIT, "Start.");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_INNERKIT, "DFXTest005 Start.");
     TimeConsumingStat timeConsumingStat = { .pasteboardState = SPS_INVALID_STATE,
         .dataSize = DATA_LEVEL_ONE,
         .timeConsuming = TCS_TIME_CONSUMING_LEVEL_ONE };
     auto status = Reporter::GetInstance().TimeConsumingStatistic().Report(timeConsumingStat);
     ASSERT_EQ(status, ReportStatus::SUCCESS);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_INNERKIT, "End.");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_INNERKIT, "DFXTest005 End.");
 }
 
 /**
@@ -169,7 +169,7 @@ HWTEST_F(DFXTest, DFXTest005, TestSize.Level0)
  */
 HWTEST_F(DFXTest, DFXTest006, TestSize.Level0)
 {
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_INNERKIT, "Start.");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_INNERKIT, "DFXTest006 Start.");
     PasteboardBehaviourMsg behaviourMsg = { .pasteboardState = BPS_COPY_STATE, .bundleName = "com.paste.test" };
     auto status = Reporter::GetInstance().PasteboardBehaviour().Report(behaviourMsg);
     ASSERT_EQ(status, ReportStatus::SUCCESS);
@@ -191,7 +191,7 @@ HWTEST_F(DFXTest, DFXTest006, TestSize.Level0)
     behaviourMsg = { .pasteboardState = BPS_INVALID_STATE, .bundleName = "com.paste.test" };
     status = Reporter::GetInstance().PasteboardBehaviour().Report(behaviourMsg);
     ASSERT_EQ(status, ReportStatus::SUCCESS);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_INNERKIT, "End.");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_INNERKIT, "DFXTest006 End.");
 }
 
 /**
@@ -203,11 +203,11 @@ HWTEST_F(DFXTest, DFXTest006, TestSize.Level0)
  */
 HWTEST_F(DFXTest, DFXTest007, TestSize.Level0)
 {
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_INNERKIT, "Start.");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_INNERKIT, "DFXTest007 Start.");
     std::shared_ptr<DfxAppEvent> processorEvent = std::make_shared<DfxAppEvent>();
     processorEvent->SetEvent(std::string("test"), 0, 0);
     ASSERT_TRUE(DfxAppEvent::processorId_ != -1);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_INNERKIT, "End.");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_INNERKIT, "DFXTest007 End.");
 }
 
 /**
@@ -219,10 +219,10 @@ HWTEST_F(DFXTest, DFXTest007, TestSize.Level0)
  */
 HWTEST_F(DFXTest, DFXTest008, TestSize.Level0)
 {
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_INNERKIT, "Start.");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_INNERKIT, "DFXTest008 Start.");
     DfxAppEvent::processorId_ = NOT_APP_PROCESSORID;
     std::shared_ptr<DfxAppEvent> processorEvent = std::make_shared<DfxAppEvent>();
     DfxAppEvent::processorId_ = NOT_APP_PROCESSORID;
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_INNERKIT, "End.");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_INNERKIT, "DFXTest008 End.");
 }
 } // namespace OHOS::MiscServices

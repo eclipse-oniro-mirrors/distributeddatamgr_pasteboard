@@ -101,7 +101,7 @@ HWTEST_F(PasteboardLoadTest, LoadComponentsTest001, TestSize.Level0)
     g_lib.clear();
     g_unmarshal = true;
     EXPECT_NO_FATAL_FAILURE(loader.LoadComponents());
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "LoadComponentsTest001 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "LoadComponentsTest001 end");
 }
 /**
  * @tc.name: LoadComponentsTest002
@@ -117,7 +117,7 @@ HWTEST_F(PasteboardLoadTest, LoadComponentsTest002, TestSize.Level0)
     g_lib = lib;
     g_unmarshal = true;
     EXPECT_NO_FATAL_FAILURE(loader.LoadComponents());
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "LoadComponentsTest002 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "LoadComponentsTest002 end");
 }
 /**
  * @tc.name: LoadComponentsTest003
@@ -133,7 +133,7 @@ HWTEST_F(PasteboardLoadTest, LoadComponentsTest003, TestSize.Level0)
     g_lib = lib;
     g_unmarshal = false;
     EXPECT_NO_FATAL_FAILURE(loader.LoadComponents());
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "LoadComponentsTest003 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "LoadComponentsTest003 end");
 }
 /**
  * @tc.name: LoadComponentsTest004
@@ -150,7 +150,7 @@ HWTEST_F(PasteboardLoadTest, LoadComponentsTest004, TestSize.Level0)
     g_constructor.clear();
     g_unmarshal = false;
     EXPECT_NO_FATAL_FAILURE(loader.LoadComponents());
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "LoadComponentsTest004 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "LoadComponentsTest004 end");
 }
 /**
  * @tc.name: LoadComponentsTest005
@@ -167,7 +167,7 @@ HWTEST_F(PasteboardLoadTest, LoadComponentsTest005, TestSize.Level0)
     g_constructor = CONSTRUCTOR_STRING;
     g_unmarshal = false;
     EXPECT_NO_FATAL_FAILURE(loader.LoadComponents());
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "LoadComponentsTest005 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "LoadComponentsTest005 end");
 }
 
 /**
@@ -180,7 +180,7 @@ HWTEST_F(PasteboardLoadTest, LoadUidTest, TestSize.Level0)
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "LoadUidTest start");
     Loader loader;
     EXPECT_NO_FATAL_FAILURE(loader.LoadUid());
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "LoadUidTest start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "LoadUidTest end");
 }
 
 /**
@@ -193,7 +193,7 @@ HWTEST_F(PasteboardLoadTest, LoadConfigTest, TestSize.Level0)
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "LoadConfigTest start");
     Loader loader;
     EXPECT_NO_FATAL_FAILURE(loader.LoadConfig());
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "LoadConfigTest start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "LoadConfigTest end");
 }
 
 /**
@@ -206,7 +206,7 @@ HWTEST_F(PasteboardLoadTest, ComponentIsExistTest, TestSize.Level0)
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ComponentIsExistTest start");
     Loader loader;
     EXPECT_NO_FATAL_FAILURE(loader.ComponentIsExist(LIB_STRING));
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ComponentIsExistTest start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ComponentIsExistTest end");
 }
 }
 } // namespace OHOS::MiscServices
