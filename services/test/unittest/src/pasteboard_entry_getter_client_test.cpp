@@ -56,6 +56,7 @@ public:
  */
 HWTEST_F(PasteboardEntryGetterClientTest, GetRecordValueByTypeTest001, TestSize.Level0)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, " start");
     std::map<uint32_t, std::shared_ptr<UDMF::EntryGetter>> entryGetters;
     auto entryGetter = std::make_shared<EntryGetterImpl>();
     entryGetters.insert({0, entryGetter});
@@ -63,6 +64,7 @@ HWTEST_F(PasteboardEntryGetterClientTest, GetRecordValueByTypeTest001, TestSize.
     PasteDataEntry pasteDataEntry;
     int32_t result = pasteboardEntryGetterClient->GetRecordValueByType(1, pasteDataEntry);
     EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::INVALID_DATA_ERROR));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, " start");
 }
 
 /**
@@ -72,6 +74,7 @@ HWTEST_F(PasteboardEntryGetterClientTest, GetRecordValueByTypeTest001, TestSize.
  */
 HWTEST_F(PasteboardEntryGetterClientTest, GetRecordValueByTypeTest002, TestSize.Level0)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, " start");
     std::map<uint32_t, std::shared_ptr<UDMF::EntryGetter>> entryGetters;
     std::shared_ptr<UDMF::EntryGetter> entryGetter = nullptr;
     entryGetters.insert({0, entryGetter});
@@ -79,6 +82,7 @@ HWTEST_F(PasteboardEntryGetterClientTest, GetRecordValueByTypeTest002, TestSize.
     PasteDataEntry pasteDataEntry;
     int32_t result = pasteboardEntryGetterClient->GetRecordValueByType(0, pasteDataEntry);
     EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::E_OK));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, " start");
 }
 }
 } // namespace OHOS::MiscServices

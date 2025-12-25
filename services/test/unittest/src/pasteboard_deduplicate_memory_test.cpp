@@ -57,6 +57,7 @@ bool operator==(const RadarReportIdentity &lhs, const RadarReportIdentity &rhs)
  */
 HWTEST_F(PasteboardDeduplicateMemoryTest, TestIsDuplicate001, TestSize.Level0)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "TestIsDuplicate001 start");
     int64_t expirationMilliSeconds = 1000;
     DeduplicateMemory<RadarReportIdentity> reportMemory(expirationMilliSeconds);
 
@@ -68,6 +69,7 @@ HWTEST_F(PasteboardDeduplicateMemoryTest, TestIsDuplicate001, TestSize.Level0)
 
     isDuplicate = reportMemory.IsDuplicate({.pid = 1, .errorCode = PasteboardError::INVALID_PARAM_ERROR });
     EXPECT_TRUE(isDuplicate);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "TestIsDuplicate001 start");
 }
 
 /**
@@ -78,6 +80,7 @@ HWTEST_F(PasteboardDeduplicateMemoryTest, TestIsDuplicate001, TestSize.Level0)
  */
 HWTEST_F(PasteboardDeduplicateMemoryTest, TestIsDuplicate002, TestSize.Level0)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "TestIsDuplicate002 start");
     int64_t expirationMilliSeconds = 900;
     DeduplicateMemory<RadarReportIdentity> reportMemory(expirationMilliSeconds);
 
@@ -91,6 +94,7 @@ HWTEST_F(PasteboardDeduplicateMemoryTest, TestIsDuplicate002, TestSize.Level0)
     std::this_thread::sleep_for(std::chrono::seconds(1));
     isDuplicate = reportMemory.IsDuplicate({.pid = 1, .errorCode = PasteboardError::INVALID_PARAM_ERROR });
     EXPECT_FALSE(isDuplicate);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "TestIsDuplicate002 start");
 }
 
 /**
@@ -102,6 +106,7 @@ HWTEST_F(PasteboardDeduplicateMemoryTest, TestIsDuplicate002, TestSize.Level0)
  */
 HWTEST_F(PasteboardDeduplicateMemoryTest, TestIsDuplicate003, TestSize.Level0)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "TestIsDuplicate003 start");
     int64_t expirationMilliSeconds = 1100;
     DeduplicateMemory<RadarReportIdentity> reportMemory(expirationMilliSeconds);
 
@@ -115,6 +120,7 @@ HWTEST_F(PasteboardDeduplicateMemoryTest, TestIsDuplicate003, TestSize.Level0)
     std::this_thread::sleep_for(std::chrono::seconds(1));
     isDuplicate = reportMemory.IsDuplicate({.pid = 1, .errorCode = PasteboardError::INVALID_PARAM_ERROR });
     EXPECT_FALSE(isDuplicate);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "TestIsDuplicate003 start");
 }
 
 /**
@@ -126,6 +132,7 @@ HWTEST_F(PasteboardDeduplicateMemoryTest, TestIsDuplicate003, TestSize.Level0)
  */
 HWTEST_F(PasteboardDeduplicateMemoryTest, TestIsDuplicate004, TestSize.Level0)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "TestIsDuplicate004 start");
     int64_t expirationMilliSeconds = 1100;
     DeduplicateMemory<RadarReportIdentity> reportMemory(expirationMilliSeconds);
 
@@ -138,6 +145,7 @@ HWTEST_F(PasteboardDeduplicateMemoryTest, TestIsDuplicate004, TestSize.Level0)
 
     isDuplicate = reportMemory.IsDuplicate({.pid = 1, .errorCode = PasteboardError::INVALID_DATA_ERROR });
     EXPECT_FALSE(isDuplicate);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "TestIsDuplicate004 start");
 }
 } // namespace MiscServices
 } // namespace OHOS

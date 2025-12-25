@@ -151,6 +151,7 @@ bool Parcel::WriteInt64(int64_t data)
  */
 HWTEST_F(PasteboardDelayStubTest, OnRemoteRequestTest001, TestSize.Level0)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnRemoteRequestTest001 start");
     auto tempDelayGetter = std::make_shared<PasteboardDelayGetterStubTest>();
     NiceMock<PasteboardDelayStubInterfaceMock> mock;
     EXPECT_CALL(mock, ReadInterfaceToken()).WillOnce(Return(u"testing"));
@@ -160,6 +161,7 @@ HWTEST_F(PasteboardDelayStubTest, OnRemoteRequestTest001, TestSize.Level0)
     MessageOption option;
     int32_t ret = tempDelayGetter->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(ret, -1);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnRemoteRequestTest001 start");
 }
 
 /* *
@@ -169,6 +171,7 @@ HWTEST_F(PasteboardDelayStubTest, OnRemoteRequestTest001, TestSize.Level0)
  */
 HWTEST_F(PasteboardDelayStubTest, OnRemoteRequestTest002, TestSize.Level0)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnRemoteRequestTest002 start");
     auto tempDelayGetter = std::make_shared<PasteboardDelayGetterStubTest>();
     std::u16string localDescriptor = tempDelayGetter->GetDescriptor();
     NiceMock<PasteboardDelayStubInterfaceMock> mock;
@@ -179,6 +182,7 @@ HWTEST_F(PasteboardDelayStubTest, OnRemoteRequestTest002, TestSize.Level0)
     MessageOption option;
     int32_t ret = tempDelayGetter->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(ret, -1);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnRemoteRequestTest002 start");
 }
 
 /* *
@@ -188,6 +192,7 @@ HWTEST_F(PasteboardDelayStubTest, OnRemoteRequestTest002, TestSize.Level0)
  */
 HWTEST_F(PasteboardDelayStubTest, OnRemoteRequestTest003, TestSize.Level0)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnRemoteRequestTest003 start");
     auto tempDelayGetter = std::make_shared<PasteboardDelayGetterStubTest>();
     std::u16string localDescriptor = tempDelayGetter->GetDescriptor();
     NiceMock<PasteboardDelayStubInterfaceMock> mock;
@@ -198,6 +203,7 @@ HWTEST_F(PasteboardDelayStubTest, OnRemoteRequestTest003, TestSize.Level0)
     MessageOption option;
     int32_t ret = tempDelayGetter->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(ret, ERR_OK);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnRemoteRequestTest003 start");
 }
 
 /* *
@@ -207,6 +213,7 @@ HWTEST_F(PasteboardDelayStubTest, OnRemoteRequestTest003, TestSize.Level0)
  */
 HWTEST_F(PasteboardDelayStubTest, OnRemoteRequestTest004, TestSize.Level0)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnRemoteRequestTest004 start");
     auto pasteboardObserverStub = std::make_shared<PasteboardObserverImpl>();
     NiceMock<PasteboardDelayStubInterfaceMock> mock;
     EXPECT_CALL(mock, ReadInterfaceToken()).WillOnce(Return(u"testing"));
@@ -216,6 +223,7 @@ HWTEST_F(PasteboardDelayStubTest, OnRemoteRequestTest004, TestSize.Level0)
     MessageOption option;
     int32_t ret = pasteboardObserverStub->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(ret, IPC_STUB_UNKNOW_TRANS_ERR);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnRemoteRequestTest004 start");
 }
 
 /* *
@@ -225,6 +233,7 @@ HWTEST_F(PasteboardDelayStubTest, OnRemoteRequestTest004, TestSize.Level0)
  */
 HWTEST_F(PasteboardDelayStubTest, OnRemoteRequestTest005, TestSize.Level0)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnRemoteRequestTest005 start");
     auto pasteboardObserverStub = std::make_shared<PasteboardObserverImpl>();
     std::u16string myDescriptor = pasteboardObserverStub->GetDescriptor();
     NiceMock<PasteboardDelayStubInterfaceMock> mock;
@@ -235,6 +244,7 @@ HWTEST_F(PasteboardDelayStubTest, OnRemoteRequestTest005, TestSize.Level0)
     MessageOption option;
     int32_t ret = pasteboardObserverStub->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(ret, IPC_STUB_UNKNOW_TRANS_ERR);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnRemoteRequestTest005 start");
 }
 
 /* *
@@ -244,6 +254,7 @@ HWTEST_F(PasteboardDelayStubTest, OnRemoteRequestTest005, TestSize.Level0)
  */
 HWTEST_F(PasteboardDelayStubTest, OnRemoteRequestTest006, TestSize.Level0)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnRemoteRequestTest006 start");
     auto pasteboardObserverStub = std::make_shared<PasteboardObserverImpl>();
     std::u16string myDescriptor = pasteboardObserverStub->GetDescriptor();
     pasteboardObserverStub->memberFuncMap_[2] = nullptr;
@@ -255,6 +266,7 @@ HWTEST_F(PasteboardDelayStubTest, OnRemoteRequestTest006, TestSize.Level0)
     MessageOption option;
     int32_t ret = pasteboardObserverStub->OnRemoteRequest(code, data, reply, option);
     ASSERT_EQ(ret, IPC_STUB_UNKNOW_TRANS_ERR);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnRemoteRequestTest006 start");
 }
 
 /* *
@@ -264,6 +276,7 @@ HWTEST_F(PasteboardDelayStubTest, OnRemoteRequestTest006, TestSize.Level0)
  */
 HWTEST_F(PasteboardDelayStubTest, OnGetPasteDataTest001, TestSize.Level0)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnGetPasteDataTest001 start");
     auto tempDelayGetter = std::make_shared<PasteboardDelayGetterStubTest>();
     MessageParcel data;
     MessageParcel reply;
@@ -271,6 +284,7 @@ HWTEST_F(PasteboardDelayStubTest, OnGetPasteDataTest001, TestSize.Level0)
     EXPECT_CALL(mock, Encode(testing::_)).WillOnce(Return(false));
     int32_t ret = tempDelayGetter->OnGetPasteData(data, reply);
     ASSERT_EQ(ret, ERR_INVALID_VALUE);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnGetPasteDataTest001 start");
 }
 
 /* *
@@ -280,6 +294,7 @@ HWTEST_F(PasteboardDelayStubTest, OnGetPasteDataTest001, TestSize.Level0)
  */
 HWTEST_F(PasteboardDelayStubTest, OnGetPasteDataTest002, TestSize.Level0)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnGetPasteDataTest002 start");
     auto tempDelayGetter = std::make_shared<PasteboardDelayGetterStubTest>();
     MessageParcel data;
     MessageParcel reply;
@@ -288,6 +303,7 @@ HWTEST_F(PasteboardDelayStubTest, OnGetPasteDataTest002, TestSize.Level0)
     EXPECT_CALL(mock, WriteInt64(testing::_)).WillRepeatedly(Return(false));
     int32_t ret = tempDelayGetter->OnGetPasteData(data, reply);
     ASSERT_EQ(ret, ERR_INVALID_VALUE);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnGetPasteDataTest002 start");
 }
 
 /* *
@@ -297,6 +313,7 @@ HWTEST_F(PasteboardDelayStubTest, OnGetPasteDataTest002, TestSize.Level0)
  */
 HWTEST_F(PasteboardDelayStubTest, OnGetPasteDataTest003, TestSize.Level0)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnGetPasteDataTest003 start");
     auto tempDelayGetter = std::make_shared<PasteboardDelayGetterStubTest>();
     MessageParcel data;
     MessageParcel reply;
@@ -306,6 +323,7 @@ HWTEST_F(PasteboardDelayStubTest, OnGetPasteDataTest003, TestSize.Level0)
     EXPECT_CALL(mock, WriteRawData(testing::_, testing::_, testing::_)).WillRepeatedly(Return(false));
     int32_t ret = tempDelayGetter->OnGetPasteData(data, reply);
     ASSERT_EQ(ret, ERR_INVALID_VALUE);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnGetPasteDataTest003 start");
 }
 
 /* *
@@ -315,10 +333,12 @@ HWTEST_F(PasteboardDelayStubTest, OnGetPasteDataTest003, TestSize.Level0)
  */
 HWTEST_F(PasteboardDelayStubTest, OnGetUnifiedDataTest001, TestSize.Level0)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnGetUnifiedDataTest001 start");
     auto tempDelayGetter = std::make_shared<PasteboardDelayGetterStubTest>();
     MessageParcel data;
     MessageParcel reply;
     int32_t ret = tempDelayGetter->OnGetUnifiedData(data, reply);
     ASSERT_EQ(ret, ERR_OK);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnGetUnifiedDataTest001 start");
 }
 } // namespace OHOS

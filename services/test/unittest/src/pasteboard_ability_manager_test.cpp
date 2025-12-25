@@ -48,6 +48,7 @@ void PasteboardAbilityManagerTest::TearDown(void) { }
  */
 HWTEST_F(PasteboardAbilityManagerTest, ShowProgressFailedTest, TestSize.Level0)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ShowProgressFailedTest start");
     PasteboardDialog::ProgressMessageInfo message;
     int32_t ret = PasteboardDialog::ShowProgress(message);
     EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::PROGRESS_START_ERROR));
@@ -56,6 +57,7 @@ HWTEST_F(PasteboardAbilityManagerTest, ShowProgressFailedTest, TestSize.Level0)
     message.clientCallback = sptr<PasteboardSignalCallback>::MakeSptr();
     ret = PasteboardDialog::ShowProgress(message);
     EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::PROGRESS_START_ERROR));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ShowProgressFailedTest end");
 }
 
 /**
@@ -65,9 +67,11 @@ HWTEST_F(PasteboardAbilityManagerTest, ShowProgressFailedTest, TestSize.Level0)
  */
 HWTEST_F(PasteboardAbilityManagerTest, CheckUIExtensionIsFocusedFailedTest, TestSize.Level0)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "CheckUIExtensionIsFocusedFailedTest start");
     uint32_t tokenId = 0;
     bool isFocused = false;
     int32_t ret = PasteboardAbilityManager::CheckUIExtensionIsFocused(tokenId, isFocused);
     EXPECT_NE(ret, NO_ERROR);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "CheckUIExtensionIsFocusedFailedTest end");
 }
 } // namespace OHOS::MiscServices

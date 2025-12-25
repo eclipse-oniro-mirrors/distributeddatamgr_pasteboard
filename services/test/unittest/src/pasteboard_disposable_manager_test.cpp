@@ -134,6 +134,7 @@ bool operator==(const DisposableInfo &lhs, const DisposableInfo &rhs)
  */
 HWTEST_F(PasteboardDisposableManagerTest, AddDisposableInfoTest001, TestSize.Level0)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "AddDisposableInfoTest001 start");
     pid_t pid = 1;
     uint32_t tokenId = 100;
     int32_t targetWindowId = 1;
@@ -147,6 +148,7 @@ HWTEST_F(PasteboardDisposableManagerTest, AddDisposableInfoTest001, TestSize.Lev
     info.observer = sptr<DisposableObserverImpl>::MakeSptr();
     ret = DisposableManager::GetInstance().AddDisposableInfo(info);
     ASSERT_EQ(ret, static_cast<int32_t>(PasteboardError::INVALID_PARAM_ERROR));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, " start");
 }
 
 /**
@@ -157,6 +159,7 @@ HWTEST_F(PasteboardDisposableManagerTest, AddDisposableInfoTest001, TestSize.Lev
  */
 HWTEST_F(PasteboardDisposableManagerTest, AddDisposableInfoTest002, TestSize.Level0)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, " start");
     NiceMock<Security::AccessToken::AccessTokenKitMock> accessTokenMock;
     EXPECT_CALL(accessTokenMock, VerifyAccessToken)
         .WillOnce(testing::Return(Security::AccessToken::PermissionState::PERMISSION_DENIED))
@@ -177,6 +180,7 @@ HWTEST_F(PasteboardDisposableManagerTest, AddDisposableInfoTest002, TestSize.Lev
     auto infoList = DisposableManager::GetInstance().disposableInfoList_;
     ASSERT_EQ(infoList.size(), 1);
     EXPECT_EQ(infoList[0], info);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, " start");
 }
 
 /**
@@ -187,6 +191,7 @@ HWTEST_F(PasteboardDisposableManagerTest, AddDisposableInfoTest002, TestSize.Lev
  */
 HWTEST_F(PasteboardDisposableManagerTest, AddDisposableInfoTest003, TestSize.Level0)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, " start");
     NiceMock<Security::AccessToken::AccessTokenKitMock> accessTokenMock;
     EXPECT_CALL(accessTokenMock, VerifyAccessToken)
         .WillRepeatedly(testing::Return(Security::AccessToken::PermissionState::PERMISSION_GRANTED));
@@ -219,6 +224,7 @@ HWTEST_F(PasteboardDisposableManagerTest, AddDisposableInfoTest003, TestSize.Lev
     ASSERT_EQ(infoList.size(), 2);
     EXPECT_EQ(infoList[0], samePid);
     EXPECT_EQ(infoList[1], diffPid);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, " start");
 }
 
 /**
@@ -229,6 +235,7 @@ HWTEST_F(PasteboardDisposableManagerTest, AddDisposableInfoTest003, TestSize.Lev
  */
 HWTEST_F(PasteboardDisposableManagerTest, AddDisposableInfoTest004, TestSize.Level0)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, " start");
     NiceMock<Security::AccessToken::AccessTokenKitMock> accessTokenMock;
     EXPECT_CALL(accessTokenMock, VerifyAccessToken)
         .WillRepeatedly(testing::Return(Security::AccessToken::PermissionState::PERMISSION_GRANTED));
@@ -251,6 +258,7 @@ HWTEST_F(PasteboardDisposableManagerTest, AddDisposableInfoTest004, TestSize.Lev
     EXPECT_STREQ(observer->text_.c_str(), "");
     infoList = DisposableManager::GetInstance().disposableInfoList_;
     EXPECT_EQ(infoList.size(), 0);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, " start");
 }
 
 /**
@@ -262,6 +270,7 @@ HWTEST_F(PasteboardDisposableManagerTest, AddDisposableInfoTest004, TestSize.Lev
  */
 HWTEST_F(PasteboardDisposableManagerTest, RemoveDisposableInfoTest001, TestSize.Level0)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, " start");
     pid_t pid = 1;
     DisposableManager::GetInstance().RemoveDisposableInfo(pid, false);
 
@@ -285,6 +294,7 @@ HWTEST_F(PasteboardDisposableManagerTest, RemoveDisposableInfoTest001, TestSize.
     DisposableManager::GetInstance().RemoveDisposableInfo(pid, true);
     EXPECT_TRUE(DisposableManager::GetInstance().disposableInfoList_.empty());
     EXPECT_EQ(observer->errCode_, IPasteboardDisposableObserver::ERR_TIMEOUT);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, " start");
 }
 
 /**
@@ -295,6 +305,7 @@ HWTEST_F(PasteboardDisposableManagerTest, RemoveDisposableInfoTest001, TestSize.
  */
 HWTEST_F(PasteboardDisposableManagerTest, TryProcessDisposableDataTest001, TestSize.Level0)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, " start");
     NiceMock<Security::AccessToken::AccessTokenKitMock> accessTokenMock;
     EXPECT_CALL(accessTokenMock, VerifyAccessToken)
         .WillRepeatedly(testing::Return(Security::AccessToken::PermissionState::PERMISSION_GRANTED));
@@ -327,6 +338,7 @@ HWTEST_F(PasteboardDisposableManagerTest, TryProcessDisposableDataTest001, TestS
     std::this_thread::sleep_for(std::chrono::seconds(1));
     EXPECT_TRUE(DisposableManager::GetInstance().disposableInfoList_.empty());
     EXPECT_EQ(observer->errCode_, IPasteboardDisposableObserver::ERR_TARGET_MISMATCH);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, " start");
 }
 
 /**
@@ -338,6 +350,7 @@ HWTEST_F(PasteboardDisposableManagerTest, TryProcessDisposableDataTest001, TestS
  */
 HWTEST_F(PasteboardDisposableManagerTest, TryProcessDisposableDataTest002, TestSize.Level0)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, " start");
     NiceMock<Security::AccessToken::AccessTokenKitMock> accessTokenMock;
     EXPECT_CALL(accessTokenMock, VerifyAccessToken)
         .WillOnce(testing::Return(Security::AccessToken::PermissionState::PERMISSION_DENIED))
@@ -362,6 +375,7 @@ HWTEST_F(PasteboardDisposableManagerTest, TryProcessDisposableDataTest002, TestS
     EXPECT_EQ(observer2->errCode_, IPasteboardDisposableObserver::ERR_NO_PERMISSION);
     EXPECT_EQ(observer3->errCode_, IPasteboardDisposableObserver::ERR_TYPE_NOT_SUPPORT);
     EXPECT_EQ(observer4->errCode_, IPasteboardDisposableObserver::ERR_NO_TEXT);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, " start");
 }
 
 /**
@@ -372,6 +386,7 @@ HWTEST_F(PasteboardDisposableManagerTest, TryProcessDisposableDataTest002, TestS
  */
 HWTEST_F(PasteboardDisposableManagerTest, TryProcessDisposableDataTest003, TestSize.Level0)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, " start");
     NiceMock<Security::AccessToken::AccessTokenKitMock> accessTokenMock;
     EXPECT_CALL(accessTokenMock, VerifyAccessToken)
         .WillRepeatedly(testing::Return(Security::AccessToken::PermissionState::PERMISSION_GRANTED));
@@ -393,6 +408,7 @@ HWTEST_F(PasteboardDisposableManagerTest, TryProcessDisposableDataTest003, TestS
     EXPECT_EQ(observer1->errCode_, IPasteboardDisposableObserver::ERR_LENGTH_MISMATCH);
     EXPECT_EQ(observer2->errCode_, IPasteboardDisposableObserver::ERR_OK);
     EXPECT_STREQ(observer2->text_.c_str(), text.c_str());
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, " start");
 }
 
 /**
@@ -404,6 +420,7 @@ HWTEST_F(PasteboardDisposableManagerTest, TryProcessDisposableDataTest003, TestS
  */
 HWTEST_F(PasteboardDisposableManagerTest, TryProcessDisposableDataTest004, TestSize.Level0)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, " start");
     NiceMock<Security::AccessToken::AccessTokenKitMock> accessTokenMock;
     EXPECT_CALL(accessTokenMock, VerifyAccessToken)
         .WillRepeatedly(testing::Return(Security::AccessToken::PermissionState::PERMISSION_GRANTED));
@@ -433,6 +450,7 @@ HWTEST_F(PasteboardDisposableManagerTest, TryProcessDisposableDataTest004, TestS
         EXPECT_EQ(observer->errCode_, errCodes[i]);
         EXPECT_STREQ(observer->text_.c_str(), texts[i].c_str());
     }
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, " start");
 }
 
 /**
@@ -442,6 +460,7 @@ HWTEST_F(PasteboardDisposableManagerTest, TryProcessDisposableDataTest004, TestS
  */
 HWTEST_F(PasteboardDisposableManagerTest, GetPlainTextTest001, TestSize.Level0)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, " start");
     PasteData pasteData;
     pasteData.SetDelayData(true);
     std::string text = DisposableManager::GetInstance().GetPlainText(pasteData, nullptr, nullptr);
@@ -451,6 +470,7 @@ HWTEST_F(PasteboardDisposableManagerTest, GetPlainTextTest001, TestSize.Level0)
     delayGetter->text_ = "123456";
     text = DisposableManager::GetInstance().GetPlainText(pasteData, delayGetter, nullptr);
     EXPECT_STREQ(text.c_str(), delayGetter->text_.c_str());
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, " start");
 }
 
 /**
@@ -460,6 +480,7 @@ HWTEST_F(PasteboardDisposableManagerTest, GetPlainTextTest001, TestSize.Level0)
  */
 HWTEST_F(PasteboardDisposableManagerTest, GetPlainTextTest002, TestSize.Level0)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, " start");
     constexpr size_t recordNum = 5;
     std::string text1 = "abcdefghijk";
     std::string text2 = "123456";
@@ -488,5 +509,6 @@ HWTEST_F(PasteboardDisposableManagerTest, GetPlainTextTest002, TestSize.Level0)
     entryGetter->text_ = text2;
     text = DisposableManager::GetInstance().GetPlainText(pasteData, nullptr, entryGetter);
     EXPECT_STREQ(text.c_str(), text3.c_str());
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, " start");
 }
 } // namespace OHOS::MiscServices
