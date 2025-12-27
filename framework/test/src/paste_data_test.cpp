@@ -1778,16 +1778,32 @@ HWTEST_F(PasteDataTest, SetTextSize003, TestSize.Level0)
 }
 
 /**
- * @tc.name: HasMimeTypeTest001
- * @tc.desc: HasMimeType empty test
+ * @tc.name: HasUtdTypeTest001
+ * @tc.desc: HasUtdType empty test
  * @tc.type: FUNC
  */
-HWTEST_F(PasteDataTest, HasMimeTypeTest001, TestSize.Level0)
+HWTEST_F(PasteDataTest, HasUtdTypeTest001, TestSize.Level0)
 {
     std::string plainText = "plain text";
+    std::string udType = "general.plain-text";
     auto pasteData = PasteboardClient::GetInstance()->CreatePlainTextData(plainText);
     ASSERT_TRUE(pasteData != nullptr);
-    auto ret = pasteData->HasMimeType(MIMETYPE_TEXT_PLAIN);
+    auto ret = pasteData->HasUtdType(udType);
     EXPECT_EQ(ret, true);
+}
+
+/**
+ * @tc.name: HasUtdTypeTest002
+ * @tc.desc: HasUtdType empty test
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteDataTest, HasUtdTypeTest002, TestSize.Level0)
+{
+    std::string plainText = "plain text";
+    std::string udType = "general.hyperlink";
+    auto pasteData = PasteboardClient::GetInstance()->CreatePlainTextData(plainText);
+    ASSERT_TRUE(pasteData != nullptr);
+    auto ret = pasteData->HasUtdType(udType);
+    EXPECT_EQ(ret, false);
 }
 } // namespace OHOS::MiscServices

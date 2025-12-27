@@ -1455,4 +1455,20 @@ HWTEST_F(PasteDataRecordTest, GetUriPermissionTest001, TestSize.Level2)
     auto ret = record->GetUriPermission();
     EXPECT_EQ(ret, PasteDataRecord::READ_PERMISSION);
 }
+
+/**
+ * @tc.name: SetForm001
+ * @tc.desc: SetForm001;
+ * @tc.type: FUNC
+ * @tc.require:entries
+ * @tc.author: tarowang
+ */
+HWTEST_F(PasteDataRecordTest, SetForm001, TestSize.Level0)
+{
+    std::shared_ptr<PasteDataRecord> record = std::make_shared<PasteDataRecord>();
+    EXPECT_NE(record, nullptr);
+    uint32_t from = 1;
+    record->SetFrom(from);
+    EXPECT_EQ(record->from_, from);
+}
 } // namespace OHOS::MiscServices
