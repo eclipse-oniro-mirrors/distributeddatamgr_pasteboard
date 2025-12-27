@@ -18,6 +18,7 @@
 #include "config.h"
 #include <string>
 #include <gtest/gtest.h>
+#include "pasteboard_hilog.h"
 
 using namespace testing;
 using namespace testing::ext;

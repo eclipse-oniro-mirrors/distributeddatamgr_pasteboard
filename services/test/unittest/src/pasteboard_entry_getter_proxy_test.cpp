@@ -20,6 +20,7 @@
 #include "message_parcel_warp.h"
 #include "pasteboard_entry_getter_proxy.h"
 #include "pasteboard_error.h"
+#include "pasteboard_hilog.h"
 
 using namespace OHOS;
 using namespace testing;

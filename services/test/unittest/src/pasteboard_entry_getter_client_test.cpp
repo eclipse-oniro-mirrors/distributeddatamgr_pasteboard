@@ -17,6 +17,7 @@
 #include "entry_getter.h"
 #include "pasteboard_entry_getter_client.h"
 #include "pasteboard_error.h"
+#include "pasteboard_hilog.h"
 
 using namespace OHOS;
 using namespace testing;
