@@ -291,4 +291,38 @@ HWTEST_F(TLVObjectTest, TestPasteDataRecord, TestSize.Level0)
     ASSERT_NE(udmfObject2, nullptr);
     EXPECT_EQ(udmfObject->value_, udmfObject2->value_);
 }
+
+/**
+ * @tc.name: TestRecursiveGuard
+ * @tc.desc: should decode failed when recursive overflow
+ * @tc.type: FUNC
+ */
+HWTEST_F(TLVObjectTest, TestRecursiveGuard, TestSize.Level0)
+{
+    constexpr int32_t RECURSIVE_DEPTH = 15;
+    std::shared_ptr<Object> objects[RECURSIVE_DEPTH];
+    for (int32_t i = 0; i < RECURSIVE_DEPTH; ++i) {
+        objects[i] = std::make_shared<Object>();
+    }
+    int32_t index = RECURSIVE_DEPTH - 1;
+    objects[index]->value_["key"] = "value";
+    for (--index; index >= 0; --index) {
+        objects[index]->value_["key"] = objects[index + 1];
+    }
+
+    PasteData pasteData;
+    PasteDataRecord record;
+    std::shared_ptr<PasteDataEntry> entry = std::make_shared<PasteDataEntry>();
+    entry->SetValue(objects[0]);
+    record.AddEntryByMimeType("customType", entry);
+    pasteData.AddRecord(record);
+
+    std::vector<uint8_t> buffer;
+    bool encodeSuccess = pasteData.Encode(buffer);
+    EXPECT_TRUE(encodeSuccess);
+
+    PasteData pasteData2;
+    bool decodeSuccess = pasteData2.Decode(buffer);
+    EXPECT_FALSE(decodeSuccess);
+}
 } // namespace OHOS::MiscServices

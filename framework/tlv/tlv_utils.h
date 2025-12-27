@@ -51,5 +51,27 @@ public:
 
     static std::vector<std::uint8_t> PixelMap2Vector(std::shared_ptr<Media::PixelMap> pixelMap);
 };
+
+class RecursiveGuard {
+public:
+    RecursiveGuard()
+    {
+        depth_++;
+    }
+
+    ~RecursiveGuard()
+    {
+        depth_--;
+    }
+
+    bool IsValid()
+    {
+        return depth_ <= MAX_DEPTH;
+    }
+
+private:
+    static constexpr uint32_t MAX_DEPTH = 10;
+    static thread_local inline uint32_t depth_ = 0;
+};
 } // namespace OHOS::MiscServices
 #endif //DISTRIBUTEDDATAMGR_PASTEBOARD_TLV_UTILS_H
