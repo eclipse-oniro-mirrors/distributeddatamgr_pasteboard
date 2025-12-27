@@ -334,6 +334,7 @@ HWTEST_F(PasteboardServiceRemoteTest, IsRemoteDataTest003, TestSize.Level0)
  */
 HWTEST_F(PasteboardServiceRemoteTest, ProcessRemoteDelayHtmlInnerTest001, TestSize.Level0)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ProcessRemoteDelayHtmlInnerTest001 start");
     std::shared_ptr<PasteboardService> tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
     std::string remoteDeviceId = "remoteDeviceId";
@@ -346,6 +347,7 @@ HWTEST_F(PasteboardServiceRemoteTest, ProcessRemoteDelayHtmlInnerTest001, TestSi
     
     int32_t ret = tempPasteboard->ProcessRemoteDelayHtmlInner(remoteDeviceId, appInfo, tmpData, data, entry);
     EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::REBUILD_HTML_FAILED));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ProcessRemoteDelayHtmlInnerTest001 end");
 }
 
 /**
@@ -355,6 +357,7 @@ HWTEST_F(PasteboardServiceRemoteTest, ProcessRemoteDelayHtmlInnerTest001, TestSi
  */
 HWTEST_F(PasteboardServiceRemoteTest, ProcessRemoteDelayHtmlInnerTest002, TestSize.Level0)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ProcessRemoteDelayHtmlInnerTest002 start");
     std::shared_ptr<PasteboardService> tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
     std::string remoteDeviceId = "remoteDeviceId";
@@ -367,6 +370,7 @@ HWTEST_F(PasteboardServiceRemoteTest, ProcessRemoteDelayHtmlInnerTest002, TestSi
     
     int32_t ret = tempPasteboard->ProcessRemoteDelayHtmlInner(remoteDeviceId, appInfo, tmpData, data, entry);
     EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::REBUILD_HTML_FAILED));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ProcessRemoteDelayHtmlInnerTest002 end");
 }
 
 /**
@@ -376,6 +380,7 @@ HWTEST_F(PasteboardServiceRemoteTest, ProcessRemoteDelayHtmlInnerTest002, TestSi
  */
 HWTEST_F(PasteboardServiceRemoteTest, ProcessRemoteDelayHtmlTest002, TestSize.Level0)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ProcessRemoteDelayHtmlTest002 start");
     std::shared_ptr<PasteboardService> tempPasteboard = std::make_shared<PasteboardService>();
     ASSERT_NE(tempPasteboard, nullptr);
     std::string remoteDeviceId = "remoteDeviceId";
@@ -398,6 +403,7 @@ HWTEST_F(PasteboardServiceRemoteTest, ProcessRemoteDelayHtmlTest002, TestSize.Le
     
     int32_t ret = tempPasteboard->ProcessRemoteDelayHtml(remoteDeviceId, appInfo, rawData, data, *record, *entry);
     EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::GET_ENTRY_VALUE_FAILED));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ProcessRemoteDelayHtmlTest002 end");
 }
 
 /**
@@ -407,6 +413,7 @@ HWTEST_F(PasteboardServiceRemoteTest, ProcessRemoteDelayHtmlTest002, TestSize.Le
  */
 HWTEST_F(PasteboardServiceRemoteTest, ProcessRemoteDelayUriTest001, TestSize.Level0)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ProcessRemoteDelayUriTest001 start");
     std::shared_ptr<PasteboardService> tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
     std::string deviceId = "deviceId";
@@ -429,7 +436,7 @@ HWTEST_F(PasteboardServiceRemoteTest, ProcessRemoteDelayUriTest001, TestSize.Lev
     
     int32_t ret = tempPasteboard->ProcessRemoteDelayUri(deviceId, appInfo, data, *record, *entry);
     EXPECT_NE(ret, static_cast<int32_t>(PasteboardError::E_OK));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ProcessRemoteDelayUriTest001 end");
 }
-
 } // namespace MiscServices
 } // namespace OHOS
