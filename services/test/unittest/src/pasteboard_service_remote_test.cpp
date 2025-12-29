@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -59,6 +59,14 @@ const std::string TEST_ENTITY_TEXT =
     "和谐与宁静。如果你时间充裕，可以选择在湖畔的咖啡馆稍作休息，回味这一天的旅程。这条路线涵盖了西湖的主要经典景点，从"
     "湖滨路到南山路，再到杨公堤、北山街，最后回到杭州市中心，整个行程大约需要一天时间。沿着这条路线，你可以领略西湖的自"
     "然风光和文化底蕴，感受人间天堂的独特魅力。";
+const std::string TEST_ENTITY_TEXT_CN_50 =
+    "清晨,从杭州市中心出发，沿着湖滨路缓缓前行。湖滨路是杭州市中心通往西湖的主要街道之一，两旁绿树成荫。";
+const std::string TEST_ENTITY_TEXT_CN_50 =
+    "清晨,从杭州市中心出发，沿着湖滨路缓缓前行。湖滨路是杭州市中心通往西湖的主要街道之一，两旁绿树成荫。";
+const std::string TEST_ENTITY_TEXT_CN_10 =
+    "清晨,从杭州市中心出";
+const std::string TEST_ENTITY_TEXT_CN_5 =
+    "清晨,从杭";
 const int64_t DEFAULT_MAX_RAW_DATA_SIZE = 128 * 1024 * 1024;
 constexpr int32_t MIMETYPE_MAX_SIZE = 1024;
 static constexpr uint64_t ONE_HOUR_MILLISECONDS = 60 * 60 * 1000;
@@ -195,7 +203,7 @@ namespace MiscServices {
  * @tc.desc: test Func ClearRemoteDataTask
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceRemoteTest, ClearRemoteDataTask001, TestSize.Level0)
+HWTEST_F(PasteboardServiceRemoteTest, ClearRemoteDataTask001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ClearRemoteDataTask001 start");
     std::shared_ptr<PasteboardService::RemoteDataTaskManager> remoteDataTaskManager =
@@ -212,7 +220,7 @@ HWTEST_F(PasteboardServiceRemoteTest, ClearRemoteDataTask001, TestSize.Level0)
  * @tc.desc: test Func WaitRemoteData
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceRemoteTest, WaitRemoteData001, TestSize.Level0)
+HWTEST_F(PasteboardServiceRemoteTest, WaitRemoteData001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "WaitRemoteData001 start");
     std::shared_ptr<PasteboardService::RemoteDataTaskManager> remoteDataTaskManager =
@@ -229,7 +237,7 @@ HWTEST_F(PasteboardServiceRemoteTest, WaitRemoteData001, TestSize.Level0)
  * @tc.desc: test Func WaitRemoteData
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceRemoteTest, WaitRemoteData002, TestSize.Level0)
+HWTEST_F(PasteboardServiceRemoteTest, WaitRemoteData002, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "WaitRemoteData002 start");
     std::shared_ptr<PasteboardService::RemoteDataTaskManager> remoteDataTaskManager =
@@ -253,7 +261,7 @@ HWTEST_F(PasteboardServiceRemoteTest, WaitRemoteData002, TestSize.Level0)
  * @tc.desc: test Func ProcessRemoteDelayHtml
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceRemoteTest, ProcessRemoteDelayHtmlTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceRemoteTest, ProcessRemoteDelayHtmlTest001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ProcessRemoteDelayHtmlTest001 start");
     std::string remoteDeviceId;
@@ -273,7 +281,7 @@ HWTEST_F(PasteboardServiceRemoteTest, ProcessRemoteDelayHtmlTest001, TestSize.Le
  * @tc.desc: test Func IsRemoteData, funcResult is false
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceRemoteTest, IsRemoteDataTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceRemoteTest, IsRemoteDataTest001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "IsRemoteDataTest001 start");
     auto service = std::make_shared<PasteboardService>();
@@ -291,7 +299,7 @@ HWTEST_F(PasteboardServiceRemoteTest, IsRemoteDataTest001, TestSize.Level0)
  * @tc.desc: test Func IsRemoteData, currentUserId_ is INT32_MAX.
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceRemoteTest, IsRemoteDataTest002, TestSize.Level0)
+HWTEST_F(PasteboardServiceRemoteTest, IsRemoteDataTest002, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "IsRemoteDataTest002 start");
     auto service = std::make_shared<PasteboardService>();
@@ -309,7 +317,7 @@ HWTEST_F(PasteboardServiceRemoteTest, IsRemoteDataTest002, TestSize.Level0)
  * @tc.desc: test Func IsRemoteData, currentUserId_ is 0XF
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceRemoteTest, IsRemoteDataTest003, TestSize.Level0)
+HWTEST_F(PasteboardServiceRemoteTest, IsRemoteDataTest003, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "IsRemoteDataTest003 start");
     auto service = std::make_shared<PasteboardService>();
@@ -332,7 +340,7 @@ HWTEST_F(PasteboardServiceRemoteTest, IsRemoteDataTest003, TestSize.Level0)
  * @tc.desc: ProcessRemoteDelayHtmlInnerTest001
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceRemoteTest, ProcessRemoteDelayHtmlInnerTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceRemoteTest, ProcessRemoteDelayHtmlInnerTest001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ProcessRemoteDelayHtmlInnerTest001 start");
     std::shared_ptr<PasteboardService> tempPasteboard = std::make_shared<PasteboardService>();
@@ -355,7 +363,7 @@ HWTEST_F(PasteboardServiceRemoteTest, ProcessRemoteDelayHtmlInnerTest001, TestSi
  * @tc.desc: ProcessRemoteDelayHtmlInnerTest002
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceRemoteTest, ProcessRemoteDelayHtmlInnerTest002, TestSize.Level0)
+HWTEST_F(PasteboardServiceRemoteTest, ProcessRemoteDelayHtmlInnerTest002, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ProcessRemoteDelayHtmlInnerTest002 start");
     std::shared_ptr<PasteboardService> tempPasteboard = std::make_shared<PasteboardService>();
@@ -378,7 +386,7 @@ HWTEST_F(PasteboardServiceRemoteTest, ProcessRemoteDelayHtmlInnerTest002, TestSi
  * @tc.desc: ProcessRemoteDelayHtmlTest002
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceRemoteTest, ProcessRemoteDelayHtmlTest002, TestSize.Level0)
+HWTEST_F(PasteboardServiceRemoteTest, ProcessRemoteDelayHtmlTest002, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ProcessRemoteDelayHtmlTest002 start");
     std::shared_ptr<PasteboardService> tempPasteboard = std::make_shared<PasteboardService>();
@@ -411,7 +419,7 @@ HWTEST_F(PasteboardServiceRemoteTest, ProcessRemoteDelayHtmlTest002, TestSize.Le
  * @tc.desc: ProcessRemoteDelayUriTest001
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceRemoteTest, ProcessRemoteDelayUriTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceRemoteTest, ProcessRemoteDelayUriTest001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ProcessRemoteDelayUriTest001 start");
     std::shared_ptr<PasteboardService> tempPasteboard = std::make_shared<PasteboardService>();

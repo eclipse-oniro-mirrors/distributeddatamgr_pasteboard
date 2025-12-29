@@ -20,6 +20,7 @@
 #include "message_parcel_warp.h"
 #include "pasteboard_entry_getter_proxy.h"
 #include "pasteboard_error.h"
+#include "pasteboard_hilog.h"
 
 using namespace OHOS;
 using namespace testing;
@@ -212,8 +213,9 @@ namespace MiscServices {
  * @tc.desc: Test function MakeRequest when WriteInterfaceToken return false
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardEntryGetterProxyTest, MakeRequestTest001, TestSize.Level0)
+HWTEST_F(PasteboardEntryGetterProxyTest, MakeRequestTest001, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "MakeRequestTest001 start");
     sptr<IRemoteObject> rObject = nullptr;
     PasteboardEntryGetterProxy proxy(rObject);
     PasteDataEntry entry;
@@ -222,6 +224,7 @@ HWTEST_F(PasteboardEntryGetterProxyTest, MakeRequestTest001, TestSize.Level0)
     EXPECT_CALL(mock, WriteInterfaceToken(testing::_)).WillOnce(Return(false));
     int32_t result = proxy.MakeRequest(UINT32_RANDOM, entry, parcel);
     EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::SERIALIZATION_ERROR));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "MakeRequestTest001 end");
 }
 
 /**
@@ -229,8 +232,9 @@ HWTEST_F(PasteboardEntryGetterProxyTest, MakeRequestTest001, TestSize.Level0)
  * @tc.desc: Test function MakeRequest when WriteUint32 return false
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardEntryGetterProxyTest, MakeRequestTest002, TestSize.Level0)
+HWTEST_F(PasteboardEntryGetterProxyTest, MakeRequestTest002, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "MakeRequestTest002 start");
     sptr<IRemoteObject> rObject = nullptr;
     PasteboardEntryGetterProxy proxy(rObject);
     PasteDataEntry entry;
@@ -240,6 +244,7 @@ HWTEST_F(PasteboardEntryGetterProxyTest, MakeRequestTest002, TestSize.Level0)
     EXPECT_CALL(mock, WriteUint32(testing::_)).WillOnce(Return(false));
     int32_t result = proxy.MakeRequest(UINT32_RANDOM, entry, parcel);
     EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::SERIALIZATION_ERROR));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "MakeRequestTest002 end");
 }
 
 /**
@@ -247,8 +252,9 @@ HWTEST_F(PasteboardEntryGetterProxyTest, MakeRequestTest002, TestSize.Level0)
  * @tc.desc: Test function MakeRequest when Encode return false
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardEntryGetterProxyTest, MakeRequestTest003, TestSize.Level0)
+HWTEST_F(PasteboardEntryGetterProxyTest, MakeRequestTest003, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "MakeRequestTest003 start");
     sptr<IRemoteObject> rObject = nullptr;
     PasteboardEntryGetterProxy proxy(rObject);
     PasteDataEntry entry;
@@ -259,6 +265,7 @@ HWTEST_F(PasteboardEntryGetterProxyTest, MakeRequestTest003, TestSize.Level0)
     EXPECT_CALL(mock, Encode(testing::_)).WillOnce(Return(false));
     int32_t result = proxy.MakeRequest(UINT32_RANDOM, entry, parcel);
     EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::SERIALIZATION_ERROR));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "MakeRequestTest003 end");
 }
 
 /**
@@ -266,8 +273,9 @@ HWTEST_F(PasteboardEntryGetterProxyTest, MakeRequestTest003, TestSize.Level0)
  * @tc.desc: Test function MakeRequest when WriteInt64 return false
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardEntryGetterProxyTest, MakeRequestTest004, TestSize.Level0)
+HWTEST_F(PasteboardEntryGetterProxyTest, MakeRequestTest004, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "MakeRequestTest004 start");
     sptr<IRemoteObject> rObject = nullptr;
     PasteboardEntryGetterProxy proxy(rObject);
     PasteDataEntry entry;
@@ -279,6 +287,7 @@ HWTEST_F(PasteboardEntryGetterProxyTest, MakeRequestTest004, TestSize.Level0)
     EXPECT_CALL(mock, WriteInt64(testing::_)).WillOnce(Return(false));
     int32_t result = proxy.MakeRequest(UINT32_RANDOM, entry, parcel);
     EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::SERIALIZATION_ERROR));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "MakeRequestTest004 end");
 }
 
 /**
@@ -286,8 +295,9 @@ HWTEST_F(PasteboardEntryGetterProxyTest, MakeRequestTest004, TestSize.Level0)
  * @tc.desc: Test function MakeRequest when sendEntryTLV.size() == 0
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardEntryGetterProxyTest, MakeRequestTest005, TestSize.Level0)
+HWTEST_F(PasteboardEntryGetterProxyTest, MakeRequestTest005, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "MakeRequestTest005 start");
     sptr<IRemoteObject> rObject = nullptr;
     PasteboardEntryGetterProxy proxy(rObject);
     PasteDataEntry entry;
@@ -300,6 +310,7 @@ HWTEST_F(PasteboardEntryGetterProxyTest, MakeRequestTest005, TestSize.Level0)
     EXPECT_CALL(mock, WriteInt64(testing::_)).WillOnce(Return(true));
     int32_t result = proxy.MakeRequest(UINT32_RANDOM, entry, parcel);
     EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::SERIALIZATION_ERROR));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "MakeRequestTest005 end");
 }
 
 /**
@@ -307,8 +318,9 @@ HWTEST_F(PasteboardEntryGetterProxyTest, MakeRequestTest005, TestSize.Level0)
  * @tc.desc: Test function MakeRequest when done
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardEntryGetterProxyTest, MakeRequestTest006, TestSize.Level0)
+HWTEST_F(PasteboardEntryGetterProxyTest, MakeRequestTest006, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "MakeRequestTest006 start");
     sptr<IRemoteObject> rObject = nullptr;
     PasteboardEntryGetterProxy proxy(rObject);
     NiceMock<PasteboardEntryGetterProxyMock> mock;
@@ -322,6 +334,7 @@ HWTEST_F(PasteboardEntryGetterProxyTest, MakeRequestTest006, TestSize.Level0)
     EXPECT_CALL(mock, WriteUnpadBuffer(testing::_, testing::_)).WillOnce(Return(true));
     int32_t result = proxy.MakeRequest(UINT32_RANDOM, entry, parcel);
     EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::E_OK));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "MakeRequestTest006 end");
 }
 
 /**
@@ -329,8 +342,9 @@ HWTEST_F(PasteboardEntryGetterProxyTest, MakeRequestTest006, TestSize.Level0)
  * @tc.desc: Test function GetRecordValueByType when MakeRequest return false
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardEntryGetterProxyTest, GetRecordValueByTypeTest001, TestSize.Level0)
+HWTEST_F(PasteboardEntryGetterProxyTest, GetRecordValueByTypeTest001, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetRecordValueByTypeTest001 start");
     sptr<IRemoteObject> rObject = nullptr;
     PasteDataEntry entry;
     PasteboardEntryGetterProxy proxy(rObject);
@@ -344,6 +358,7 @@ HWTEST_F(PasteboardEntryGetterProxyTest, GetRecordValueByTypeTest001, TestSize.L
     EXPECT_CALL(mock, WriteUnpadBuffer(testing::_, testing::_)).WillOnce(Return(false));
     int32_t result = proxy.GetRecordValueByType(UINT32_RANDOM, entry);
     EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::SERIALIZATION_ERROR));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetRecordValueByTypeTest001 end");
 }
 
 /**
@@ -351,8 +366,9 @@ HWTEST_F(PasteboardEntryGetterProxyTest, GetRecordValueByTypeTest001, TestSize.L
  * @tc.desc: Test function GetRecordValueByType when SendRequest return SENDREQUEST_ONE
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardEntryGetterProxyTest, GetRecordValueByTypeTest002, TestSize.Level0)
+HWTEST_F(PasteboardEntryGetterProxyTest, GetRecordValueByTypeTest002, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetRecordValueByTypeTest002 start");
     sptr<IRemoteObject> rObject = sptr<TestIRemoteObject>::MakeSptr();
     PasteDataEntry entry;
     PasteboardEntryGetterProxy proxy(rObject);
@@ -367,6 +383,7 @@ HWTEST_F(PasteboardEntryGetterProxyTest, GetRecordValueByTypeTest002, TestSize.L
     EXPECT_CALL(mock, WriteUnpadBuffer(testing::_, testing::_)).WillOnce(Return(true));
     int32_t result = proxy.GetRecordValueByType(UINT32_RANDOM, entry);
     EXPECT_EQ(result, SENDREQUEST_ONE);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetRecordValueByTypeTest002 end");
 }
 
 /**
@@ -374,8 +391,9 @@ HWTEST_F(PasteboardEntryGetterProxyTest, GetRecordValueByTypeTest002, TestSize.L
  * @tc.desc: Test function GetRecordValueByType when rawDataSize <= 0
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardEntryGetterProxyTest, GetRecordValueByTypeTest003, TestSize.Level0)
+HWTEST_F(PasteboardEntryGetterProxyTest, GetRecordValueByTypeTest003, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetRecordValueByTypeTest003 start");
     sptr<IRemoteObject> rObject = sptr<TestIRemoteObject>::MakeSptr();
     PasteDataEntry entry;
     PasteboardEntryGetterProxy proxy(rObject);
@@ -391,6 +409,7 @@ HWTEST_F(PasteboardEntryGetterProxyTest, GetRecordValueByTypeTest003, TestSize.L
     EXPECT_CALL(mock, ReadInt64()).WillOnce(Return(INT64_NEGATIVE_NUMBER));
     int32_t result = proxy.GetRecordValueByType(UINT32_RANDOM, entry);
     EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::DESERIALIZATION_ERROR));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetRecordValueByTypeTest003 end");
 }
 
 /**
@@ -399,8 +418,9 @@ HWTEST_F(PasteboardEntryGetterProxyTest, GetRecordValueByTypeTest003, TestSize.L
  *           DEFAULT_MAX_RAW_DATA_SIZE (128 * 1024 * 1024; // 128M)
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardEntryGetterProxyTest, GetRecordValueByTypeTest004, TestSize.Level0)
+HWTEST_F(PasteboardEntryGetterProxyTest, GetRecordValueByTypeTest004, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetRecordValueByTypeTest004 start");
     sptr<IRemoteObject> rObject = sptr<TestIRemoteObject>::MakeSptr();
     PasteDataEntry entry;
     PasteboardEntryGetterProxy proxy(rObject);
@@ -416,6 +436,7 @@ HWTEST_F(PasteboardEntryGetterProxyTest, GetRecordValueByTypeTest004, TestSize.L
     EXPECT_CALL(mock, ReadInt64()).WillRepeatedly(Return(DEFAULT_MAX_RAW_DATA_SIZE + DEFAULT_MAX_RAW_DATA_SIZE));
     int32_t result = proxy.GetRecordValueByType(UINT32_RANDOM, entry);
     EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::DESERIALIZATION_ERROR));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetRecordValueByTypeTest004 end");
 }
 
 /**
@@ -423,8 +444,9 @@ HWTEST_F(PasteboardEntryGetterProxyTest, GetRecordValueByTypeTest004, TestSize.L
  * @tc.desc: Test function GetRecordValueByType when Decode return false
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardEntryGetterProxyTest, GetRecordValueByTypeTest005, TestSize.Level0)
+HWTEST_F(PasteboardEntryGetterProxyTest, GetRecordValueByTypeTest005, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetRecordValueByTypeTest005 start");
     sptr<IRemoteObject> rObject = sptr<TestIRemoteObject>::MakeSptr();
     PasteDataEntry entry;
     PasteboardEntryGetterProxy proxy(rObject);
@@ -443,6 +465,7 @@ HWTEST_F(PasteboardEntryGetterProxyTest, GetRecordValueByTypeTest005, TestSize.L
     EXPECT_CALL(mock, ReadUnpadBuffer(testing::_)).WillOnce(Return(&randomValue));
     int32_t result = proxy.GetRecordValueByType(UINT32_RANDOM, entry);
     EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::DESERIALIZATION_ERROR));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetRecordValueByTypeTest005 end");
 }
 
 /**
@@ -450,8 +473,9 @@ HWTEST_F(PasteboardEntryGetterProxyTest, GetRecordValueByTypeTest005, TestSize.L
  * @tc.desc: Test function GetRecordValueByType when done
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardEntryGetterProxyTest, GetRecordValueByTypeTest006, TestSize.Level0)
+HWTEST_F(PasteboardEntryGetterProxyTest, GetRecordValueByTypeTest006, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetRecordValueByTypeTest006 start");
     sptr<IRemoteObject> rObject = sptr<TestIRemoteObject>::MakeSptr();
     PasteDataEntry entry;
     PasteboardEntryGetterProxy proxy(rObject);
@@ -470,6 +494,7 @@ HWTEST_F(PasteboardEntryGetterProxyTest, GetRecordValueByTypeTest006, TestSize.L
     EXPECT_CALL(mock, Decode(testing::_)).WillOnce(Return(true));
     int32_t result = proxy.GetRecordValueByType(UINT32_RANDOM, entry);
     EXPECT_EQ(result, ERR_OK);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetRecordValueByTypeTest006 end");
 }
 }
 } // namespace OHOS::MiscServices

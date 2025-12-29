@@ -86,8 +86,9 @@ public:
  * @tc.desc:
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardDelayManagerTest, GetEntryPriorityTest001, TestSize.Level0)
+HWTEST_F(PasteboardDelayManagerTest, GetEntryPriorityTest001, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetEntryPriorityTest001 start");
     uint8_t priority = DelayManager::GetEntryPriority(UTDID_PLAIN_TEXT);
     EXPECT_EQ(priority, 1);
 
@@ -105,6 +106,7 @@ HWTEST_F(PasteboardDelayManagerTest, GetEntryPriorityTest001, TestSize.Level0)
 
     priority = DelayManager::GetEntryPriority("customType");
     EXPECT_EQ(priority, 255);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetEntryPriorityTest001 end");
 }
 
 /**
@@ -112,8 +114,9 @@ HWTEST_F(PasteboardDelayManagerTest, GetEntryPriorityTest001, TestSize.Level0)
  * @tc.desc:
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardDelayManagerTest, GetAllDelayEntryInfoTest001, TestSize.Level0)
+HWTEST_F(PasteboardDelayManagerTest, GetAllDelayEntryInfoTest001, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetAllDelayEntryInfoTest001 start");
     PasteData pasteData;
     auto infoList = DelayManager::GetAllDelayEntryInfo(pasteData);
     EXPECT_EQ(infoList.size(), 0);
@@ -133,6 +136,7 @@ HWTEST_F(PasteboardDelayManagerTest, GetAllDelayEntryInfoTest001, TestSize.Level
     pasteData.records_[0]->entries_ = {nullptr};
     infoList = DelayManager::GetAllDelayEntryInfo(pasteData);
     EXPECT_EQ(infoList.size(), 0);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetAllDelayEntryInfoTest001 end");
 }
 
 /**
@@ -140,8 +144,9 @@ HWTEST_F(PasteboardDelayManagerTest, GetAllDelayEntryInfoTest001, TestSize.Level
  * @tc.desc:
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardDelayManagerTest, GetAllDelayEntryInfoTest002, TestSize.Level0)
+HWTEST_F(PasteboardDelayManagerTest, GetAllDelayEntryInfoTest002, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetAllDelayEntryInfoTest002 start");
     PasteData pasteData;
     PasteDataRecord record;
     record.SetDelayRecordFlag(true);
@@ -181,6 +186,7 @@ HWTEST_F(PasteboardDelayManagerTest, GetAllDelayEntryInfoTest002, TestSize.Level
         EXPECT_EQ(infoList[i].recordId, 1);
         EXPECT_STREQ(infoList[i].entry->GetUtdId().c_str(), expectUtdid[i].c_str());
     }
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetAllDelayEntryInfoTest002 end");
 }
 
 /**
@@ -188,8 +194,9 @@ HWTEST_F(PasteboardDelayManagerTest, GetAllDelayEntryInfoTest002, TestSize.Level
  * @tc.desc:
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardDelayManagerTest, GetPrimaryDelayEntryInfoTest001, TestSize.Level0)
+HWTEST_F(PasteboardDelayManagerTest, GetPrimaryDelayEntryInfoTest001, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetPrimaryDelayEntryInfoTest001 start");
     PasteData pasteData;
     PasteDataRecord record1;
     record1.SetDelayRecordFlag(true);
@@ -228,6 +235,7 @@ HWTEST_F(PasteboardDelayManagerTest, GetPrimaryDelayEntryInfoTest001, TestSize.L
     EXPECT_STREQ(infoList[0].entry->GetUtdId().c_str(), UTDID_PLAIN_TEXT.c_str());
     EXPECT_EQ(infoList[1].recordId, 2);
     EXPECT_STREQ(infoList[1].entry->GetUtdId().c_str(), UTDID_FILE_URI.c_str());
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetPrimaryDelayEntryInfoTest001 end");
 }
 
 /**
@@ -235,8 +243,9 @@ HWTEST_F(PasteboardDelayManagerTest, GetPrimaryDelayEntryInfoTest001, TestSize.L
  * @tc.desc:
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardDelayManagerTest, GetLocalEntryValueTest001, TestSize.Level0)
+HWTEST_F(PasteboardDelayManagerTest, GetLocalEntryValueTest001, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetLocalEntryValueTest001 start");
     uint64_t initDataSize = 100;
     uint64_t finalDataSize = 1100;
     std::vector<DelayEntryInfo> delayEntryInfos = {};
@@ -263,5 +272,6 @@ HWTEST_F(PasteboardDelayManagerTest, GetLocalEntryValueTest001, TestSize.Level0)
 
     DelayManager::GetLocalEntryValue(delayEntryInfos, entryGetter, pasteData);
     EXPECT_EQ(pasteData.rawDataSize_, finalDataSize);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetLocalEntryValueTest001 end");
 }
 } // namespace OHOS::MiscServices

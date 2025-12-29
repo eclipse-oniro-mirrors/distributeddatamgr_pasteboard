@@ -198,7 +198,7 @@ string GetTime()
  * @tc.desc: Create paste board test.
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceTest, PasteboardTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceTest, PasteboardTest001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteboardTest001 start");
     auto record = PasteboardClient::GetInstance()->CreatePlainTextRecord("paste record1");
@@ -230,7 +230,7 @@ HWTEST_F(PasteboardServiceTest, PasteboardTest001, TestSize.Level0)
  * @tc.desc: Create paste board record test.
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceTest, PasteRecordTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceTest, PasteRecordTest001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteRecordTest001 start");
     std::string plainText = "helloWorld";
@@ -248,7 +248,7 @@ HWTEST_F(PasteboardServiceTest, PasteRecordTest001, TestSize.Level0)
  * @tc.desc: Create paste board record test.
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceTest, PasteRecordTest002, TestSize.Level0)
+HWTEST_F(PasteboardServiceTest, PasteRecordTest002, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteRecordTest002 start");
     std::string htmlText = "<div class='disabled item tip user-programs'>";
@@ -266,7 +266,7 @@ HWTEST_F(PasteboardServiceTest, PasteRecordTest002, TestSize.Level0)
  * @tc.desc: Create paste board record test.
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceTest, PasteRecordTest003, TestSize.Level0)
+HWTEST_F(PasteboardServiceTest, PasteRecordTest003, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteRecordTest003 start");
     using namespace OHOS::AAFwk;
@@ -290,7 +290,7 @@ HWTEST_F(PasteboardServiceTest, PasteRecordTest003, TestSize.Level0)
  * @tc.desc: Create paste board record test.
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceTest, PasteRecordTest004, TestSize.Level0)
+HWTEST_F(PasteboardServiceTest, PasteRecordTest004, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteRecordTest004 start");
     OHOS::Uri uri("uri");
@@ -309,7 +309,7 @@ HWTEST_F(PasteboardServiceTest, PasteRecordTest004, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: AR000H5GKU
  */
-HWTEST_F(PasteboardServiceTest, PasteRecordTest005, TestSize.Level0)
+HWTEST_F(PasteboardServiceTest, PasteRecordTest005, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteRecordTest005 start");
     uint32_t color[100] = { 3, 7, 9, 9, 7, 6 };
@@ -339,7 +339,7 @@ HWTEST_F(PasteboardServiceTest, PasteRecordTest005, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: AR000H5GKU
  */
-HWTEST_F(PasteboardServiceTest, PasteRecordTest006, TestSize.Level0)
+HWTEST_F(PasteboardServiceTest, PasteRecordTest006, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteRecordTest006 start");
     uint32_t color[100] = { 3, 7, 9, 9, 7, 6 };
@@ -372,7 +372,7 @@ HWTEST_F(PasteboardServiceTest, PasteRecordTest006, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: AR000HEECD
  */
-HWTEST_F(PasteboardServiceTest, PasteRecordTest007, TestSize.Level0)
+HWTEST_F(PasteboardServiceTest, PasteRecordTest007, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteRecordTest007 start");
     std::vector<uint8_t> arrayBuffer(46);
@@ -399,7 +399,7 @@ HWTEST_F(PasteboardServiceTest, PasteRecordTest007, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: AR000HEECD
  */
-HWTEST_F(PasteboardServiceTest, PasteRecordTest008, TestSize.Level0)
+HWTEST_F(PasteboardServiceTest, PasteRecordTest008, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteRecordTest008 start");
     std::vector<uint8_t> arrayBuffer(46);
@@ -429,7 +429,7 @@ HWTEST_F(PasteboardServiceTest, PasteRecordTest008, TestSize.Level0)
  * @tc.desc: Create paste board html local url
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceTest, PasteRecordTest009, TestSize.Level0)
+HWTEST_F(PasteboardServiceTest, PasteRecordTest009, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteRecordTest009 start");
     std::string htmlText = "<div class='item'><img data-ohos='clipboard' "
@@ -458,7 +458,7 @@ HWTEST_F(PasteboardServiceTest, PasteRecordTest009, TestSize.Level0)
  * @tc.desc: Create paste board html distributed uri.
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceTest, PasteRecordTest0010, TestSize.Level0)
+HWTEST_F(PasteboardServiceTest, PasteRecordTest0010, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteRecordTest0010 start");
     std::string htmlText = "<div class='item'><img data-ohos='clipboard' "
@@ -489,7 +489,7 @@ HWTEST_F(PasteboardServiceTest, PasteRecordTest0010, TestSize.Level0)
  * @tc.desc: Create paste board html distributed uri.
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceTest, PasteRecordTest0011, TestSize.Level0)
+HWTEST_F(PasteboardServiceTest, PasteRecordTest0011, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteRecordTest0011 start");
     std::string htmlText = "<div class='item'><img "
@@ -519,7 +519,7 @@ HWTEST_F(PasteboardServiceTest, PasteRecordTest0011, TestSize.Level0)
  * @tc.desc: Create paste board html local url
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceTest, PasteRecordTest0012, TestSize.Level0)
+HWTEST_F(PasteboardServiceTest, PasteRecordTest0012, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteRecordTest0012 start");
     std::string htmlText = "<div class='item'><img data-ohos='clipboard' "
@@ -547,7 +547,7 @@ HWTEST_F(PasteboardServiceTest, PasteRecordTest0012, TestSize.Level0)
  * @tc.desc: Create paste board data test.
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceTest, PasteDataTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceTest, PasteDataTest001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteDataTest001 start");
     using namespace OHOS::AAFwk;
@@ -585,7 +585,7 @@ HWTEST_F(PasteboardServiceTest, PasteDataTest001, TestSize.Level0)
  * @tc.desc: Create paste board data test.
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceTest, PasteDataTest002, TestSize.Level0)
+HWTEST_F(PasteboardServiceTest, PasteDataTest002, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteDataTest002 start");
     OHOS::Uri uri("uri");
@@ -617,7 +617,7 @@ HWTEST_F(PasteboardServiceTest, PasteDataTest002, TestSize.Level0)
  * @tc.desc: Create paste board data test.
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceTest, PasteDataTest003, TestSize.Level0)
+HWTEST_F(PasteboardServiceTest, PasteDataTest003, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteDataTest003 start");
     std::string text = "plain text";
@@ -649,7 +649,7 @@ HWTEST_F(PasteboardServiceTest, PasteDataTest003, TestSize.Level0)
  * @tc.desc: Create paste board data test.
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceTest, PasteDataTest004, TestSize.Level0)
+HWTEST_F(PasteboardServiceTest, PasteDataTest004, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteDataTest004 start");
     std::string htmlText = "<div class='disabled item tip user-programs'>";
@@ -682,7 +682,7 @@ HWTEST_F(PasteboardServiceTest, PasteDataTest004, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: AR000HEECD
  */
-HWTEST_F(PasteboardServiceTest, PasteDataTest005, TestSize.Level0)
+HWTEST_F(PasteboardServiceTest, PasteDataTest005, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteDataTest005 start");
     std::string htmlText = "<div class='disabled item tip user-programs'>";
@@ -738,7 +738,7 @@ HWTEST_F(PasteboardServiceTest, PasteDataTest005, TestSize.Level0)
  * @tc.desc: CreatePlainTextData test.
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceTest, PasteDataTest006, TestSize.Level0)
+HWTEST_F(PasteboardServiceTest, PasteDataTest006, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteDataTest006 start");
     using namespace OHOS::AAFwk;
@@ -778,7 +778,7 @@ HWTEST_F(PasteboardServiceTest, PasteDataTest006, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: AR000H5GKU
  */
-HWTEST_F(PasteboardServiceTest, PasteDataTest007, TestSize.Level0)
+HWTEST_F(PasteboardServiceTest, PasteDataTest007, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteDataTest007 start");
     std::string htmlText = "<div class='disabled item tip user-programs'>";
@@ -821,7 +821,7 @@ HWTEST_F(PasteboardServiceTest, PasteDataTest007, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: AR000H5GKU
  */
-HWTEST_F(PasteboardServiceTest, PasteDataTest008, TestSize.Level0)
+HWTEST_F(PasteboardServiceTest, PasteDataTest008, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteDataTest008 start");
     uint32_t color[100] = { 3, 7, 9, 9, 7, 6 };
@@ -850,7 +850,7 @@ HWTEST_F(PasteboardServiceTest, PasteDataTest008, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: AR000H5GKU
  */
-HWTEST_F(PasteboardServiceTest, PasteDataTest009, TestSize.Level0)
+HWTEST_F(PasteboardServiceTest, PasteDataTest009, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteDataTest009 start");
     std::string plainText = "plain text";
@@ -885,7 +885,7 @@ HWTEST_F(PasteboardServiceTest, PasteDataTest009, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: AR000HEECD
  */
-HWTEST_F(PasteboardServiceTest, PasteDataTest0010, TestSize.Level0)
+HWTEST_F(PasteboardServiceTest, PasteDataTest0010, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteDataTest0010 start");
     std::vector<uint8_t> arrayBuffer(46);
@@ -915,7 +915,7 @@ HWTEST_F(PasteboardServiceTest, PasteDataTest0010, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: AR000HEECD
  */
-HWTEST_F(PasteboardServiceTest, PasteDataTest0011, TestSize.Level0)
+HWTEST_F(PasteboardServiceTest, PasteDataTest0011, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteDataTest0011 start");
     std::string plainText = "plain text";
@@ -951,7 +951,7 @@ HWTEST_F(PasteboardServiceTest, PasteDataTest0011, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: AR000HEECD
  */
-HWTEST_F(PasteboardServiceTest, PasteDataTest0012, TestSize.Level0)
+HWTEST_F(PasteboardServiceTest, PasteDataTest0012, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteDataTest0012 start");
     std::string plainText = "plain text";
@@ -1008,7 +1008,7 @@ HWTEST_F(PasteboardServiceTest, PasteDataTest0012, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: AROOOH5R5G
  */
-HWTEST_F(PasteboardServiceTest, PasteDataTest0014, TestSize.Level0)
+HWTEST_F(PasteboardServiceTest, PasteDataTest0014, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteDataTest0014 start");
     std::string plainText = "plain text";
@@ -1039,7 +1039,7 @@ HWTEST_F(PasteboardServiceTest, PasteDataTest0014, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: AROOOH5R5G
  */
-HWTEST_F(PasteboardServiceTest, PasteDataTest0015, TestSize.Level0)
+HWTEST_F(PasteboardServiceTest, PasteDataTest0015, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteDataTest0015 start");
     std::string plainText = "plain text";
@@ -1082,7 +1082,7 @@ HWTEST_F(PasteboardServiceTest, PasteDataTest0015, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: AROOOH5R5G
  */
-HWTEST_F(PasteboardServiceTest, PasteDataTest0016, TestSize.Level0)
+HWTEST_F(PasteboardServiceTest, PasteDataTest0016, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteDataTest0016 start");
     std::string plainText = "plain text";
@@ -1131,7 +1131,7 @@ HWTEST_F(PasteboardServiceTest, PasteDataTest0016, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: AROOOH5R5G
  */
-HWTEST_F(PasteboardServiceTest, PasteDataTest0017, TestSize.Level0)
+HWTEST_F(PasteboardServiceTest, PasteDataTest0017, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteDataTest0017 start");
     uint32_t color[100] = { 3, 7, 9, 9, 7, 6 };
@@ -1195,7 +1195,7 @@ HWTEST_F(PasteboardServiceTest, PasteDataTest0017, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: AROOOH5R5G
  */
-HWTEST_F(PasteboardServiceTest, PasteDataTest0018, TestSize.Level0)
+HWTEST_F(PasteboardServiceTest, PasteDataTest0018, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteDataTest0018 start");
     PasteboardClient::GetInstance()->RemovePasteboardChangedObserver(nullptr);
@@ -1262,7 +1262,7 @@ HWTEST_F(PasteboardServiceTest, PasteDataTest0018, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: AROOOH5R5G
  */
-HWTEST_F(PasteboardServiceTest, PasteDataTest0019, TestSize.Level0)
+HWTEST_F(PasteboardServiceTest, PasteDataTest0019, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteDataTest0019 start");
     PasteboardClient::GetInstance()->RemovePasteboardEventObserver(nullptr);
@@ -1321,7 +1321,7 @@ HWTEST_F(PasteboardServiceTest, PasteDataTest0019, TestSize.Level0)
  * @tc.desc: Create paste board test set bundleName and time.
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceTest, PasteDataTest0020, TestSize.Level0)
+HWTEST_F(PasteboardServiceTest, PasteDataTest0020, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteDataTest0020 start");
     std::string text = "plain text";
@@ -1345,7 +1345,7 @@ HWTEST_F(PasteboardServiceTest, PasteDataTest0020, TestSize.Level0)
  * @tc.desc: AddPasteboardEventObserver RemovePasteboardEventObserver test.
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceTest, PasteDataTest0021, TestSize.Level0)
+HWTEST_F(PasteboardServiceTest, PasteDataTest0021, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteDataTest0021 start");
     PasteboardClient::GetInstance()->AddPasteboardEventObserver(sptr<PasteboardEventObserverCallback>::MakeSptr());
@@ -1376,7 +1376,7 @@ HWTEST_F(PasteboardServiceTest, PasteDataTest0021, TestSize.Level0)
  * @tc.type: FUNC
  * @tc.require: AROOOH5R5G
  */
-HWTEST_F(PasteboardServiceTest, PasteDataTest0022, TestSize.Level0)
+HWTEST_F(PasteboardServiceTest, PasteDataTest0022, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteDataTest0022 start");
     std::string plainText = "plain text";
@@ -1415,7 +1415,7 @@ HWTEST_F(PasteboardServiceTest, PasteDataTest0022, TestSize.Level0)
  * @tc.require: RR2025020589956
  * @tc.author: wangchenghao
  */
-HWTEST_F(PasteboardServiceTest, PasteDataTest0023, TestSize.Level0)
+HWTEST_F(PasteboardServiceTest, PasteDataTest0023, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteDataTest0023 start");
     std::string text = "plain text";
@@ -1446,7 +1446,7 @@ HWTEST_F(PasteboardServiceTest, PasteDataTest0023, TestSize.Level0)
  * @tc.require: RR2025020589956
  * @tc.author: wangchenghao
  */
-HWTEST_F(PasteboardServiceTest, PasteDataTest0024, TestSize.Level0)
+HWTEST_F(PasteboardServiceTest, PasteDataTest0024, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteDataTest0024 start");
     std::string text = "plain text";
@@ -1637,7 +1637,7 @@ HWTEST_F(PasteboardServiceTest, DumpDataTest004, TestSize.Level1)
  * @tc.require: issueshI5YDEV
  * @tc.author: chenyu
  */
-HWTEST_F(PasteboardServiceTest, HasPasteDataTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceTest, HasPasteDataTest001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "HasPasteDataTest001 start");
     std::vector<uint8_t> arrayBuffer(46);
@@ -1662,7 +1662,7 @@ HWTEST_F(PasteboardServiceTest, HasPasteDataTest001, TestSize.Level0)
  * @tc.require: issuesIA7V62
  * @tc.author: caozhijun
  */
-HWTEST_F(PasteboardServiceTest, SetAppShareOptions, TestSize.Level0)
+HWTEST_F(PasteboardServiceTest, SetAppShareOptions, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetAppShareOptions start");
     uint64_t tempTokenID = testAppTokenId_ | SYSTEM_APP_MASK;

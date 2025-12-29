@@ -17,6 +17,7 @@
 #include "entry_getter.h"
 #include "pasteboard_entry_getter_client.h"
 #include "pasteboard_error.h"
+#include "pasteboard_hilog.h"
 
 using namespace OHOS;
 using namespace testing;
@@ -54,8 +55,9 @@ public:
  * @tc.desc: Test function GetRecordValueByType
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardEntryGetterClientTest, GetRecordValueByTypeTest001, TestSize.Level0)
+HWTEST_F(PasteboardEntryGetterClientTest, GetRecordValueByTypeTest001, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetRecordValueByTypeTest001 start");
     std::map<uint32_t, std::shared_ptr<UDMF::EntryGetter>> entryGetters;
     auto entryGetter = std::make_shared<EntryGetterImpl>();
     entryGetters.insert({0, entryGetter});
@@ -63,6 +65,7 @@ HWTEST_F(PasteboardEntryGetterClientTest, GetRecordValueByTypeTest001, TestSize.
     PasteDataEntry pasteDataEntry;
     int32_t result = pasteboardEntryGetterClient->GetRecordValueByType(1, pasteDataEntry);
     EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::INVALID_DATA_ERROR));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetRecordValueByTypeTest001 end");
 }
 
 /**
@@ -70,8 +73,9 @@ HWTEST_F(PasteboardEntryGetterClientTest, GetRecordValueByTypeTest001, TestSize.
  * @tc.desc: Test function GetRecordValueByType
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardEntryGetterClientTest, GetRecordValueByTypeTest002, TestSize.Level0)
+HWTEST_F(PasteboardEntryGetterClientTest, GetRecordValueByTypeTest002, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetRecordValueByTypeTest002 start");
     std::map<uint32_t, std::shared_ptr<UDMF::EntryGetter>> entryGetters;
     std::shared_ptr<UDMF::EntryGetter> entryGetter = nullptr;
     entryGetters.insert({0, entryGetter});
@@ -79,6 +83,7 @@ HWTEST_F(PasteboardEntryGetterClientTest, GetRecordValueByTypeTest002, TestSize.
     PasteDataEntry pasteDataEntry;
     int32_t result = pasteboardEntryGetterClient->GetRecordValueByType(0, pasteDataEntry);
     EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::E_OK));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetRecordValueByTypeTest002 end");
 }
 }
 } // namespace OHOS::MiscServices

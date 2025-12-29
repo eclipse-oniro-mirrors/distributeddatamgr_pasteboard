@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -517,7 +517,7 @@ namespace MiscServices {
  * @tc.desc: test Func Clear
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, ClearTest002, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, ClearTest002, TestSize.Level1)
 {
     PasteboardService service;
     service.currentUserId_ = ERROR_USERID;
@@ -532,7 +532,7 @@ HWTEST_F(PasteboardServiceMockTest, ClearTest002, TestSize.Level0)
  * @tc.desc: test Func GetRecordValueByType
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, GetRecordValueByTypeTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, GetRecordValueByTypeTest001, TestSize.Level1)
 {
     PasteboardService service;
     uint32_t dataId = 0;
@@ -565,7 +565,7 @@ HWTEST_F(PasteboardServiceMockTest, GetRecordValueByTypeTest001, TestSize.Level0
  * @tc.desc: test Func GetRecordValueByType when paste data is html
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, GetRecordValueByTypeTest002, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, GetRecordValueByTypeTest002, TestSize.Level1)
 {
     PasteboardService service;
     uint32_t dataId = 0;
@@ -598,7 +598,7 @@ HWTEST_F(PasteboardServiceMockTest, GetRecordValueByTypeTest002, TestSize.Level0
  * @tc.desc: test Func GetRecordValueByType when paste data is url
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, GetRecordValueByTypeTest003, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, GetRecordValueByTypeTest003, TestSize.Level1)
 {
     PasteboardService service;
     uint32_t dataId = 0;
@@ -631,7 +631,7 @@ HWTEST_F(PasteboardServiceMockTest, GetRecordValueByTypeTest003, TestSize.Level0
  * @tc.desc: test Func GetRecordValueByType when paste Encode return false
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, GetRecordValueByTypeTest004, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, GetRecordValueByTypeTest004, TestSize.Level1)
 {
     PasteboardService service;
     int64_t rawDataSize = 0;
@@ -651,7 +651,7 @@ HWTEST_F(PasteboardServiceMockTest, GetRecordValueByTypeTest004, TestSize.Level0
  * @tc.desc: test Func GetRecordValueByType when paste rawDataSize < MIN_ASHMEM_DATA_SIZE
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, GetRecordValueByTypeTest005, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, GetRecordValueByTypeTest005, TestSize.Level1)
 {
     PasteboardService service;
     int64_t rawDataSize = 0;
@@ -672,7 +672,7 @@ HWTEST_F(PasteboardServiceMockTest, GetRecordValueByTypeTest005, TestSize.Level0
  * @tc.desc: test Func GetRecordValueByType when paste Encode return false
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, GetRecordValueByTypeTest006, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, GetRecordValueByTypeTest006, TestSize.Level1)
 {
     PasteboardService service;
     int64_t rawDataSize = 0;
@@ -693,7 +693,7 @@ HWTEST_F(PasteboardServiceMockTest, GetRecordValueByTypeTest006, TestSize.Level0
  * @tc.desc: test Func GetRecordValueByType rawDataSize == 0
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, GetRecordValueByTypeTest007, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, GetRecordValueByTypeTest007, TestSize.Level1)
 {
     PasteboardService service;
     uint32_t dataId = 0;
@@ -711,7 +711,7 @@ HWTEST_F(PasteboardServiceMockTest, GetRecordValueByTypeTest007, TestSize.Level0
  * @tc.desc: test Func GetRecordValueByType rawDataSize > DEFAULT_MAX_RAW_DATA_SIZE
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, GetRecordValueByTypeTest008, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, GetRecordValueByTypeTest008, TestSize.Level1)
 {
     PasteboardService service;
     uint32_t dataId = 0;
@@ -730,7 +730,7 @@ HWTEST_F(PasteboardServiceMockTest, GetRecordValueByTypeTest008, TestSize.Level0
  *      Decode return false
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, GetRecordValueByTypeTest009, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, GetRecordValueByTypeTest009, TestSize.Level1)
 {
     PasteboardService service;
     uint32_t dataId = 0;
@@ -760,7 +760,7 @@ HWTEST_F(PasteboardServiceMockTest, GetRecordValueByTypeTest009, TestSize.Level0
  * @tc.desc: test Func GetRecordValueByType Decode return false
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, GetRecordValueByTypeTest010, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, GetRecordValueByTypeTest010, TestSize.Level1)
 {
     PasteboardService service;
     uint32_t dataId = 0;
@@ -780,7 +780,7 @@ HWTEST_F(PasteboardServiceMockTest, GetRecordValueByTypeTest010, TestSize.Level0
  * @tc.desc: test Func GetRecordValueByType second child GetRecordValueByType return false
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, GetRecordValueByTypeTest011, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, GetRecordValueByTypeTest011, TestSize.Level1)
 {
     PasteboardService service;
     uint32_t dataId = 0;
@@ -818,7 +818,7 @@ HWTEST_F(PasteboardServiceMockTest, GetRecordValueByTypeTest011, TestSize.Level0
  * @tc.desc: test Func ShowProgress HasPasteData return false
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, ShowProgressTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, ShowProgressTest001, TestSize.Level1)
 {
     PasteboardService service;
     service.currentUserId_ = ERROR_USERID;
@@ -834,7 +834,7 @@ HWTEST_F(PasteboardServiceMockTest, ShowProgressTest001, TestSize.Level0)
  * @tc.desc: test Func ShowProgress IsFocusedApp return false
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, ShowProgressTest002, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, ShowProgressTest002, TestSize.Level1)
 {
     PasteboardService service;
     const std::string progressKey;
@@ -864,7 +864,7 @@ HWTEST_F(PasteboardServiceMockTest, ShowProgressTest002, TestSize.Level0)
  * @tc.desc: test Func ShowProgress
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, ShowProgressTest003, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, ShowProgressTest003, TestSize.Level1)
 {
     PasteboardService service;
     const std::string progressKey;
@@ -894,7 +894,7 @@ HWTEST_F(PasteboardServiceMockTest, ShowProgressTest003, TestSize.Level0)
  * @tc.desc: test Func HasPasteData
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, HasPasteDataTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, HasPasteDataTest001, TestSize.Level1)
 {
     PasteboardService service;
     bool flag = false;
@@ -908,7 +908,7 @@ HWTEST_F(PasteboardServiceMockTest, HasPasteDataTest001, TestSize.Level0)
  * @tc.desc: currentScreenStatus is ScreenEvent::ScreenUnlocked.
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, HasDataTypeTest003, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, HasDataTypeTest003, TestSize.Level1)
 {
     auto tempPasteboard = std::make_shared<PasteboardService>();
     ASSERT_NE(tempPasteboard, nullptr);
@@ -926,7 +926,7 @@ HWTEST_F(PasteboardServiceMockTest, HasDataTypeTest003, TestSize.Level0)
  * @tc.desc: clipPlugin_ is not nullptr
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, HasDataTypeTest004, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, HasDataTypeTest004, TestSize.Level1)
 {
     auto tempPasteboard = std::make_shared<PasteboardService>();
     ASSERT_NE(tempPasteboard, nullptr);
@@ -950,7 +950,7 @@ HWTEST_F(PasteboardServiceMockTest, HasDataTypeTest004, TestSize.Level0)
  * @tc.desc: test Func GetPasteData
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, GetPasteDataTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, GetPasteDataTest001, TestSize.Level1)
 {
     testing::NiceMock<PasteboardServiceInterfaceMock> mock;
     EXPECT_CALL(mock, GetTokenTypeFlag).WillOnce(Return(ATokenTypeEnum::TOKEN_NATIVE))
@@ -977,7 +977,7 @@ HWTEST_F(PasteboardServiceMockTest, GetPasteDataTest001, TestSize.Level0)
  * @tc.desc: test Func GetPasteData
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, GetPasteDataTest002, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, GetPasteDataTest002, TestSize.Level1)
 {
     testing::NiceMock<PasteboardServiceInterfaceMock> mock;
     EXPECT_CALL(mock, GetTokenTypeFlag).WillOnce(Return(ATokenTypeEnum::TOKEN_HAP))
@@ -1001,7 +1001,7 @@ HWTEST_F(PasteboardServiceMockTest, GetPasteDataTest002, TestSize.Level0)
  * @tc.desc: test Func GetPasteData
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, GetPasteDataTest003, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, GetPasteDataTest003, TestSize.Level1)
 {
     testing::NiceMock<PasteboardServiceInterfaceMock> mock;
     EXPECT_CALL(mock, GetTokenTypeFlag).WillOnce(Return(ATokenTypeEnum::TOKEN_HAP))
@@ -1026,7 +1026,7 @@ HWTEST_F(PasteboardServiceMockTest, GetPasteDataTest003, TestSize.Level0)
  * @tc.desc: test Func GetPasteDataInner
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, GetPasteDataInnerTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, GetPasteDataInnerTest001, TestSize.Level1)
 {
     testing::NiceMock<PasteboardServiceInterfaceMock> mock;
     EXPECT_CALL(mock, GetTokenTypeFlag).WillOnce(Return(ATokenTypeEnum::TOKEN_NATIVE))
@@ -1050,7 +1050,7 @@ HWTEST_F(PasteboardServiceMockTest, GetPasteDataInnerTest001, TestSize.Level0)
  * @tc.desc: test Func SetAppShareOptions, it will be return INVALID_PARAM_ERROR.
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, SetAppShareOptionsTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, SetAppShareOptionsTest001, TestSize.Level1)
 {
     PasteboardService service;
     int32_t shareOptions = 1;
@@ -1066,7 +1066,7 @@ HWTEST_F(PasteboardServiceMockTest, SetAppShareOptionsTest001, TestSize.Level0)
  * @tc.desc: test Func SetAppShareOptions, it will be return PERMISSION_VERIFICATION_ERROR.
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, SetAppShareOptionsTest002, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, SetAppShareOptionsTest002, TestSize.Level1)
 {
     PasteboardService service;
     int32_t shareOptions = 0;
@@ -1084,7 +1084,7 @@ HWTEST_F(PasteboardServiceMockTest, SetAppShareOptionsTest002, TestSize.Level0)
  * @tc.desc: test Func SetAppShareOptions, it will be return PERMISSION_VERIFICATION_ERROR.
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, SetAppShareOptionsTest003, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, SetAppShareOptionsTest003, TestSize.Level1)
 {
     PasteboardService service;
     int32_t shareOptions = 0;
@@ -1102,7 +1102,7 @@ HWTEST_F(PasteboardServiceMockTest, SetAppShareOptionsTest003, TestSize.Level0)
  * @tc.desc: test Func GetGlobalShareOption, it will be return ERR_OK.
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, GetGlobalShareOptionTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, GetGlobalShareOptionTest001, TestSize.Level1)
 {
     PasteboardService service;
     NiceMock<PasteboardServiceInterfaceMock> ipcMock;
@@ -1119,7 +1119,7 @@ HWTEST_F(PasteboardServiceMockTest, GetGlobalShareOptionTest001, TestSize.Level0
  * @tc.desc: test Func GetGlobalShareOption, it will be return PERMISSION_VERIFICATION_ERROR.
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, GetGlobalShareOptionTest002, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, GetGlobalShareOptionTest002, TestSize.Level1)
 {
     PasteboardService service;
     NiceMock<PasteboardServiceInterfaceMock> ipcMock;
@@ -1136,7 +1136,7 @@ HWTEST_F(PasteboardServiceMockTest, GetGlobalShareOptionTest002, TestSize.Level0
  * @tc.desc: test Func GetGlobalShareOption, it will be return ERR_OK.
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, GetGlobalShareOptionTest003, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, GetGlobalShareOptionTest003, TestSize.Level1)
 {
     PasteboardService service;
     NiceMock<PasteboardServiceInterfaceMock> ipcMock;
@@ -1153,7 +1153,7 @@ HWTEST_F(PasteboardServiceMockTest, GetGlobalShareOptionTest003, TestSize.Level0
  * @tc.desc: test Func SetGlobalShareOption, it will be return PERMISSION_VERIFICATION_ERROR.
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, SetGlobalShareOptionTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, SetGlobalShareOptionTest001, TestSize.Level1)
 {
     PasteboardService service;
     NiceMock<PasteboardServiceInterfaceMock> ipcMock;
@@ -1169,7 +1169,7 @@ HWTEST_F(PasteboardServiceMockTest, SetGlobalShareOptionTest001, TestSize.Level0
  * @tc.desc: test Func SetGlobalShareOption, it will be return ERR_OK.
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, SetGlobalShareOptionTest002, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, SetGlobalShareOptionTest002, TestSize.Level1)
 {
     PasteboardService service;
     NiceMock<PasteboardServiceInterfaceMock> ipcMock;
@@ -1186,7 +1186,7 @@ HWTEST_F(PasteboardServiceMockTest, SetGlobalShareOptionTest002, TestSize.Level0
  * @tc.desc: test Func SetGlobalShareOption, it will be return ERR_OK.
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, SetGlobalShareOptionTest003, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, SetGlobalShareOptionTest003, TestSize.Level1)
 {
     PasteboardService service;
     NiceMock<PasteboardServiceInterfaceMock> ipcMock;
@@ -1202,7 +1202,7 @@ HWTEST_F(PasteboardServiceMockTest, SetGlobalShareOptionTest003, TestSize.Level0
  * @tc.desc: test Func UnsubscribeAllObserver, it will be return 0.
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, UnsubscribeAllObserverTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, UnsubscribeAllObserverTest001, TestSize.Level1)
 {
     PasteboardService service;
     PasteboardObserverType type = PasteboardObserverType::OBSERVER_EVENT;
@@ -1215,7 +1215,7 @@ HWTEST_F(PasteboardServiceMockTest, UnsubscribeAllObserverTest001, TestSize.Leve
  * @tc.desc: test Func UnsubscribeAllObserver, it will be return ERR_OK.
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, UnsubscribeAllObserverTest002, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, UnsubscribeAllObserverTest002, TestSize.Level1)
 {
     PasteboardService service;
     PasteboardObserverType type = PasteboardObserverType::OBSERVER_LOCAL;
@@ -1228,7 +1228,7 @@ HWTEST_F(PasteboardServiceMockTest, UnsubscribeAllObserverTest002, TestSize.Leve
  * @tc.desc: test Func UnsubscribeAllObserver, it will be return ERR_OK.
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, UnsubscribeAllObserverTest003, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, UnsubscribeAllObserverTest003, TestSize.Level1)
 {
     PasteboardService service;
     PasteboardObserverType type = PasteboardObserverType::OBSERVER_REMOTE;
@@ -1242,7 +1242,7 @@ HWTEST_F(PasteboardServiceMockTest, UnsubscribeAllObserverTest003, TestSize.Leve
  * @tc.desc: test Func UnsubscribeAllObserver, it will be return ERR_OK.
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, UnsubscribeAllObserverTest004, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, UnsubscribeAllObserverTest004, TestSize.Level1)
 {
     PasteboardService service;
     NiceMock<PasteboardServiceInterfaceMock> ipcMock;
@@ -1258,7 +1258,7 @@ HWTEST_F(PasteboardServiceMockTest, UnsubscribeAllObserverTest004, TestSize.Leve
  * @tc.desc: test Func UnsubscribeObserver, it will be return 0.
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, UnsubscribeObserverTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, UnsubscribeObserverTest001, TestSize.Level1)
 {
     PasteboardService service;
 
@@ -1273,7 +1273,7 @@ HWTEST_F(PasteboardServiceMockTest, UnsubscribeObserverTest001, TestSize.Level0)
  * @tc.desc: test Func UnsubscribeObserver, it will be return ERR_OK.
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, UnsubscribeObserverTest002, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, UnsubscribeObserverTest002, TestSize.Level1)
 {
     PasteboardService service;
     PasteboardObserverType type = PasteboardObserverType::OBSERVER_LOCAL;
@@ -1287,7 +1287,7 @@ HWTEST_F(PasteboardServiceMockTest, UnsubscribeObserverTest002, TestSize.Level0)
  * @tc.desc: test Func UnsubscribeObserver, it will be return ERR_OK.
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, UnsubscribeObserverTest003, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, UnsubscribeObserverTest003, TestSize.Level1)
 {
     PasteboardService service;
     PasteboardObserverType type = PasteboardObserverType::OBSERVER_REMOTE;
@@ -1301,7 +1301,7 @@ HWTEST_F(PasteboardServiceMockTest, UnsubscribeObserverTest003, TestSize.Level0)
  * @tc.desc: test Func UnsubscribeObserver, it will be return ERR_OK.
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, UnsubscribeObserverTest004, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, UnsubscribeObserverTest004, TestSize.Level1)
 {
     PasteboardService service;
     NiceMock<PasteboardServiceInterfaceMock> ipcMock;
@@ -1318,7 +1318,7 @@ HWTEST_F(PasteboardServiceMockTest, UnsubscribeObserverTest004, TestSize.Level0)
  * @tc.desc: test Func UnsubscribeObserver, it will be return ERR_OK.
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, UnsubscribeObserverTest005, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, UnsubscribeObserverTest005, TestSize.Level1)
 {
     PasteboardService service;
     NiceMock<PasteboardServiceInterfaceMock> ipcMock;
@@ -1335,7 +1335,7 @@ HWTEST_F(PasteboardServiceMockTest, UnsubscribeObserverTest005, TestSize.Level0)
  * @tc.desc: test Func SubscribeObserver, it will be return 0.
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, SubscribeObserverTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, SubscribeObserverTest001, TestSize.Level1)
 {
     PasteboardService service;
 
@@ -1350,7 +1350,7 @@ HWTEST_F(PasteboardServiceMockTest, SubscribeObserverTest001, TestSize.Level0)
  * @tc.desc: test Func SubscribeObserver, it will be return ERR_OK.
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, SubscribeObserverTest002, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, SubscribeObserverTest002, TestSize.Level1)
 {
     PasteboardService service;
     NiceMock<PasteboardServiceInterfaceMock> ipcMock;
@@ -1367,7 +1367,7 @@ HWTEST_F(PasteboardServiceMockTest, SubscribeObserverTest002, TestSize.Level0)
  * @tc.desc: test Func SubscribeObserver, it will be return ERR_OK.
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, SubscribeObserverTest003, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, SubscribeObserverTest003, TestSize.Level1)
 {
     PasteboardService service;
     PasteboardObserverType type = PasteboardObserverType::OBSERVER_REMOTE;
@@ -1381,7 +1381,7 @@ HWTEST_F(PasteboardServiceMockTest, SubscribeObserverTest003, TestSize.Level0)
  * @tc.desc: test Func SubscribeObserver, it will be return ERR_OK.
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, SubscribeObserverTest004, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, SubscribeObserverTest004, TestSize.Level1)
 {
     PasteboardService service;
     NiceMock<PasteboardServiceInterfaceMock> ipcMock;
@@ -1399,7 +1399,7 @@ HWTEST_F(PasteboardServiceMockTest, SubscribeObserverTest004, TestSize.Level0)
  * @tc.desc: test Func SubscribeObserver, it will be return ERR_OK.
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, SubscribeObserverTest005, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, SubscribeObserverTest005, TestSize.Level1)
 {
     PasteboardService service;
     NiceMock<PasteboardServiceInterfaceMock> ipcMock;
@@ -1417,7 +1417,7 @@ HWTEST_F(PasteboardServiceMockTest, SubscribeObserverTest005, TestSize.Level0)
  * @tc.desc: GetAllObserversSize function test
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, RemoveGlobalShareOptionTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, RemoveGlobalShareOptionTest001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "RemoveAppShareOptionsTest001 start.");
 
@@ -1436,7 +1436,7 @@ HWTEST_F(PasteboardServiceMockTest, RemoveGlobalShareOptionTest001, TestSize.Lev
 * @tc.desc: RemoveGlobalShareOption function test
 * @tc.type: FUNC
 */
-HWTEST_F(PasteboardServiceMockTest, RemoveGlobalShareOptionTest002, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, RemoveGlobalShareOptionTest002, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "RemoveGlobalShareOptionTest002 start.");
     std::vector<uint32_t> tokenIds = { 1001, 1002, 1003 };
@@ -1454,7 +1454,7 @@ HWTEST_F(PasteboardServiceMockTest, RemoveGlobalShareOptionTest002, TestSize.Lev
 * @tc.desc: RemoveAppShareOptions function test
 * @tc.type: FUNC
 */
-HWTEST_F(PasteboardServiceMockTest, RemoveAppShareOptionsTest003, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, RemoveAppShareOptionsTest003, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "RemoveAppShareOptionsTest003 start.");
     std::vector<uint32_t> tokenIds = {};
@@ -1472,7 +1472,7 @@ HWTEST_F(PasteboardServiceMockTest, RemoveAppShareOptionsTest003, TestSize.Level
 * @tc.desc: DumpData function test
 * @tc.type: FUNC
 */
-HWTEST_F(PasteboardServiceMockTest, DumpDataTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, DumpDataTest001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "DumpDataTest001 start.");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -1490,7 +1490,7 @@ HWTEST_F(PasteboardServiceMockTest, DumpDataTest001, TestSize.Level0)
 * @tc.desc: DumpData function test
 * @tc.type: FUNC
 */
-HWTEST_F(PasteboardServiceMockTest, DumpDataTest002, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, DumpDataTest002, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "DumpDataTest002 start.");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -1510,7 +1510,7 @@ HWTEST_F(PasteboardServiceMockTest, DumpDataTest002, TestSize.Level0)
 * @tc.desc: DumpData function test
 * @tc.type: FUNC
 */
-HWTEST_F(PasteboardServiceMockTest, DumpDataTest003, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, DumpDataTest003, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "DumpDataTest003 start.");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -1531,7 +1531,7 @@ HWTEST_F(PasteboardServiceMockTest, DumpDataTest003, TestSize.Level0)
 * @tc.desc: DumpData function test
 * @tc.type: FUNC
 */
-HWTEST_F(PasteboardServiceMockTest, DumpDataTest004, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, DumpDataTest004, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "DumpDataTest004 start.");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -1589,7 +1589,7 @@ HWTEST_F(PasteboardServiceMockTest, DumpDataTest004, TestSize.Level0)
  * @tc.desc: DumpData function test
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, DumpDataTest005, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, DumpDataTest005, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "DumpDataTest005 start.");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -1642,7 +1642,7 @@ HWTEST_F(PasteboardServiceMockTest, DumpDataTest005, TestSize.Level0)
  * @tc.desc: IsCallerUidValid001 function test
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, IsCallerUidValid001, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, IsCallerUidValid001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "IsCallerUidValid001 start.");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -1659,7 +1659,7 @@ HWTEST_F(PasteboardServiceMockTest, IsCallerUidValid001, TestSize.Level0)
 * @tc.desc: IsCallerUidValid002 function test
 * @tc.type: FUNC
 */
-HWTEST_F(PasteboardServiceMockTest, IsCallerUidValid002, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, IsCallerUidValid002, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "IsCallerUidValid002 start.");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -1677,7 +1677,7 @@ HWTEST_F(PasteboardServiceMockTest, IsCallerUidValid002, TestSize.Level0)
 * @tc.desc: IsCallerUidValid003 function test
 * @tc.type: FUNC
 */
-HWTEST_F(PasteboardServiceMockTest, IsCallerUidValid003, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, IsCallerUidValid003, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "IsCallerUidValid003 start.");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -1695,7 +1695,7 @@ HWTEST_F(PasteboardServiceMockTest, IsCallerUidValid003, TestSize.Level0)
 * @tc.desc: IsCallerUidValid004 function test
 * @tc.type: FUNC
 */
-HWTEST_F(PasteboardServiceMockTest, IsCallerUidValid004, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, IsCallerUidValid004, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "IsCallerUidValid004 start.");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -1713,7 +1713,7 @@ HWTEST_F(PasteboardServiceMockTest, IsCallerUidValid004, TestSize.Level0)
 * @tc.desc: IsCallerUidValid005 function test
 * @tc.type: FUNC
 */
-HWTEST_F(PasteboardServiceMockTest, IsCallerUidValid005, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, IsCallerUidValid005, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "IsCallerUidValid005 start.");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -1731,7 +1731,7 @@ HWTEST_F(PasteboardServiceMockTest, IsCallerUidValid005, TestSize.Level0)
  * @tc.desc: test Func CloseDistributedStore
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, CloseDistributedStoreTest002, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, CloseDistributedStoreTest002, TestSize.Level1)
 {
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
@@ -1749,7 +1749,7 @@ HWTEST_F(PasteboardServiceMockTest, CloseDistributedStoreTest002, TestSize.Level
  * @tc.desc: test Func CloseDistributedStore
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, CloseDistributedStoreTest003, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, CloseDistributedStoreTest003, TestSize.Level1)
 {
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
@@ -1769,7 +1769,7 @@ HWTEST_F(PasteboardServiceMockTest, CloseDistributedStoreTest003, TestSize.Level
  * @tc.desc: test Func CloseDistributedStore
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, CloseDistributedStoreTest004, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, CloseDistributedStoreTest004, TestSize.Level1)
 {
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
@@ -1786,7 +1786,7 @@ HWTEST_F(PasteboardServiceMockTest, CloseDistributedStoreTest004, TestSize.Level
  * @tc.desc: test Func OnConfigChange
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, OnConfigChangeTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, OnConfigChangeTest001, TestSize.Level1)
 {
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
@@ -1801,7 +1801,7 @@ HWTEST_F(PasteboardServiceMockTest, OnConfigChangeTest001, TestSize.Level0)
  * @tc.desc: test Func OnConfigChange
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, OnConfigChangeTest003, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, OnConfigChangeTest003, TestSize.Level1)
 {
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
@@ -1815,7 +1815,7 @@ HWTEST_F(PasteboardServiceMockTest, OnConfigChangeTest003, TestSize.Level0)
  * @tc.desc: test Func OnConfigChange
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, OnConfigChangeTest004, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, OnConfigChangeTest004, TestSize.Level1)
 {
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
@@ -1829,7 +1829,7 @@ HWTEST_F(PasteboardServiceMockTest, OnConfigChangeTest004, TestSize.Level0)
  * @tc.desc: test Func OnConfigChange
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, OnConfigChangeTest005, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, OnConfigChangeTest005, TestSize.Level1)
 {
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
@@ -1843,7 +1843,7 @@ HWTEST_F(PasteboardServiceMockTest, OnConfigChangeTest005, TestSize.Level0)
  * @tc.desc: test Func PasteboardEventSubscriber
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, PasteboardEventSubscriberTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, PasteboardEventSubscriberTest001, TestSize.Level1)
 {
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
@@ -1857,7 +1857,7 @@ HWTEST_F(PasteboardServiceMockTest, PasteboardEventSubscriberTest001, TestSize.L
  * @tc.desc: test Func PasteboardEventSubscriber
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, PasteboardEventSubscriberTest002, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, PasteboardEventSubscriberTest002, TestSize.Level1)
 {
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
@@ -1880,7 +1880,7 @@ HWTEST_F(PasteboardServiceMockTest, PasteboardEventSubscriberTest002, TestSize.L
  * @tc.desc: test Func PasteboardEventSubscriber
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, PasteboardEventSubscriberTest003, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, PasteboardEventSubscriberTest003, TestSize.Level1)
 {
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
@@ -1902,7 +1902,7 @@ HWTEST_F(PasteboardServiceMockTest, PasteboardEventSubscriberTest003, TestSize.L
  * @tc.desc: test Func SetDistributedData, IsConstraintEnabled is false
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, SetDistributedDataTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, SetDistributedDataTest001, TestSize.Level1)
 {
     PasteboardService service;
     NiceMock<PasteboardServiceInterfaceMock> ipcMock;
@@ -1919,7 +1919,7 @@ HWTEST_F(PasteboardServiceMockTest, SetDistributedDataTest001, TestSize.Level0)
  * @tc.desc: test Func SetDistributedData, IsDisallowDistributed is true
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, SetDistributedDataTest002, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, SetDistributedDataTest002, TestSize.Level1)
 {
     PasteboardService service;
     NiceMock<PasteboardServiceInterfaceMock> ipcMock;
@@ -1937,7 +1937,7 @@ HWTEST_F(PasteboardServiceMockTest, SetDistributedDataTest002, TestSize.Level0)
  * @tc.desc: test Func SetDistributedData, clipPlugin == nullptr
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, SetDistributedDataTest003, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, SetDistributedDataTest003, TestSize.Level1)
 {
     PasteboardService service;
     NiceMock<PasteboardServiceInterfaceMock> ipcMock;
@@ -1956,7 +1956,7 @@ HWTEST_F(PasteboardServiceMockTest, SetDistributedDataTest003, TestSize.Level0)
  * @tc.desc: test Func SetDistributedData, return true
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, SetDistributedDataTest004, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, SetDistributedDataTest004, TestSize.Level1)
 {
     PasteboardService service;
     NiceMock<PasteboardServiceInterfaceMock> ipcMock;
@@ -1974,7 +1974,7 @@ HWTEST_F(PasteboardServiceMockTest, SetDistributedDataTest004, TestSize.Level0)
  * @tc.desc: test Func SetCurrentData, clipPlugin == nullptr
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, SetCurrentDataTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, SetCurrentDataTest001, TestSize.Level1)
 {
     PasteboardService service;
     NiceMock<PasteboardServiceInterfaceMock> ipcMock;
@@ -1991,7 +1991,7 @@ HWTEST_F(PasteboardServiceMockTest, SetCurrentDataTest001, TestSize.Level0)
  * @tc.desc: test Func SetCurrentData, needFull is true, encode is false
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, SetCurrentDataTest002, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, SetCurrentDataTest002, TestSize.Level1)
 {
     PasteboardService service;
     NiceMock<PasteboardServiceInterfaceMock> mock;
@@ -2020,7 +2020,7 @@ HWTEST_F(PasteboardServiceMockTest, SetCurrentDataTest002, TestSize.Level0)
  * @tc.desc: test Func SetCurrentData, data.IsDelayRecord() && !needFull
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, SetCurrentDataTest003, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, SetCurrentDataTest003, TestSize.Level1)
 {
     PasteboardService service;
     NiceMock<PasteboardServiceInterfaceMock> mock;
@@ -2049,7 +2049,7 @@ HWTEST_F(PasteboardServiceMockTest, SetCurrentDataTest003, TestSize.Level0)
  * @tc.desc: test Func GetDistributedDelayEntry
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, GetDistributedDelayEntryTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, GetDistributedDelayEntryTest001, TestSize.Level1)
 {
     PasteboardService service;
     TestEvent event;
@@ -2085,7 +2085,7 @@ HWTEST_F(PasteboardServiceMockTest, GetDistributedDelayEntryTest001, TestSize.Le
  * @tc.desc: test Func GetDistributedDelayEntry
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, GetDistributedDelayEntryTest002, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, GetDistributedDelayEntryTest002, TestSize.Level1)
 {
     PasteboardService service;
     TestEvent event;
@@ -2121,7 +2121,7 @@ HWTEST_F(PasteboardServiceMockTest, GetDistributedDelayEntryTest002, TestSize.Le
  * @tc.desc: test Func GetDistributedDelayEntry
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, GetDistributedDelayEntryTest003, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, GetDistributedDelayEntryTest003, TestSize.Level1)
 {
     PasteboardService service;
     TestEvent event;
@@ -2156,7 +2156,7 @@ HWTEST_F(PasteboardServiceMockTest, GetDistributedDelayEntryTest003, TestSize.Le
  * @tc.desc: test Func ProcessDistributedDelayUri
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, ProcessDistributedDelayUriTest003, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, ProcessDistributedDelayUriTest003, TestSize.Level1)
 {
     PasteboardService service;
 
@@ -2188,7 +2188,7 @@ HWTEST_F(PasteboardServiceMockTest, ProcessDistributedDelayUriTest003, TestSize.
  * @tc.desc: test Func GetClipPlugin
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, GetClipPluginTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, GetClipPluginTest001, TestSize.Level1)
 {
     auto tempPasteboard = std::make_shared<PasteboardService>();
     ASSERT_NE(tempPasteboard, nullptr);
@@ -2208,7 +2208,7 @@ HWTEST_F(PasteboardServiceMockTest, GetClipPluginTest001, TestSize.Level0)
  * @tc.desc: test Func GetClipPlugin
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, GetClipPluginTest002, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, GetClipPluginTest002, TestSize.Level1)
 {
     auto tempPasteboard = std::make_shared<PasteboardService>();
     ASSERT_NE(tempPasteboard, nullptr);
@@ -2229,7 +2229,7 @@ HWTEST_F(PasteboardServiceMockTest, GetClipPluginTest002, TestSize.Level0)
  * @tc.desc: test Func GetClipPlugin
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, GetClipPluginTest003, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, GetClipPluginTest003, TestSize.Level1)
 {
     auto tempPasteboard = std::make_shared<PasteboardService>();
     ASSERT_NE(tempPasteboard, nullptr);
@@ -2250,7 +2250,7 @@ HWTEST_F(PasteboardServiceMockTest, GetClipPluginTest003, TestSize.Level0)
  * @tc.desc: test Func GetClipPlugin
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, GetClipPluginTest004, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, GetClipPluginTest004, TestSize.Level1)
 {
     auto tempPasteboard = std::make_shared<PasteboardService>();
     ASSERT_NE(tempPasteboard, nullptr);
@@ -2277,7 +2277,7 @@ HWTEST_F(PasteboardServiceMockTest, GetClipPluginTest004, TestSize.Level0)
  * @tc.desc: test Func CleanDistributedData
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, CleanDistributedDataTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, CleanDistributedDataTest001, TestSize.Level1)
 {
     auto tempPasteboard = std::make_shared<PasteboardService>();
     ASSERT_NE(tempPasteboard, nullptr);
@@ -2297,7 +2297,7 @@ HWTEST_F(PasteboardServiceMockTest, CleanDistributedDataTest001, TestSize.Level0
  * @tc.desc: test Func ChangeStoreStatus
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, ChangeStoreStatusTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, ChangeStoreStatusTest001, TestSize.Level1)
 {
     auto tempPasteboard = std::make_shared<PasteboardService>();
     ASSERT_NE(tempPasteboard, nullptr);
@@ -2318,7 +2318,7 @@ HWTEST_F(PasteboardServiceMockTest, ChangeStoreStatusTest001, TestSize.Level0)
  * @tc.desc: test Func GetFullDelayPasteData
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, GetFullDelayPasteDataTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, GetFullDelayPasteDataTest001, TestSize.Level1)
 {
     auto tempPasteboard = std::make_shared<PasteboardService>();
     ASSERT_NE(tempPasteboard, nullptr);
@@ -2354,7 +2354,7 @@ HWTEST_F(PasteboardServiceMockTest, GetFullDelayPasteDataTest001, TestSize.Level
  * @tc.desc: test Func GetFullDelayPasteData
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, GetFullDelayPasteDataTest002, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, GetFullDelayPasteDataTest002, TestSize.Level1)
 {
     auto tempPasteboard = std::make_shared<PasteboardService>();
     ASSERT_NE(tempPasteboard, nullptr);
@@ -2396,7 +2396,7 @@ HWTEST_F(PasteboardServiceMockTest, GetFullDelayPasteDataTest002, TestSize.Level
  * @tc.desc: test Func GetFullDelayPasteData
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, GetFullDelayPasteDataTest003, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, GetFullDelayPasteDataTest003, TestSize.Level1)
 {
     auto tempPasteboard = std::make_shared<PasteboardService>();
     ASSERT_NE(tempPasteboard, nullptr);
@@ -2440,7 +2440,7 @@ HWTEST_F(PasteboardServiceMockTest, GetFullDelayPasteDataTest003, TestSize.Level
  * @tc.desc: test Func GetFullDelayPasteData
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, GetFullDelayPasteDataTest004, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, GetFullDelayPasteDataTest004, TestSize.Level1)
 {
     auto tempPasteboard = std::make_shared<PasteboardService>();
     ASSERT_NE(tempPasteboard, nullptr);
@@ -2485,7 +2485,7 @@ HWTEST_F(PasteboardServiceMockTest, GetFullDelayPasteDataTest004, TestSize.Level
  * @tc.desc: test Func GetDistributedData
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, GetDistributedData002, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, GetDistributedData002, TestSize.Level1)
 {
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
@@ -2504,7 +2504,7 @@ HWTEST_F(PasteboardServiceMockTest, GetDistributedData002, TestSize.Level0)
  * @tc.desc: test Func GetDistributedData
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, GetDistributedData003, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, GetDistributedData003, TestSize.Level1)
 {
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
@@ -2528,7 +2528,7 @@ HWTEST_F(PasteboardServiceMockTest, GetDistributedData003, TestSize.Level0)
  * @tc.desc: test Func GetPasteDataDot
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, GetPasteDataDot002, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, GetPasteDataDot002, TestSize.Level1)
 {
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
@@ -2543,7 +2543,7 @@ HWTEST_F(PasteboardServiceMockTest, GetPasteDataDot002, TestSize.Level0)
  * @tc.desc: test Func GetPasteDataDot
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, GetPasteDataDot003, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, GetPasteDataDot003, TestSize.Level1)
 {
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
@@ -2558,7 +2558,7 @@ HWTEST_F(PasteboardServiceMockTest, GetPasteDataDot003, TestSize.Level0)
  * @tc.desc: test Func DumpHistory
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, DumpHistory002, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, DumpHistory002, TestSize.Level1)
 {
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
@@ -2574,7 +2574,7 @@ HWTEST_F(PasteboardServiceMockTest, DumpHistory002, TestSize.Level0)
  * @tc.desc: test Func DumpHistory
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, DumpHistory003, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, DumpHistory003, TestSize.Level1)
 {
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
@@ -2588,7 +2588,7 @@ HWTEST_F(PasteboardServiceMockTest, DumpHistory003, TestSize.Level0)
  * @tc.desc: test Func Dump when uid > maxUid
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, Dump002, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, Dump002, TestSize.Level1)
 {
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
@@ -2605,7 +2605,7 @@ HWTEST_F(PasteboardServiceMockTest, Dump002, TestSize.Level0)
  * @tc.desc: test Func Dump when PasteboardDumpHelper::GetInstance().Dump return false
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, Dump003, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, Dump003, TestSize.Level1)
 {
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
@@ -2624,7 +2624,7 @@ HWTEST_F(PasteboardServiceMockTest, Dump003, TestSize.Level0)
  * @tc.desc: test Func Dump when PasteboardDumpHelper::GetInstance().Dump return true
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, Dump004, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, Dump004, TestSize.Level1)
 {
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
@@ -2643,7 +2643,7 @@ HWTEST_F(PasteboardServiceMockTest, Dump004, TestSize.Level0)
  * @tc.desc: test Func IsNeedThaw when InputMethodController::GetInstance return nullptr
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, IsNeedThaw002, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, IsNeedThaw002, TestSize.Level1)
 {
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
@@ -2658,7 +2658,7 @@ HWTEST_F(PasteboardServiceMockTest, IsNeedThaw002, TestSize.Level0)
  * @tc.desc: test Func IsNeedThaw when imc->GetDefaultInputMethod is error
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, IsNeedThaw003, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, IsNeedThaw003, TestSize.Level1)
 {
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
@@ -2676,7 +2676,7 @@ HWTEST_F(PasteboardServiceMockTest, IsNeedThaw003, TestSize.Level0)
  * @tc.desc: test Func IsNeedThaw when property == nullptr
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, IsNeedThaw004, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, IsNeedThaw004, TestSize.Level1)
 {
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
@@ -2694,7 +2694,7 @@ HWTEST_F(PasteboardServiceMockTest, IsNeedThaw004, TestSize.Level0)
  * @tc.desc: test Func IsNeedThaw when validity
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, IsNeedThaw005, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, IsNeedThaw005, TestSize.Level1)
 {
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
@@ -2712,7 +2712,7 @@ HWTEST_F(PasteboardServiceMockTest, IsNeedThaw005, TestSize.Level0)
  * @tc.desc: test Func GrantUriPermission
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, GrantUriPermissionTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, GrantUriPermissionTest001, TestSize.Level1)
 {
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
@@ -2737,7 +2737,7 @@ HWTEST_F(PasteboardServiceMockTest, GrantUriPermissionTest001, TestSize.Level0)
  * @tc.desc: test Func GrantUriPermission
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, GrantUriPermissionTest002, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, GrantUriPermissionTest002, TestSize.Level1)
 {
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
@@ -2762,7 +2762,7 @@ HWTEST_F(PasteboardServiceMockTest, GrantUriPermissionTest002, TestSize.Level0)
  * @tc.desc: test Func GrantUriPermission
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, GrantUriPermissionTest003, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, GrantUriPermissionTest003, TestSize.Level1)
 {
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
@@ -2787,7 +2787,7 @@ HWTEST_F(PasteboardServiceMockTest, GrantUriPermissionTest003, TestSize.Level0)
  * @tc.desc: test Func GrantUriPermission
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, GrantUriPermissionTest004, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, GrantUriPermissionTest004, TestSize.Level1)
 {
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
@@ -2812,7 +2812,7 @@ HWTEST_F(PasteboardServiceMockTest, GrantUriPermissionTest004, TestSize.Level0)
  * @tc.desc: test Func SetAppShareOptions
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, SetAppShareOptionsTest004, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, SetAppShareOptionsTest004, TestSize.Level1)
 {
     PasteboardService service;
     int32_t shareOptions = 0;
@@ -2829,7 +2829,7 @@ HWTEST_F(PasteboardServiceMockTest, SetAppShareOptionsTest004, TestSize.Level0)
  * @tc.desc: test Func SetAppShareOptions
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, SetAppShareOptionsTest005, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, SetAppShareOptionsTest005, TestSize.Level1)
 {
     PasteboardService service;
     int32_t shareOptions = 0;
@@ -2850,7 +2850,7 @@ HWTEST_F(PasteboardServiceMockTest, SetAppShareOptionsTest005, TestSize.Level0)
  * @tc.desc: test Func RemoveAppShareOptions
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, RemoveAppShareOptionsTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, RemoveAppShareOptionsTest001, TestSize.Level1)
 {
     PasteboardService service;
 
@@ -2867,7 +2867,7 @@ HWTEST_F(PasteboardServiceMockTest, RemoveAppShareOptionsTest001, TestSize.Level
  * @tc.desc: test Func RemoveAppShareOptions
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, RemoveAppShareOptionsTest002, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, RemoveAppShareOptionsTest002, TestSize.Level1)
 {
     PasteboardService service;
 
@@ -2883,7 +2883,7 @@ HWTEST_F(PasteboardServiceMockTest, RemoveAppShareOptionsTest002, TestSize.Level
  * @tc.desc: test Func RemoveAppShareOptions
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, RemoveAppShareOptionsTest005, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, RemoveAppShareOptionsTest005, TestSize.Level1)
 {
     PasteboardService service;
 
@@ -2903,7 +2903,7 @@ HWTEST_F(PasteboardServiceMockTest, RemoveAppShareOptionsTest005, TestSize.Level
  * @tc.desc: test Func RemoveAppShareOptions
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, RemoveAppShareOptionsTest004, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, RemoveAppShareOptionsTest004, TestSize.Level1)
 {
     PasteboardService service;
 
@@ -2923,7 +2923,7 @@ HWTEST_F(PasteboardServiceMockTest, RemoveAppShareOptionsTest004, TestSize.Level
  * @tc.desc: test Func CheckMdmShareOption
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, CheckMdmShareOptionTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, CheckMdmShareOptionTest001, TestSize.Level1)
 {
     PasteboardService service;
     PasteData pasteData;
@@ -2943,7 +2943,7 @@ HWTEST_F(PasteboardServiceMockTest, CheckMdmShareOptionTest001, TestSize.Level0)
  * @tc.desc: test Func CheckMdmShareOption
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, CheckMdmShareOptionTest002, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, CheckMdmShareOptionTest002, TestSize.Level1)
 {
     PasteboardService service;
     PasteData pasteData;
@@ -2958,7 +2958,7 @@ HWTEST_F(PasteboardServiceMockTest, CheckMdmShareOptionTest002, TestSize.Level0)
  * @tc.desc: test Func SetPasteboardHistory
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, SetPasteboardHistoryTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, SetPasteboardHistoryTest001, TestSize.Level1)
 {
     PasteboardService service;
     HistoryInfo info;
@@ -2989,7 +2989,7 @@ HWTEST_F(PasteboardServiceMockTest, SetPasteboardHistoryTest001, TestSize.Level0
  * @tc.desc: HandleDelayDataAndRecordTest001
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, HandleDelayDataAndRecordTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, HandleDelayDataAndRecordTest001, TestSize.Level1)
 {
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
@@ -3010,7 +3010,7 @@ HWTEST_F(PasteboardServiceMockTest, HandleDelayDataAndRecordTest001, TestSize.Le
  * @tc.desc: HandleDelayDataAndRecordTest002
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, HandleDelayDataAndRecordTest002, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, HandleDelayDataAndRecordTest002, TestSize.Level1)
 {
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
@@ -3028,7 +3028,7 @@ HWTEST_F(PasteboardServiceMockTest, HandleDelayDataAndRecordTest002, TestSize.Le
  * @tc.desc: HandleDelayDataAndRecordTest003
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, HandleDelayDataAndRecordTest003, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, HandleDelayDataAndRecordTest003, TestSize.Level1)
 {
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
@@ -3049,7 +3049,7 @@ HWTEST_F(PasteboardServiceMockTest, HandleDelayDataAndRecordTest003, TestSize.Le
  * @tc.desc: EstablishP2PLinkTest001
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, EstablishP2PLinkTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, EstablishP2PLinkTest001, TestSize.Level1)
 {
 #ifdef PB_DEVICE_MANAGER_ENABLE
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -3075,7 +3075,7 @@ HWTEST_F(PasteboardServiceMockTest, EstablishP2PLinkTest001, TestSize.Level0)
  * @tc.desc: CloseP2PLinkTest001
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, CloseP2PLinkTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, CloseP2PLinkTest001, TestSize.Level1)
 {
 #ifdef PB_DEVICE_MANAGER_ENABLE
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -3098,7 +3098,7 @@ HWTEST_F(PasteboardServiceMockTest, CloseP2PLinkTest001, TestSize.Level0)
  * @tc.desc: PreSyncRemotePasteboardData
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, PreSyncRemotePasteboardDataTest, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, PreSyncRemotePasteboardDataTest, TestSize.Level1)
 {
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
@@ -3124,7 +3124,7 @@ HWTEST_F(PasteboardServiceMockTest, PreSyncRemotePasteboardDataTest, TestSize.Le
  * @tc.desc: ClearP2PEstablishTaskInfo
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, ClearP2PEstablishTaskInfoTest, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, ClearP2PEstablishTaskInfoTest, TestSize.Level1)
 {
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
@@ -3136,7 +3136,7 @@ HWTEST_F(PasteboardServiceMockTest, ClearP2PEstablishTaskInfoTest, TestSize.Leve
  * @tc.desc: RegisterPreSyncCallback
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, RegisterPreSyncCallbackTest, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, RegisterPreSyncCallbackTest, TestSize.Level1)
 {
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
@@ -3151,7 +3151,7 @@ HWTEST_F(PasteboardServiceMockTest, RegisterPreSyncCallbackTest, TestSize.Level0
  * @tc.desc: PreEstablishP2PLinkCallback
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, PreEstablishP2PLinkCallbackTest, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, PreEstablishP2PLinkCallbackTest, TestSize.Level1)
 {
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
@@ -3168,7 +3168,7 @@ HWTEST_F(PasteboardServiceMockTest, PreEstablishP2PLinkCallbackTest, TestSize.Le
  * @tc.desc: PreSyncSwitchMonitorCallback
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, PreSyncSwitchMonitorCallbackTest, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, PreSyncSwitchMonitorCallbackTest, TestSize.Level1)
 {
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
@@ -3180,7 +3180,7 @@ HWTEST_F(PasteboardServiceMockTest, PreSyncSwitchMonitorCallbackTest, TestSize.L
  * @tc.desc: RegisterPreSyncMonitor
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, RegisterPreSyncMonitorTest, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, RegisterPreSyncMonitorTest, TestSize.Level1)
 {
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
@@ -3197,7 +3197,7 @@ HWTEST_F(PasteboardServiceMockTest, RegisterPreSyncMonitorTest, TestSize.Level0)
  * @tc.desc: UnRegisterPreSyncMonitor
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, UnRegisterPreSyncMonitorTest, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, UnRegisterPreSyncMonitorTest, TestSize.Level1)
 {
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
@@ -3210,7 +3210,7 @@ HWTEST_F(PasteboardServiceMockTest, UnRegisterPreSyncMonitorTest, TestSize.Level
  * @tc.desc: DeletePreSyncP2pFromP2pMap
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, DeletePreSyncP2pFromP2pMapTest, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, DeletePreSyncP2pFromP2pMapTest, TestSize.Level1)
 {
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
@@ -3225,7 +3225,7 @@ HWTEST_F(PasteboardServiceMockTest, DeletePreSyncP2pFromP2pMapTest, TestSize.Lev
  * @tc.desc: CheckAndReuseP2PLink
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, CheckAndReuseP2PLinkTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, CheckAndReuseP2PLinkTest001, TestSize.Level1)
 {
 #ifdef PB_DEVICE_MANAGER_ENABLE
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -3258,7 +3258,7 @@ HWTEST_F(PasteboardServiceMockTest, CheckAndReuseP2PLinkTest001, TestSize.Level0
  * @tc.desc: EstablishP2PLinkTask
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, EstablishP2PLinkTaskTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, EstablishP2PLinkTaskTest001, TestSize.Level1)
 {
 #ifdef PB_DEVICE_MANAGER_ENABLE
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -3300,7 +3300,7 @@ HWTEST_F(PasteboardServiceMockTest, EstablishP2PLinkTaskTest001, TestSize.Level0
  * @tc.desc: OpenP2PLinkForPreEstablish
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, OpenP2PLinkForPreEstablishTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, OpenP2PLinkForPreEstablishTest001, TestSize.Level1)
 {
 #ifdef PB_DEVICE_MANAGER_ENABLE
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -3325,7 +3325,7 @@ HWTEST_F(PasteboardServiceMockTest, OpenP2PLinkForPreEstablishTest001, TestSize.
  * @tc.desc: PreEstablishP2PLink
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, PreEstablishP2PLinkTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, PreEstablishP2PLinkTest001, TestSize.Level1)
 {
 #ifdef PB_DEVICE_MANAGER_ENABLE
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -3358,7 +3358,7 @@ HWTEST_F(PasteboardServiceMockTest, PreEstablishP2PLinkTest001, TestSize.Level0)
  * @tc.desc: AddPreSyncP2pTimeoutTask
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, AddPreSyncP2pTimeoutTaskTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, AddPreSyncP2pTimeoutTaskTest001, TestSize.Level1)
 {
 #ifdef PB_DEVICE_MANAGER_ENABLE
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -3378,7 +3378,7 @@ HWTEST_F(PasteboardServiceMockTest, AddPreSyncP2pTimeoutTaskTest001, TestSize.Le
  * @tc.desc: CheckAndGrantRemoteUri
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, CheckAndGrantRemoteUriTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, CheckAndGrantRemoteUriTest001, TestSize.Level1)
 {
 #ifdef PB_DEVICE_MANAGER_ENABLE
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -3402,7 +3402,7 @@ HWTEST_F(PasteboardServiceMockTest, CheckAndGrantRemoteUriTest001, TestSize.Leve
  * @tc.desc: ResubscribeObserver001
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, ResubscribeObserver001, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, ResubscribeObserver001, TestSize.Level1)
 {
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
@@ -3419,7 +3419,7 @@ HWTEST_F(PasteboardServiceMockTest, ResubscribeObserver001, TestSize.Level0)
  * @tc.desc: ResubscribeObserver002
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, ResubscribeObserver002, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, ResubscribeObserver002, TestSize.Level1)
 {
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
@@ -3455,7 +3455,7 @@ public:
  *           should return NO_DELAY_GETTER when entry getter not find
  *           else should return ERR_OK and remove empty entry
  */
-HWTEST_F(PasteboardServiceMockTest, SyncDelayedData001, TestSize.Level0)
+HWTEST_F(PasteboardServiceMockTest, SyncDelayedData001, TestSize.Level1)
 {
     g_accountIds = true;
     uint32_t tokenId = 1;

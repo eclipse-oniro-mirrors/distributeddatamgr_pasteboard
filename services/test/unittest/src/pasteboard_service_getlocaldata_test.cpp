@@ -91,7 +91,7 @@ namespace MiscServices {
  * @tc.desc: test Func GetLocalData
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest001, TestSize.Level0)
+HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetLocalDataTest001 start");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -109,7 +109,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest001, TestSize.Level0
  * @tc.desc: test Func GetLocalData
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest002, TestSize.Level0)
+HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest002, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetLocalDataTest002 start");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -143,7 +143,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest002, TestSize.Level0
  * @tc.desc: test Func GetLocalData
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest003, TestSize.Level0)
+HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest003, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetLocalDataTest003 start");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -180,7 +180,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest003, TestSize.Level0
  * @tc.desc: test Func GetLocalData
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest004, TestSize.Level0)
+HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest004, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetLocalDataTest004 start");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -217,7 +217,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest004, TestSize.Level0
  * @tc.desc: test Func GetLocalData
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest005, TestSize.Level0)
+HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest005, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetLocalDataTest005 start");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -254,7 +254,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest005, TestSize.Level0
  * @tc.desc: test Func GetLocalData
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest006, TestSize.Level0)
+HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest006, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetLocalDataTest006 start");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -292,7 +292,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest006, TestSize.Level0
  * @tc.desc: test Func GetLocalData
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest007, TestSize.Level0)
+HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest007, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetLocalDataTest007 start");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -330,7 +330,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest007, TestSize.Level0
  * @tc.desc: test Func GetLocalData
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest008, TestSize.Level0)
+HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest008, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetLocalDataTest008 start");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -368,7 +368,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest008, TestSize.Level0
  * @tc.desc: test Func GetLocalData
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest009, TestSize.Level0)
+HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest009, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetLocalDataTest009 start");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -406,7 +406,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest009, TestSize.Level0
  * @tc.desc: test Func GetLocalData
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest010, TestSize.Level0)
+HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest010, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetLocalDataTest010 start");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -444,7 +444,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest010, TestSize.Level0
  * @tc.desc: test Func GetLocalData
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest011, TestSize.Level0)
+HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest011, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetLocalDataTest011 start");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -482,7 +482,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest011, TestSize.Level0
  * @tc.desc: test Func GetLocalData
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest012, TestSize.Level0)
+HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest012, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetLocalDataTest012 start");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -521,7 +521,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest012, TestSize.Level0
  * @tc.desc: test Func GetLocalData
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest013, TestSize.Level0)
+HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest013, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetLocalDataTest013 start");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -560,7 +560,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest013, TestSize.Level0
  * @tc.desc: test Func GetLocalData
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest014, TestSize.Level0)
+HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest014, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetLocalDataTest014 start");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -599,7 +599,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest014, TestSize.Level0
  * @tc.desc: test Func GetLocalData
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest015, TestSize.Level0)
+HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest015, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetLocalDataTest015 start");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -638,7 +638,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest015, TestSize.Level0
  * @tc.desc: test Func GetLocalData
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest016, TestSize.Level0)
+HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest016, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetLocalDataTest016 start");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -677,7 +677,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest016, TestSize.Level0
  * @tc.desc: test Func GetLocalData
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest017, TestSize.Level0)
+HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest017, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetLocalDataTest017 start");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -716,7 +716,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest017, TestSize.Level0
  * @tc.desc: test Func GetLocalData
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest018, TestSize.Level0)
+HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest018, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetLocalDataTest018 start");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -755,7 +755,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest018, TestSize.Level0
  * @tc.desc: test Func GetLocalData
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest019, TestSize.Level0)
+HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest019, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetLocalDataTest019 start");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -794,7 +794,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest019, TestSize.Level0
  * @tc.desc: test Func GetLocalData
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest020, TestSize.Level0)
+HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest020, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetLocalDataTest020 start");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -833,7 +833,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest020, TestSize.Level0
  * @tc.desc: test Func GetLocalData
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest0021, TestSize.Level0)
+HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest0021, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetLocalDataTest021 start");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -872,7 +872,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest0021, TestSize.Level
  * @tc.desc: test Func GetLocalData
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest0022, TestSize.Level0)
+HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest0022, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetLocalDataTest022 start");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -911,7 +911,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest0022, TestSize.Level
  * @tc.desc: test Func GetLocalData
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest0023, TestSize.Level0)
+HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest0023, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetLocalDataTest023 start");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -950,7 +950,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest0023, TestSize.Level
  * @tc.desc: test Func GetLocalData
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest0024, TestSize.Level0)
+HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest0024, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetLocalDataTest024 start");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -990,7 +990,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest0024, TestSize.Level
  * @tc.desc: test Func GetLocalData
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest0025, TestSize.Level0)
+HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest0025, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetLocalDataTest025 start");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -1030,7 +1030,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest0025, TestSize.Level
  * @tc.desc: test Func GetLocalData
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest0026, TestSize.Level0)
+HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest0026, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetLocalDataTest026 start");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -1070,7 +1070,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest0026, TestSize.Level
  * @tc.desc: test Func GetLocalData
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest0027, TestSize.Level0)
+HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest0027, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetLocalDataTest027 start");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -1110,7 +1110,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest0027, TestSize.Level
  * @tc.desc: test Func GetLocalData
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest0028, TestSize.Level0)
+HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest0028, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetLocalDataTest028 start");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -1150,7 +1150,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest0028, TestSize.Level
  * @tc.desc: test Func GetLocalData
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest0029, TestSize.Level0)
+HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest0029, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetLocalDataTest029 start");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -1190,7 +1190,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest0029, TestSize.Level
  * @tc.desc: test Func GetLocalData
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest0030, TestSize.Level0)
+HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest0030, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetLocalDataTest030 start");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -1230,7 +1230,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest0030, TestSize.Level
  * @tc.desc: test Func GetLocalData
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest0031, TestSize.Level0)
+HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest0031, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetLocalDataTest031 start");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -1270,7 +1270,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest0031, TestSize.Level
  * @tc.desc: test Func GetLocalData
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest0032, TestSize.Level0)
+HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest0032, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetLocalDataTest032 start");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -1310,7 +1310,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest0032, TestSize.Level
  * @tc.desc: test Func GetLocalData
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest0033, TestSize.Level0)
+HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest0033, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetLocalDataTest033 start");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -1350,7 +1350,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest0033, TestSize.Level
  * @tc.desc: test Func GetLocalData
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest0034, TestSize.Level0)
+HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest0034, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetLocalDataTest034 start");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -1390,7 +1390,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest0034, TestSize.Level
  * @tc.desc: test Func GetLocalData
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest0035, TestSize.Level0)
+HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest0035, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetLocalDataTest035 start");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -1430,7 +1430,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest0035, TestSize.Level
  * @tc.desc: test Func GetLocalData
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest0036, TestSize.Level0)
+HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest0036, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetLocalDataTest036 start");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -1468,7 +1468,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest0036, TestSize.Level
  * @tc.desc: test Func GetLocalData
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest037, TestSize.Level0)
+HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest037, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetLocalDataTest037 start");
     auto tempPasteboard = std::make_shared<PasteboardService>();
@@ -1506,7 +1506,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest037, TestSize.Level0
  * @tc.desc: test Func GetLocalData
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest038, TestSize.Level0)
+HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest038, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetLocalDataTest038 start");
     auto tempPasteboard = std::make_shared<PasteboardService>();

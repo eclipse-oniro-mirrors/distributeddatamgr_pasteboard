@@ -18,6 +18,7 @@
 #include "config.h"
 #include <string>
 #include <gtest/gtest.h>
+#include "pasteboard_hilog.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -94,48 +95,55 @@ namespace MiscServices {
  * @tc.desc: LoadComponents when component.lib == ""
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardLoadTest, LoadComponentsTest001, TestSize.Level0)
+HWTEST_F(PasteboardLoadTest, LoadComponentsTest001, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "LoadComponentsTest001 start");
     Loader loader;
     g_lib.clear();
     g_unmarshal = true;
     EXPECT_NO_FATAL_FAILURE(loader.LoadComponents());
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "LoadComponentsTest001 end");
 }
 /**
  * @tc.name: LoadComponentsTest002
  * @tc.desc: LoadComponents when Loader::ComponentIsExist(component.lib) return true
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardLoadTest, LoadComponentsTest002, TestSize.Level0)
+HWTEST_F(PasteboardLoadTest, LoadComponentsTest002, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "LoadComponentsTest002 start");
     Loader loader;
     std::string lib = LIB_STRING;
     loader.handleMap[LIB_STRING] = &lib;
     g_lib = lib;
     g_unmarshal = true;
     EXPECT_NO_FATAL_FAILURE(loader.LoadComponents());
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "LoadComponentsTest002 end");
 }
 /**
  * @tc.name: LoadComponentsTest003
  * @tc.desc: LoadComponents when dlopen return nullptr
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardLoadTest, LoadComponentsTest003, TestSize.Level0)
+HWTEST_F(PasteboardLoadTest, LoadComponentsTest003, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "LoadComponentsTest003 start");
     Loader loader;
     std::string lib = LIB_STRING;
     loader.handleMap.clear();
     g_lib = lib;
     g_unmarshal = false;
     EXPECT_NO_FATAL_FAILURE(loader.LoadComponents());
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "LoadComponentsTest003 end");
 }
 /**
  * @tc.name: LoadComponentsTest004
  * @tc.desc: LoadComponents when component.constructor.empty() return true
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardLoadTest, LoadComponentsTest004, TestSize.Level0)
+HWTEST_F(PasteboardLoadTest, LoadComponentsTest004, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "LoadComponentsTest004 start");
     Loader loader;
     std::string lib = LIB_STRING;
     loader.handleMap.clear();
@@ -143,14 +151,16 @@ HWTEST_F(PasteboardLoadTest, LoadComponentsTest004, TestSize.Level0)
     g_constructor.clear();
     g_unmarshal = false;
     EXPECT_NO_FATAL_FAILURE(loader.LoadComponents());
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "LoadComponentsTest004 end");
 }
 /**
  * @tc.name: LoadComponentsTest005
  * @tc.desc: LoadComponents dlsym return false
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardLoadTest, LoadComponentsTest005, TestSize.Level0)
+HWTEST_F(PasteboardLoadTest, LoadComponentsTest005, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "LoadComponentsTest005 start");
     Loader loader;
     std::string lib = LIB_STRING;
     loader.handleMap.clear();
@@ -158,6 +168,7 @@ HWTEST_F(PasteboardLoadTest, LoadComponentsTest005, TestSize.Level0)
     g_constructor = CONSTRUCTOR_STRING;
     g_unmarshal = false;
     EXPECT_NO_FATAL_FAILURE(loader.LoadComponents());
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "LoadComponentsTest005 end");
 }
 
 /**
@@ -165,10 +176,12 @@ HWTEST_F(PasteboardLoadTest, LoadComponentsTest005, TestSize.Level0)
  * @tc.desc: LoadUid
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardLoadTest, LoadUidTest, TestSize.Level0)
+HWTEST_F(PasteboardLoadTest, LoadUidTest, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "LoadUidTest start");
     Loader loader;
     EXPECT_NO_FATAL_FAILURE(loader.LoadUid());
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "LoadUidTest end");
 }
 
 /**
@@ -176,10 +189,12 @@ HWTEST_F(PasteboardLoadTest, LoadUidTest, TestSize.Level0)
  * @tc.desc: LoadConfig
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardLoadTest, LoadConfigTest, TestSize.Level0)
+HWTEST_F(PasteboardLoadTest, LoadConfigTest, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "LoadConfigTest start");
     Loader loader;
     EXPECT_NO_FATAL_FAILURE(loader.LoadConfig());
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "LoadConfigTest end");
 }
 
 /**
@@ -187,10 +202,12 @@ HWTEST_F(PasteboardLoadTest, LoadConfigTest, TestSize.Level0)
  * @tc.desc: ComponentIsExist
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardLoadTest, ComponentIsExistTest, TestSize.Level0)
+HWTEST_F(PasteboardLoadTest, ComponentIsExistTest, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ComponentIsExistTest start");
     Loader loader;
     EXPECT_NO_FATAL_FAILURE(loader.ComponentIsExist(LIB_STRING));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ComponentIsExistTest end");
 }
 }
 } // namespace OHOS::MiscServices

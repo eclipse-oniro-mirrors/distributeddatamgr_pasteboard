@@ -173,8 +173,9 @@ extern "C" {
  * @tc.desc: Function GetPasteData when WriteInterfaceToken return error
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardDelayProxyTest, GetPasteDataTest001, TestSize.Level0)
+HWTEST_F(PasteboardDelayProxyTest, GetPasteDataTest001, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetPasteDataTest001 start");
     std::string testType = "text/plain";
     PasteData testData;
     NiceMock<PasteboardDelayProxyInterfaceMock> mock;
@@ -183,6 +184,7 @@ HWTEST_F(PasteboardDelayProxyTest, GetPasteDataTest001, TestSize.Level0)
 
     PasteboardDelayGetterProxy proxy(remote);
     proxy.GetPasteData(testType, testData);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetPasteDataTest001 end");
 }
 
 /**
@@ -190,8 +192,9 @@ HWTEST_F(PasteboardDelayProxyTest, GetPasteDataTest001, TestSize.Level0)
  * @tc.desc: Function GetPasteData when WriteString return error
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardDelayProxyTest, GetPasteDataTest002, TestSize.Level0)
+HWTEST_F(PasteboardDelayProxyTest, GetPasteDataTest002, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetPasteDataTest002 start");
     std::string testType = "text/plain";
     PasteData testData;
     NiceMock<PasteboardDelayProxyInterfaceMock> mock;
@@ -201,6 +204,7 @@ HWTEST_F(PasteboardDelayProxyTest, GetPasteDataTest002, TestSize.Level0)
 
     PasteboardDelayGetterProxy proxy(remote);
     proxy.GetPasteData(testType, testData);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetPasteDataTest002 end");
 }
 
 /**
@@ -208,8 +212,9 @@ HWTEST_F(PasteboardDelayProxyTest, GetPasteDataTest002, TestSize.Level0)
  * @tc.desc: Function GetPasteData when SendRequest return error
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardDelayProxyTest, GetPasteDataTest003, TestSize.Level0)
+HWTEST_F(PasteboardDelayProxyTest, GetPasteDataTest003, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetPasteDataTest003 start");
     std::string testType = "text/plain";
     PasteData testData;
     NiceMock<PasteboardDelayProxyInterfaceMock> mock;
@@ -220,6 +225,7 @@ HWTEST_F(PasteboardDelayProxyTest, GetPasteDataTest003, TestSize.Level0)
     PasteboardDelayGetterProxy proxy(remote);
     proxy.GetPasteData(testType, testData);
     SetSendRequestResult(OHOS::ERR_OK);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetPasteDataTest003 end");
 }
 
 /**
@@ -227,8 +233,9 @@ HWTEST_F(PasteboardDelayProxyTest, GetPasteDataTest003, TestSize.Level0)
  * @tc.desc: Function GetPasteData when ReadInt64 return error
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardDelayProxyTest, GetPasteDataTest004, TestSize.Level0)
+HWTEST_F(PasteboardDelayProxyTest, GetPasteDataTest004, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetPasteDataTest004 start");
     std::string testType = "text/plain";
     PasteData testData;
     NiceMock<PasteboardDelayProxyInterfaceMock> mock;
@@ -240,6 +247,7 @@ HWTEST_F(PasteboardDelayProxyTest, GetPasteDataTest004, TestSize.Level0)
     EXPECT_CALL(mock, ReadInt64()).WillRepeatedly(Return(TEST_ERROR_PAW_DATA_SIZE));
     PasteboardDelayGetterProxy proxy(remote);
     proxy.GetPasteData(testType, testData);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetPasteDataTest004 end");
 }
 
 /**
@@ -247,8 +255,9 @@ HWTEST_F(PasteboardDelayProxyTest, GetPasteDataTest004, TestSize.Level0)
  * @tc.desc: Function GetPasteData when ReadInt64 return error
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardDelayProxyTest, GetPasteDataTest005, TestSize.Level0)
+HWTEST_F(PasteboardDelayProxyTest, GetPasteDataTest005, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetPasteDataTest005 start");
     std::string testType = "text/plain";
     PasteData testData;
     NiceMock<PasteboardDelayProxyInterfaceMock> mock;
@@ -260,6 +269,7 @@ HWTEST_F(PasteboardDelayProxyTest, GetPasteDataTest005, TestSize.Level0)
     EXPECT_CALL(mock, ReadInt64()).WillRepeatedly(Return(TEST_MAX_RAW_DATA_SIZE));
     PasteboardDelayGetterProxy proxy(remote);
     proxy.GetPasteData(testType, testData);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetPasteDataTest005 end");
 }
 
 /**
@@ -267,13 +277,16 @@ HWTEST_F(PasteboardDelayProxyTest, GetPasteDataTest005, TestSize.Level0)
  * @tc.desc: Function GetUnifiedData
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardDelayProxyTest, GetPasteDataTest006, TestSize.Level0)
+HWTEST_F(PasteboardDelayProxyTest, GetPasteDataTest006, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetPasteDataTest006 start");
     std::string testType = "text/plain";
     UDMF::UnifiedData testData;
     sptr<RemoteObjectTest> remote = sptr<RemoteObjectTest>::MakeSptr(u"test");
     EXPECT_NE(remote, nullptr);
+
     PasteboardDelayGetterProxy proxy(remote);
     proxy.GetUnifiedData(testType, testData);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetPasteDataTest006 end");
 }
 } // namespace OHOS

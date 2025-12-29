@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -50,8 +50,9 @@ void PasteboardLinkedListTest::TearDown(void)
  * @tc.desc: Test InsertFront
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardLinkedListTest, TestInsert001, TestSize.Level0)
+HWTEST_F(PasteboardLinkedListTest, TestInsert001, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "TestInsert001 start");
     LinkedList<int32_t> lst;
     lst.InsertFront(0);
     lst.InsertFront(1);
@@ -66,6 +67,7 @@ HWTEST_F(PasteboardLinkedListTest, TestInsert001, TestSize.Level0)
     EXPECT_EQ(vec[0], 2);
     EXPECT_EQ(vec[1], 1);
     EXPECT_EQ(vec[2], 0);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "TestInsert001 end");
 }
 
 /**
@@ -73,8 +75,9 @@ HWTEST_F(PasteboardLinkedListTest, TestInsert001, TestSize.Level0)
  * @tc.desc: Test InsertTail
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardLinkedListTest, TestInsert002, TestSize.Level0)
+HWTEST_F(PasteboardLinkedListTest, TestInsert002, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "TestInsert002 start");
     LinkedList<int32_t> lst;
     lst.InsertTail(0);
     lst.InsertTail(1);
@@ -89,6 +92,7 @@ HWTEST_F(PasteboardLinkedListTest, TestInsert002, TestSize.Level0)
     EXPECT_EQ(vec[0], 0);
     EXPECT_EQ(vec[1], 1);
     EXPECT_EQ(vec[2], 2);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "TestInsert002 end");
 }
 
 /**
@@ -96,8 +100,9 @@ HWTEST_F(PasteboardLinkedListTest, TestInsert002, TestSize.Level0)
  * @tc.desc: Test InsertFront & InsertTail
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardLinkedListTest, TestInsert003, TestSize.Level0)
+HWTEST_F(PasteboardLinkedListTest, TestInsert003, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "TestInsert003 start");
     LinkedList<int32_t> lst;
     lst.InsertTail(0);
     lst.InsertFront(1);
@@ -112,6 +117,7 @@ HWTEST_F(PasteboardLinkedListTest, TestInsert003, TestSize.Level0)
     EXPECT_EQ(vec[0], 1);
     EXPECT_EQ(vec[1], 0);
     EXPECT_EQ(vec[2], 2);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "TestInsert003 end");
 }
 
 /**
@@ -119,8 +125,9 @@ HWTEST_F(PasteboardLinkedListTest, TestInsert003, TestSize.Level0)
  * @tc.desc: Test FindExist
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardLinkedListTest, TestFindExist001, TestSize.Level0)
+HWTEST_F(PasteboardLinkedListTest, TestFindExist001, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "TestFindExist001 start");
     LinkedList<int32_t> lst;
     lst.InsertTail(0);
     EXPECT_TRUE(lst.FindExist(0));
@@ -148,6 +155,7 @@ HWTEST_F(PasteboardLinkedListTest, TestFindExist001, TestSize.Level0)
     EXPECT_TRUE(lst.FindExist([](int32_t value) {
         return value > 1;
     }));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "TestFindExist001 end");
 }
 
 /**
@@ -155,8 +163,9 @@ HWTEST_F(PasteboardLinkedListTest, TestFindExist001, TestSize.Level0)
  * @tc.desc: Test RemoveIf
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardLinkedListTest, TestRemoveIf001, TestSize.Level0)
+HWTEST_F(PasteboardLinkedListTest, TestRemoveIf001, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "TestRemoveIf001 start");
     LinkedList<int32_t> lst;
     lst.InsertTail(0);
     lst.InsertFront(1);
@@ -180,6 +189,7 @@ HWTEST_F(PasteboardLinkedListTest, TestRemoveIf001, TestSize.Level0)
     EXPECT_TRUE(lst.FindExist(0));
     EXPECT_FALSE(lst.FindExist(1));
     EXPECT_FALSE(lst.FindExist(2));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "TestRemoveIf001 end");
 }
 
 } // namespace MiscServices
