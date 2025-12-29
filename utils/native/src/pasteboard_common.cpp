@@ -96,5 +96,10 @@ bool PasteBoardCommon::IsValidMimeType(const std::string &mimeType)
     const bool withinSizeLimit = mimeType.size() <= MIMETYPE_MAX_SIZE;
     return isNonEmpty && withinSizeLimit;
 }
+
+int32_t PasteBoardCommon::Stat(const std::string &path, struct stat *buf)
+{
+    return stat(path.c_str(), buf);
+}
 } // namespace MiscServices
 } // namespace OHOS

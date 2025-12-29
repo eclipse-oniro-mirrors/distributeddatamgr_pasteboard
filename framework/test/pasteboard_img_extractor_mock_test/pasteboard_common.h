@@ -18,33 +18,13 @@
 
 #include <sys/stat.h>
 
-#include "bundle_mgr_proxy.h"
-#include "singleton.h"
-
 namespace OHOS {
 namespace MiscServices {
-class PasteBoardCommon : public Singleton<PasteBoardCommon> {
+class PasteBoardCommon {
 public:
-    PasteBoardCommon() = default;
-    ~PasteBoardCommon() = default;
-
-    static inline bool IsPasteboardService()
-    {
-        constexpr uid_t PASTEBOARD_SERVICE_UID = 3816;
-        return getuid() == PASTEBOARD_SERVICE_UID;
-    }
-    static bool IsValidMimeType(const std::string &mimeType);
-    static std::string GetAnonymousString(const std::string &str);
-    static sptr<AppExecFwk::IBundleMgr> GetAppBundleManager(void);
-    int32_t GetApiTargetVersionForSelf(void);
-    static int32_t GetDirByBundleNameAndAppIndex(const std::string &bundleName, int32_t appIndex,
-        std::string &dataDir);
-    static std::string GetDirByAuthority(const std::pair<std::string, int32_t> &authority);
     static int32_t Stat(const std::string &path, struct stat *buf);
-
-private:
-    int32_t apiTargetVersion_ = 0;
 };
 } // namespace MiscServices
 } // namespace OHOS
+
 #endif // PASTEBOARD_COMMON_H

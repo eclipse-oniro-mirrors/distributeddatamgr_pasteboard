@@ -19,10 +19,10 @@
 #include <cerrno>
 #include <cstring>
 #include <memory>
-#include <sys/stat.h>
 #include <unordered_set>
 
 #include "ipc_skeleton.h"
+#include "pasteboard_common.h"
 #include "pasteboard_hilog.h"
 #include "sandbox_helper.h"
 
@@ -96,16 +96,16 @@ void PasteboardImgExtractor::FilterExistFileUris(std::vector<std::string> &uris,
                 PASTEBOARD_HILOGE(PASTEBOARD_MODULE_COMMON, "get phy path fail, uri=%{private}s", newUriStr.c_str());
                 continue;
             }
-            if (errno == EACCES) {
-                existFileUris.push_back(uriStr);
-            }
         }
 
         errno = 0;
         struct stat buf = {};
-        if (stat(physicalPath.c_str(), &buf) != 0) {
+        if (PasteBoardCommon::Stat(physicalPath, &buf) != 0) {
             PASTEBOARD_HILOGE(PASTEBOARD_MODULE_COMMON, "stat fail, uri=%{private}s, path=%{private}s, err=%{public}d",
                 newUriStr.c_str(), physicalPath.c_str(), errno);
+            if (errno == EACCES) {
+                existFileUris.push_back(uriStr);
+            }
             continue;
         }
 
