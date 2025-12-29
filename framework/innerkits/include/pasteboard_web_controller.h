@@ -38,7 +38,6 @@ public:
 
 private:
     void RefreshUri(std::shared_ptr<PasteDataRecord> &record, const std::string &targetBundle, int32_t appInedx);
-    std::shared_ptr<std::string> RebuildHtml(std::shared_ptr<PasteData> pasteData) noexcept;
     std::vector<std::shared_ptr<PasteDataRecord>> SplitHtml2Records(const std::shared_ptr<std::string> &html,
         uint32_t recordId, const std::string &bundleIndex, int32_t userId) noexcept;
     void MergeExtraUris2Html(PasteData &data);
