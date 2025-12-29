@@ -3387,10 +3387,9 @@ HWTEST_F(PasteboardServiceMockTest, CheckAndGrantRemoteUriTest001, TestSize.Leve
     data.SetRemote(true);
     AppInfo appInfo;
     std::string pasteId = "TestPasteId";
-    std::string networkId = "TestNetworkId";
     std::shared_ptr<BlockObject<int32_t>> block = std::make_shared<BlockObject<int32_t>>(2000, 0);
     EXPECT_NE(block, nullptr);
-    int32_t result = tempPasteboard->CheckAndGrantRemoteUri(data, appInfo, pasteId, networkId, block);
+    int32_t result = tempPasteboard->CheckAndGrantRemoteUri(data, appInfo, pasteId, block);
     EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::E_OK));
 #else
     ASSERT_TRUE(true);
