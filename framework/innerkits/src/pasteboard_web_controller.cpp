@@ -397,45 +397,6 @@ void PasteboardWebController::MergeExtraUris2Html(PasteData &data)
     RemoveExtraUris(data);
 }
 
-std::shared_ptr<std::string> PasteboardWebController::RebuildHtml(std::shared_ptr<PasteData> pasteData) noexcept
-{
-    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(pasteData != nullptr, nullptr, PASTEBOARD_MODULE_COMMON, "pasteData is null");
-    std::vector<std::shared_ptr<PasteDataRecord>> pasteDataRecords = pasteData->AllRecords();
-    std::shared_ptr<std::string> htmlData;
-    std::map<uint32_t, std::pair<std::string, std::string>, Cmp> replaceUris;
-
-    for (const auto &item : pasteDataRecords) {
-        PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(item != nullptr, nullptr,
-                                             PASTEBOARD_MODULE_COMMON, "item is null");
-        std::shared_ptr<std::string> html = item->GetHtmlTextV0();
-        if (html != nullptr) {
-            htmlData = html;
-        }
-        std::shared_ptr<OHOS::Uri> uri = item->GetUriV0();
-        std::shared_ptr<MiscServices::MineCustomData> customData = item->GetCustomData();
-        if (uri == nullptr || customData == nullptr) {
-            continue;
-        }
-        std::map<std::string, std::vector<uint8_t>> customItemData = customData->GetItemData();
-        for (const auto &itemData : customItemData) {
-            for (uint32_t i = 0; i < itemData.second.size(); i += FOUR_BYTES) {
-                uint32_t offset = static_cast<uint32_t>(itemData.second[i]) |
-                                  static_cast<uint32_t>(itemData.second[i + 1] << 8) |
-                                  static_cast<uint32_t>(itemData.second[i + 2] << 16) |
-                                  static_cast<uint32_t>(itemData.second[i + 3] << 24);
-                replaceUris[offset] = std::make_pair(uri->ToString(), itemData.first);
-            }
-        }
-    }
-
-    RemoveAllRecord(pasteData);
-    for (auto &replaceUri : replaceUris) {
-        htmlData->replace(replaceUri.first, replaceUri.second.second.size(), replaceUri.second.first);
-    }
-    pasteData->AddHtmlRecord(*htmlData);
-    return htmlData;
-}
-
 std::vector<std::pair<std::string, uint32_t>> PasteboardWebController::SplitHtmlWithImgLabel(
     const std::shared_ptr<std::string> html) noexcept
 {
