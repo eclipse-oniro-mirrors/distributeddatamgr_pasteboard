@@ -411,6 +411,7 @@ private:
     static void SetLocalPasteFlag(bool isCrossPaste, uint32_t tokenId, PasteData &pasteData);
     void RecognizePasteData(PasteData &pasteData);
     void OnRecognizePasteData(const std::string &primaryText);
+    void OnRecognizePasteDataInner(const std::string &primaryText, void *nulGuard);
     void OnAddSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override;
     void OnRemoveSystemAbility(int32_t systemAbilityId, const std::string &deviceId) override;
     void UpdateAgedTime();
@@ -526,6 +527,7 @@ private:
     pid_t setPasteDataUId_ = 0;
     static constexpr pid_t TEST_SERVER_UID = 3500;
     std::mutex eventMutex_;
+    std::mutex entityRecognizeMutex_;
     SecurityLevel securityLevel_;
     class PasteboardDeathRecipient final : public IRemoteObject::DeathRecipient {
     public:

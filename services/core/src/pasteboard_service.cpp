@@ -82,6 +82,7 @@ constexpr uint32_t MAX_IPC_THREAD_NUM = 32;
 constexpr const char *PASTEBOARD_SERVICE_SA_NAME = "pasteboard_service";
 constexpr const char *PASTEBOARD_SERVICE_NAME = "PasteboardService";
 constexpr const char *NLU_SO_PATH = "libai_nlu_innerapi.z.so";
+constexpr const char *SSL_SO_PATH = "libcrypto_openssl.z.so";
 constexpr const char *GET_PASTE_DATA_PROCESSOR = "GetPasteDataProcessor";
 constexpr const char *FAIL_TO_GET_TIME_STAMP = "FAIL_TO_GET_TIME_STAMP";
 constexpr const char *SECURE_PASTE_PERMISSION = "ohos.permission.SECURE_PASTE";
@@ -614,31 +615,39 @@ int32_t PasteboardService::ExtractEntity(const std::string &entity, std::string 
 void PasteboardService::OnRecognizePasteData(const std::string &primaryText)
 {
     pthread_setname_np(pthread_self(), "PasteDataRecognize");
-    auto handle = dlopen(NLU_SO_PATH, RTLD_NOW);
-    PASTEBOARD_CHECK_AND_RETURN_LOGE(handle != nullptr, PASTEBOARD_MODULE_SERVICE, "Can not get AIEngine handle");
-    GetProcessorFunc GetProcessor = reinterpret_cast<GetProcessorFunc>(dlsym(handle, GET_PASTE_DATA_PROCESSOR));
-    if (GetProcessor == nullptr) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "Can not get ProcessorFunc");
-        dlclose(handle);
-        return;
-    }
+    std::lock_guard lock(entityRecognizeMutex_);
+    auto nulHandle = dlopen(NLU_SO_PATH, RTLD_NOW);
+    PASTEBOARD_CHECK_AND_RETURN_LOGE(nulHandle != nullptr, PASTEBOARD_MODULE_SERVICE, "Can not get AIEngine handle");
+    std::unique_ptr<void, decltype(&dlclose)> nulGuard(nulHandle, dlclose);
+
+    auto sslHandle = dlopen(SSL_SO_PATH, RTLD_NOW);
+    PASTEBOARD_CHECK_AND_RETURN_LOGE(sslHandle != nullptr, PASTEBOARD_MODULE_SERVICE, "Can not get SSL handle");
+    std::unique_ptr<void, decltype(&dlclose)> sslGuard(sslHandle, dlclose);
+
+    auto cleanSSL = reinterpret_cast<GetProcessorFunc>(dlsym(sslHandle, "OPENSSL_cleanup"));
+    PASTEBOARD_CHECK_AND_RETURN_LOGE(cleanSSL != nullptr, PASTEBOARD_MODULE_SERVICE, "Can not get cleanSSL");
+
+    OnRecognizePasteDataInner(primaryText, nulHandle);
+    cleanSSL();
+}
+
+void PasteboardService::OnRecognizePasteDataInner(const std::string &primaryText, void *nulHandle)
+{
+    GetProcessorFunc GetProcessor = reinterpret_cast<GetProcessorFunc>(dlsym(nulHandle, GET_PASTE_DATA_PROCESSOR));
+    PASTEBOARD_CHECK_AND_RETURN_LOGE(GetProcessor != nullptr, PASTEBOARD_MODULE_SERVICE, "Can not get ProcessorFunc");
+
     IPasteDataProcessor &processor = GetProcessor();
     std::string entity = "";
     int32_t result = processor.Process(primaryText, entity);
-    if (result != ERR_OK) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "AI Process failed, result=%{public}d", result);
-        dlclose(handle);
-        return;
-    }
+    PASTEBOARD_CHECK_AND_RETURN_LOGE(
+        result == ERR_OK, PASTEBOARD_MODULE_SERVICE, "AI Process failed, result=%{public}d", result);
+    
     std::string location = "";
     int32_t ret = ExtractEntity(entity, location);
-    if (ret != static_cast<int32_t>(PasteboardError::E_OK)) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "ExtractEntity failed, ret=%{public}d", ret);
-        dlclose(handle);
-        return;
-    }
+    PASTEBOARD_CHECK_AND_RETURN_LOGE(ret == static_cast<int32_t>(PasteboardError::E_OK),
+        PASTEBOARD_MODULE_SERVICE, "ExtractEntity failed, ret=%{public}d", ret);
+
     NotifyEntityObservers(location, EntityType::ADDRESS, static_cast<uint32_t>(primaryText.size()));
-    dlclose(handle);
 }
 
 void PasteboardService::RecognizePasteData(PasteData &pasteData)
