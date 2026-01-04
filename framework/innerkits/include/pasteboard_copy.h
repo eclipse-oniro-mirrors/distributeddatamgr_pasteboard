@@ -53,7 +53,7 @@ private:
     static bool IsRemoteUri(const std::string &uri);
     static int32_t CheckCopyParam(PasteData &pasteData, std::shared_ptr<GetDataParams> dataParams);
     static int32_t InitCopyInfo(const std::string srcUri, std::shared_ptr<GetDataParams> dataParams,
-        std::shared_ptr<CopyInfo> copyInfo, int32_t index);
+        std::shared_ptr<CopyInfo> copyInfo);
     static void OnProgressNotify(std::shared_ptr<GetDataParams> params);
     static int32_t CopyFileData(PasteData &pasteData, std::shared_ptr<GetDataParams> dataParams);
 
