@@ -227,23 +227,44 @@ HWTEST_F(PasteboardCopyTest, HandleProgressTest, TestSize.Level0)
 }
 
 /**
- * @tc.name: InitCopyInfoTest
+ * @tc.name: InitCopyInfoTest001
  * @tc.desc: Test init copy info
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(PasteboardCopyTest, InitCopyInfoTest, TestSize.Level0)
+HWTEST_F(PasteboardCopyTest, InitCopyInfoTest001, TestSize.Level0)
 {
-    PasteBoardCopyFile &pasteBoardCopyFile = PasteBoardCopyFile::GetInstance();
     std::string srcUri = "file:///source/path";
     std::string destUri = "file:///destination/path";
     std::shared_ptr<GetDataParams> dataParams = std::make_shared<GetDataParams>();
     dataParams->destUri = destUri;
     std::shared_ptr<CopyInfo> copyInfo = std::make_shared<CopyInfo>();
-    int32_t index = 0;
 
-    int32_t result = pasteBoardCopyFile.InitCopyInfo(srcUri, dataParams, copyInfo, index);
+    int32_t result = PasteBoardCopyFile::GetInstance().InitCopyInfo(srcUri, dataParams, copyInfo);
     EXPECT_EQ(result, ENOMEM);
+}
+
+/**
+ * @tc.name: InitCopyInfoTest002
+ * @tc.desc: Test init copy info
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PasteboardCopyTest, InitCopyInfoTest002, TestSize.Level0)
+{
+    std::string srcUri = R"(file:///source/path/%25%E2%80%94.png)";
+    std::string destUri = "file:///data";
+    std::shared_ptr<GetDataParams> dataParams = std::make_shared<GetDataParams>();
+    dataParams->destUri = destUri;
+    std::shared_ptr<CopyInfo> copyInfo = std::make_shared<CopyInfo>();
+
+    int32_t result = PasteBoardCopyFile::GetInstance().InitCopyInfo(srcUri, dataParams, copyInfo);
+    EXPECT_EQ(result, ENOMEM);
+
+    EXPECT_STREQ(copyInfo->srcUri.c_str(), R"(file:///source/path/%25%E2%80%94.png)");
+    EXPECT_STREQ(copyInfo->destUri.c_str(), R"(file:///data/%25%E2%80%94.png)");
+    EXPECT_STREQ(copyInfo->srcPath.c_str(), R"(/source/path/%—.png)");
+    EXPECT_STREQ(copyInfo->destPath.c_str(), R"(/data/%—.png)");
 }
 
 /**

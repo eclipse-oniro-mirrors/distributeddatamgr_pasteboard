@@ -15,6 +15,7 @@
 
 #include "pasteboard_copy.h"
 
+#include "common_func.h"
 #include "copy/file_copy_manager.h"
 #include "file_uri.h"
 #include "pasteboard_error.h"
@@ -125,7 +126,7 @@ int32_t PasteBoardCopyFile::CheckCopyParam(PasteData &pasteData, std::shared_ptr
 }
 
 int32_t PasteBoardCopyFile::InitCopyInfo(const std::string srcUri, std::shared_ptr<GetDataParams> dataParams,
-    std::shared_ptr<CopyInfo> copyInfo, int32_t index)
+    std::shared_ptr<CopyInfo> copyInfo)
 {
     copyInfo->srcUri = srcUri;
     copyInfo->destUri = dataParams->destUri;
@@ -143,18 +144,16 @@ int32_t PasteBoardCopyFile::InitCopyInfo(const std::string srcUri, std::shared_p
     if (IsDirectory(copyInfo->destPath)) {
         std::filesystem::path filePath(realSrc);
         auto fileName = filePath.filename();
-        if (copyInfo->destUri.back() != '/') {
-            copyInfo->destUri += '/';
+        if (copyInfo->destPath.back() != '/') {
+            copyInfo->destPath += '/';
         }
-        copyInfo->destUri += fileName.string();
-        FileUri realDest(copyInfo->destUri);
-        copyInfo->destPath = realDest.GetPath();
-        copyInfo->destPath = GetRealPath(copyInfo->destPath);
+        copyInfo->destPath += fileName.string();
+        copyInfo->destUri = AppFileService::CommonFunc::GetUriFromPath(copyInfo->destPath);
     }
     std::error_code errCode;
-    if (std::filesystem::exists(copyInfo->destPath, errCode) && errCode.value() == ERRNO_NOERR &&
-        dataParams->fileConflictOption == FILE_SKIP) {
-        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "File has existed.");
+    if (dataParams->fileConflictOption == FILE_SKIP &&
+        std::filesystem::exists(copyInfo->destPath, errCode) && errCode.value() == ERRNO_NOERR) {
+        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "File existed, dstPath=%{private}s", copyInfo->destPath.c_str());
         return E_EXIST;
     }
     FileUri realFileUri(realSrc);
@@ -193,7 +192,7 @@ int32_t PasteBoardCopyFile::CopyFileData(PasteData &pasteData, std::shared_ptr<G
         }
         std::shared_ptr<CopyInfo> copyInfo = std::make_shared<CopyInfo>();
         std::string srcUri = uri->ToString();
-        if (InitCopyInfo(srcUri, dataParams, copyInfo, recordCount) == E_EXIST) {
+        if (InitCopyInfo(srcUri, dataParams, copyInfo) == E_EXIST) {
             recordCount++;
             pasteData.RemoveRecordAt(index);
             continue;
