@@ -3138,20 +3138,25 @@ bool PasteboardService::IsCallerUidValid()
 void PasteboardService::ThawInputMethod(pid_t imePid)
 {
     auto type = ResourceSchedule::ResType::RES_TYPE_SA_CONTROL_APP_EVENT;
-    auto status = ResourceSchedule::ResType::SaControlAppStatus::SA_START_APP;
+    auto statusStart = ResourceSchedule::ResType::SaControlAppStatus::SA_START_APP;
+    auto statusStop = ResourceSchedule::ResType::SaControlAppStatus::SA_STOP_APP;
 
     std::unordered_map<std::string, std::string> payload = {
         { "saId", std::to_string(PASTEBOARD_SERVICE_ID) },
         { "saName", PASTEBOARD_SERVICE_SA_NAME },
         { "extensionType", std::to_string(static_cast<int32_t>(AppExecFwk::ExtensionAbilityType::INPUTMETHOD)) },
-        { "pid", std::to_string(imePid) },
-        { "isDelay", std::to_string(true) } };
+        { "pid", std::to_string(imePid) } };
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "report RSS need thaw:pid = %{public}d", imePid);
-    ResourceSchedule::ResSchedClient::GetInstance().ReportData(type, status, payload);
+    ResourceSchedule::ResSchedClient::GetInstance().ReportData(type, statusStart, payload);
+    ResourceSchedule::ResSchedClient::GetInstance().ReportData(type, statusStop, payload); // will stop after 6s
 }
 
-bool PasteboardService::IsNeedThaw()
+bool PasteboardService::IsNeedThaw(PasteboardEventStatus status)
 {
+    if (status == PasteboardEventStatus::PASTEBOARD_READ) {
+        return false;
+    }
+
     auto imc = InputMethodController::GetInstance();
     if (imc == nullptr) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "InputMethodController is nullptr!");
@@ -3170,7 +3175,7 @@ bool PasteboardService::IsNeedThaw()
 void PasteboardService::NotifyObservers(std::string bundleName, int32_t userId, PasteboardEventStatus status)
 {
     auto [hasPid, pid] = imeMap_.Find(userId);
-    if (hasPid && IsNeedThaw()) {
+    if (hasPid && IsNeedThaw(status)) {
         ThawInputMethod(pid);
     }
     std::thread thread([this, bundleName, userId, status]() {
