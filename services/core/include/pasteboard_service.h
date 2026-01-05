@@ -437,7 +437,7 @@ private:
     void ClearAgedData(int32_t userId);
     void SetDataExpirationTimer(int32_t userId);
 
-    void RegisterPreSyncCallback(std::shared_ptr<ClipPlugin> clipPlugin);
+    void InitPlugin(std::shared_ptr<ClipPlugin> clipPlugin);
     bool OpenP2PLinkForPreEstablish(const std::string &networkId, ClipPlugin *clipPlugin);
     void PreEstablishP2PLink(const std::string &networkId, ClipPlugin *clipPlugin);
     void PreEstablishP2PLinkCallback(const std::string &networkId, ClipPlugin *clipPlugin);

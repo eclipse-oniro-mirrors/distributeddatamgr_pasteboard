@@ -136,6 +136,11 @@ void ClipPlugin::SendPreSyncEvent(int32_t userId)
     (void)userId;
 }
 
+void ClipPlugin::SetMaxLocalCapacity(int64_t maxLocalCapacity)
+{
+    (void)maxLocalCapacity;
+}
+
 bool ClipPlugin::GlobalEvent::Marshal(Serializable::json &node) const
 {
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(SetValue(node, version, GET_NAME(version)),
