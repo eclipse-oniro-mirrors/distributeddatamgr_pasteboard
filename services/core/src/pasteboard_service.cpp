@@ -1128,7 +1128,10 @@ int32_t PasteboardService::ShowProgress(const std::string &progressKey, const sp
     message.progressKey = progressKey;
 
     FocusedAppInfo appInfo = GetFocusedAppInfo();
-    message.windowId = appInfo.windowId;
+    message.left = appInfo.left;
+    message.top = appInfo.top;
+    message.width = static_cast<int32_t>(appInfo.width);
+    message.height = static_cast<int32_t>(appInfo.height);
     message.callerToken = appInfo.abilityToken;
     message.clientCallback = observer;
     PasteboardDialog::ShowProgress(message);
@@ -3594,12 +3597,29 @@ FocusedAppInfo PasteboardService::GetFocusedAppInfo(void) const
 {
     FocusedAppInfo appInfo = { 0 };
     FocusChangeInfo info;
+    std::vector<sptr<WindowVisibilityInfo>> windowVisibilityInfos;
+    WMError result = WMError::WM_OK;
 #ifdef SCENE_BOARD_ENABLE
     WindowManagerLite::GetInstance().GetFocusWindowInfo(info);
+    result = WindowManagerLite::GetInstance().GetVisibilityWindowInfo(windowVisibilityInfos);
 #else
     WindowManager::GetInstance().GetFocusWindowInfo(info);
+    result = WindowManager::GetInstance().GetVisibilityWindowInfo(windowVisibilityInfos);
 #endif
-    appInfo.windowId = info.windowId_;
+    if (result == WMError::WM_OK) {
+        for (const auto& windowInfo : windowVisibilityInfos) {
+            if (windowInfo == nullptr) {
+                continue;
+            }
+            if (windowInfo->windowId_ == static_cast<uint32_t>(info.windowId_)) {
+                appInfo.left = windowInfo->rect_.posX_;
+                appInfo.top = windowInfo->rect_.posY_;
+                appInfo.width = windowInfo->rect_.width_;
+                appInfo.height = windowInfo->rect_.height_;
+                break;
+            }
+        }
+    }
     appInfo.abilityToken = info.abilityToken_;
     return appInfo;
 }

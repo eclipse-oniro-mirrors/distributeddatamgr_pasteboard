@@ -83,7 +83,10 @@ struct PasteP2pEstablishInfo {
 };
 
 struct FocusedAppInfo {
-    int32_t windowId = 0;
+    int32_t left = 0;
+    int32_t top = 0;
+    uint32_t width = 0;
+    uint32_t height = 0;
     sptr<IRemoteObject> abilityToken = nullptr;
 };
 

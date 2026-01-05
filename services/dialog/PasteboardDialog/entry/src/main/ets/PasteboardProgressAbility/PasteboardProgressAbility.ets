@@ -18,7 +18,6 @@ import window from '@ohos.window';
 import Want from '@ohos.app.ability.Want';
 import display from '@ohos.display';
 import GlobalContext from './GlobalContext';
-import { BusinessError } from '@ohos.base';
 
 const TAG = 'PasteboardProgressAbility: ';
 const BG_COLOR = '#00000000';
@@ -52,21 +51,11 @@ export default class PasteboardProgressAbility extends ServiceExtensionAbility {
       }
       let displayClass = display.getDefaultDisplaySync();
       let navigationBarRect: IRect = {
-        left: 0,
-        top: 0,
-        width: displayClass.width,
-        height: displayClass.height,
+        left: this.getNumberValue(want.parameters?.rectLeft, 0),
+        top: this.getNumberValue(want.parameters?.rectTop, 0),
+        width: this.getNumberValue(want.parameters?.rectWidth, displayClass.width),
+        height: this.getNumberValue(want.parameters?.rectHeight, displayClass.height),
       };
-      if (canIUse('SystemCapability.Window.SessionManager')) {
-        await window.getVisibleWindowInfo().then((infos: window.WindowInfo[]) => {
-          const targetWindowId = want.parameters?.windowId as number;
-          const targetWindowInfo = infos.find(info => info.windowId === targetWindowId);
-          navigationBarRect = targetWindowInfo?.rect as IRect;
-          console.info(TAG + `targetWindowInfo rect is ${JSON.stringify(navigationBarRect)}`);
-        }).catch((err: BusinessError) => {
-          console.error(TAG + 'Failed to getWindowInfo. Cause: ' + JSON.stringify(err));
-        });
-      }
       this.createWindow(`PasteboardProgressDialog${startId}`, navigationBarRect, want);
     } catch (exception) {
       console.error(TAG + 'Failed to obtain the default display object. Code:' + JSON.stringify(exception))
@@ -77,9 +66,19 @@ export default class PasteboardProgressAbility extends ServiceExtensionAbility {
     console.info(TAG + 'PasteboardProgressAbility onDestroy.')
   }
 
+  private getNumberValue(value: Object | undefined, defaultValue: number): number {
+    if (value !== undefined && !isNaN(Number(value))) {
+      return Number(value);
+    }
+    return defaultValue;
+  }
+
   private checkWantParamsValid(want: Want): boolean {
     let validParam = true;
-    const requiredParams = ['windowId', 'progressKey', 'tokenKey', 'promptText', 'ipcCallback'];
+    const requiredParams = [
+      'progressKey', 'tokenKey', 'promptText', 'ipcCallback',
+      'rectLeft', 'rectTop', 'rectWidth', 'rectHeight'
+    ];
     const missingParams = requiredParams.filter(param =>!(Reflect.has((want.parameters || {}), param)));
     if (missingParams.length) {
       validParam = false;
