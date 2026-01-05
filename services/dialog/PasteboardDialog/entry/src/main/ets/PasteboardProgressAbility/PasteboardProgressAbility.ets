@@ -51,10 +51,10 @@ export default class PasteboardProgressAbility extends ServiceExtensionAbility {
       }
       let displayClass = display.getDefaultDisplaySync();
       let navigationBarRect: IRect = {
-        left: want.parameters?.rectLeft as number ?? 0,
-        top: want.parameters?.rectTop as number ?? 0,
-        width: want.parameters?.rectWidth as number ?? displayClass.width,
-        height: want.parameters?.rectHeight as number ?? displayClass.height,
+        left: this.getNumberValue(want.parameters?.rectLeft, 0),
+        top: this.getNumberValue(want.parameters?.rectTop, 0),
+        width: this.getNumberValue(want.parameters?.rectWidth, displayClass.width),
+        height: this.getNumberValue(want.parameters?.rectHeight, displayClass.height),
       };
       this.createWindow(`PasteboardProgressDialog${startId}`, navigationBarRect, want);
     } catch (exception) {
@@ -64,6 +64,13 @@ export default class PasteboardProgressAbility extends ServiceExtensionAbility {
 
   onDestroy(): void {
     console.info(TAG + 'PasteboardProgressAbility onDestroy.')
+  }
+
+  private getNumberValue(value: Object, defaultValue: number): number {
+    if (value!== undefined && !isNaN(Number(value))) {
+      return Number(value);
+    }
+    return defaultValue;
   }
 
   private checkWantParamsValid(want: Want): boolean {
