@@ -4354,7 +4354,7 @@ std::shared_ptr<ClipPlugin> PasteboardService::GetClipPlugin()
     };
 
     clipPlugin_ = std::shared_ptr<ClipPlugin>(ClipPlugin::CreatePlugin(PLUGIN_NAME), release);
-    RegisterPreSyncCallback(clipPlugin_);
+    InitPlugin(clipPlugin_);
     return clipPlugin_;
 }
 
@@ -4425,7 +4425,7 @@ void PasteboardService::OnConfigChangeInner(bool isOn)
     };
 
     clipPlugin_ = std::shared_ptr<ClipPlugin>(ClipPlugin::CreatePlugin(PLUGIN_NAME), release);
-    RegisterPreSyncCallback(clipPlugin_);
+    InitPlugin(clipPlugin_);
 }
 
 std::string PasteboardService::GetAppLabel(uint32_t tokenId)
