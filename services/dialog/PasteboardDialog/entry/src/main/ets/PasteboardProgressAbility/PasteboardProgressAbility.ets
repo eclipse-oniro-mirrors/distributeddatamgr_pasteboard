@@ -66,8 +66,8 @@ export default class PasteboardProgressAbility extends ServiceExtensionAbility {
     console.info(TAG + 'PasteboardProgressAbility onDestroy.')
   }
 
-  private getNumberValue(value: Object, defaultValue: number): number {
-    if (value!== undefined && !isNaN(Number(value))) {
+  private getNumberValue(value: Object | undefined, defaultValue: number): number {
+    if (value !== undefined && !isNaN(Number(value))) {
       return Number(value);
     }
     return defaultValue;
