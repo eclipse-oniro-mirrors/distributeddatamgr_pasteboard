@@ -3132,18 +3132,18 @@ HWTEST_F(PasteboardServiceMockTest, ClearP2PEstablishTaskInfoTest, TestSize.Leve
 }
 
 /**
- * @tc.name: RegisterPreSyncCallbackTest
- * @tc.desc: RegisterPreSyncCallback
+ * @tc.name: InitPluginTest
+ * @tc.desc: InitPlugin
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, RegisterPreSyncCallbackTest, TestSize.Level1)
+HWTEST_F(PasteboardServiceMockTest, InitPluginTest, TestSize.Level1)
 {
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
-    tempPasteboard->RegisterPreSyncCallback(nullptr);
+    tempPasteboard->InitPlugin(nullptr);
     auto clipPlugin = std::make_shared<DefaultClip>();
     EXPECT_NE(clipPlugin, nullptr);
-    tempPasteboard->RegisterPreSyncCallback(clipPlugin);
+    tempPasteboard->InitPlugin(clipPlugin);
 }
 
 /**
