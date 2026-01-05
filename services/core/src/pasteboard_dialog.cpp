@@ -35,7 +35,10 @@ int32_t PasteboardDialog::ShowProgress(const ProgressMessageInfo &message)
     want.SetParam("remoteDeviceName", message.remoteDeviceName);
     want.SetParam("progressKey", message.progressKey);
     want.SetParam("isRemote", message.isRemote);
-    want.SetParam("windowId", message.windowId);
+    want.SetParam("rectLeft", message.left);
+    want.SetParam("rectTop", message.top);
+    want.SetParam("rectWidth", message.width);
+    want.SetParam("rectHeight", message.height);
     if (message.clientCallback != nullptr) {
         want.SetParam("ipcCallback", message.clientCallback);
     }

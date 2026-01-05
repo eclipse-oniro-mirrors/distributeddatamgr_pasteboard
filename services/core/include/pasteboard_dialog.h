@@ -26,7 +26,10 @@ public:
         std::string remoteDeviceName{ DEFAULT_LABEL };
         std::string progressKey{ DEFAULT_LABEL };
         bool isRemote { false };
-        int32_t windowId { 0 };
+        int32_t left { 0 };
+        int32_t top { 0 };
+        int32_t width { 0 };
+        int32_t height { 0 };
         sptr<IRemoteObject> callerToken { nullptr };
         sptr<IRemoteObject> clientCallback { nullptr };
     };
