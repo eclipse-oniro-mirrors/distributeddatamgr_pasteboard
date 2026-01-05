@@ -261,4 +261,19 @@ HWTEST_F(ClipPluginTest, ApplyAdvancedResourceTest, TestSize.Level0)
     int32_t result = clipPlugin.ApplyAdvancedResource(deviceId);
     ASSERT_EQ(0, result);
 }
+
+/**
+ * @tc.name: SetMaxLocalCapacityTest
+ * @tc.desc: SetMaxLocalCapacity.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(ClipPluginTest, SetMaxLocalCapacityTest, TestSize.Level0)
+{
+    auto clipPlugin = std::make_shared<CustomClipPlugin>();
+    ASSERT_NE(clipPlugin, nullptr);
+    int64_t maxLocalCapacity = 0;
+    clipPlugin->SetMaxLocalCapacity(maxLocalCapacity);
+}
 } // namespace OHOS::MiscServices

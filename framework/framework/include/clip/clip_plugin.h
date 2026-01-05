@@ -81,6 +81,7 @@ public:
     virtual void RegisterPreSyncCallback(const PreSyncCallback &callback);
     virtual void RegisterPreSyncMonitorCallback(const PreSyncMonitorCallback &callback);
     virtual void SendPreSyncEvent(int32_t userId);
+    virtual void SetMaxLocalCapacity(int64_t maxLocalCapacity);
 
 private:
     static std::map<std::string, Factory *> factories_;

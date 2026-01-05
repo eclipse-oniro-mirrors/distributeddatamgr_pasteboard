@@ -3395,7 +3395,7 @@ void PasteboardService::AddPreSyncP2pTimeoutTask(const std::string &networkId)
     ffrtTimer_->SetTimer(taskName, p2pTask, PRE_ESTABLISH_P2P_LINK_TIME);
 }
 
-void PasteboardService::RegisterPreSyncCallback(std::shared_ptr<ClipPlugin> clipPlugin)
+void PasteboardService::InitPlugin(std::shared_ptr<ClipPlugin> clipPlugin)
 {
     if (!clipPlugin) {
         return;
@@ -3403,6 +3403,7 @@ void PasteboardService::RegisterPreSyncCallback(std::shared_ptr<ClipPlugin> clip
     clipPlugin->RegisterPreSyncCallback(std::bind(&PasteboardService::PreEstablishP2PLinkCallback,
         this, std::placeholders::_1, std::placeholders::_2));
     clipPlugin->RegisterPreSyncMonitorCallback(std::bind(&PasteboardService::PreSyncSwitchMonitorCallback, this));
+    clipPlugin->SetMaxLocalCapacity(maxLocalCapacity_.load() / SIZE_K / SIZE_K);
 }
 
 bool PasteboardService::OpenP2PLinkForPreEstablish(const std::string &networkId, ClipPlugin *clipPlugin)
