@@ -26,9 +26,9 @@ napi_value GetCallbackErrorValue(napi_env env, int32_t errorCode)
 {
     napi_value result = nullptr;
     napi_value eCode = nullptr;
-    NAPI_CALL(env, napi_create_int32(env, errorCode, &eCode));
-    NAPI_CALL(env, napi_create_object(env, &result));
-    NAPI_CALL(env, napi_set_named_property(env, result, "code", eCode));
+    PASTEBOARD_CALL(napi_create_int32(env, errorCode, &eCode));
+    PASTEBOARD_CALL(napi_create_object(env, &result));
+    PASTEBOARD_CALL(napi_set_named_property(env, result, "code", eCode));
     return result;
 }
 
@@ -68,18 +68,18 @@ napi_value CreateNapiString(napi_env env, std::string str)
 bool GetValue(napi_env env, napi_value in, std::string &out)
 {
     napi_valuetype type = napi_undefined;
-    NAPI_CALL_BASE(env, napi_typeof(env, in, &type), false);
-    NAPI_ASSERT_BASE(env, type == napi_string, "Wrong argument type. String expected.", false);
+    PASTEBOARD_CALL_BASE(napi_typeof(env, in, &type), false);
+    PASTEBOARD_ASSERT_BASE(env, type == napi_string, "Wrong argument type. String expected.", 401, false);
 
     size_t len = 0;
-    NAPI_CALL_BASE(env, napi_get_value_string_utf8(env, in, nullptr, 0, &len), false);
+    PASTEBOARD_CALL_BASE(napi_get_value_string_utf8(env, in, nullptr, 0, &len), false);
     if (len < 0) {
         return false;
     }
 
     size_t length = 0;
     out.resize(len + STR_TAIL_LENGTH, 0);
-    NAPI_CALL_BASE(env, napi_get_value_string_utf8(env, in, out.data(), len + STR_TAIL_LENGTH, &length), false);
+    PASTEBOARD_CALL_BASE(napi_get_value_string_utf8(env, in, out.data(), len + STR_TAIL_LENGTH, &length), false);
     out.resize(len);
 
     return true;
@@ -89,7 +89,7 @@ bool GetValue(napi_env env, napi_value in, std::string &out)
 bool GetValue(napi_env env, napi_value in, std::set<MiscServices::Pattern> &out)
 {
     bool isArray = false;
-    NAPI_CALL_BASE(env, napi_is_array(env, in, &isArray), false);
+    PASTEBOARD_CALL_BASE(napi_is_array(env, in, &isArray), false);
     if (!isArray) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "Wrong argument type. pattern/uint32 array expected.");
         return false;
@@ -156,7 +156,7 @@ napi_status SetValue(napi_env env, std::set<Pattern> &in, napi_value &result)
 bool CheckArgsType(napi_env env, napi_value in, napi_valuetype expectedType, const char *message)
 {
     napi_valuetype type = napi_undefined;
-    NAPI_CALL_BASE(env, napi_typeof(env, in, &type), false);
+    PASTEBOARD_CALL_BASE(napi_typeof(env, in, &type), false);
     int32_t errCode = static_cast<int32_t>(JSErrorCode::INVALID_PARAMETERS);
     if (type != expectedType) {
         napi_throw_error(env, std::to_string(errCode).c_str(), message);
@@ -214,7 +214,7 @@ bool CheckArgs(napi_env env, napi_value *argv, size_t argc, std::string &mimeTyp
         }
     } else {
         bool isArrayBuffer = false;
-        NAPI_CALL_BASE(env, napi_is_arraybuffer(env, argv[1], &isArrayBuffer), false);
+        PASTEBOARD_CALL_BASE(napi_is_arraybuffer(env, argv[1], &isArrayBuffer), false);
         if (!CheckExpression(env, isArrayBuffer, JSErrorCode::INVALID_PARAMETERS,
             "Parameter error. The mimeType is not an arraybuffer.")) {
             return false;
@@ -247,7 +247,7 @@ bool CheckArgsMimeType(napi_env env, napi_value in, std::string &mimeType)
 bool CheckArgsArray(napi_env env, napi_value in, std::vector<std::string> &mimeTypes)
 {
     napi_valuetype type = napi_undefined;
-    NAPI_CALL_BASE(env, napi_typeof(env, in, &type), false);
+    PASTEBOARD_CALL_BASE(napi_typeof(env, in, &type), false);
     int32_t errCode = static_cast<int32_t>(JSErrorCode::INVALID_PARAMETERS);
     if (type != napi_object) {
         napi_throw_error(env, std::to_string(errCode).c_str(), "Wrong argument type. Object expected.");
@@ -255,16 +255,16 @@ bool CheckArgsArray(napi_env env, napi_value in, std::vector<std::string> &mimeT
     }
 
     bool isArray = false;
-    NAPI_CALL_BASE(env, napi_is_array(env, in, &isArray), false);
+    PASTEBOARD_CALL_BASE(napi_is_array(env, in, &isArray), false);
     if (!isArray) {
         return false;
     }
 
     uint32_t length = 0;
-    NAPI_CALL_BASE(env, napi_get_array_length(env, in, &length), false);
+    PASTEBOARD_CALL_BASE(napi_get_array_length(env, in, &length), false);
     napi_value element;
     for (uint32_t i = 0; i < length; i++) {
-        NAPI_CALL_BASE(env, napi_get_element(env, in, i, &element), false);
+        PASTEBOARD_CALL_BASE(napi_get_element(env, in, i, &element), false);
         std::string mimeType;
         if (!GetValue(env, element, mimeType)) {
             return false;
@@ -278,14 +278,14 @@ bool CheckArgsArray(napi_env env, napi_value in, std::vector<std::string> &mimeT
 bool CheckArgsFunc(napi_env env, napi_value in, napi_ref &provider)
 {
     napi_valuetype type = napi_undefined;
-    NAPI_CALL_BASE(env, napi_typeof(env, in, &type), false);
+    PASTEBOARD_CALL_BASE(napi_typeof(env, in, &type), false);
     int32_t errCode = static_cast<int32_t>(JSErrorCode::INVALID_PARAMETERS);
     if (type != napi_function) {
         napi_throw_error(env, std::to_string(errCode).c_str(), "Wrong argument type. function expected.");
         return false;
     }
 
-    NAPI_CALL_BASE(env, napi_create_reference(env, in, 1, &provider), false);
+    PASTEBOARD_CALL_BASE(napi_create_reference(env, in, 1, &provider), false);
 
     return true;
 }
@@ -294,21 +294,21 @@ bool CheckArgsVector(napi_env env, napi_value in,
     std::shared_ptr<std::vector<std::pair<std::string, std::shared_ptr<EntryValue>>>> result)
 {
     napi_valuetype valueType = napi_undefined;
-    NAPI_CALL_BASE(env, napi_typeof(env, in, &valueType), false);
+    PASTEBOARD_CALL_BASE(napi_typeof(env, in, &valueType), false);
     if (!CheckExpression(env, valueType == napi_object, JSErrorCode::INVALID_PARAMETERS,
         "Parameter error. When there is only one parameter, it must be a Record.")) {
         return false;
     }
     
     napi_value typeValueMap = nullptr;
-    NAPI_CALL_BASE(env, napi_get_property_names(env, in, &typeValueMap), false);
+    PASTEBOARD_CALL_BASE(napi_get_property_names(env, in, &typeValueMap), false);
     uint32_t length = 0;
-    NAPI_CALL_BASE(env, napi_get_array_length(env, typeValueMap, &length), false);
+    PASTEBOARD_CALL_BASE(napi_get_array_length(env, typeValueMap, &length), false);
 
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "length = %{public}u", length);
     for (uint32_t i = 0; i < length; i++) {
         napi_value mimeTypeNapi = nullptr;
-        NAPI_CALL_BASE(env, napi_get_element(env, typeValueMap, i, &mimeTypeNapi), false);
+        PASTEBOARD_CALL_BASE(napi_get_element(env, typeValueMap, i, &mimeTypeNapi), false);
         std::string mimeType;
         bool ret = CheckArgsMimeType(env, mimeTypeNapi, mimeType);
         if (!ret) {
@@ -316,7 +316,7 @@ bool CheckArgsVector(napi_env env, napi_value in,
         }
         napi_value value = nullptr;
         std::shared_ptr<EntryValue> entryValue = std::make_shared<EntryValue>();
-        NAPI_CALL_BASE(env, napi_get_property(env, in, mimeTypeNapi, &value), false);
+        PASTEBOARD_CALL_BASE(napi_get_property(env, in, mimeTypeNapi, &value), false);
         if (!GetNativeValue(env, mimeType, value, *entryValue)) {
             PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "GetNativeValue failed");
             return false;
@@ -422,7 +422,7 @@ napi_status ConvertEntryValue(napi_env env, napi_value *result, std::string &mim
         std::vector<uint8_t> dataArray = item->second;
         void *data = nullptr;
         size_t len = dataArray.size();
-        NAPI_CALL_BASE(env, napi_create_arraybuffer(env, len, &data, result), napi_generic_failure);
+        PASTEBOARD_CALL_BASE(napi_create_arraybuffer(env, len, &data, result), napi_generic_failure);
         if (memcpy_s(data, len, reinterpret_cast<const void *>(dataArray.data()), len) != 0) {
             PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "memcpy customData %{public}s failed, size=%{public}zu",
                 mimeType.c_str(), len);
@@ -435,11 +435,11 @@ napi_status ConvertEntryValue(napi_env env, napi_value *result, std::string &mim
 bool GetNativeValue(napi_env env, const std::string &type, napi_value valueNapi, EntryValue &value)
 {
     bool isArrayBuffer = false;
-    NAPI_CALL_BASE(env, napi_is_arraybuffer(env, valueNapi, &isArrayBuffer), false);
+    PASTEBOARD_CALL_BASE(napi_is_arraybuffer(env, valueNapi, &isArrayBuffer), false);
     if (isArrayBuffer) {
         void *data = nullptr;
         size_t dataLen = 0;
-        NAPI_CALL_BASE(env, napi_get_arraybuffer_info(env, valueNapi, &data, &dataLen), false);
+        PASTEBOARD_CALL_BASE(napi_get_arraybuffer_info(env, valueNapi, &data, &dataLen), false);
         value = std::vector<uint8_t>(reinterpret_cast<uint8_t *>(data), reinterpret_cast<uint8_t *>(data) + dataLen);
         return true;
     }
@@ -447,8 +447,8 @@ bool GetNativeValue(napi_env env, const std::string &type, napi_value valueNapi,
     napi_status status;
     napi_valuetype valueType = napi_undefined;
     status = napi_typeof(env, valueNapi, &valueType);
-    NAPI_ASSERT_BASE(env, status == napi_ok,
-        "Parameter error: parameter value type must be ValueType", false);
+    PASTEBOARD_ASSERT_BASE(env, status == napi_ok,
+        "Parameter error: parameter value type must be ValueType", 401, false);
     if (valueType == napi_object) {
         if (type == MIMETYPE_PIXELMAP) {
             value = std::shared_ptr<OHOS::Media::PixelMap>(nullptr);
@@ -470,7 +470,11 @@ bool GetNativeValue(napi_env env, const std::string &type, napi_value valueNapi,
         value = nullptr;
     }
     std::visit([&](auto &value) { status = NapiDataUtils::GetValue(env, valueNapi, value); }, value);
-    NAPI_ASSERT_BASE(env, status == napi_ok, "get unifiedRecord failed", false);
+
+    if (status != napi_ok) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "get unifiedRecord failed");
+        return false;
+    }
     return true;
 }
 } // namespace MiscServicesNapi

@@ -106,7 +106,7 @@ PasteDataNapi *PasteboardNapi::CreateDataCommon(napi_env env, napi_value in, std
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "GetValue failed");
         return nullptr;
     }
-    NAPI_CALL(env, PasteDataNapi::NewInstance(env, instance));
+    PASTEBOARD_CALL(PasteDataNapi::NewInstance(env, instance));
     PasteDataNapi *obj = nullptr;
     napi_status status = napi_unwrap(env, instance, reinterpret_cast<void **>(&obj));
     if (status != napi_ok) {
@@ -174,7 +174,7 @@ napi_value PasteboardNapi::CreatePixelMapData(napi_env env, napi_value in)
         return nullptr;
     }
     napi_value instance = nullptr;
-    NAPI_CALL(env, PasteDataNapi::NewInstance(env, instance));
+    PASTEBOARD_CALL(PasteDataNapi::NewInstance(env, instance));
     PasteDataNapi *obj = nullptr;
     napi_status status = napi_unwrap(env, instance, reinterpret_cast<void **>(&obj));
     if ((status != napi_ok) || (obj == nullptr)) {
@@ -196,7 +196,7 @@ napi_value PasteboardNapi::CreateWantData(napi_env env, napi_value in)
         return nullptr;
     }
     napi_value instance = nullptr;
-    NAPI_CALL(env, PasteDataNapi::NewInstance(env, instance));
+    PASTEBOARD_CALL(PasteDataNapi::NewInstance(env, instance));
     PasteDataNapi *obj = nullptr;
     napi_status status = napi_unwrap(env, instance, reinterpret_cast<void **>(&obj));
     if ((status != napi_ok) || (obj == nullptr)) {
@@ -213,7 +213,7 @@ napi_value PasteboardNapi::CreateMultiTypeData(napi_env env,
 {
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "CreateMultiTypeData is called!");
     napi_value instance = nullptr;
-    NAPI_CALL(env, PasteDataNapi::NewInstance(env, instance));
+    PASTEBOARD_CALL(PasteDataNapi::NewInstance(env, instance));
     PasteDataNapi *obj = nullptr;
     napi_status status = napi_unwrap(env, instance, reinterpret_cast<void **>(&obj));
     if ((status != napi_ok) || (obj == nullptr)) {
@@ -239,7 +239,7 @@ napi_value PasteboardNapi::CreateMultiTypeDelayData(napi_env env, std::vector<st
 {
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "CreateMultiTypeDelayData is called!");
     napi_value instance = nullptr;
-    NAPI_CALL(env, PasteDataNapi::NewInstance(env, instance));
+    PASTEBOARD_CALL(PasteDataNapi::NewInstance(env, instance));
     PasteDataNapi *obj = nullptr;
     napi_status status = napi_unwrap(env, instance, reinterpret_cast<void **>(&obj));
     if ((status != napi_ok) || (obj == nullptr)) {
@@ -506,7 +506,7 @@ napi_value PasteboardNapi::JSCreateKvData(
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "JSCreateKvData is called!");
 
     napi_value instance = nullptr;
-    NAPI_CALL(env, PasteDataNapi::NewInstance(env, instance));
+    PASTEBOARD_CALL(PasteDataNapi::NewInstance(env, instance));
     PasteDataNapi *obj = nullptr;
     napi_status status = napi_unwrap(env, instance, reinterpret_cast<void **>(&obj));
     if ((status != napi_ok) || (obj == nullptr)) {

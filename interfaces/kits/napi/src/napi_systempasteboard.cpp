@@ -1127,14 +1127,14 @@ void SystemPasteboardNapi::CallJsProgressNotify(napi_env env, napi_value jsFunct
     info = nullptr;
 
     napi_value percentage;
-    NAPI_CALL_RETURN_VOID(env, napi_create_int32(env, progress, &percentage));
+    PASTEBOARD_CALL_RETURN_VOID(napi_create_int32(env, progress, &percentage));
 
     napi_value progressInfo = nullptr;
-    NAPI_CALL_RETURN_VOID(env, napi_create_object(env, &progressInfo));
-    NAPI_CALL_RETURN_VOID(env, napi_set_named_property(env, progressInfo, "progress", percentage));
+    PASTEBOARD_CALL_RETURN_VOID(napi_create_object(env, &progressInfo));
+    PASTEBOARD_CALL_RETURN_VOID(napi_set_named_property(env, progressInfo, "progress", percentage));
 
     napi_value argv[AGR_COUNT] = { progressInfo };
-    NAPI_CALL_RETURN_VOID(env, napi_call_function(env, NULL, jsFunction, AGR_COUNT, argv, NULL));
+    PASTEBOARD_CALL_RETURN_VOID(napi_call_function(env, NULL, jsFunction, AGR_COUNT, argv, NULL));
 }
 
 bool SystemPasteboardNapi::CreateThreadSafeFunc(napi_env env, const std::shared_ptr<ProgressListenerFn> listenerFn)
@@ -1146,7 +1146,7 @@ bool SystemPasteboardNapi::CreateThreadSafeFunc(napi_env env, const std::shared_
         return false;
     }
 
-    NAPI_CALL_BASE(env, napi_create_string_utf8(env, "progressNotify", MAX_LISTENER_LEN, &name), false);
+    PASTEBOARD_CALL_BASE(napi_create_string_utf8(env, "progressNotify", MAX_LISTENER_LEN, &name), false);
     napi_status status = napi_create_threadsafe_function(env, listenerFn->jsCallback, NULL, name, 0, 1, NULL,
         NULL, NULL, CallJsProgressNotify, &listenerFn->tsFunction);
     if (status != napi_ok) {
@@ -1178,7 +1178,7 @@ bool SystemPasteboardNapi::AddProgressListener(napi_env env, std::shared_ptr<Mis
 bool SystemPasteboardNapi::CheckParamsType(napi_env env, napi_value in, napi_valuetype expectedType)
 {
     napi_valuetype type = napi_undefined;
-    NAPI_CALL_BASE(env, napi_typeof(env, in, &type), false);
+    PASTEBOARD_CALL_BASE(napi_typeof(env, in, &type), false);
     if (type != expectedType) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "invalid parameters!");
         return false;
@@ -1191,10 +1191,10 @@ bool SystemPasteboardNapi::ParseJsGetDataWithProgress(napi_env env, napi_value i
 {
     #define MAX_DESTURI_LEN 250
     napi_value destUri = nullptr;
-    NAPI_CALL_BASE(env, napi_get_named_property(env, in, "destUri", &destUri), false);
+    PASTEBOARD_CALL_BASE(napi_get_named_property(env, in, "destUri", &destUri), false);
     if (CheckParamsType(env, destUri, napi_string)) {
         size_t destUriLen = 0;
-        NAPI_CALL_BASE(env, napi_get_value_string_utf8(env, destUri, nullptr, 0, &destUriLen), false);
+        PASTEBOARD_CALL_BASE(napi_get_value_string_utf8(env, destUri, nullptr, 0, &destUriLen), false);
         if (destUriLen <= 0 || destUriLen > MAX_DESTURI_LEN) {
             PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "destUriLen check failed!");
             return false;
@@ -1204,24 +1204,24 @@ bool SystemPasteboardNapi::ParseJsGetDataWithProgress(napi_env env, napi_value i
             PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "malloc failed, uri is nullptr.");
             return false;
         }
-        NAPI_CALL_BASE(env, napi_get_value_string_utf8(env, destUri, uri, destUriLen + 1, &destUriLen), false);
+        PASTEBOARD_CALL_BASE(napi_get_value_string_utf8(env, destUri, uri, destUriLen + 1, &destUriLen), false);
         getDataParam->destUri = uri;
         free(uri);
     }
     napi_value fileConflictOption;
-    NAPI_CALL_BASE(env, napi_get_named_property(env, in, "fileConflictOptions", &fileConflictOption), false);
+    PASTEBOARD_CALL_BASE(napi_get_named_property(env, in, "fileConflictOptions", &fileConflictOption), false);
     getDataParam->fileConflictOption = FILE_OVERWRITE;
     if (CheckParamsType(env, fileConflictOption, napi_number)) {
-        NAPI_CALL_BASE(env, napi_get_value_int32(env, fileConflictOption,
+        PASTEBOARD_CALL_BASE(napi_get_value_int32(env, fileConflictOption,
             reinterpret_cast<int *>(&getDataParam->fileConflictOption)), false);
     }
     napi_value progressIndicator;
-    NAPI_CALL_BASE(env, napi_get_named_property(env, in, "progressIndicator", &progressIndicator), false);
-    NAPI_CALL_BASE(env, napi_get_value_int32(env, progressIndicator,
+    PASTEBOARD_CALL_BASE(napi_get_named_property(env, in, "progressIndicator", &progressIndicator), false);
+    PASTEBOARD_CALL_BASE(napi_get_value_int32(env, progressIndicator,
         reinterpret_cast<int *>(&getDataParam->progressIndicator)), false);
 
     std::shared_ptr<ProgressListenerFn> listenerFn = std::make_shared<ProgressListenerFn>();
-    NAPI_CALL_BASE(env, napi_get_named_property(env, in, "progressListener", &listenerFn->jsCallback), false);
+    PASTEBOARD_CALL_BASE(napi_get_named_property(env, in, "progressListener", &listenerFn->jsCallback), false);
     if (CheckParamsType(env, listenerFn->jsCallback, napi_function)) {
         if (!AddProgressListener(env, getDataParam, listenerFn)) {
             PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "add listener failed!");

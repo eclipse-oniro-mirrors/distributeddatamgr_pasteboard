@@ -427,7 +427,7 @@ napi_status NapiDataUtils::SetValue(napi_env env, const std::shared_ptr<UDMF::Ob
             auto array = std::get<std::vector<uint8_t>>(value);
             void *data = nullptr;
             size_t len = array.size();
-            NAPI_CALL_BASE(env, napi_create_arraybuffer(env, len, &data, &valueNapi), napi_generic_failure);
+            PASTEBOARD_CALL_BASE(napi_create_arraybuffer(env, len, &data, &valueNapi), napi_generic_failure);
             if (memcpy_s(data, len, reinterpret_cast<const void *>(array.data()), len) != 0) {
                 PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "memcpy udmf %{public}s failed, size=%{public}zu",
                     key.c_str(), len);
@@ -530,10 +530,14 @@ napi_value NapiDataUtils::DefineClass(napi_env env, const std::string &name,
         hasProp = false; // no constructor.
     }
 
-    NAPI_CALL_BASE(env,
+    PASTEBOARD_CALL_BASE(
         napi_define_class(env, name.c_str(), name.size(), newCb, nullptr, count, properties, &constructor),
         nullptr);
-    NAPI_ASSERT(env, constructor != nullptr, "napi_define_class failed!");
+
+    if (constructor == nullptr) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "napi_define_class failed!");
+        return nullptr;
+    }
 
     if (!hasProp) {
         napi_set_named_property(env, root, propName.c_str(), constructor);

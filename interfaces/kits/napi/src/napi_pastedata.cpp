@@ -301,7 +301,7 @@ PasteDataNapi *PasteDataNapi::RemoveAndGetRecordCommon(napi_env env, napi_callba
     size_t argc = ARGC_TYPE_SET1;
     napi_value argv[ARGC_TYPE_SET1] = { 0 };
     napi_value thisVar = nullptr;
-    NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, NULL));
+    PASTEBOARD_CALL(napi_get_cb_info(env, info, &argc, argv, &thisVar, NULL));
 
     if ((!CheckExpression(env, argc > ARGC_TYPE_SET0, JSErrorCode::INVALID_PARAMETERS,
         "Parameter error. The number of arguments must be greater than zero.")) ||
@@ -314,7 +314,7 @@ PasteDataNapi *PasteDataNapi::RemoveAndGetRecordCommon(napi_env env, napi_callba
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "Get RemoveRecord object failed");
         return nullptr;
     }
-    NAPI_CALL(env, napi_get_value_uint32(env, argv[0], &index));
+    PASTEBOARD_CALL(napi_get_value_uint32(env, argv[0], &index));
     return obj;
 }
 
@@ -527,19 +527,19 @@ bool PasteDataNapi::SetStringProp(
 std::shared_ptr<MiscServices::PasteDataRecord> PasteDataNapi::ParseRecord(napi_env env, napi_value &recordNapi)
 {
     napi_value propNames = nullptr;
-    NAPI_CALL(env, napi_get_property_names(env, recordNapi, &propNames));
+    PASTEBOARD_CALL(napi_get_property_names(env, recordNapi, &propNames));
     uint32_t propNameNums = 0;
-    NAPI_CALL(env, napi_get_array_length(env, propNames, &propNameNums));
+    PASTEBOARD_CALL(napi_get_array_length(env, propNames, &propNameNums));
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_JS_NAPI, "propNameNums = %{public}u", propNameNums);
     PasteDataRecord::Builder builder("");
     for (uint32_t i = 0; i < propNameNums; i++) {
         napi_value propNameNapi = nullptr;
-        NAPI_CALL(env, napi_get_element(env, propNames, i, &propNameNapi));
+        PASTEBOARD_CALL(napi_get_element(env, propNames, i, &propNameNapi));
         size_t len = 0;
         char str[STR_MAX_SIZE] = { 0 };
-        NAPI_CALL(env, napi_get_value_string_utf8(env, propNameNapi, str, STR_MAX_SIZE - STR_TAIL_LENGTH, &len));
+        PASTEBOARD_CALL(napi_get_value_string_utf8(env, propNameNapi, str, STR_MAX_SIZE - STR_TAIL_LENGTH, &len));
         napi_value propValueNapi = nullptr;
-        NAPI_CALL(env, napi_get_named_property(env, recordNapi, str, &propValueNapi));
+        PASTEBOARD_CALL(napi_get_named_property(env, recordNapi, str, &propValueNapi));
         std::string propName = str;
         PASTEBOARD_HILOGI(PASTEBOARD_MODULE_JS_NAPI, "propName = %{public}s,", propName.c_str());
 
@@ -919,15 +919,15 @@ void PasteDataNapi::SetProperty(napi_env env, napi_value in, PasteDataNapi *obj)
 bool PasteDataNapi::IsProperty(napi_env env, napi_value in)
 {
     napi_valuetype valueType = napi_undefined;
-    NAPI_CALL_BASE(env, napi_typeof(env, in, &valueType), false);
+    PASTEBOARD_CALL_BASE(napi_typeof(env, in, &valueType), false);
     if (valueType != napi_object) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "valueType invalid");
         return false;
     }
     napi_value propertyNames = nullptr;
-    NAPI_CALL_BASE(env, napi_get_property_names(env, in, &propertyNames), false);
+    PASTEBOARD_CALL_BASE(napi_get_property_names(env, in, &propertyNames), false);
     uint32_t propertyNamesNum = 0;
-    NAPI_CALL_BASE(env, napi_get_array_length(env, propertyNames, &propertyNamesNum), false);
+    PASTEBOARD_CALL_BASE(napi_get_array_length(env, propertyNames, &propertyNamesNum), false);
     bool hasProperty = false;
     const char *key[] = { "additions", "mimeTypes", "tag", "timestamp", "localOnly", "shareOption" };
     const napi_valuetype type[] = { napi_object, napi_object, napi_string, napi_number, napi_boolean, napi_number };
@@ -937,22 +937,22 @@ bool PasteDataNapi::IsProperty(napi_env env, napi_value in)
     }
     napi_value propertyValue = nullptr;
     for (uint32_t i = 0; i < propertyNamesNum; i++) {
-        NAPI_CALL_BASE(env, napi_has_named_property(env, in, key[i], &hasProperty), false);
+        PASTEBOARD_CALL_BASE(napi_has_named_property(env, in, key[i], &hasProperty), false);
         if (!hasProperty) {
             PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "hasProperty is false");
             return false;
         }
-        NAPI_CALL_BASE(env, napi_get_named_property(env, in, key[i], &propertyValue), false);
+        PASTEBOARD_CALL_BASE(napi_get_named_property(env, in, key[i], &propertyValue), false);
         if (i == ARGC_TYPE_SET1) {
             bool isArray = false;
-            NAPI_CALL_BASE(env, napi_is_array(env, propertyValue, &isArray), false);
+            PASTEBOARD_CALL_BASE(napi_is_array(env, propertyValue, &isArray), false);
             if (!isArray) {
                 PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "isArray is false");
                 return false;
             }
             continue;
         }
-        NAPI_CALL_BASE(env, napi_typeof(env, propertyValue, &valueType), false);
+        PASTEBOARD_CALL_BASE(napi_typeof(env, propertyValue, &valueType), false);
         if (valueType != type[i]) {
             PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "valueType not equal %{public}d", type[i]);
             return false;
@@ -1083,14 +1083,14 @@ bool PasteDataNapi::IsPasteData(napi_env env, napi_value in)
 {
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "enter");
     napi_valuetype type = napi_undefined;
-    NAPI_CALL_BASE(env, napi_typeof(env, in, &type), false);
+    PASTEBOARD_CALL_BASE(napi_typeof(env, in, &type), false);
     if (type != napi_object) {
         return false;
     }
     napi_value constructor;
     bool isPasteData = false;
-    NAPI_CALL_BASE(env, napi_get_reference_value(env, g_pasteData, &constructor), false);
-    NAPI_CALL_BASE(env, napi_instanceof(env, in, constructor, &isPasteData), false);
+    PASTEBOARD_CALL_BASE(napi_get_reference_value(env, g_pasteData, &constructor), false);
+    PASTEBOARD_CALL_BASE(napi_instanceof(env, in, constructor, &isPasteData), false);
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "isPasteData is [%{public}d]", isPasteData);
     return isPasteData;
 }
