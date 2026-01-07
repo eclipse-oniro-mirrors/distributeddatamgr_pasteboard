@@ -133,43 +133,6 @@ static constexpr OHOS::HiviewDFX::HiLogLabel PASTEBOARD[PASTEBOARD_MODULE_BUTT] 
     CHECK_AND_RETURN_LOG_INNER(cond, PASTEBOARD_HILOGW, label, fmt, ##__VA_ARGS__)
 #define PASTEBOARD_CHECK_AND_RETURN_LOGE(cond, label, fmt, ...) \
     CHECK_AND_RETURN_LOG_INNER(cond, PASTEBOARD_HILOGE, label, fmt, ##__VA_ARGS__)
-
-#define PASTEBOARD_RETVAL_NOTHING
-
-#define PASTEBOARD_ASSERT_BASE(env, assertion, message, code, retVal)                                      \
-    do {                                                                                              \
-        if (!(assertion)) {                                                                           \
-            napi_value errorObj = nullptr;                                                            \
-            napi_value errorCode = nullptr;                                                           \
-            napi_value errorMessage = nullptr;                                                        \
-            napi_create_int32(env, code, &errorCode);                                                 \
-            napi_create_string_utf8(env, message, NAPI_AUTO_LENGTH, &errorMessage);           \
-            napi_create_error(env, errorCode, errorMessage, &errorObj);                               \
-            napi_throw(env, errorObj);                                                                \
-            return retVal;                                                                            \
-        }                                                                                             \
-    } while (0)
-
-#define PASTEBOARD_ASSERT(env, assertion, message, code) PASTEBOARD_ASSERT_BASE(env, assertion, message, code, nullptr)
-
-#define PASTEBOARD_ASSERT_RETURN_VOID(env, assertion, message, code) \
-        PASTEBOARD_ASSERT_BASE(env, assertion, message, code, PASTEBOARD_RETVAL_NOTHING)
-
-#define PASTEBOARD_CALL_BASE(theCall, retVal)                                                                \
-    do {                                                                                                     \
-        if ((theCall) != napi_ok) {                                                                          \
-            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "napi call failed, theCall: %{public}s", #theCall); \
-            return retVal;                                                                                   \
-        }                                                                                                    \
-    } while (0)
-
-#define PASTEBOARD_CALL(theCall) PASTEBOARD_CALL_BASE(theCall, nullptr)
-
-#define PASTEBOARD_CALL_RETURN_VOID(theCall) PASTEBOARD_CALL_BASE(theCall, PASTEBOARD_RETVAL_NOTHING)
-
-
-
-
 } // namespace MiscServices
 } // namespace OHOS
 

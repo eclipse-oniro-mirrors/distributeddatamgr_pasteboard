@@ -204,7 +204,8 @@ std::shared_ptr<MineCustomData> PasteDataRecordNapi::GetNativeKvData(napi_env en
 {
     napi_valuetype valueType = napi_undefined;
     PASTEBOARD_CALL(napi_typeof(env, napiValue, &valueType));
-    PASTEBOARD_ASSERT(env, valueType == napi_object, "Wrong argument type. Object expected.", 401);
+    PASTEBOARD_ASSERT(env, valueType == napi_object, "Wrong argument type. Object expected.",
+        static_cast<int32_t>(MiscServices::JSErrorCode::INVALID_PARAMETERS));
 
     napi_value mimeTypes = nullptr;
     PASTEBOARD_CALL(napi_get_property_names(env, napiValue, &mimeTypes));

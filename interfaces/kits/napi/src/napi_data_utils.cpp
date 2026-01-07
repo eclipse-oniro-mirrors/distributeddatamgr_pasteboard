@@ -14,6 +14,7 @@
  */
 #include "napi_data_utils.h"
 #include "pasteboard_hilog.h"
+#include "pasteboard_custom_macro.h"
 
 using namespace OHOS::MiscServices;
 namespace OHOS {

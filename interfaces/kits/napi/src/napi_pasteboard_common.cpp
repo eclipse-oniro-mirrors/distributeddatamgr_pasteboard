@@ -69,7 +69,8 @@ bool GetValue(napi_env env, napi_value in, std::string &out)
 {
     napi_valuetype type = napi_undefined;
     PASTEBOARD_CALL_BASE(napi_typeof(env, in, &type), false);
-    PASTEBOARD_ASSERT_BASE(env, type == napi_string, "Wrong argument type. String expected.", 401, false);
+    PASTEBOARD_ASSERT_BASE(env, type == napi_string, "Wrong argument type. String expected.",
+        static_cast<int32_t>(MiscServices::JSErrorCode::INVALID_PARAMETERS), false);
 
     size_t len = 0;
     PASTEBOARD_CALL_BASE(napi_get_value_string_utf8(env, in, nullptr, 0, &len), false);
@@ -159,7 +160,7 @@ bool CheckArgsType(napi_env env, napi_value in, napi_valuetype expectedType, con
     PASTEBOARD_CALL_BASE(napi_typeof(env, in, &type), false);
     int32_t errCode = static_cast<int32_t>(JSErrorCode::INVALID_PARAMETERS);
     if (type != expectedType) {
-        napi_throw_error(env, std::to_string(errCode).c_str(), message);
+        ThrowNapiError(env, errCode, message);
         return false;
     }
     return true;
@@ -168,8 +169,7 @@ bool CheckArgsType(napi_env env, napi_value in, napi_valuetype expectedType, con
 bool CheckExpression(napi_env env, bool flag, MiscServices::JSErrorCode errCode, const char *message)
 {
     if (!flag) {
-        NAPI_CALL_BASE(
-            env, napi_throw_error(env, std::to_string(static_cast<int32_t>(errCode)).c_str(), message), false);
+        ThrowNapiError(env, static_cast<int32_t>(errCode), message);
         return false;
     }
     return true;
@@ -250,7 +250,7 @@ bool CheckArgsArray(napi_env env, napi_value in, std::vector<std::string> &mimeT
     PASTEBOARD_CALL_BASE(napi_typeof(env, in, &type), false);
     int32_t errCode = static_cast<int32_t>(JSErrorCode::INVALID_PARAMETERS);
     if (type != napi_object) {
-        napi_throw_error(env, std::to_string(errCode).c_str(), "Wrong argument type. Object expected.");
+        ThrowNapiError(env, errCode, "Wrong argument type. Object expected.");
         return false;
     }
 
@@ -281,7 +281,7 @@ bool CheckArgsFunc(napi_env env, napi_value in, napi_ref &provider)
     PASTEBOARD_CALL_BASE(napi_typeof(env, in, &type), false);
     int32_t errCode = static_cast<int32_t>(JSErrorCode::INVALID_PARAMETERS);
     if (type != napi_function) {
-        napi_throw_error(env, std::to_string(errCode).c_str(), "Wrong argument type. function expected.");
+        ThrowNapiError(env, errCode, "Wrong argument type. function expected.");
         return false;
     }
 
@@ -331,9 +331,7 @@ bool CheckRetCode(napi_env env, int32_t retCode, const std::vector<JSErrorCode> 
     auto errInfo = NapiDataUtils::GetErrInfo(static_cast<PasteboardError>(retCode));
     auto iter = std::find(focusErrCodes.begin(), focusErrCodes.end(), errInfo.first);
     if (iter != focusErrCodes.end()) {
-        NAPI_CALL_BASE(env,
-            napi_throw_error(env, std::to_string(static_cast<int32_t>(errInfo.first)).c_str(), errInfo.second.c_str()),
-            false);
+        ThrowNapiError(env, static_cast<int32_t>(errInfo.first), errInfo.second.c_str());
         return false;
     }
     return true;
@@ -448,7 +446,8 @@ bool GetNativeValue(napi_env env, const std::string &type, napi_value valueNapi,
     napi_valuetype valueType = napi_undefined;
     status = napi_typeof(env, valueNapi, &valueType);
     PASTEBOARD_ASSERT_BASE(env, status == napi_ok,
-        "Parameter error: parameter value type must be ValueType", 401, false);
+        "Parameter error: parameter value type must be ValueType",
+        static_cast<int32_t>(MiscServices::JSErrorCode::INVALID_PARAMETERS), false);
     if (valueType == napi_object) {
         if (type == MIMETYPE_PIXELMAP) {
             value = std::shared_ptr<OHOS::Media::PixelMap>(nullptr);
@@ -476,6 +475,17 @@ bool GetNativeValue(napi_env env, const std::string &type, napi_value valueNapi,
         return false;
     }
     return true;
+}
+
+void ThrowNapiError(napi_env env, int32_t errCode, const std::string &errMessage)
+{
+    napi_value errorObj = nullptr;
+    napi_value errorCode = nullptr;
+    napi_value errorMessage = nullptr;
+    napi_create_int32(env, errCode, &errorCode);
+    napi_create_string_utf8(env, errMessage.c_str(), NAPI_AUTO_LENGTH, &errorMessage);
+    napi_create_error(env, errorCode, errorMessage, &errorObj);
+    napi_throw(env, errorObj); 
 }
 } // namespace MiscServicesNapi
 } // namespace OHOS
