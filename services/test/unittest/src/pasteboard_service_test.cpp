@@ -1401,5 +1401,54 @@ HWTEST_F(PasteboardServiceTest, UpdateAgedTimeTest001, TestSize.Level1)
     tempPasteboard->UpdateAgedTime();
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "UpdateAgedTimeTest001 end");
 }
+
+/**
+ * @tc.name: clearInner001
+ * @tc.desc: test Func DetectPatterns, return PasteboardError::NO_DATA_ERROR.
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceTest, clearInner001, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "clearInner001 start");
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    ASSERT_NE(tempPasteboard, nullptr);
+
+    int32_t userId = 100;
+    std::shared_ptr<PasteData> pasteData = std::make_shared<PasteData>();
+    ASSERT_NE(pasteData, nullptr);
+
+    pasteData->AddTextRecord("hello");
+    tempPasteboard->clips_.InsertOrAssign(userId, pasteData);
+    auto appInfo = GetAppInfo(IPCSkeleton::GetCallingTokenID());
+    tempPasteboard->ClearInner(userId, appInfo);
+    auto [hasData, data] = clips_.Find(userId);
+    EXPECT_EQ(hasData, false);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "clearInner001 end");
+}
+
+/**
+ * @tc.name: clearInner002
+ * @tc.desc: test Func DetectPatterns, return PasteboardError::NO_DATA_ERROR.
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceTest, clearInner002, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "clearInner002 start");
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    ASSERT_NE(tempPasteboard, nullptr);
+
+    int32_t userId = 100;
+    std::shared_ptr<PasteData> pasteData = std::make_shared<PasteData>();
+    ASSERT_NE(pasteData, nullptr);
+
+    pasteData->AddTextRecord("hello");
+    tempPasteboard->clips_.InsertOrAssign(userId, pasteData);
+    auto appInfo = GetAppInfo(IPCSkeleton::GetCallingTokenID());
+    int32_t clearUserId = 101;
+    tempPasteboard->ClearInner(clearUserId, appInfo);
+    auto [hasData, data] = clips_.Find(userId);
+    EXPECT_EQ(hasData, true);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "clearInner002 end");
+}
 } // namespace MiscServices
 } // namespace OHOS
