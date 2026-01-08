@@ -475,12 +475,14 @@ int32_t PasteboardService::ClearByUser(int32_t userId)
 int32_t PasteboardService::ClearInner(int32_t userId, const AppInfo &appInfo)
 {
     RADAR_REPORT(DFX_CLEAR_PASTEBOARD, DFX_MANUAL_CLEAR, DFX_SUCCESS);
-    CleanDistributedData(userId);
-    auto it = clips_.Find(userId);
-    if (it.first) {
+    auto [hasData, data] = clips_.Find(userId);
+    if (hasData) {
         clips_.Erase(userId);
         delayDataId_ = 0;
         delayTokenId_ = 0;
+    }
+    CleanDistributedData(userId);
+    if (hasData) {
         std::string bundleName = GetAppBundleName(appInfo);
         NotifyObservers(bundleName, userId, PasteboardEventStatus::PASTEBOARD_CLEAR);
     }
