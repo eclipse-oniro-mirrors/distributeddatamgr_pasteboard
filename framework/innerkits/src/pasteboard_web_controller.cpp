@@ -544,7 +544,11 @@ void PasteboardWebController::ReplaceHtmlRecordContentByExtraUris(
         }
         std::map<std::string, std::vector<uint8_t>> customItemData = customData->GetItemData();
         for (auto &itemData : customItemData) {
-            for (uint32_t i = 0; i < itemData.second.size(); i += FOUR_BYTES) {
+            if (itemData.second.size() % 4 != 0) {
+                PASTEBOARD_HILOGW(PASTEBOARD_MODULE_COMMON, "itemData buffer size invalid");
+                continue;
+            }
+            for (uint32_t i = 0; i + 3 < itemData.second.size(); i += FOUR_BYTES) {
                 uint32_t offset = static_cast<uint32_t>(itemData.second[i]) |
                                   static_cast<uint32_t>(itemData.second[i + 1] << 8) |
                                   static_cast<uint32_t>(itemData.second[i + 2] << 16) |
@@ -559,6 +563,10 @@ void PasteboardWebController::ReplaceHtmlRecordContentByExtraUris(
     }
 
     for (const auto &replaceUri : replaceUris) {
+        if (replaceUri.first >= htmlData->size()) {
+            PASTEBOARD_HILOGW(PASTEBOARD_MODULE_COMMON, "replaceUri offset invalid");
+            continue;
+        }
         htmlData->replace(replaceUri.first, replaceUri.second.second.size(), replaceUri.second.first);
     }
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_COMMON, "replace uri count: %{public}zu", replaceUris.size());
