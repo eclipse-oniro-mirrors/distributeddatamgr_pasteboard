@@ -15,7 +15,7 @@
 #define LOG_TAG "PasteBoardAsyncCall"
 #include "async_call.h"
 #include "pasteboard_hilog.h"
-#include "pasteboard_custom_macro.h"
+#include "napi_pasteboard_assert.h"
 
 using namespace OHOS::MiscServices;
 

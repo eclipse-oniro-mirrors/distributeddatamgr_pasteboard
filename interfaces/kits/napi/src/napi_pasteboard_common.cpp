@@ -470,10 +470,8 @@ bool GetNativeValue(napi_env env, const std::string &type, napi_value valueNapi,
     }
     std::visit([&](auto &value) { status = NapiDataUtils::GetValue(env, valueNapi, value); }, value);
 
-    if (status != napi_ok) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "get unifiedRecord failed");
-        return false;
-    }
+    PASTEBOARD_ASSERT_BASE(env, status == napi_ok, "get unifiedRecord failed",
+                            static_cast<int32_t>(MiscServices::JSErrorCode::INVALID_PARAMETERS), false);
     return true;
 }
 
@@ -485,7 +483,8 @@ void ThrowNapiError(napi_env env, int32_t errCode, const std::string &errMessage
     napi_create_int32(env, errCode, &errorCode);
     napi_create_string_utf8(env, errMessage.c_str(), NAPI_AUTO_LENGTH, &errorMessage);
     napi_create_error(env, errorCode, errorMessage, &errorObj);
-    napi_throw(env, errorObj); 
+    napi_throw(env, errorObj);
+
 }
 } // namespace MiscServicesNapi
 } // namespace OHOS

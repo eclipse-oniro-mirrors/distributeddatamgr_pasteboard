@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef PASTEBOARD_CUSTOM_MACRO_H
-#define PASTEBOARD_CUSTOM_MACRO_H
+#ifndef NAPI_PASTEBOARD_ASSERT_H
+#define NAPI_PASTEBOARD_ASSERT_H
 
 #include "napi_init.h"
 
@@ -69,4 +69,4 @@
         }                                                                                               \
     } while (0)
 
-#endif // PASTEBOARD_CUSTOM_MACRO_H
+#endif // NAPI_PASTEBOARD_ASSERT_H

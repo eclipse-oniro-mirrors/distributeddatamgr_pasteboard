@@ -22,7 +22,7 @@
 #include "pasteboard_observer_napi.h"
 #include "pastedata_record_napi.h"
 #include "unified_data_napi.h"
-#include "pasteboard_custom_macro.h"
+#include "napi_pasteboard_assert.h"
 
 namespace OHOS {
 namespace MiscServicesNapi {
@@ -226,7 +226,7 @@ struct GetDataParamsContextInfo : public AsyncCall::Context {
     napi_status operator()(napi_env env, size_t argc, napi_value *argv, napi_value self) override
     {
         PASTEBOARD_ASSERT_BASE(env, self != nullptr, "self is nullptr",
-        static_cast<int32_t>(MiscServices::JSErrorCode::INVALID_PARAMETERS), napi_invalid_arg);
+                                static_cast<int32_t>(MiscServices::JSErrorCode::INVALID_PARAMETERS), napi_invalid_arg);
         return Context::operator()(env, argc, argv, self);
     }
     napi_status operator()(napi_env env, napi_value *result) override
