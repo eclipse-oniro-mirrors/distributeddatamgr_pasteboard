@@ -69,7 +69,7 @@ void PasteboardImgExtractor::FilterExistFileUris(std::vector<std::string> &uris,
 {
     std::vector<std::string> existFileUris;
     std::string userIdStr = std::to_string(userId);
-    uid_t callingUid = IPCSkeleton::GetCallingUid();
+    auto callingUid = IPCSkeleton::GetCallingUid();
     for (const std::string &uriStr : uris) {
         if (!AppFileService::SandboxHelper::IsValidPath(uriStr)) {
             PASTEBOARD_HILOGE(PASTEBOARD_MODULE_COMMON, "uri path invalid, uri=%{private}s", uriStr.c_str());
