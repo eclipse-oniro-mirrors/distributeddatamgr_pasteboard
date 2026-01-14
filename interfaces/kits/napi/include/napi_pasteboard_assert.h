@@ -20,18 +20,23 @@
 
 #define PASTEBOARD_RETVAL_NOTHING
 
-#define PASTEBOARD_ASSERT_BASE(env, assertion, message, code, retVal)                                      \
-    do {                                                                                              \
-        if (!(assertion)) {                                                                           \
-            napi_value errorObj = nullptr;                                                            \
-            napi_value errorCode = nullptr;                                                           \
-            napi_value errorMessage = nullptr;                                                        \
-            napi_create_int32(env, code, &errorCode);                                                 \
-            napi_create_string_utf8(env, message, NAPI_AUTO_LENGTH, &errorMessage);           \
-            napi_create_error(env, errorCode, errorMessage, &errorObj);                               \
-            napi_throw(env, errorObj);                                                                \
-            return retVal;                                                                            \
-        }                                                                                             \
+#define NAPI_CREATE_AND_THROW(env, code, message)                                                 \
+    do {                                                                                          \
+        napi_value errorObj = nullptr;                                                            \
+        napi_value errorCode = nullptr;                                                           \
+        napi_value errorMessage = nullptr;                                                        \
+        napi_create_int32(env, code, &errorCode);                                                 \
+        napi_create_string_utf8(env, message, NAPI_AUTO_LENGTH, &errorMessage);                   \
+        napi_create_error(env, errorCode, errorMessage, &errorObj);                               \
+        napi_throw(env, errorObj);                                                                \
+    } while (0)
+
+#define PASTEBOARD_ASSERT_BASE(env, assertion, message, code, retVal)                             \
+    do {                                                                                          \
+        if (!(assertion)) {                                                                       \
+            NAPI_CREATE_AND_THROW(env, code, message);                                            \
+            return retVal;                                                                        \
+        }                                                                                         \
     } while (0)
 
 #define PASTEBOARD_ASSERT(env, assertion, message, code) PASTEBOARD_ASSERT_BASE(env, assertion, message, code, nullptr)
@@ -50,23 +55,5 @@
 #define PASTEBOARD_CALL(theCall) PASTEBOARD_CALL_BASE(theCall, nullptr)
 
 #define PASTEBOARD_CALL_RETURN_VOID(theCall) PASTEBOARD_CALL_BASE(theCall, PASTEBOARD_RETVAL_NOTHING)
-
-#define PASTEBOARD_GET_AND_THROW_LAST_ERROR(env)                                                        \
-    do {                                                                                                \
-        const napi_extended_error_info* errorInfo = nullptr;                                            \
-        napi_get_last_error_info((env), &errorInfo);                                                    \
-        bool isPending = false;                                                                         \
-        napi_is_exception_pending((env), &isPending);                                                   \
-        if (!isPending && errorInfo != nullptr) {                                                       \
-            const char* errMessage =                                                                    \
-                errorInfo->error_message != nullptr ? errorInfo->error_message : "empty error message"; \
-                napi_value errorObj = nullptr;                                                          \
-                napi_value errorCode = nullptr;                                                         \
-                napi_value errorMessage = nullptr;                                                      \
-                napi_create_string_utf8(env, errMessage, NAPI_AUTO_LENGTH, &errorMessage);              \
-                napi_create_error(env, errorCode, errorMessage, &errorObj);                             \
-                napi_throw(env, errorObj);                                                              \
-        }                                                                                               \
-    } while (0)
 
 #endif // NAPI_PASTEBOARD_ASSERT_H

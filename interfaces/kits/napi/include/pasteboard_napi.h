@@ -18,16 +18,6 @@
 #include "pastedata_napi.h"
 namespace OHOS {
 namespace MiscServicesNapi {
-
-#define PASTEBOARD_ASSERT_CALL(env, theCall, object)    \
-    do {                                     \
-        if ((theCall) != napi_ok) {          \
-            delete (object);                 \
-            PASTEBOARD_GET_AND_THROW_LAST_ERROR((env)); \
-            return nullptr;                  \
-        }                                    \
-    } while (0)
-
 class PasteboardNapi {
 public:
     static napi_value PasteBoardInit(napi_env env, napi_value exports);

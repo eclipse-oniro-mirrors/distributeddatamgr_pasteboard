@@ -477,13 +477,7 @@ bool GetNativeValue(napi_env env, const std::string &type, napi_value valueNapi,
 
 void ThrowNapiError(napi_env env, int32_t errCode, const std::string &errMessage)
 {
-    napi_value errorObj = nullptr;
-    napi_value errorCode = nullptr;
-    napi_value errorMessage = nullptr;
-    napi_create_int32(env, errCode, &errorCode);
-    napi_create_string_utf8(env, errMessage.c_str(), NAPI_AUTO_LENGTH, &errorMessage);
-    napi_create_error(env, errorCode, errorMessage, &errorObj);
-    napi_throw(env, errorObj);
+    NAPI_CREATE_AND_THROW(env, errCode, errMessage.c_str());
 }
 } // namespace MiscServicesNapi
 } // namespace OHOS
