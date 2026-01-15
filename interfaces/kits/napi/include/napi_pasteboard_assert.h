@@ -56,4 +56,30 @@
 
 #define PASTEBOARD_CALL_RETURN_VOID(theCall) PASTEBOARD_CALL_BASE(theCall, PASTEBOARD_RETVAL_NOTHING)
 
+#define PASTEBOARD_GET_AND_THROW_LAST_ERROR(env)                                                         \
+     do {                                                                                                \
+         const napi_extended_error_info *errorInfo = nullptr;                                            \
+         napi_get_last_error_info((env), &errorInfo);                                                    \
+         bool isPending = false;                                                                         \
+         napi_is_exception_pending((env), &isPending);                                                   \
+         if (!isPending && errorInfo != nullptr) {                                                       \
+             const char *errMessage =                                                                    \
+                 errorInfo->error_message != nullptr ? errorInfo->error_message : "empty error message"; \
+             napi_value errorObj = nullptr;                                                              \
+             napi_value errorMessage = nullptr;                                                          \
+             napi_create_string_utf8(env, errMessage, NAPI_AUTO_LENGTH, &errorMessage);                  \
+             napi_create_error(env, nullptr, errorMessage, &errorObj);                                   \
+             napi_throw(env, errorObj);                                                                  \
+         }                                                                                               \
+     } while (0)
+
+#define PASTEBOARD_ASSERT_CALL(env, theCall, object)     \
+     do {                                                \
+         if ((theCall) != napi_ok) {                     \
+             delete (object);                            \
+             PASTEBOARD_GET_AND_THROW_LAST_ERROR((env)); \
+             return nullptr;                             \
+         }                                               \
+     } while (0)
+
 #endif // NAPI_PASTEBOARD_ASSERT_H

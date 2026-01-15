@@ -1053,7 +1053,7 @@ napi_value PasteDataNapi::New(napi_env env, napi_callback_info info)
     // get native object
     PasteDataNapi *obj = new PasteDataNapi();
     obj->env_ = env;
-    ASSERT_CALL(env, napi_wrap(env, thisVar, obj, PasteDataNapi::Destructor,
+    PASTEBOARD_ASSERT_CALL(env, napi_wrap(env, thisVar, obj, PasteDataNapi::Destructor,
                        nullptr, // finalize_hint
                        nullptr), obj);
     return thisVar;

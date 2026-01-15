@@ -60,7 +60,7 @@ napi_value ProgressSignalNapi::New(napi_env env, napi_callback_info info)
         return nullptr;
     }
     obj->env_ = env;
-    ASSERT_CALL(env, napi_wrap(env, thisVar, obj, ProgressSignalNapi::Destructor,
+    PASTEBOARD_ASSERT_CALL(env, napi_wrap(env, thisVar, obj, ProgressSignalNapi::Destructor,
                        nullptr, // finalize_hint
                        nullptr), obj);
     ProgressSignalClient::GetInstance().Init();
