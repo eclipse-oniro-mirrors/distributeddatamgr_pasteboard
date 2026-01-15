@@ -334,7 +334,7 @@ describe('PasteBoardJSTest', function () {
       pasteData.addRecord(pasteDataRecord);
       expect(true === false).assertTrue();
     } catch (error) {
-      expect(error.code).assertEqual(401);
+      expect(error.code).assertEqual('401');
       expect(error.message).assertEqual('Parameter error. The mimeType is not an arraybuffer.');
     }
     done();
@@ -478,7 +478,7 @@ describe('PasteBoardJSTest', function () {
       pasteData = pasteboard.createData(pasteboard.MIMETYPE_PIXELMAP, dataHtml);
       expect(true === false).assertTrue();
     } catch (e) {
-      expect(e.code).assertEqual(401);
+      expect(e.code).assertEqual('401');
       expect(e.message).assertEqual('Parameter error. Actual mimeType is not mimetype_pixelmap.');
     }
     done();
@@ -499,7 +499,7 @@ describe('PasteBoardJSTest', function () {
       pasteData = pasteboard.createData('x'.repeat(1034), dataHtml);
       expect(true === false).assertTrue();
     } catch (e) {
-      expect(e.code === 401).assertTrue();
+      expect(e.code === '401').assertTrue();
       expect(e.message === 'Parameter error. The length of mimeType cannot be greater than 1024 bytes.').assertTrue();
     }
     done();
@@ -570,7 +570,7 @@ describe('PasteBoardJSTest', function () {
       pasteData.addRecord('xxxx', uriText);
       expect(true === false).assertTrue();
     } catch (e) {
-      expect(e.code === 401).assertTrue();
+      expect(e.code === '401').assertTrue();
     }
     done();
   });
@@ -627,7 +627,7 @@ describe('PasteBoardJSTest', function () {
       let dataRecord = pasteData.getRecord(5);
       expect(true === false).assertTrue();
     } catch (e) {
-      expect(e.code === 12900001).assertTrue();
+      expect(e.code === '12900001').assertTrue();
     }
     done();
   });
@@ -666,7 +666,7 @@ describe('PasteBoardJSTest', function () {
       pasteData.replaceRecord(0, 'xxxxxx');
       expect(true === false).assertTrue();
     } catch (e) {
-      expect(e.code === 401).assertTrue();
+      expect(e.code === '401').assertTrue();
     }
     done();
   });
@@ -705,7 +705,7 @@ describe('PasteBoardJSTest', function () {
       systemPasteboard.setData('xxxxx');
       expect(true === false).assertTrue();
     } catch (e) {
-      expect(e.code === 401).assertTrue();
+      expect(e.code === '401').assertTrue();
       expect(e.message === 'Parameter error. The Type of data must be pasteData.').assertTrue();
     }
     done();
@@ -746,7 +746,7 @@ describe('PasteBoardJSTest', function () {
       pasteData.setProperty(obj);
       expect(true === false).assertTrue();
     } catch (e) {
-      expect(e.code === 401).assertTrue();
+      expect(e.code === '401').assertTrue();
       expect(e.message === 'Parameter error. The type of property must be PasteDataProperty.').assertTrue();
     }
     done();
@@ -765,7 +765,7 @@ describe('PasteBoardJSTest', function () {
       const pasteData = pasteboard.createData(pasteboard.MIMETYPE_TEXT_PLAIN, dataXml);
       expect(true === false).assertTrue();
     } catch (e) {
-      expect(e.code === 401).assertTrue();
+      expect(e.code === '401').assertTrue();
       expect(e.message === 'Parameter error. The type of value must be string.').assertTrue();
     }
     done();
@@ -784,7 +784,7 @@ describe('PasteBoardJSTest', function () {
       const pasteData = pasteboard.createData('xxxxx', textData);
       expect(true === false).assertTrue();
     } catch (e) {
-      expect(e.code === 401).assertTrue();
+      expect(e.code === '401').assertTrue();
       expect(e.message === 'Parameter error. The mimeType is not an arraybuffer.').assertTrue();
     }
     done();
@@ -801,7 +801,7 @@ describe('PasteBoardJSTest', function () {
       const pasteData = pasteboard.createData(pasteboard.MIMETYPE_PIXELMAP, {});
       expect(true === false).assertTrue();
     } catch (e) {
-      expect(e.code === 401).assertTrue();
+      expect(e.code === '401').assertTrue();
       expect(e.message === 'Parameter error. Actual mimeType is not mimetype_pixelmap.').assertTrue();
     }
     done();
@@ -1026,25 +1026,25 @@ describe('PasteBoardJSTest', function () {
     try {
       pasteRecord.addEntry(pasteboard.MIMETYPE_TEXT_URI, record[pasteboard.MIMETYPE_PIXELMAP]);
     } catch (err) {
-      expect(err.code).assertEqual(401);
+      expect(err.code).assertEqual('401');
     }
 
     try {
       pasteRecord.addEntry(pasteboard.MIMETYPE_PIXELMAP, record[pasteboard.MIMETYPE_TEXT_PLAIN]);
     } catch (err) {
-      expect(err.code).assertEqual(401);
+      expect(err.code).assertEqual('401');
     }
 
     try {
       pasteRecord.addEntry(pasteboard.MIMETYPE_TEXT_PLAIN, record[myType]);
     } catch (err) {
-      expect(err.code).assertEqual(401);
+      expect(err.code).assertEqual('401');
     }
 
     try {
       pasteRecord.addEntry(myType, record[pasteboard.MIMETYPE_TEXT_PLAIN]);
     } catch (err) {
-      expect(err.code).assertEqual(401);
+      expect(err.code).assertEqual('401');
     }
 
     await systemPasteboard.clearData();
