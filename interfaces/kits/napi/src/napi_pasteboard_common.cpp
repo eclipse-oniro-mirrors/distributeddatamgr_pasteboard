@@ -160,7 +160,7 @@ bool CheckArgsType(napi_env env, napi_value in, napi_valuetype expectedType, con
     PASTEBOARD_CALL_BASE(napi_typeof(env, in, &type), false);
     int32_t errCode = static_cast<int32_t>(JSErrorCode::INVALID_PARAMETERS);
     if (type != expectedType) {
-        NAPI_CREATE_AND_THROW(env, errCode, message);
+        napi_throw_error(env, std::to_string(errCode).c_str(), message);
         return false;
     }
     return true;
@@ -169,7 +169,8 @@ bool CheckArgsType(napi_env env, napi_value in, napi_valuetype expectedType, con
 bool CheckExpression(napi_env env, bool flag, MiscServices::JSErrorCode errCode, const char *message)
 {
     if (!flag) {
-        NAPI_CREATE_AND_THROW(env, static_cast<int32_t>(errCode), message);
+        NAPI_CALL_BASE(
+             env, napi_throw_error(env, std::to_string(static_cast<int32_t>(errCode)).c_str(), message), false);
         return false;
     }
     return true;
@@ -250,7 +251,7 @@ bool CheckArgsArray(napi_env env, napi_value in, std::vector<std::string> &mimeT
     PASTEBOARD_CALL_BASE(napi_typeof(env, in, &type), false);
     int32_t errCode = static_cast<int32_t>(JSErrorCode::INVALID_PARAMETERS);
     if (type != napi_object) {
-        NAPI_CREATE_AND_THROW(env, errCode, "Wrong argument type. Object expected.");
+        napi_throw_error(env, std::to_string(errCode).c_str(), "Wrong argument type. Object expected.");
         return false;
     }
 
@@ -281,7 +282,7 @@ bool CheckArgsFunc(napi_env env, napi_value in, napi_ref &provider)
     PASTEBOARD_CALL_BASE(napi_typeof(env, in, &type), false);
     int32_t errCode = static_cast<int32_t>(JSErrorCode::INVALID_PARAMETERS);
     if (type != napi_function) {
-        NAPI_CREATE_AND_THROW(env, errCode, "Wrong argument type. function expected.");
+        napi_throw_error(env, std::to_string(errCode).c_str(), "Wrong argument type. function expected.");
         return false;
     }
 
