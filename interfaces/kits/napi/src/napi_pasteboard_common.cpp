@@ -160,7 +160,7 @@ bool CheckArgsType(napi_env env, napi_value in, napi_valuetype expectedType, con
     PASTEBOARD_CALL_BASE(napi_typeof(env, in, &type), false);
     int32_t errCode = static_cast<int32_t>(JSErrorCode::INVALID_PARAMETERS);
     if (type != expectedType) {
-        ThrowNapiError(env, errCode, message);
+        NAPI_CREATE_AND_THROW(env, errCode, message);
         return false;
     }
     return true;
@@ -169,7 +169,7 @@ bool CheckArgsType(napi_env env, napi_value in, napi_valuetype expectedType, con
 bool CheckExpression(napi_env env, bool flag, MiscServices::JSErrorCode errCode, const char *message)
 {
     if (!flag) {
-        ThrowNapiError(env, static_cast<int32_t>(errCode), message);
+        NAPI_CREATE_AND_THROW(env, static_cast<int32_t>(errCode), message);
         return false;
     }
     return true;
@@ -250,7 +250,7 @@ bool CheckArgsArray(napi_env env, napi_value in, std::vector<std::string> &mimeT
     PASTEBOARD_CALL_BASE(napi_typeof(env, in, &type), false);
     int32_t errCode = static_cast<int32_t>(JSErrorCode::INVALID_PARAMETERS);
     if (type != napi_object) {
-        ThrowNapiError(env, errCode, "Wrong argument type. Object expected.");
+        NAPI_CREATE_AND_THROW(env, errCode, "Wrong argument type. Object expected.");
         return false;
     }
 
@@ -281,7 +281,7 @@ bool CheckArgsFunc(napi_env env, napi_value in, napi_ref &provider)
     PASTEBOARD_CALL_BASE(napi_typeof(env, in, &type), false);
     int32_t errCode = static_cast<int32_t>(JSErrorCode::INVALID_PARAMETERS);
     if (type != napi_function) {
-        ThrowNapiError(env, errCode, "Wrong argument type. function expected.");
+        NAPI_CREATE_AND_THROW(env, errCode, "Wrong argument type. function expected.");
         return false;
     }
 
@@ -331,7 +331,7 @@ bool CheckRetCode(napi_env env, int32_t retCode, const std::vector<JSErrorCode> 
     auto errInfo = NapiDataUtils::GetErrInfo(static_cast<PasteboardError>(retCode));
     auto iter = std::find(focusErrCodes.begin(), focusErrCodes.end(), errInfo.first);
     if (iter != focusErrCodes.end()) {
-        ThrowNapiError(env, static_cast<int32_t>(errInfo.first), errInfo.second.c_str());
+        NAPI_CREATE_AND_THROW(env, static_cast<int32_t>(errInfo.first), errInfo.second.c_str());
         return false;
     }
     return true;
@@ -473,11 +473,6 @@ bool GetNativeValue(napi_env env, const std::string &type, napi_value valueNapi,
     PASTEBOARD_ASSERT_BASE(env, status == napi_ok, "get unifiedRecord failed",
         static_cast<int32_t>(MiscServices::JSErrorCode::INVALID_PARAMETERS), false);
     return true;
-}
-
-void ThrowNapiError(napi_env env, int32_t errCode, const std::string &errMessage)
-{
-    NAPI_CREATE_AND_THROW(env, errCode, errMessage.c_str());
 }
 } // namespace MiscServicesNapi
 } // namespace OHOS

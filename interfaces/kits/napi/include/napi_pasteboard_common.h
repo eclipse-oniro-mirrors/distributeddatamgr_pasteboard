@@ -45,7 +45,6 @@ bool UnifiedContextSetErr(const std::shared_ptr<GetUnifiedContextInfo> context, 
 napi_status ConvertEntryValue(napi_env env, napi_value *result, std::string &udtType,
     std::shared_ptr<MiscServices::PasteDataEntry> value);
 bool GetNativeValue(napi_env env, const std::string &type, napi_value valueNapi, MiscServices::EntryValue &value);
-void ThrowNapiError(napi_env env, int32_t errCode, const std::string &errMessage);
 } // namespace MiscServicesNapi
 } // namespace OHOS
 #endif
