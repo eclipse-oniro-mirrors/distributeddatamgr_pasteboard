@@ -154,6 +154,7 @@ interface SystemPasteboard {
     OffUpdate(callback: Optional<() => void>): void;
     OnRemoteUpdate(callback: () => void): void;
     OffRemoteUpdate(callback: Optional<() => void>): void;
+    HasRemoteData(): bool;
 
     @gen_async("clearData")
     @gen_promise("clearData")

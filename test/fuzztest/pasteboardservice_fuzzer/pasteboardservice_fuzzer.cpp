@@ -193,6 +193,12 @@ public:
         return 0;
     }
 
+    int32_t HasRemoteData(bool& funcResult) override
+    {
+        (void)funcResult;
+        return 0;
+    }
+
     int32_t HasDataType(const std::string &mimeType, bool& funcResult) override
     {
         (void)mimeType;

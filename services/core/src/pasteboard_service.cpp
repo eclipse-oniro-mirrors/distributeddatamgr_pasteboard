@@ -47,6 +47,7 @@
 #include "pasteboard_hilog.h"
 #include "pasteboard_event_dfx.h"
 #include "pasteboard_event_ue.h"
+#include "pasteboard_img_extractor.h"
 #include "pasteboard_pattern.h"
 #include "pasteboard_time.h"
 #include "pasteboard_trace.h"
@@ -1384,6 +1385,17 @@ int32_t PasteboardService::CheckAndGrantRemoteUri(PasteData &data, const AppInfo
     return GrantUriPermission(grantUris, appInfo.bundleName, isRemoteData, appInfo.appIndex);
 }
 
+bool PasteboardService::RemoteDataTaskManager::IsRemoteDataPasting(const Event &event)
+{
+    auto key = event.deviceId + std::to_string(event.seqId);
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto it = dataTasks_.find(key);
+    if (it == dataTasks_.end()) {
+        return false;
+    }
+    return it->second->pasting_;
+}
+
 int32_t PasteboardService::GetData(uint32_t tokenId, PasteData &data, int32_t &syncTime, bool &isPeerOnline,
     std::string &peerNetId, std::string &peerUdid)
 {
@@ -1395,7 +1407,7 @@ int32_t PasteboardService::GetData(uint32_t tokenId, PasteData &data, int32_t &s
     auto [distRet, distEvt] = GetValidDistributeEvent(appInfo.userId);
     pasteBlock = EstablishP2PLinkTask(pasteId, distEvt);
     if (distRet == static_cast<int32_t>(PasteboardError::GET_SAME_REMOTE_DATA)) {
-        auto [task, isPasting] = taskMgr_.GetRemoteDataTask(distEvt);
+        auto isPasting = taskMgr_.IsRemoteDataPasting(distEvt);
         if (isPasting) {
             PASTEBOARD_HILOGW(PASTEBOARD_MODULE_SERVICE, "wait remote data, seqId=%{public}u", distEvt.seqId);
             taskMgr_.WaitRemoteData(distEvt);
@@ -2157,6 +2169,75 @@ bool PasteboardService::HasPasteData()
         return true;
     }
     return false;
+}
+
+bool PasteboardService::HasRemoteUri(std::shared_ptr<PasteData> data)
+{
+    for (const auto &record : data->AllRecords()) {
+        if (record == nullptr) {
+            continue;
+        }
+        auto recordTypes = record->GetMimeTypes();
+        if (recordTypes.find(MIMETYPE_TEXT_URI) == recordTypes.end()) {
+            continue;
+        }
+        auto convertUri = record->GetConvertUri();
+        if (!convertUri.empty() && convertUri.find(PasteboardImgExtractor::FILE_SCHEME_PREFIX) == 0 &&
+            convertUri.find("networkid=") != std::string::npos) {
+            PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "record has convert uri");
+            return true;
+        }
+        auto entry = record->GetEntryByMimeType(MIMETYPE_TEXT_URI);
+        if (entry == nullptr) {
+            continue;
+        }
+        if (!entry->HasContentByMimeType(MIMETYPE_TEXT_URI)) {
+            PASTEBOARD_HILOGD(PASTEBOARD_MODULE_SERVICE, "uri is delay, has no content");
+            return true;
+        }
+        auto uri = entry->ConvertToUri();
+        if (uri == nullptr) {
+            continue;
+        }
+        auto uriStr = uri->ToString();
+        if (!uriStr.empty() && uriStr.find(PasteboardImgExtractor::FILE_SCHEME_PREFIX) == 0 &&
+            uriStr.find("networkid=") != std::string::npos) {
+            PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "has remote uri");
+            return true;
+        }
+    }
+    return false;
+}
+
+int32_t PasteboardService::HasRemoteData(bool &funcResult)
+{
+    funcResult = HasRemoteData();
+    return ERR_OK;
+}
+
+bool PasteboardService::HasRemoteData()
+{
+    auto tokenId = IPCSkeleton::GetCallingTokenID();
+    auto appInfo = GetAppInfo(tokenId);
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGI(GetCurrentScreenStatus() == ScreenEvent::ScreenUnlocked, false,
+        PASTEBOARD_MODULE_SERVICE, "screen is locked.");
+    auto [distRet, distEvt] = GetValidDistributeEvent(appInfo.userId);
+    if (distRet == static_cast<int32_t>(PasteboardError::E_OK)) {
+        return true;
+    }
+    if (distRet == static_cast<int32_t>(PasteboardError::GET_SAME_REMOTE_DATA)) {
+        auto isPasting = taskMgr_.IsRemoteDataPasting(distEvt);
+        PASTEBOARD_CHECK_AND_RETURN_RET_LOGI(!isPasting, true, PASTEBOARD_MODULE_SERVICE, "remote data is pasting.");
+    }
+    auto [hasData, data] = clips_.Find(appInfo.userId);
+    if (!hasData || data == nullptr) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "local data is null");
+        return false;
+    }
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGI(data->IsRemote(), false,
+        PASTEBOARD_MODULE_SERVICE, "not contains remote data.");
+    bool hasRemoteUri = HasRemoteUri(data);
+    return hasRemoteUri;
 }
 
 int32_t PasteboardService::GetDataTokenId(PasteData &pasteData)

@@ -834,6 +834,23 @@ public:
         return *value;
     }
 
+    bool HasRemoteData()
+    {
+        auto block = std::make_shared<OHOS::BlockObject<std::shared_ptr<bool>>>(SYNC_TIMEOUT);
+        std::thread thread([block]() {
+            bool ret = PasteboardClient::GetInstance()->HasRemoteData();
+            auto ptr = std::make_shared<bool>(ret);
+            block->SetValue(ptr);
+        });
+        thread.detach();
+        std::shared_ptr<bool> value = block->GetValue();
+        if (value == nullptr) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "HasRemoteData get result failed");
+            return false;
+        }
+        return *value;
+    }
+
     bool HasDataImpl()
     {
         return PasteboardClient::GetInstance()->HasPasteData();

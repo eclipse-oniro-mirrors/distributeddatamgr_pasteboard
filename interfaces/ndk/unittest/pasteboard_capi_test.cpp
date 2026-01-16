@@ -854,6 +854,35 @@ HWTEST_F(PasteboardCapiTest, OH_Pasteboard_HasData001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: OH_Pasteboard_HasRemoteData001
+ * @tc.desc: OH_Pasteboard_HasRemoteData test valid
+ * @tc.type: FUNC
+ * @tc.require: AROOOH5R5G
+ */
+HWTEST_F(PasteboardCapiTest, OH_Pasteboard_HasRemoteData001, TestSize.Level1)
+{
+    OH_Pasteboard* pasteboard = OH_Pasteboard_Create();
+    OH_Pasteboard_ClearData(pasteboard);
+    bool res = OH_Pasteboard_HasRemoteData(pasteboard);
+    EXPECT_FALSE(res);
+
+    OH_UdmfData* setData = OH_UdmfData_Create();
+    OH_UdmfRecord* record = OH_UdmfRecord_Create();
+    OH_UdsPlainText* plainText = OH_UdsPlainText_Create();
+    char content[] = "hello world";
+    OH_UdsPlainText_SetContent(plainText, content);
+    OH_UdmfRecord_AddPlainText(record, plainText);
+    OH_UdmfData_AddRecord(setData, record);
+
+    OH_Pasteboard_SetData(pasteboard, setData);
+
+    res = OH_Pasteboard_HasRemoteData(pasteboard);
+    EXPECT_FALSE(res);
+    
+    OH_Pasteboard_Destroy(pasteboard);
+}
+
+/**
  * @tc.name: OH_Pasteboard_ClearData001
  * @tc.desc: OH_Pasteboard_ClearData test valid
  * @tc.type: FUNC
@@ -2096,6 +2125,18 @@ HWTEST_F(PasteboardCapiTest, OH_Pasteboard_HasTypeTest004, TestSize.Level2)
 HWTEST_F(PasteboardCapiTest, OH_Pasteboard_HasDataTest001, TestSize.Level2)
 {
     bool ret = OH_Pasteboard_HasData(nullptr);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: OH_Pasteboard_HasRemoteDataTest001
+ * @tc.desc: OH_Pasteboard_HasRemoteDataTest001
+ * @tc.type: FUNC
+ * @tc.require: AROOOH5R5G
+ */
+HWTEST_F(PasteboardCapiTest, OH_Pasteboard_HasRemoteDataTest001, TestSize.Level2)
+{
+    bool ret = OH_Pasteboard_HasRemoteData(nullptr);
     EXPECT_FALSE(ret);
 }
 
