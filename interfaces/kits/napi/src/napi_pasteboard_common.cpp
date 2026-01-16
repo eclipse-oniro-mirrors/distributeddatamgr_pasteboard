@@ -170,7 +170,7 @@ bool CheckExpression(napi_env env, bool flag, MiscServices::JSErrorCode errCode,
 {
     if (!flag) {
         NAPI_CALL_BASE(
-             env, napi_throw_error(env, std::to_string(static_cast<int32_t>(errCode)).c_str(), message), false);
+            env, napi_throw_error(env, std::to_string(static_cast<int32_t>(errCode)).c_str(), message), false);
         return false;
     }
     return true;
