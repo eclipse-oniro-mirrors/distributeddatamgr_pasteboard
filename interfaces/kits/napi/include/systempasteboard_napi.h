@@ -268,6 +268,7 @@ private:
     static napi_value GetPasteData(napi_env env, napi_callback_info info);
     static napi_value SetPasteData(napi_env env, napi_callback_info info);
     static napi_value HasPasteData(napi_env env, napi_callback_info info);
+    static napi_value HasRemoteData(napi_env env, napi_callback_info info);
     static napi_value ClearData(napi_env env, napi_callback_info info);
     static napi_value GetData(napi_env env, napi_callback_info info);
     static napi_value SetData(napi_env env, napi_callback_info info);

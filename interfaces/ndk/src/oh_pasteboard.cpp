@@ -245,6 +245,14 @@ bool OH_Pasteboard_HasData(OH_Pasteboard *pasteboard)
     return PasteboardClient::GetInstance()->HasPasteData();
 }
 
+bool OH_Pasteboard_HasRemoteData(OH_Pasteboard *pasteboard)
+{
+    if (!IsPasteboardValid(pasteboard)) {
+        return false;
+    }
+    return PasteboardClient::GetInstance()->HasRemoteData();
+}
+
 OH_UdmfData *OH_Pasteboard_GetData(OH_Pasteboard *pasteboard, int *status)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CAPI, "enter");

@@ -1656,6 +1656,35 @@ HWTEST_F(PasteboardServiceTest, HasPasteDataTest001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: HasRemoteDataTest001
+ * @tc.desc: if !pasteData->HasRemoteData()
+ * @tc.type: FUNC
+ * @tc.require: issueshI5YDEV
+ * @tc.author:
+ */
+HWTEST_F(PasteboardServiceTest, HasRemoteDataTest001, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "HasRemoteDataTest001 start");
+    OHOS::Uri uri("file://com.ohos/data/storage/el2/distributedfiles/networkid=a92ded");
+    auto data = PasteboardClient::GetInstance()->CreateUriData(uri);
+    ASSERT_NE(data, nullptr);
+
+    PasteboardClient::GetInstance()->Clear();
+    auto has = PasteboardClient::GetInstance()->HasPasteData();
+    ASSERT_FALSE(has);
+
+    int32_t ret = PasteboardClient::GetInstance()->SetPasteData(*data);
+    ASSERT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
+
+    has = PasteboardClient::GetInstance()->HasPasteData();
+    ASSERT_TRUE(has == true);
+    auto hasRemoteData = PasteboardClient::GetInstance()->HasRemoteData();
+    EXPECT_EQ(hasRemoteData, false);
+    PasteboardClient::GetInstance()->Clear();
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "HasRemoteDataTest001 end");
+}
+
+/**
  * @tc.name: SetAppShareOptions
  * @tc.desc: set app share options
  * @tc.type: FUNC

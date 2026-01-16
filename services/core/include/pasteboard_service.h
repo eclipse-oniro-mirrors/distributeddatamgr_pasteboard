@@ -132,6 +132,7 @@ public:
     virtual int32_t GetPasteData(int &fd, int64_t &size, std::vector<uint8_t> &rawData,
         const std::string &pasteId, int32_t &syncTime, int32_t &realErrCode) override;
     virtual int32_t HasPasteData(bool &funcResult) override;
+    virtual int32_t HasRemoteData(bool &funcResult) override;
     virtual int32_t SetPasteData(int fd, int64_t memSize, const std::vector<uint8_t> &buffer,
         const sptr<IPasteboardDelayGetter> &delayGetter, const sptr<IPasteboardEntryGetter> &entryGetter) override;
     virtual int32_t SetPasteDataDelayData(int fd, int64_t memSize, const std::vector<uint8_t> &buffer,
@@ -260,6 +261,7 @@ private:
         };
         using DataTask = std::pair<std::shared_ptr<PasteboardService::RemoteDataTaskManager::TaskContext>, bool>;
         DataTask GetRemoteDataTask(const Event &event);
+        bool IsRemoteDataPasting(const Event &event);
         void Notify(const Event &event, std::shared_ptr<PasteDateTime> data);
         void ClearRemoteDataTask(const Event &event);
         std::shared_ptr<PasteDateTime> WaitRemoteData(const Event &event);
@@ -428,6 +430,8 @@ private:
     bool HasDataType(const std::string &mimeType);
     bool HasUtdType(const std::string &utdType);
     bool HasPasteData();
+    bool HasRemoteData();
+    bool HasRemoteUri(std::shared_ptr<PasteData> pasteData);
     bool IsRemoteData();
     int32_t GetRecordValueByType(uint32_t dataId, uint32_t recordId, PasteDataEntry &value);
     int32_t GetRecordValueByType(int64_t &rawDataSize, std::vector<uint8_t> &buffer, int &fd,
