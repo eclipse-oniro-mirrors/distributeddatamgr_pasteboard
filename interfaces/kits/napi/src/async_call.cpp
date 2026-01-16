@@ -15,6 +15,7 @@
 #define LOG_TAG "PasteBoardAsyncCall"
 #include "async_call.h"
 #include "pasteboard_hilog.h"
+#include "napi_pasteboard_assert.h"
 
 using namespace OHOS::MiscServices;
 
@@ -26,7 +27,7 @@ AsyncCall::AsyncCall(napi_env env, napi_callback_info info, std::shared_ptr<Cont
     size_t argc = NAPI_GET_CB_INFO_ARGC;
     napi_value self = nullptr;
     napi_value argv[NAPI_GET_CB_INFO_ARGC] = { nullptr };
-    NAPI_CALL_RETURN_VOID(env, napi_get_cb_info(env, info, &argc, argv, &self, nullptr));
+    PASTEBOARD_CALL_RETURN_VOID(napi_get_cb_info(env, info, &argc, argv, &self, nullptr));
     pos = ((pos == ASYNC_DEFAULT_POS) ? (argc - 1) : pos);
     if (pos >= 0 && pos < argc) {
         napi_valuetype valueType = napi_undefined;
