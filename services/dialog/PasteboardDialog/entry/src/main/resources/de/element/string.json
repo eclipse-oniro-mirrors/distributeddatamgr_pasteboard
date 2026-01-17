@@ -22,10 +22,17 @@
             }
         },
         {
-            "name":"pasteboard_desc_text",
-            "value":"Auf einem Gerät kopieren und auf einem anderen einfügen. Die Geräte müssen sich nahe beieinander befinden und bei derselben ID angemeldet sein. WLAN, Bluetooth und diese Funktion müssen aktiviert sein. %s",
+            "name":"update_version_prompt",
+            "value":"Auf beiden Geräten muss ausgeführt werden",
             "attr":{
-                "priority":"translate"
+                "priority":"LT"
+            }
+        },
+        {
+            "name":"pasteboard_desc_text",
+            "value":"Daten von Gerät zu Gerät kopieren und einfügen. Die Geräte müssen nahe beieinander und bei derselben ID angemeldet sein. WLAN, Bluetooth und die hier angezeigte Funktion müssen aktiviert sein. %s",
+            "attr":{
+                "priority":"LT"
             }
         },
         {
@@ -60,7 +67,7 @@
             "name":"prompttext_pasteboard_local",
             "value":"Einfügen ...",
             "attr":{
-                "priority":"translate"
+                "priority":"LT"
             }
         },
         {
@@ -74,7 +81,7 @@
             "name":"learn_more",
             "value":"Mehr erfahren",
             "attr":{
-                "priority":"translate"
+                "priority":"LT"
             }
         },
         {
@@ -95,14 +102,14 @@
             "name":"pasteboard_title",
             "value":"Geräteübergreifende Zwischenablage",
             "attr":{
-                "priority":"translate"
+                "priority":"LT"
             }
         },
         {
             "name":"prompttext_pasteboard_remote",
             "value":"Von „%s“ einfügen …",
             "attr":{
-                "priority":"translate"
+                "priority":"LT"
             }
         },
         {
@@ -116,7 +123,7 @@
             "name":"prompttext_pasteboard_error",
             "value":"Einfügen nicht möglich, versuchen Sie es erneut.",
             "attr":{
-                "priority":"translate"
+                "priority":"LT"
             }
         },
         {

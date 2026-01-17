@@ -22,10 +22,17 @@
             }
         },
         {
+            "name":"update_version_prompt",
+            "value":"စက်နှစ်ခုလုံးသည် ကို လုပ်ဆောင်နေရပါမည်",
+            "attr":{
+                "priority":"LT"
+            }
+        },
+        {
             "name":"pasteboard_desc_text",
             "value":"စက်တစ်လုံးမှ ကူးယူပြီး နောက်စက်တစ်လုံးတွင် ကူးထည့်နိုင်ပါသည်။ စက်များ တစ်လုံးနှင့် တစ်လုံး နီးကပ်စွာ ရှိရပါမည်၊ တူညီသည့် ID အတွင်း ဝင်ရောက်ထားရပါမည်၊ WLAN ၊ ဘလူးတုသ်နှင့် ဤလုပ်ဆောင်ချက်ကို ဖွင့်ထားရပါမည်။ %s",
             "attr":{
-                "priority":"translate"
+                "priority":"LT"
             }
         },
         {
@@ -60,7 +67,7 @@
             "name":"prompttext_pasteboard_local",
             "value":"ကူးထည့်နေဆဲ…",
             "attr":{
-                "priority":"translate"
+                "priority":"LT"
             }
         },
         {
@@ -74,7 +81,7 @@
             "name":"learn_more",
             "value":"ပိုမိုလေ့လာရန်",
             "attr":{
-                "priority":"translate"
+                "priority":"LT"
             }
         },
         {
@@ -95,14 +102,14 @@
             "name":"pasteboard_title",
             "value":"စက်များအကြား အပြန်အလှန်သုံး ကလစ်ဘုတ်",
             "attr":{
-                "priority":"translate"
+                "priority":"LT"
             }
         },
         {
             "name":"prompttext_pasteboard_remote",
             "value":"\"%s\" မှ ကူးထည့်နေဆဲ…",
             "attr":{
-                "priority":"translate"
+                "priority":"LT"
             }
         },
         {
@@ -116,7 +123,7 @@
             "name":"prompttext_pasteboard_error",
             "value":"ကူးထည့်၍ မရနိုင်ပါ။ ထပ်ကြိုးစားကြည့်ပါ။",
             "attr":{
-                "priority":"translate"
+                "priority":"LT"
             }
         },
         {

@@ -22,10 +22,17 @@
             }
         },
         {
+            "name":"update_version_prompt",
+            "value":"Entrambi i dispositivi devono eseguire",
+            "attr":{
+                "priority":"LT"
+            }
+        },
+        {
             "name":"pasteboard_desc_text",
             "value":"Copia su un dispositivo, incolla su un altro. I dispositivi devono essere vicini, connessi allo stesso ID e con WLAN, Bluetooth e questa funzione abilitati. %s",
             "attr":{
-                "priority":"translate"
+                "priority":"LT"
             }
         },
         {
@@ -60,7 +67,7 @@
             "name":"prompttext_pasteboard_local",
             "value":"Operazione Incolla…",
             "attr":{
-                "priority":"translate"
+                "priority":"LT"
             }
         },
         {
@@ -74,7 +81,7 @@
             "name":"learn_more",
             "value":"Ulteriori informazioni",
             "attr":{
-                "priority":"translate"
+                "priority":"LT"
             }
         },
         {
@@ -95,14 +102,14 @@
             "name":"pasteboard_title",
             "value":"Appunti Cross-Device",
             "attr":{
-                "priority":"translate"
+                "priority":"LT"
             }
         },
         {
             "name":"prompttext_pasteboard_remote",
             "value":"Operazione Incolla da \"%s\"…",
             "attr":{
-                "priority":"translate"
+                "priority":"LT"
             }
         },
         {
@@ -116,7 +123,7 @@
             "name":"prompttext_pasteboard_error",
             "value":"Impossibile incollare. Riprova.",
             "attr":{
-                "priority":"translate"
+                "priority":"LT"
             }
         },
         {
