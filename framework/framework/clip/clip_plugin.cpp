@@ -141,6 +141,13 @@ void ClipPlugin::SetMaxLocalCapacity(int64_t maxLocalCapacity)
     (void)maxLocalCapacity;
 }
 
+int32_t ClipPlugin::GetMimeTypes(std::vector<uint8_t> &mimeTypes, const GlobalEvent &event)
+{
+    (void)mimeTypes;
+    (void)event;
+    return 0;
+}
+
 bool ClipPlugin::GlobalEvent::Marshal(Serializable::json &node) const
 {
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(SetValue(node, version, GET_NAME(version)),

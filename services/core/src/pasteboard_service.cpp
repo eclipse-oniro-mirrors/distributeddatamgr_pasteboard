@@ -110,6 +110,7 @@ constexpr int32_t E_OK_OPERATION = 0;
 constexpr int32_t SET_VALUE_SUCCESS = 1;
 constexpr uid_t ANCO_SERVICE_BROKER_UID = 5557;
 constexpr float RECALCULATE_DATA_SIZE = 0.9;
+constexpr uint16_t MAX_TRANSFER_SIZE = 1300;
 
 const bool G_REGISTER_RESULT = SystemAbility::MakeAndRegisterAbility(new PasteboardService());
 const std::string CONSTRAINT = "constraint.distributed.transmission.outgoing";
@@ -4798,6 +4799,18 @@ int32_t PasteboardService::CallbackExit(uint32_t code, int32_t result)
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "pid:%{public}d, uid:%{public}d, cmd:%{public}u, ret:%{public}d",
         pid, uid, code, result);
     return ERR_NONE;
+}
+
+std::vector<uint8_t> PasteboardService::EncodeMimeTypes(const std::vector<std::string> &mimeTypes)
+{
+    std::vector<uint8_t> result;
+    return result;
+}
+
+std::vector<std::string> PasteboardService::DecodeMimeTypes(const std::vector<uint8_t> &rawData)
+{
+    std::vector<std::string> mimeTypes;
+    return mimeTypes;
 }
 
 void InputEventCallback::OnKeyInputEventForPaste(std::shared_ptr<MMI::KeyEvent> keyEvent) const

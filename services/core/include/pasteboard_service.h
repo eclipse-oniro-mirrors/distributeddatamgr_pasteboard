@@ -439,6 +439,8 @@ private:
     void CloseSharedMemFd(int fd);
     void ClearAgedData(int32_t userId);
     void SetDataExpirationTimer(int32_t userId);
+    std::vector<uint8_t> EncodeMimeTypes(const std::vector<std::string> &mimeTypes);
+    std::vector<std::string> DecodeMimeTypes(const std::vector<uint8_t> &rawData);
 
     void InitPlugin(std::shared_ptr<ClipPlugin> clipPlugin);
     bool OpenP2PLinkForPreEstablish(const std::string &networkId, ClipPlugin *clipPlugin);
