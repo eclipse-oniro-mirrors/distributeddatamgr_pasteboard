@@ -22,10 +22,17 @@
             }
         },
         {
+            "name":"update_version_prompt",
+            "value":"​ອຸ​ປະ​ກອນ​ທັງ​ສອງ​ເຄື່ອງ​ຕ້ອງ​ເປີດໃຊ້​",
+            "attr":{
+                "priority":"LT"
+            }
+        },
+        {
             "name":"pasteboard_desc_text",
             "value":"​ອັດ​ສຳ​ເນົາ​ໃນ​ອຸ​ປະ​ກອນ​ເຄື່ອງ​ໜຶ່ງ, ວາງ​ໃສ່​ໃນ​​ອີກ​ເຄື່ອງ. ອຸ​ປະ​ກອນ​ຕ້ອງ​ຢູ່​ໃກ້​ກັນ, ເຂົ້າ​ສູ່​ລະ​ບົບ ID ດຽວ​ກັນ ແລະ ໄດ້​ເປີດ​ໃຊ້​ງານ WLAN, Bluetooth ແລະ ຄຸນ​ສົມ​ບັດ​ນີ້. %s",
             "attr":{
-                "priority":"translate"
+                "priority":"LT"
             }
         },
         {
@@ -60,7 +67,7 @@
             "name":"prompttext_pasteboard_local",
             "value":"ກຳລັງວາງໃສ່…",
             "attr":{
-                "priority":"translate"
+                "priority":"LT"
             }
         },
         {
@@ -74,7 +81,7 @@
             "name":"learn_more",
             "value":"ຮຽນຮູ້ເພີ່ມເຕີມ",
             "attr":{
-                "priority":"translate"
+                "priority":"LT"
             }
         },
         {
@@ -95,14 +102,14 @@
             "name":"pasteboard_title",
             "value":"ຄ​ລິບບອດ​ຂ້າມ​ອຸ​ປະ​ກອນ",
             "attr":{
-                "priority":"translate"
+                "priority":"LT"
             }
         },
         {
             "name":"prompttext_pasteboard_remote",
             "value":"ກຳ​ລັງ​ວາງ​ໃສ່​ຈາກ \"%s\"…",
             "attr":{
-                "priority":"translate"
+                "priority":"LT"
             }
         },
         {
@@ -116,7 +123,7 @@
             "name":"prompttext_pasteboard_error",
             "value":"ບໍ່​ສາ​ມາດ​ວາງ​ໃສ່​ໄດ້. ກະລຸນາລອງ​ໃໝ່ອີກຄັ້ງ.",
             "attr":{
-                "priority":"translate"
+                "priority":"LT"
             }
         },
         {

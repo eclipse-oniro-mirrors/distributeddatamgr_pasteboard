@@ -22,10 +22,17 @@
             }
         },
         {
+            "name":"update_version_prompt",
+            "value":"Na obu urządzeniach musi być uruchomiony system",
+            "attr":{
+                "priority":"LT"
+            }
+        },
+        {
             "name":"pasteboard_desc_text",
             "value":"Skopiuj na jednym urządzeniu i wklej na innym. Urządzenia muszą się znajdować blisko siebie, być zalogowane do tego samego ID oraz mieć włączoną sieć WLAN, Bluetooth i tę funkcję. %s",
             "attr":{
-                "priority":"translate"
+                "priority":"LT"
             }
         },
         {
@@ -60,7 +67,7 @@
             "name":"prompttext_pasteboard_local",
             "value":"Wklejanie…",
             "attr":{
-                "priority":"translate"
+                "priority":"LT"
             }
         },
         {
@@ -74,7 +81,7 @@
             "name":"learn_more",
             "value":"Więcej informacji",
             "attr":{
-                "priority":"translate"
+                "priority":"LT"
             }
         },
         {
@@ -95,14 +102,14 @@
             "name":"pasteboard_title",
             "value":"Schowek wielu urządzeń",
             "attr":{
-                "priority":"translate"
+                "priority":"LT"
             }
         },
         {
             "name":"prompttext_pasteboard_remote",
             "value":"Wklejanie z „%s”…",
             "attr":{
-                "priority":"translate"
+                "priority":"LT"
             }
         },
         {
@@ -116,7 +123,7 @@
             "name":"prompttext_pasteboard_error",
             "value":"Nie można wkleić. Spróbuj ponownie.",
             "attr":{
-                "priority":"translate"
+                "priority":"LT"
             }
         },
         {

@@ -22,10 +22,17 @@
             }
         },
         {
+            "name":"update_version_prompt",
+            "value":"Kedua-dua peranti mestilah menggunakan",
+            "attr":{
+                "priority":"LT"
+            }
+        },
+        {
             "name":"pasteboard_desc_text",
             "value":"Salin pada sebuah peranti, tampal pada yang lain. Peranti-peranti mestilah didekatkan, dilog masuk ke ID yang sama, dan didayakan WLAN, Bluetooth, dan ciri ini. %s",
             "attr":{
-                "priority":"translate"
+                "priority":"LT"
             }
         },
         {
@@ -60,7 +67,7 @@
             "name":"prompttext_pasteboard_local",
             "value":"Menampal…",
             "attr":{
-                "priority":"translate"
+                "priority":"LT"
             }
         },
         {
@@ -74,7 +81,7 @@
             "name":"learn_more",
             "value":"Ketahui lebih lanjut",
             "attr":{
-                "priority":"translate"
+                "priority":"LT"
             }
         },
         {
@@ -95,14 +102,14 @@
             "name":"pasteboard_title",
             "value":"Papan klip silang peranti",
             "attr":{
-                "priority":"translate"
+                "priority":"LT"
             }
         },
         {
             "name":"prompttext_pasteboard_remote",
             "value":"Menampal daripada \"%s\"…",
             "attr":{
-                "priority":"translate"
+                "priority":"LT"
             }
         },
         {
@@ -116,7 +123,7 @@
             "name":"prompttext_pasteboard_error",
             "value":"Tidak dapat menampal. Sila cuba lagi.",
             "attr":{
-                "priority":"translate"
+                "priority":"LT"
             }
         },
         {

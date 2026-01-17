@@ -22,10 +22,17 @@
             }
         },
         {
+            "name":"update_version_prompt",
+            "value":"Her iki cihaz da çalıştırıyor olmalıdır",
+            "attr":{
+                "priority":"LT"
+            }
+        },
+        {
             "name":"pasteboard_desc_text",
             "value":"Bir cihazda kopyalayın, diğerine yapıştırın. Cihazların birbirine yakın olması, aynı Kimliğine giriş yapmış olması ve WLAN, Bluetooth ve bu özelliğin etkinleştirilmiş olması gerekir. %s",
             "attr":{
-                "priority":"translate"
+                "priority":"LT"
             }
         },
         {
@@ -60,7 +67,7 @@
             "name":"prompttext_pasteboard_local",
             "value":"Yapıştırılıyor…",
             "attr":{
-                "priority":"translate"
+                "priority":"LT"
             }
         },
         {
@@ -74,7 +81,7 @@
             "name":"learn_more",
             "value":"Daha fazla bilgi",
             "attr":{
-                "priority":"translate"
+                "priority":"LT"
             }
         },
         {
@@ -95,14 +102,14 @@
             "name":"pasteboard_title",
             "value":"Cihazlar arası pano",
             "attr":{
-                "priority":"translate"
+                "priority":"LT"
             }
         },
         {
             "name":"prompttext_pasteboard_remote",
             "value":"\"%s\" öğesinden yapıştırılıyor…",
             "attr":{
-                "priority":"translate"
+                "priority":"LT"
             }
         },
         {
@@ -116,7 +123,7 @@
             "name":"prompttext_pasteboard_error",
             "value":"Yapıştırılamıyor. Lütfen tekrar deneyin.",
             "attr":{
-                "priority":"translate"
+                "priority":"LT"
             }
         },
         {
