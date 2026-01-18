@@ -39,10 +39,13 @@ void ClipPluginTest::TearDown(void) { }
 
 class CustomClipPlugin : public ClipPlugin {
 public:
-    int32_t SetPasteData(const GlobalEvent &event, const std::vector<uint8_t> &data) override
+    int32_t SetPasteData(const GlobalEvent &event, const std::vector<uint8_t> &data, uint32_t version,
+        const std::vector<uint8_t> &mimeTypes) override
     {
         (void)event;
         (void)data;
+        (void)version;
+        (void)mimeTypes;
         return 0;
     }
 

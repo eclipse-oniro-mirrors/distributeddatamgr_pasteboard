@@ -2320,6 +2320,9 @@ int32_t PasteboardService::GetMimeTypes(std::vector<std::string> &funcResult)
         auto userId = GetCurrentAccountId();
         auto [distRet, distEvt] = GetValidDistributeEvent(userId);
         if (distRet == static_cast<int32_t>(PasteboardError::E_OK)) {
+            if (distEvt.version != ClipPlugin::InfoType::DEFAULT) {
+                return GetRemoteMimeTypes(funcResult, distEvt);
+            }
             PasteData data;
             int32_t syncTime = 0;
             int32_t ret = GetRemoteData(userId, distEvt, data, syncTime);
@@ -2353,6 +2356,9 @@ bool PasteboardService::HasDataType(const std::string &mimeType)
             }
             if (IsBasicType(mimeType)) {
                 return false;
+            }
+            if (distEvt.version != ClipPlugin::InfoType::DEFAULT) {
+                return HasRemoteDataType(funcResult, distEvt);
             }
             PasteData data;
             int32_t syncTime = 0;
@@ -2491,6 +2497,36 @@ std::pair<int32_t, ClipPlugin::GlobalEvent> PasteboardService::GetValidDistribut
 #else
     return std::make_pair(static_cast<int32_t>(PasteboardError::NOT_SUPPORT), evt);
 #endif
+}
+
+int32_t PasteboardService::GetRemoteMimeTypes(std::vector<std::string> &mimeTypes, const Event &event)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "version=%{public}d, get remote mimeTypes", event.version);
+    auto clipPlugin = GetClipPlugin();
+    if (clipPlugin == nullptr) {
+        return static_cast<int32_t>(PasteboardError::PLUGIN_IS_NULL);
+    }
+    auto result = clipPlugin->GetMimeTypes(rawData, event);
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(result == static_cast<int32_t>(PasteboardError::E_OK),
+        result, PASTEBOARD_MODULE_SERVICE, "get mimeTypes from plugin failed, result=%{public}d.", result);
+    std::vector<uint8_t> rawData;
+    if (event.version == ClipPlugin::InfoType::MIMETYPE) {
+        mimeTypes = DecodeMimeTypes(rawData);
+    } else {
+        PasteData pasteData;
+        pasteData.Decode(rawData);
+        mimeTypes = pasteData.GetMimeTypes();
+    }
+    return ERR_OK;
+}
+
+bool PasteboardService::HasRemoteDataType(const std::string &mimeType, const Event &event)
+{
+    std::vector<std::string> mimeTypes;
+    if (GetRemoteMimeTypes(mimeTypes, event) != ERR_OK) {
+        return false;
+    }
+    return std::find(mimeTypes.begin(), mimeTypes.end(), mimeType) != mimeTypes.end();
 }
 
 std::vector<std::string> PasteboardService::GetLocalMimeTypes()
@@ -3837,7 +3873,7 @@ bool PasteboardService::SetCurrentData(Event event, PasteData &data)
     }
     RADAR_REPORT(DFX_SET_PASTEBOARD, DFX_LOAD_DISTRIBUTED_PLUGIN, DFX_SUCCESS);
     bool needFull = data.IsDelayRecord() &&
-        moduleConfig_.GetRemoteDeviceMinVersion() == DistributedModuleConfig::FIRST_VERSION;
+        moduleConfig_.GetRemoteDeviceMinVersion() == DistributedModuleConfig::Version::VERSION_FOUR;
     if (needFull) {
         GetFullDelayPasteData(event.user, data);
         event.isDelay = false;
@@ -3854,7 +3890,7 @@ bool PasteboardService::SetCurrentData(Event event, PasteData &data)
     auto remoteVersionMin = moduleConfig_.GetRemoteDeviceMinVersion();
     {
         std::shared_lock<std::shared_mutex> read(pasteDataMutex_);
-        if (!data.Encode(rawData, remoteVersionMin <= DistributedModuleConfig::SECOND_VERSION)) {
+        if (!data.Encode(rawData, remoteVersionMin <= DistributedModuleConfig::Version::VERSION_FIVE)) {
             PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE,
                 "distributed data encode failed, dataId:%{public}u, seqId:%{public}hu", event.dataId, event.seqId);
             return false;
@@ -3867,7 +3903,12 @@ bool PasteboardService::SetCurrentData(Event event, PasteData &data)
             std::bind(&PasteboardService::GetDistributedDelayEntry, this, std::placeholders::_1,
                 std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
     }
-    clipPlugin->SetPasteData(event, rawData);
+    std::vector<uint8_t> rawMimeTypes;
+    if (rawData.size() > MAX_TRANSFER_SIZE) {
+        auto mimeTypes = data.GetMimeTypes();
+        rawMimeTypes = EncodeMimeTypes(mimeTypes);
+    }
+    clipPlugin->SetPasteData(event, rawData, remoteVersionMin, rawMimeTypes);
     return true;
 }
 
@@ -3983,7 +4024,7 @@ int32_t PasteboardService::ProcessDistributedDelayHtml(PasteData &data, PasteDat
     }
 
     auto remoteVersionMin = moduleConfig_.GetRemoteDeviceMinVersion();
-    bool encodeSucc = tmp.Encode(rawData, remoteVersionMin <= DistributedModuleConfig::SECOND_VERSION);
+    bool encodeSucc = tmp.Encode(rawData, remoteVersionMin <= DistributedModuleConfig::Version::VERSION_FIVE);
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(encodeSucc, static_cast<int32_t>(PasteboardError::DATA_ENCODE_ERROR),
         PASTEBOARD_MODULE_SERVICE, "encode html failed");
     return static_cast<int32_t>(PasteboardError::E_OK);
@@ -4030,7 +4071,7 @@ int32_t PasteboardService::GetDistributedDelayData(const Event &evt, uint8_t ver
 
     auto remoteVersionMin = moduleConfig_.GetRemoteDeviceMinVersion();
     std::shared_lock<std::shared_mutex> read(pasteDataMutex_);
-    bool encodeSucc = data->Encode(rawData, remoteVersionMin <= DistributedModuleConfig::SECOND_VERSION);
+    bool encodeSucc = data->Encode(rawData, remoteVersionMin <= DistributedModuleConfig::Version::VERSION_FIVE);
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(encodeSucc, static_cast<int32_t>(PasteboardError::DATA_ENCODE_ERROR),
         PASTEBOARD_MODULE_SERVICE, "encode data failed, dataId:%{public}u, seqId:%{public}hu", evt.dataId, evt.seqId);
 
@@ -4804,12 +4845,40 @@ int32_t PasteboardService::CallbackExit(uint32_t code, int32_t result)
 std::vector<uint8_t> PasteboardService::EncodeMimeTypes(const std::vector<std::string> &mimeTypes)
 {
     std::vector<uint8_t> result;
+    result.reserve(MAX_TRANSFER_SIZE);
+    for (const auto &mimeType : mimeTypes) {
+        auto len = mimeType.size();
+        if (len > UINT16_MAX) {
+            continue;
+        }
+        uint16_t strLen = static_cast<uint16_t>(len);
+        if (result.size() + strLen + 2 > MAX_TRANSFER_SIZE) {
+            break;
+        }
+        result.emplace_back(static_cast<uint8_t>(len & 0xFF));
+        result.emplace_back(static_cast<uint8_t>((len >> 8) & 0xFF));
+        const uint8_t *data = reinterpret_cast<const uint8_t *>(mimeType.data());
+        result.insert(result.end(), data, data + strLen);
+    }
+    result.shrink_to_fit();
     return result;
 }
 
 std::vector<std::string> PasteboardService::DecodeMimeTypes(const std::vector<uint8_t> &rawData)
 {
     std::vector<std::string> mimeTypes;
+    const uint8_t *data = rawData.data();
+    size_t size = rawData.data();
+    size_t index = 0;
+    while (index + 2 <= size) {
+        uint16_t len = static_cast<uint16_t>(data[index]) | static_cast<uint16_t>(data[index + 1] << 8);
+        index += 2;
+        if (index + len > size) {
+            break;
+        }
+        mimeTypes.emplace_back(reinterpret_cast<const char *>(data + index), len);
+        index += len;
+    }
     return mimeTypes;
 }
 

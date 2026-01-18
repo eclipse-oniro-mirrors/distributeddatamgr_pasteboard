@@ -33,6 +33,12 @@ public:
     uint32_t GetRemoteDeviceMaxVersion();
     static constexpr uint32_t FIRST_VERSION = 4;
     static constexpr uint32_t SECOND_VERSION = 5;
+    enum Version : uint32_t {
+        VERSION_FOUR = 4,
+        VERSION_FIVE = 5,
+        VERSION_SIX = 6,
+        VERSION_DEFAULT,
+    };
 
 protected:
     void Online(const std::string &device) override;

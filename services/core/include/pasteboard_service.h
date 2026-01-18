@@ -514,6 +514,8 @@ private:
     bool IsCallerUidValid();
     std::vector<std::string> GetLocalMimeTypes();
     bool HasLocalDataType(const std::string &mimeType);
+    int32_t GetRemoteMimeTypes(std::vector<std::string> &mimeTypes, const Event &event);
+    bool HasRemoteDataType(const std::string &mimeType, const Event &event);
     void AddPermissionRecord(uint32_t tokenId, bool isReadGrant, bool isSecureGrant);
     bool SubscribeKeyboardEvent();
     bool IsConstraintEnabled(int32_t user);

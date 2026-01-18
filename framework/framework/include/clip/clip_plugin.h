@@ -24,6 +24,7 @@ class API_EXPORT ClipPlugin {
 public:
     enum EventStatus : uint32_t { EVT_UNKNOWN, EVT_INVALID, EVT_NORMAL, EVT_BUTT };
     enum ServiceStatus : uint32_t { UNKNOWN = 0, IDLE, CONNECT_SUCC };
+    enum InfoType : uint8_t { DEFAULT = 0, DELAY_DATA = 1, MIMETYPE = 2};
 
     struct GlobalEvent final : public DistributedData::Serializable {
         uint8_t version = 0;
@@ -64,7 +65,8 @@ public:
     static bool DestroyPlugin(const std::string &name, ClipPlugin *plugin);
 
     virtual ~ClipPlugin() = default;
-    virtual int32_t SetPasteData(const GlobalEvent &event, const std::vector<uint8_t> &data) = 0;
+    virtual int32_t SetPasteData(const GlobalEvent &event, const std::vector<uint8_t> &data, uint32_t version,
+        const std::vector<uint8_t> &mimeTypes) = 0;
     virtual std::pair<int32_t, int32_t> GetPasteData(const GlobalEvent &event, std::vector<uint8_t> &data) = 0;
     virtual std::vector<GlobalEvent> GetTopEvents(uint32_t topN);
     virtual std::vector<GlobalEvent> GetTopEvents(uint32_t topN, int32_t user);
