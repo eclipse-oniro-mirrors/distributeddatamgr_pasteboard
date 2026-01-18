@@ -443,6 +443,8 @@ private:
     void CloseSharedMemFd(int fd);
     void ClearAgedData(int32_t userId);
     void SetDataExpirationTimer(int32_t userId);
+    std::vector<uint8_t> EncodeMimeTypes(const std::vector<std::string> &mimeTypes);
+    std::vector<std::string> DecodeMimeTypes(const std::vector<uint8_t> &rawData);
 
     void InitPlugin(std::shared_ptr<ClipPlugin> clipPlugin);
     bool OpenP2PLinkForPreEstablish(const std::string &networkId, ClipPlugin *clipPlugin);
@@ -516,6 +518,8 @@ private:
     bool IsCallerUidValid();
     std::vector<std::string> GetLocalMimeTypes();
     bool HasLocalDataType(const std::string &mimeType);
+    int32_t GetRemoteMimeTypes(std::vector<std::string> &mimeTypes, const Event &event);
+    bool HasRemoteDataType(const std::string &mimeType, const Event &event);
     void AddPermissionRecord(uint32_t tokenId, bool isReadGrant, bool isSecureGrant);
     bool SubscribeKeyboardEvent();
     bool IsConstraintEnabled(int32_t user);

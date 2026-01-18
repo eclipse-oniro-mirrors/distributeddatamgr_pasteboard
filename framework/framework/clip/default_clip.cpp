@@ -15,7 +15,8 @@
 #include "default_clip.h"
 
 namespace OHOS::MiscServices {
-int32_t DefaultClip::SetPasteData(const GlobalEvent &event, const std::vector<uint8_t> &data)
+int32_t DefaultClip::SetPasteData(const GlobalEvent &event, const std::vector<uint8_t> &data, uint32_t version,
+    const std::vector<uint8_t> &mimeTypes)
 {
     return 0;
 }
