@@ -2506,10 +2506,10 @@ int32_t PasteboardService::GetRemoteMimeTypes(std::vector<std::string> &mimeType
     if (clipPlugin == nullptr) {
         return static_cast<int32_t>(PasteboardError::PLUGIN_IS_NULL);
     }
+    std::vector<uint8_t> rawData;
     auto result = clipPlugin->GetMimeTypes(rawData, event);
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(result == static_cast<int32_t>(PasteboardError::E_OK),
         result, PASTEBOARD_MODULE_SERVICE, "get mimeTypes from plugin failed, result=%{public}d.", result);
-    std::vector<uint8_t> rawData;
     if (event.version == ClipPlugin::InfoType::MIMETYPE) {
         mimeTypes = DecodeMimeTypes(rawData);
     } else {
