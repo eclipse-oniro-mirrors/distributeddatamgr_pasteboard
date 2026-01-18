@@ -2358,7 +2358,7 @@ bool PasteboardService::HasDataType(const std::string &mimeType)
                 return false;
             }
             if (distEvt.version != ClipPlugin::InfoType::DEFAULT) {
-                return HasRemoteDataType(funcResult, distEvt);
+                return HasRemoteDataType(mimeType, distEvt);
             }
             PasteData data;
             int32_t syncTime = 0;
@@ -4868,10 +4868,10 @@ std::vector<std::string> PasteboardService::DecodeMimeTypes(const std::vector<ui
 {
     std::vector<std::string> mimeTypes;
     const uint8_t *data = rawData.data();
-    size_t size = rawData.data();
+    size_t size = rawData.size();
     size_t index = 0;
     while (index + 2 <= size) {
-        uint16_t len = static_cast<uint16_t>(data[index]) | static_cast<uint16_t>(data[index + 1] << 8);
+        uint16_t len = static_cast<uint16_t>(data[index]) | (static_cast<uint16_t>(data[index + 1]) << 8);
         index += 2;
         if (index + len > size) {
             break;
