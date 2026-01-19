@@ -51,12 +51,12 @@ HWTEST_F(PasteboardAbilityManagerTest, ShowProgressFailedTest, TestSize.Level1)
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ShowProgressFailedTest start");
     PasteboardDialog::ProgressMessageInfo message;
     int32_t ret = PasteboardDialog::ShowProgress(message);
-    EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
+    EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::PROGRESS_START_ERROR));
 
     message.callerToken = sptr<PasteboardSignalCallback>::MakeSptr();
     message.clientCallback = sptr<PasteboardSignalCallback>::MakeSptr();
     ret = PasteboardDialog::ShowProgress(message);
-    EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
+    EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::PROGRESS_START_ERROR));
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ShowProgressFailedTest end");
 }
 
