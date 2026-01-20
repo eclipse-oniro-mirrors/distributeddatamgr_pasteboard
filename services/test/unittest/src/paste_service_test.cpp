@@ -1676,8 +1676,8 @@ HWTEST_F(PasteboardServiceTest, HasRemoteDataTest001, TestSize.Level1)
     int32_t ret = PasteboardClient::GetInstance()->SetPasteData(*data);
     ASSERT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
 
-    has = PasteboardClient::GetInstance()->HasPasteData();
-    ASSERT_TRUE(has == true);
+    has = PasteboardClient::GetInstance()->HasDataType(MIMETYPE_TEXT_URI);
+    EXPECT_EQ(has, true);
     auto hasRemoteData = PasteboardClient::GetInstance()->HasRemoteData();
     EXPECT_EQ(hasRemoteData, false);
     PasteboardClient::GetInstance()->Clear();
