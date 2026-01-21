@@ -605,7 +605,14 @@ HWTEST_F(PasteboardServiceCheckTest, IsNeedThawTest001, TestSize.Level1)
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
 
-    tempPasteboard->IsNeedThaw();
+    bool ret = tempPasteboard->IsNeedThaw(PasteboardEventStatus::PASTEBOARD_READ);
+    EXPECT_FALSE(ret);
+
+    ret = tempPasteboard->IsNeedThaw(PasteboardEventStatus::PASTEBOARD_WRITE);
+    EXPECT_TRUE(ret);
+
+    ret = tempPasteboard->IsNeedThaw(PasteboardEventStatus::PASTEBOARD_CLEAR);
+    EXPECT_TRUE(ret);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "IsNeedThawTest001 end");
 }
 

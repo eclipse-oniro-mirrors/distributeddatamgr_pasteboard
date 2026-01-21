@@ -2663,7 +2663,7 @@ HWTEST_F(PasteboardServiceMockTest, IsNeedThaw002, TestSize.Level1)
     EXPECT_NE(tempPasteboard, nullptr);
     testing::NiceMock<PasteboardServiceInterfaceMock> mock;
     EXPECT_CALL(mock, GetInstance).WillOnce(testing::Return(nullptr));
-    bool result = tempPasteboard->IsNeedThaw();
+    bool result = tempPasteboard->IsNeedThaw(PasteboardEventStatus::PASTEBOARD_WRITE);
     EXPECT_FALSE(result);
 }
 
@@ -2681,7 +2681,7 @@ HWTEST_F(PasteboardServiceMockTest, IsNeedThaw003, TestSize.Level1)
     testing::NiceMock<PasteboardServiceInterfaceMock> mock;
     EXPECT_CALL(mock, GetInstance).WillOnce(testing::Return(instance_));
     EXPECT_CALL(mock, GetDefaultInputMethod).WillOnce(testing::Return(INT32_NEGATIVE_NUMBER));
-    bool result = tempPasteboard->IsNeedThaw();
+    bool result = tempPasteboard->IsNeedThaw(PasteboardEventStatus::PASTEBOARD_WRITE);
     EXPECT_FALSE(result);
 }
 
@@ -2699,7 +2699,7 @@ HWTEST_F(PasteboardServiceMockTest, IsNeedThaw004, TestSize.Level1)
     testing::NiceMock<PasteboardServiceInterfaceMock> mock;
     EXPECT_CALL(mock, GetInstance).WillOnce(testing::Return(instance_));
     EXPECT_CALL(mock, GetDefaultInputMethod).WillOnce(testing::Return(0));
-    bool result = tempPasteboard->IsNeedThaw();
+    bool result = tempPasteboard->IsNeedThaw(PasteboardEventStatus::PASTEBOARD_WRITE);
     EXPECT_FALSE(result);
 }
 
@@ -2717,7 +2717,7 @@ HWTEST_F(PasteboardServiceMockTest, IsNeedThaw005, TestSize.Level1)
     testing::NiceMock<PasteboardServiceInterfaceMock> mock;
     EXPECT_CALL(mock, GetInstance).WillOnce(testing::Return(instance_));
     EXPECT_CALL(mock, GetDefaultInputMethod).WillOnce(testing::Return(0));
-    bool result = tempPasteboard->IsNeedThaw();
+    bool result = tempPasteboard->IsNeedThaw(PasteboardEventStatus::PASTEBOARD_WRITE);
     EXPECT_TRUE(result);
 }
 

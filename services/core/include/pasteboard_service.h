@@ -298,7 +298,7 @@ private:
     std::string DumpHistory() const;
     std::string DumpData();
     void ThawInputMethod(pid_t imePid);
-    bool IsNeedThaw(void);
+    bool IsNeedThaw(PasteboardEventStatus status);
     int32_t ExtractEntity(const std::string &entity, std::string &location);
     int32_t GetAllEntryPlainText(uint32_t dataId, uint32_t recordId,
         std::vector<std::shared_ptr<PasteDataEntry>> &entries, std::string &primaryText);
