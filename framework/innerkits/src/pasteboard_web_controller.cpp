@@ -525,9 +525,13 @@ void PasteboardWebController::ReplaceHtmlRecordContentByExtraUris(
     std::vector<std::shared_ptr<PasteDataRecord>> &records)
 {
     std::shared_ptr<PasteDataRecord> htmlRecord = nullptr;
-    std::shared_ptr<std::string> htmlData;
+    std::shared_ptr<std::string> htmlData = nullptr;
     std::map<uint32_t, std::pair<std::string, std::string>, Cmp> replaceUris;
     for (const auto &item : records) {
+        if (item == nullptr) {
+            PASTEBOARD_HILOGW(PASTEBOARD_MODULE_COMMON, "item is nullptr");
+            continue;
+        }
         auto htmlEntry = item->GetEntryByMimeType(MIMETYPE_TEXT_HTML);
         if (htmlEntry != nullptr) {
             auto html = htmlEntry->ConvertToHtml();
@@ -539,7 +543,7 @@ void PasteboardWebController::ReplaceHtmlRecordContentByExtraUris(
         }
         std::shared_ptr<OHOS::Uri> uri = item->GetUriV0();
         std::shared_ptr<MiscServices::MineCustomData> customData = item->GetCustomData();
-        if (!uri || !customData) {
+        if (uri == nullptr || customData == nullptr) {
             continue;
         }
         std::map<std::string, std::vector<uint8_t>> customItemData = customData->GetItemData();

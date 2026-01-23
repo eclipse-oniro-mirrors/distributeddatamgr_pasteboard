@@ -200,6 +200,33 @@ ohos_unittest("PasteboardFrameworkMockTest") {
   }
 }
 
+ohos_unittest("PasteboardWebControllerTest") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+    blocklist = "./cfi_blocklist.txt"
+  }
+  resource_config_file =
+      "${pasteboard_root_path}/framework/test/resource/ohos_test.xml"
+  module_out_path = module_output_path
+  sources = [
+    "src/pasteboard_web_controller_test.cpp",
+  ]
+  configs = [ ":module_private_config" ]
+  cflags = [ "-fno-access-control" ]
+  external_deps = [
+    "ability_base:zuri",
+    "c_utils:utils",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+    "udmf:udmf_client",
+  ]
+
+  deps = [ "${pasteboard_innerkits_path}:pasteboard_data" ]
+}
+
 ohos_unittest("FfrtUtilsTest") {
   branch_protector_ret = "pac_ret"
   sanitize = {
