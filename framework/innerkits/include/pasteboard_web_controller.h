@@ -17,9 +17,13 @@
 #define PASTEBOARD_WEB_CONTROLLER_H
 
 #include "paste_data.h"
+#include <functional>
 
 namespace OHOS {
 namespace MiscServices {
+
+using OffsetMap = std::map<uint32_t, std::pair<std::string, std::string>, std::greater<uint32_t>>;
+using RecordList = std::vector<std::shared_ptr<PasteDataRecord>>;
 
 class API_EXPORT PasteboardWebController : public RefBase {
 public:
@@ -38,15 +42,15 @@ public:
 
 private:
     void RefreshUri(std::shared_ptr<PasteDataRecord> &record, const std::string &targetBundle, int32_t appInedx);
-    std::vector<std::shared_ptr<PasteDataRecord>> SplitHtml2Records(const std::shared_ptr<std::string> &html,
-        uint32_t recordId, const std::string &bundleIndex, int32_t userId) noexcept;
+    RecordList SplitHtml2Records(const std::shared_ptr<std::string> &html, uint32_t recordId,
+        const std::string &bundleIndex, int32_t userId) noexcept;
     void MergeExtraUris2Html(PasteData &data);
     std::vector<std::pair<std::string, uint32_t>> SplitHtmlWithImgLabel(
         const std::shared_ptr<std::string> html) noexcept;
     std::map<std::string, std::vector<uint8_t>> SplitHtmlWithImgSrcLabel(
         const std::vector<std::pair<std::string, uint32_t>> &matchVec) noexcept;
-    std::vector<std::shared_ptr<PasteDataRecord>> BuildPasteDataRecords(const std::map<std::string,
-        std::vector<uint8_t>> &imgSrcMap, uint32_t recordId) noexcept;
+    RecordList BuildPasteDataRecords(const std::map<std::string, std::vector<uint8_t>> &imgSrcMap,
+        uint32_t recordId) noexcept;
     void RemoveInvalidImgSrc(const std::vector<std::string> &validImgSrcList,
         std::map<std::string, std::vector<uint8_t>> &imgSrcMap) noexcept;
 
@@ -54,10 +58,12 @@ private:
     void RemoveRecordById(PasteData &pasteData, uint32_t recordId) noexcept;
     bool IsLocalURI(std::string &uri) noexcept;
     bool IsValidUri(const std::shared_ptr<OHOS::Uri> uriPtr, bool hasPermission) noexcept;
-    std::map<std::uint32_t, std::vector<std::shared_ptr<PasteDataRecord>>> GroupRecordWithFrom(PasteData &data);
+    std::map<std::uint32_t, RecordList> GroupRecordWithFrom(PasteData &data);
 
     void RemoveExtraUris(PasteData &data);
-    void ReplaceHtmlRecordContentByExtraUris(std::vector<std::shared_ptr<PasteDataRecord>> &records);
+    void ReplaceHtmlRecordContentByExtraUris(RecordList &records);
+    std::pair<std::shared_ptr<PasteDataRecord>, std::shared_ptr<std::string>> ExtractContent(
+        const RecordList &records, OffsetMap &replaceUris);
     void UpdateHtmlRecord(std::shared_ptr<PasteDataRecord> &htmlRecord, std::shared_ptr<std::string> &htmlData);
     int32_t GetNeedCheckUris(PasteData &pasteData, std::vector<std::string> &uris,
         std::vector<size_t> &indexs, bool ancoFlag);

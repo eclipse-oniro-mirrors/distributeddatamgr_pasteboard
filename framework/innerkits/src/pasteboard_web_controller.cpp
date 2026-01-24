@@ -35,6 +35,12 @@ constexpr const char *FILE_SCHEME = "file";
 constexpr uint32_t FOUR_BYTES = 4;
 constexpr uint32_t EIGHT_BIT = 8;
 constexpr uid_t ANCO_SERVICE_BROKER_UID = 5557;
+constexpr uint32_t BYTE_OFFSET_1 = 1;
+constexpr uint32_t BYTE_OFFSET_2 = 2;
+constexpr uint32_t BYTE_OFFSET_3 = 3;
+constexpr uint32_t BYTE_SHIFT_8 = 8;
+constexpr uint32_t BYTE_SHIFT_16 = 16;
+constexpr uint32_t BYTE_SHIFT_24 = 24;
 
 struct Cmp {
     bool operator()(const uint32_t &lhs, const uint32_t &rhs) const
@@ -71,7 +77,7 @@ bool PasteboardWebController::SplitWebviewPasteData(PasteData &pasteData, const 
         if (html == nullptr || html->empty()) {
             continue;
         }
-        std::vector<std::shared_ptr<PasteDataRecord>> extraUriRecords = SplitHtml2Records(html, record->GetRecordId(),
+        RecordList extraUriRecords = SplitHtml2Records(html, record->GetRecordId(),
             bundleIndex, userId);
         PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "split html, recordId=%{public}u, uri count=%{public}zu",
             record->GetRecordId(), extraUriRecords.size());
@@ -362,9 +368,8 @@ void PasteboardWebController::RemoveInvalidImgSrc(const std::vector<std::string>
     }
 }
 
-std::vector<std::shared_ptr<PasteDataRecord>> PasteboardWebController::SplitHtml2Records(
-    const std::shared_ptr<std::string> &html, uint32_t recordId, const std::string &bundleIndex,
-    int32_t userId) noexcept
+RecordList PasteboardWebController::SplitHtml2Records(const std::shared_ptr<std::string> &html, uint32_t recordId,
+    const std::string &bundleIndex, int32_t userId) noexcept
 {
     if (html == nullptr) {
         return {};
@@ -444,10 +449,10 @@ std::map<std::string, std::vector<uint8_t>> PasteboardWebController::SplitHtmlWi
     return res;
 }
 
-std::vector<std::shared_ptr<PasteDataRecord>> PasteboardWebController::BuildPasteDataRecords(
-    const std::map<std::string, std::vector<uint8_t>> &imgSrcMap, uint32_t recordId) noexcept
+RecordList PasteboardWebController::BuildPasteDataRecords(const std::map<std::string, std::vector<uint8_t>> &imgSrcMap,
+    uint32_t recordId) noexcept
 {
-    std::vector<std::shared_ptr<PasteDataRecord>> records;
+    RecordList records;
     for (const auto &item : imgSrcMap) {
         PasteDataRecord::Builder builder(MiscServices::MIMETYPE_TEXT_URI);
         auto uri = std::make_shared<OHOS::Uri>(item.first);
@@ -521,44 +526,20 @@ void PasteboardWebController::UpdateHtmlRecord(
     htmlRecord->SetFrom(0);
 }
 
-void PasteboardWebController::ReplaceHtmlRecordContentByExtraUris(
-    std::vector<std::shared_ptr<PasteDataRecord>> &records)
+void PasteboardWebController::ReplaceHtmlRecordContentByExtraUris(RecordList &records)
 {
-    std::shared_ptr<PasteDataRecord> htmlRecord = nullptr;
-    std::shared_ptr<std::string> htmlData;
-    std::map<uint32_t, std::pair<std::string, std::string>, Cmp> replaceUris;
-    for (const auto &item : records) {
-        auto htmlEntry = item->GetEntryByMimeType(MIMETYPE_TEXT_HTML);
-        if (htmlEntry != nullptr) {
-            auto html = htmlEntry->ConvertToHtml();
-            if (html != nullptr && !html->empty()) {
-                htmlData = html;
-                htmlRecord = item;
-                continue;
-            }
-        }
-        std::shared_ptr<OHOS::Uri> uri = item->GetUriV0();
-        std::shared_ptr<MiscServices::MineCustomData> customData = item->GetCustomData();
-        if (!uri || !customData) {
-            continue;
-        }
-        std::map<std::string, std::vector<uint8_t>> customItemData = customData->GetItemData();
-        for (auto &itemData : customItemData) {
-            for (uint32_t i = 0; i < itemData.second.size(); i += FOUR_BYTES) {
-                uint32_t offset = static_cast<uint32_t>(itemData.second[i]) |
-                                  static_cast<uint32_t>(itemData.second[i + 1] << 8) |
-                                  static_cast<uint32_t>(itemData.second[i + 2] << 16) |
-                                  static_cast<uint32_t>(itemData.second[i + 3] << 24);
-                replaceUris[offset] = std::make_pair(uri->ToString(), itemData.first);
-            }
-        }
-    }
+    OffsetMap replaceUris;
+    auto [htmlRecord, htmlData] = ExtractContent(records, replaceUris);
     if (htmlData == nullptr) {
         PASTEBOARD_HILOGW(PASTEBOARD_MODULE_COMMON, "htmlData is nullptr");
         return;
     }
 
     for (const auto &replaceUri : replaceUris) {
+        if (replaceUri.first >= htmlData->size()) {
+            PASTEBOARD_HILOGW(PASTEBOARD_MODULE_COMMON, "replaceUri offset invalid");
+            continue;
+        }
         htmlData->replace(replaceUri.first, replaceUri.second.second.size(), replaceUri.second.first);
     }
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_COMMON, "replace uri count: %{public}zu", replaceUris.size());
@@ -567,16 +548,16 @@ void PasteboardWebController::ReplaceHtmlRecordContentByExtraUris(
     }
 }
 
-std::map<std::uint32_t, std::vector<std::shared_ptr<PasteDataRecord>>> PasteboardWebController::GroupRecordWithFrom(
+std::map<std::uint32_t, RecordList> PasteboardWebController::GroupRecordWithFrom(
     PasteData &data)
 {
-    std::map<std::uint32_t, std::vector<std::shared_ptr<PasteDataRecord>>> groupMap;
+    std::map<std::uint32_t, RecordList> groupMap;
     for (const auto &record : data.AllRecords()) {
         if (record->GetFrom() == 0) {
             continue;
         }
         auto item = groupMap.find(record->GetFrom());
-        auto value = item != groupMap.end() ? item->second : std::vector<std::shared_ptr<PasteDataRecord>>();
+        auto value = item != groupMap.end() ? item->second : RecordList();
         value.emplace_back(record);
         groupMap.insert_or_assign(record->GetFrom(), value);
     }
@@ -592,6 +573,48 @@ void PasteboardWebController::RemoveExtraUris(PasteData &data)
         }
     }
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_COMMON, "After remove record count: %{public}zu", data.AllRecords().size());
+}
+
+std::pair<std::shared_ptr<PasteDataRecord>, std::shared_ptr<std::string>> PasteboardWebController::ExtractContent(
+    const RecordList &records, OffsetMap &replaceUris)
+{
+    std::shared_ptr<PasteDataRecord> htmlRecord = nullptr;
+    std::shared_ptr<std::string> htmlData = nullptr;
+    for (const auto &item : records) {
+        if (item == nullptr) {
+            PASTEBOARD_HILOGW(PASTEBOARD_MODULE_COMMON, "item is nullptr");
+            continue;
+        }
+        auto htmlEntry = item->GetEntryByMimeType(MIMETYPE_TEXT_HTML);
+        if (htmlEntry != nullptr) {
+            auto html = htmlEntry->ConvertToHtml();
+            if (html != nullptr && !html->empty()) {
+                htmlData = html;
+                htmlRecord = item;
+                continue;
+            }
+        }
+        std::shared_ptr<OHOS::Uri> uri = item->GetUriV0();
+        std::shared_ptr<MiscServices::MineCustomData> customData = item->GetCustomData();
+        if (uri == nullptr || customData == nullptr) {
+            continue;
+        }
+        std::map<std::string, std::vector<uint8_t>> customItemData = customData->GetItemData();
+        for (auto &itemData : customItemData) {
+            if (itemData.second.size() % FOUR_BYTES != 0) {
+                PASTEBOARD_HILOGW(PASTEBOARD_MODULE_COMMON, "itemData buffer size invalid");
+                continue;
+            }
+            for (uint32_t i = 0; i + BYTE_OFFSET_3 < itemData.second.size(); i += FOUR_BYTES) {
+                uint32_t offset = static_cast<uint32_t>(itemData.second[i]) |
+                                  static_cast<uint32_t>(itemData.second[i + BYTE_OFFSET_1] << BYTE_SHIFT_8) |
+                                  static_cast<uint32_t>(itemData.second[i + BYTE_OFFSET_2] << BYTE_SHIFT_16) |
+                                  static_cast<uint32_t>(itemData.second[i + BYTE_OFFSET_3] << BYTE_SHIFT_24);
+                replaceUris[offset] = std::make_pair(uri->ToString(), itemData.first);
+            }
+        }
+    }
+    return std::make_pair(htmlRecord, htmlData);
 }
 } // namespace MiscServices
 } // namespace OHOS
