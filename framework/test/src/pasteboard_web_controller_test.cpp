@@ -425,7 +425,7 @@ HWTEST_F(PasteboardWebControllerTest, ExtractContent_008, TestSize.Level1)
     customData->AddItemData(key, val);
     builder.SetCustomData(customData);
     auto uriRecord = builder.Build();
-   std::string html = "<html><body>hello world</body></html>";
+    std::string html = "<html><body>hello world</body></html>";
     std::shared_ptr<PasteDataRecord> record = PasteDataRecord::NewHtmlRecord(html);
     std::vector<std::shared_ptr<PasteDataRecord>> records{record, uriRecord};
     OffsetMap replaceUris;
