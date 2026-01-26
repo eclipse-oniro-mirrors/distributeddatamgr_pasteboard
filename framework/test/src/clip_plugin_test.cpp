@@ -279,4 +279,21 @@ HWTEST_F(ClipPluginTest, SetMaxLocalCapacityTest, TestSize.Level0)
     int64_t maxLocalCapacity = 0;
     clipPlugin->SetMaxLocalCapacity(maxLocalCapacity);
 }
+
+/**
+ * @tc.name: GetMimeTypesTest
+ * @tc.desc: GetMimeTypes.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(ClipPluginTest, GetMimeTypesTest, TestSize.Level0)
+{
+    auto clipPlugin = std::make_shared<CustomClipPlugin>();
+    ASSERT_NE(clipPlugin, nullptr);
+    std::vector<uint8_t> mimeTypes;
+    ClipPlugin::GlobalEvent event;
+    auto ret = clipPlugin->GetMimeTypes(mimeTypes, event);
+    ASSERT_EQ(0, ret);
+}
 } // namespace OHOS::MiscServices
