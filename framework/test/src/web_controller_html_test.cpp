@@ -26,24 +26,7 @@ class WebControllerTest : public testing::Test {
 public:
     WebControllerTest() {};
     ~WebControllerTest() {};
-    static void SetUpTestCase(void);
-    static void TearDownTestCase(void);
-    void SetUp();
-    void TearDown();
 };
-
-void WebControllerTest::SetUpTestCase(void) { }
-
-void WebControllerTest::TearDownTestCase(void) { }
-
-void WebControllerTest::SetUp(void) { }
-
-void WebControllerTest::TearDown(void) { }
-
-EntryValue GetHtmlValue()
-{
-    return EntryValue(std::in_place_type<std::string>, "<html><body>Test</body></html>");
-}
 
 /**
  * @tc.name: SplitHtmlTest_001.
