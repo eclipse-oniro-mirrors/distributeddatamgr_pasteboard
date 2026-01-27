@@ -22,11 +22,23 @@
 using namespace testing;
 using namespace testing::ext;
 using namespace OHOS::MiscServices;
-class WebControllerTest : public testing::Test {
+class WebControllerHtmlTest : public testing::Test {
 public:
-    WebControllerTest() {};
-    ~WebControllerTest() {};
+    WebControllerHtmlTest() {};
+    ~WebControllerHtmlTest() {};
+    static void SetUpTestCase(void);
+    static void TearDownTestCase(void);
+    void SetUp();
+    void TearDown();
 };
+
+void WebControllerHtmlTest::SetUpTestCase(void) { }
+
+void WebControllerHtmlTest::TearDownTestCase(void) { }
+
+void WebControllerHtmlTest::SetUp(void) { }
+
+void WebControllerHtmlTest::TearDown(void) { }
 
 /**
  * @tc.name: SplitHtmlTest_001.
@@ -35,7 +47,7 @@ public:
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(WebControllerTest, SplitHtmlTest_001, TestSize.Level1)
+HWTEST_F(WebControllerHtmlTest, SplitHtmlTest_001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitHtmlTest_001 start");
     auto webClipboardController = PasteboardWebController::GetInstance();
@@ -56,7 +68,7 @@ HWTEST_F(WebControllerTest, SplitHtmlTest_001, TestSize.Level1)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(WebControllerTest, SplitHtmlTest_002, TestSize.Level1)
+HWTEST_F(WebControllerHtmlTest, SplitHtmlTest_002, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitHtmlTest_002 start");
     auto webClipboardController = PasteboardWebController::GetInstance();
@@ -77,7 +89,7 @@ HWTEST_F(WebControllerTest, SplitHtmlTest_002, TestSize.Level1)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(WebControllerTest, SplitHtmlTest_003, TestSize.Level1)
+HWTEST_F(WebControllerHtmlTest, SplitHtmlTest_003, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitHtmlTest_003 start");
     auto webClipboardController = PasteboardWebController::GetInstance();
@@ -99,7 +111,7 @@ HWTEST_F(WebControllerTest, SplitHtmlTest_003, TestSize.Level1)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(WebControllerTest, RebuildHtmlTest_004, TestSize.Level1)
+HWTEST_F(WebControllerHtmlTest, RebuildHtmlTest_004, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_004 start");
     std::shared_ptr<std::string> html(
@@ -126,7 +138,7 @@ HWTEST_F(WebControllerTest, RebuildHtmlTest_004, TestSize.Level1)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(WebControllerTest, RebuildHtmlTest_005, TestSize.Level1)
+HWTEST_F(WebControllerHtmlTest, RebuildHtmlTest_005, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_005 start");
     const int32_t splitRecordCount = 1;
@@ -176,7 +188,7 @@ HWTEST_F(WebControllerTest, RebuildHtmlTest_005, TestSize.Level1)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(WebControllerTest, RebuildHtmlTest_006, TestSize.Level1)
+HWTEST_F(WebControllerHtmlTest, RebuildHtmlTest_006, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_006 start");
     const std::string uri = "file:///data/storage/el2/distributedfiles/temp.png";
@@ -236,7 +248,7 @@ HWTEST_F(WebControllerTest, RebuildHtmlTest_006, TestSize.Level1)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(WebControllerTest, SplitHtmlTest_007, TestSize.Level1)
+HWTEST_F(WebControllerHtmlTest, SplitHtmlTest_007, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitHtmlTest_007 start");
     auto webClipboardController = PasteboardWebController::GetInstance();
@@ -257,7 +269,7 @@ HWTEST_F(WebControllerTest, SplitHtmlTest_007, TestSize.Level1)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(WebControllerTest, RebuildHtmlTest_008, TestSize.Level1)
+HWTEST_F(WebControllerHtmlTest, RebuildHtmlTest_008, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_008 start");
     auto webClipboardController = PasteboardWebController::GetInstance();
@@ -277,7 +289,7 @@ HWTEST_F(WebControllerTest, RebuildHtmlTest_008, TestSize.Level1)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(WebControllerTest, RebuildHtmlTest_009, TestSize.Level1)
+HWTEST_F(WebControllerHtmlTest, RebuildHtmlTest_009, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_009 start");
     const std::string uri = "file:///data/storage/el2/distributedfiles/temp.png";
@@ -326,7 +338,7 @@ HWTEST_F(WebControllerTest, RebuildHtmlTest_009, TestSize.Level1)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(WebControllerTest, RebuildHtmlTest_010, TestSize.Level1)
+HWTEST_F(WebControllerHtmlTest, RebuildHtmlTest_010, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_010 start");
     const std::string uri = "file:///data/storage/el2/distributedfiles/temp.png";
@@ -384,7 +396,7 @@ HWTEST_F(WebControllerTest, RebuildHtmlTest_010, TestSize.Level1)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(WebControllerTest, SplitHtmlTest_011, TestSize.Level1)
+HWTEST_F(WebControllerHtmlTest, SplitHtmlTest_011, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitHtmlTest_011 start");
     auto webClipboardController = PasteboardWebController::GetInstance();
@@ -405,7 +417,7 @@ HWTEST_F(WebControllerTest, SplitHtmlTest_011, TestSize.Level1)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(WebControllerTest, SplitHtmlTest_012, TestSize.Level1)
+HWTEST_F(WebControllerHtmlTest, SplitHtmlTest_012, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitHtmlTest_012 start");
     auto webClipboardController = PasteboardWebController::GetInstance();
@@ -426,7 +438,7 @@ HWTEST_F(WebControllerTest, SplitHtmlTest_012, TestSize.Level1)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(WebControllerTest, SplitHtmlTest_013, TestSize.Level1)
+HWTEST_F(WebControllerHtmlTest, SplitHtmlTest_013, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitHtmlTest_013 start");
     auto webClipboardController = PasteboardWebController::GetInstance();
@@ -448,7 +460,7 @@ HWTEST_F(WebControllerTest, SplitHtmlTest_013, TestSize.Level1)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(WebControllerTest, RebuildHtmlTest_014, TestSize.Level1)
+HWTEST_F(WebControllerHtmlTest, RebuildHtmlTest_014, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_014 start");
     std::shared_ptr<std::string> html(
@@ -475,7 +487,7 @@ HWTEST_F(WebControllerTest, RebuildHtmlTest_014, TestSize.Level1)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(WebControllerTest, RebuildHtmlTest_015, TestSize.Level1)
+HWTEST_F(WebControllerHtmlTest, RebuildHtmlTest_015, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_015 start");
     const int32_t splitRecordCount = 1;
@@ -525,7 +537,7 @@ HWTEST_F(WebControllerTest, RebuildHtmlTest_015, TestSize.Level1)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(WebControllerTest, RebuildHtmlTest_016, TestSize.Level1)
+HWTEST_F(WebControllerHtmlTest, RebuildHtmlTest_016, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_016 start");
     const std::string uri = "file:///data/storage/el2/distributedfiles/temp.png";
@@ -585,7 +597,7 @@ HWTEST_F(WebControllerTest, RebuildHtmlTest_016, TestSize.Level1)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(WebControllerTest, SplitHtmlTest_017, TestSize.Level1)
+HWTEST_F(WebControllerHtmlTest, SplitHtmlTest_017, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitHtmlTest_017 start");
     auto webClipboardController = PasteboardWebController::GetInstance();
@@ -606,7 +618,7 @@ HWTEST_F(WebControllerTest, SplitHtmlTest_017, TestSize.Level1)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(WebControllerTest, RebuildHtmlTest_018, TestSize.Level1)
+HWTEST_F(WebControllerHtmlTest, RebuildHtmlTest_018, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_018 start");
     auto webClipboardController = PasteboardWebController::GetInstance();
@@ -626,7 +638,7 @@ HWTEST_F(WebControllerTest, RebuildHtmlTest_018, TestSize.Level1)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(WebControllerTest, RebuildHtmlTest_019, TestSize.Level1)
+HWTEST_F(WebControllerHtmlTest, RebuildHtmlTest_019, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_019 start");
     const std::string uri = "file:///data/storage/el2/distributedfiles/temp.png";
@@ -675,7 +687,7 @@ HWTEST_F(WebControllerTest, RebuildHtmlTest_019, TestSize.Level1)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(WebControllerTest, RebuildHtmlTest_020, TestSize.Level1)
+HWTEST_F(WebControllerHtmlTest, RebuildHtmlTest_020, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_020 start");
     const std::string uri = "file:///data/storage/el2/distributedfiles/temp.png";
@@ -733,7 +745,7 @@ HWTEST_F(WebControllerTest, RebuildHtmlTest_020, TestSize.Level1)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(WebControllerTest, SplitHtmlTest_021, TestSize.Level1)
+HWTEST_F(WebControllerHtmlTest, SplitHtmlTest_021, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitHtmlTest_021 start");
     auto webClipboardController = PasteboardWebController::GetInstance();
@@ -754,7 +766,7 @@ HWTEST_F(WebControllerTest, SplitHtmlTest_021, TestSize.Level1)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(WebControllerTest, SplitHtmlTest_022, TestSize.Level1)
+HWTEST_F(WebControllerHtmlTest, SplitHtmlTest_022, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitHtmlTest_022 start");
     auto webClipboardController = PasteboardWebController::GetInstance();
@@ -775,7 +787,7 @@ HWTEST_F(WebControllerTest, SplitHtmlTest_022, TestSize.Level1)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(WebControllerTest, SplitHtmlTest_023, TestSize.Level1)
+HWTEST_F(WebControllerHtmlTest, SplitHtmlTest_023, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitHtmlTest_023 start");
     auto webClipboardController = PasteboardWebController::GetInstance();
@@ -797,7 +809,7 @@ HWTEST_F(WebControllerTest, SplitHtmlTest_023, TestSize.Level1)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(WebControllerTest, RebuildHtmlTest_024, TestSize.Level1)
+HWTEST_F(WebControllerHtmlTest, RebuildHtmlTest_024, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_024 start");
     std::shared_ptr<std::string> html(
@@ -824,7 +836,7 @@ HWTEST_F(WebControllerTest, RebuildHtmlTest_024, TestSize.Level1)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(WebControllerTest, RebuildHtmlTest_025, TestSize.Level1)
+HWTEST_F(WebControllerHtmlTest, RebuildHtmlTest_025, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_025 start");
     const int32_t splitRecordCount = 1;
@@ -874,7 +886,7 @@ HWTEST_F(WebControllerTest, RebuildHtmlTest_025, TestSize.Level1)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(WebControllerTest, RebuildHtmlTest_026, TestSize.Level1)
+HWTEST_F(WebControllerHtmlTest, RebuildHtmlTest_026, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_026 start");
     const std::string uri = "file:///data/storage/el2/distributedfiles/temp.png";
@@ -934,7 +946,7 @@ HWTEST_F(WebControllerTest, RebuildHtmlTest_026, TestSize.Level1)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(WebControllerTest, SplitHtmlTest_027, TestSize.Level1)
+HWTEST_F(WebControllerHtmlTest, SplitHtmlTest_027, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitHtmlTest_027 start");
     auto webClipboardController = PasteboardWebController::GetInstance();
@@ -955,7 +967,7 @@ HWTEST_F(WebControllerTest, SplitHtmlTest_027, TestSize.Level1)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(WebControllerTest, RebuildHtmlTest_028, TestSize.Level1)
+HWTEST_F(WebControllerHtmlTest, RebuildHtmlTest_028, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_028 start");
     auto webClipboardController = PasteboardWebController::GetInstance();
@@ -975,7 +987,7 @@ HWTEST_F(WebControllerTest, RebuildHtmlTest_028, TestSize.Level1)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(WebControllerTest, RebuildHtmlTest_029, TestSize.Level1)
+HWTEST_F(WebControllerHtmlTest, RebuildHtmlTest_029, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_029 start");
     const std::string uri = "file:///data/storage/el2/distributedfiles/temp.png";
@@ -1024,7 +1036,7 @@ HWTEST_F(WebControllerTest, RebuildHtmlTest_029, TestSize.Level1)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(WebControllerTest, RebuildHtmlTest_030, TestSize.Level1)
+HWTEST_F(WebControllerHtmlTest, RebuildHtmlTest_030, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_030 start");
     const std::string uri = "file:///data/storage/el2/distributedfiles/temp.png";
@@ -1082,7 +1094,7 @@ HWTEST_F(WebControllerTest, RebuildHtmlTest_030, TestSize.Level1)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(WebControllerTest, SplitHtmlTest_031, TestSize.Level1)
+HWTEST_F(WebControllerHtmlTest, SplitHtmlTest_031, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitHtmlTest_031 start");
     auto webClipboardController = PasteboardWebController::GetInstance();
@@ -1103,7 +1115,7 @@ HWTEST_F(WebControllerTest, SplitHtmlTest_031, TestSize.Level1)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(WebControllerTest, SplitHtmlTest_032, TestSize.Level1)
+HWTEST_F(WebControllerHtmlTest, SplitHtmlTest_032, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitHtmlTest_032 start");
     auto webClipboardController = PasteboardWebController::GetInstance();
@@ -1124,7 +1136,7 @@ HWTEST_F(WebControllerTest, SplitHtmlTest_032, TestSize.Level1)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(WebControllerTest, SplitHtmlTest_033, TestSize.Level1)
+HWTEST_F(WebControllerHtmlTest, SplitHtmlTest_033, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitHtmlTest_033 start");
     auto webClipboardController = PasteboardWebController::GetInstance();
@@ -1146,7 +1158,7 @@ HWTEST_F(WebControllerTest, SplitHtmlTest_033, TestSize.Level1)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(WebControllerTest, RebuildHtmlTest_034, TestSize.Level1)
+HWTEST_F(WebControllerHtmlTest, RebuildHtmlTest_034, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_034 start");
     std::shared_ptr<std::string> html(
@@ -1173,7 +1185,7 @@ HWTEST_F(WebControllerTest, RebuildHtmlTest_034, TestSize.Level1)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(WebControllerTest, RebuildHtmlTest_035, TestSize.Level1)
+HWTEST_F(WebControllerHtmlTest, RebuildHtmlTest_035, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_035 start");
     const int32_t splitRecordCount = 1;
@@ -1223,7 +1235,7 @@ HWTEST_F(WebControllerTest, RebuildHtmlTest_035, TestSize.Level1)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(WebControllerTest, RebuildHtmlTest_036, TestSize.Level1)
+HWTEST_F(WebControllerHtmlTest, RebuildHtmlTest_036, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_036 start");
     const std::string uri = "file:///data/storage/el2/distributedfiles/temp.png";
@@ -1283,7 +1295,7 @@ HWTEST_F(WebControllerTest, RebuildHtmlTest_036, TestSize.Level1)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(WebControllerTest, SplitHtmlTest_037, TestSize.Level1)
+HWTEST_F(WebControllerHtmlTest, SplitHtmlTest_037, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitHtmlTest_037 start");
     auto webClipboardController = PasteboardWebController::GetInstance();
@@ -1304,7 +1316,7 @@ HWTEST_F(WebControllerTest, SplitHtmlTest_037, TestSize.Level1)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(WebControllerTest, RebuildHtmlTest_038, TestSize.Level1)
+HWTEST_F(WebControllerHtmlTest, RebuildHtmlTest_038, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_038 start");
     auto webClipboardController = PasteboardWebController::GetInstance();
@@ -1324,7 +1336,7 @@ HWTEST_F(WebControllerTest, RebuildHtmlTest_038, TestSize.Level1)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(WebControllerTest, RebuildHtmlTest_039, TestSize.Level1)
+HWTEST_F(WebControllerHtmlTest, RebuildHtmlTest_039, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_039 start");
     const std::string uri = "file:///data/storage/el2/distributedfiles/temp.png";
@@ -1373,7 +1385,7 @@ HWTEST_F(WebControllerTest, RebuildHtmlTest_039, TestSize.Level1)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(WebControllerTest, RebuildHtmlTest_040, TestSize.Level1)
+HWTEST_F(WebControllerHtmlTest, RebuildHtmlTest_040, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_040 start");
     const std::string uri = "file:///data/storage/el2/distributedfiles/temp.png";
@@ -1431,7 +1443,7 @@ HWTEST_F(WebControllerTest, RebuildHtmlTest_040, TestSize.Level1)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(WebControllerTest, SplitHtmlTest_041, TestSize.Level1)
+HWTEST_F(WebControllerHtmlTest, SplitHtmlTest_041, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitHtmlTest_041 start");
     auto webClipboardController = PasteboardWebController::GetInstance();
@@ -1452,7 +1464,7 @@ HWTEST_F(WebControllerTest, SplitHtmlTest_041, TestSize.Level1)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(WebControllerTest, SplitHtmlTest_042, TestSize.Level1)
+HWTEST_F(WebControllerHtmlTest, SplitHtmlTest_042, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitHtmlTest_042 start");
     auto webClipboardController = PasteboardWebController::GetInstance();
@@ -1473,7 +1485,7 @@ HWTEST_F(WebControllerTest, SplitHtmlTest_042, TestSize.Level1)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(WebControllerTest, SplitHtmlTest_043, TestSize.Level1)
+HWTEST_F(WebControllerHtmlTest, SplitHtmlTest_043, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitHtmlTest_043 start");
     auto webClipboardController = PasteboardWebController::GetInstance();
@@ -1495,7 +1507,7 @@ HWTEST_F(WebControllerTest, SplitHtmlTest_043, TestSize.Level1)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(WebControllerTest, RebuildHtmlTest_044, TestSize.Level1)
+HWTEST_F(WebControllerHtmlTest, RebuildHtmlTest_044, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_044 start");
     std::shared_ptr<std::string> html(
@@ -1522,7 +1534,7 @@ HWTEST_F(WebControllerTest, RebuildHtmlTest_044, TestSize.Level1)
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(WebControllerTest, RebuildHtmlTest_045, TestSize.Level1)
+HWTEST_F(WebControllerHtmlTest, RebuildHtmlTest_045, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_045 start");
     const int32_t splitRecordCount = 1;
