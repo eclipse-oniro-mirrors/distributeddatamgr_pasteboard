@@ -79,6 +79,7 @@ ohos_unittest("PasteboardFrameworkTest") {
     "src/serializable_test.cpp",
     "src/tlv_countable_test.cpp",
     "src/tlv_object_test.cpp",
+    "src/web_controller_record_test.cpp",
     "src/web_controller_test.cpp",
   ]
   configs = [ ":module_private_config" ]
