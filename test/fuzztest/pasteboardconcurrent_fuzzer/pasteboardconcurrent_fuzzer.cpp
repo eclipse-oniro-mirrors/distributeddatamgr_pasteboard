@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,6 +20,27 @@
 #include "pasteboard_error.h"
 #include "pasteboard_service.h"
 #include "string_ex.h"
+
+extern "C" {
+int open(const char * const path, int flags)
+{
+    (void)path;
+    (void)flags;
+    return -1;
+}
+
+int close(int fd)
+{
+    (void)fd;
+    return 0;
+}
+
+int dup(int fd)
+{
+    (void)fd;
+    return -1;
+}
+} // extern "C"
 
 namespace {
 using namespace OHOS;

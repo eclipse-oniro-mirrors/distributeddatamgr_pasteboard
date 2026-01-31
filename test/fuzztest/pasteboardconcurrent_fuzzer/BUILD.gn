@@ -1,4 +1,4 @@
-# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Copyright (c) 2026 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -18,17 +18,26 @@ import("//build/config/features.gni")
 import("//build/ohos.gni")
 import("//build/test.gni")
 
-ohos_fuzztest("PasteboardCurrentFuzzTest") {
-  module_out_path = "pasteboard/pasteboard/current"
+ohos_fuzztest("PasteboardConcurrentFuzzTest") {
+  module_out_path = "pasteboard/pasteboard/concurrent"
 
-  fuzz_config_file = "${pasteboard_root_path}/test/fuzztest/pasteboardcurrent_fuzzer"
+  fuzz_config_file = "${pasteboard_root_path}/test/fuzztest/pasteboardconcurrent_fuzzer"
+
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = true
+  }
 
   cflags = [
     "-g",
     "-O0",
     "-fno-omit-frame-pointer",
     "-fno-access-control",
+    "-fno-sanitize-coverage=inline-8bit-counters",
   ]
+  cflags_cc = [ "-fno-sanitize-coverage=inline-8bit-counters" ]
 
   include_dirs = [ "${pasteboard_root_path}/test/fuzztest/mock/permission" ]
   include_dirs += [
@@ -54,7 +63,7 @@ ohos_fuzztest("PasteboardCurrentFuzzTest") {
   ]
 
   sources = [
-    "pasteboardcurrent_fuzzer.cpp",
+    "pasteboardconcurrent_fuzzer.cpp",
     "${pasteboard_root_path}/test/fuzztest/mock/permission/mock_native_token.cpp",
   ]
   sources += [
@@ -170,5 +179,5 @@ ohos_fuzztest("PasteboardCurrentFuzzTest") {
 
 group("fuzztest") {
   testonly = true
-  deps = [ ":PasteboardCurrentFuzzTest" ]
+  deps = [ ":PasteboardConcurrentFuzzTest" ]
 }

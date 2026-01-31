@@ -23,7 +23,7 @@ group("fuzztest") {
       pasteboard_device_manager_part_enabled &&
       pasteboard_screenlock_mgr_part_enabled) {
     deps += [
-      "fuzztest/pasteboardcurrent_fuzzer:fuzztest",
+      "fuzztest/pasteboardconcurrent_fuzzer:fuzztest",
       "fuzztest/pasteboarddata_fuzzer:fuzztest",
       "fuzztest/pasteboarddisposable_fuzzer:fuzztest",
       "fuzztest/pasteboardservice_fuzzer:fuzztest",
