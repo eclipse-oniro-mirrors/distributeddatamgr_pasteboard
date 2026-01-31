@@ -1,0 +1,183 @@
+# Copyright (c) 2026 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//foundation/distributeddatamgr/pasteboard/pasteboard.gni")
+
+import("//build/config/components/idl_tool/idl.gni")
+import("//build/config/features.gni")
+import("//build/ohos.gni")
+import("//build/test.gni")
+
+ohos_fuzztest("PasteboardConcurrentFuzzTest") {
+  module_out_path = "pasteboard/pasteboard/concurrent"
+
+  fuzz_config_file = "${pasteboard_root_path}/test/fuzztest/pasteboardconcurrent_fuzzer"
+
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = true
+  }
+
+  cflags = [
+    "-g",
+    "-O0",
+    "-fno-omit-frame-pointer",
+    "-fno-access-control",
+    "-fno-sanitize-coverage=inline-8bit-counters",
+  ]
+  cflags_cc = [ "-fno-sanitize-coverage=inline-8bit-counters" ]
+
+  include_dirs = [ "${pasteboard_root_path}/test/fuzztest/mock/permission" ]
+  include_dirs += [
+    "${pasteboard_framework_path}/include",
+    "${pasteboard_framework_path}/include/device",
+    "${pasteboard_innerkits_path}/include",
+    "${pasteboard_root_path}/adapter/data_share",
+    "${pasteboard_root_path}/adapter/security_level",
+    "${pasteboard_service_path}/dfx/src",
+    "${pasteboard_service_path}/dfx/src/behaviour",
+    "${pasteboard_service_path}/dfx/src/statistic",
+    "${pasteboard_service_path}/dfx/src/fault",
+    "${pasteboard_service_path}/zidl/include",
+    "${pasteboard_service_path}/account/include",
+    "${pasteboard_service_path}/core/include",
+    "${pasteboard_service_path}/load/include",
+    "${pasteboard_service_path}/switch",
+    "${pasteboard_tlv_path}",
+    "${pasteboard_utils_path}/mock/include",
+    "${pasteboard_utils_path}/native/include",
+    "${pasteboard_utils_path}/system/safwk/native/include",
+    "${target_gen_dir}",
+  ]
+
+  sources = [
+    "pasteboardconcurrent_fuzzer.cpp",
+    "${pasteboard_root_path}/test/fuzztest/mock/permission/mock_native_token.cpp",
+  ]
+  sources += [
+    "${pasteboard_root_path}/adapter/data_share/datashare_delegate.cpp",
+    "${pasteboard_root_path}/adapter/security_level/security_level.cpp",
+    "${pasteboard_service_path}/account/src/account_manager.cpp",
+    "${pasteboard_service_path}/core/src/pasteboard_ability_manager.cpp",
+    "${pasteboard_service_path}/core/src/pasteboard_dialog.cpp",
+    "${pasteboard_service_path}/core/src/pasteboard_delay_manager.cpp",
+    "${pasteboard_service_path}/core/src/pasteboard_disposable_manager.cpp",
+    "${pasteboard_service_path}/core/src/pasteboard_pattern.cpp",
+    "${pasteboard_service_path}/core/src/pasteboard_service.cpp",
+    "${pasteboard_service_path}/core/src/pasteboard_window_manager.cpp",
+    "${pasteboard_service_path}/dfx/src/behaviour/pasteboard_behaviour_reporter_impl.cpp",
+    "${pasteboard_service_path}/dfx/src/calculate_time_consuming.cpp",
+    "${pasteboard_service_path}/dfx/src/command.cpp",
+    "${pasteboard_service_path}/dfx/src/fault/pasteboard_fault_impl.cpp",
+    "${pasteboard_service_path}/dfx/src/hiview_adapter.cpp",
+    "${pasteboard_service_path}/dfx/src/pasteboard_dump_helper.cpp",
+    "${pasteboard_service_path}/dfx/src/pasteboard_event_dfx.cpp",
+    "${pasteboard_service_path}/dfx/src/pasteboard_trace.cpp",
+    "${pasteboard_service_path}/dfx/src/reporter.cpp",
+    "${pasteboard_service_path}/dfx/src/statistic/time_consuming_statistic_impl.cpp",
+    "${pasteboard_service_path}/load/src/config.cpp",
+    "${pasteboard_service_path}/load/src/loader.cpp",
+    "${pasteboard_service_path}/switch/pasteboard_switch.cpp",
+    "${pasteboard_service_path}/zidl/src/entity_recognition_observer_proxy.cpp",
+    "${pasteboard_service_path}/zidl/src/pasteboard_delay_getter_proxy.cpp",
+    "${pasteboard_service_path}/zidl/src/pasteboard_disposable_observer_proxy.cpp",
+    "${pasteboard_service_path}/zidl/src/pasteboard_entry_getter_proxy.cpp",
+    "${pasteboard_utils_path}/native/src/pasteboard_common.cpp",
+    "${pasteboard_utils_path}/native/src/pasteboard_time.cpp",
+  ]
+
+  deps = [
+    "${pasteboard_framework_path}:pasteboard_framework",
+    "${pasteboard_innerkits_path}:pasteboard_client",
+    "${pasteboard_innerkits_path}:pasteboard_data",
+    "${pasteboard_service_path}:pasteboard_service_idl",
+  ]
+
+  defines = []
+
+  external_deps = [
+    "ability_base:base",
+    "ability_base:want",
+    "ability_base:zuri",
+    "ability_runtime:uri_permission_mgr",
+    "ability_runtime:wantagent_innerkits",
+    "access_token:libaccesstoken_sdk",
+    "access_token:libnativetoken",
+    "access_token:libprivacy_sdk",
+    "access_token:libtoken_setproc",
+    "app_file_service:remote_file_share_native",
+    "bundle_framework:appexecfwk_base",
+    "bundle_framework:appexecfwk_core",
+    "c_utils:utils",
+    "common_event_service:cesfwk_innerkits",
+    "data_share:datashare_consumer",
+    "dfs_service:distributed_file_daemon_kit_inner",
+    "eventhandler:libeventhandler",
+    "ffrt:libffrt",
+    "hilog:libhilog",
+    "hisysevent:libhisysevent",
+    "hitrace:hitrace_meter",
+    "imf:inputmethod_client",
+    "init:libbegetutil",
+    "input:libmmi-client",
+    "ipc:ipc_single",
+    "libxml2:libxml2",
+    "memmgr:memmgrclient",
+    "os_account:os_account_innerkits",
+    "resource_schedule_service:ressched_client",
+    "safwk:system_ability_fwk",
+    "samgr:samgr_proxy",
+    "udmf:udmf_client",
+  ]
+
+  if (pasteboard_vixl_part_enabled) {
+    external_deps += [ "vixl:libvixl" ]
+    defines += [ "PB_VIXL_ENABLE" ]
+  }
+  if (window_manager_use_sceneboard) {
+    external_deps += [ "window_manager:libwm_lite" ]
+    defines += [ "SCENE_BOARD_ENABLE" ]
+  } else {
+    external_deps += [ "window_manager:libwm" ]
+  }
+  if (pasteboard_dlp_part_enabled) {
+    external_deps += [ "dlp_permission_service:libdlp_permission_sdk" ]
+    defines += [ "WITH_DLP" ]
+  }
+  if (pasteboard_device_info_manager_part_enabled) {
+    external_deps += [
+      "device_info_manager:distributed_device_profile_common",
+      "device_info_manager:distributed_device_profile_sdk",
+    ]
+    defines += [ "PB_DEVICE_INFO_MANAGER_ENABLE" ]
+  }
+  if (pasteboard_device_manager_part_enabled) {
+    external_deps += [ "device_manager:devicemanagersdk" ]
+    defines += [ "PB_DEVICE_MANAGER_ENABLE" ]
+  }
+  if (pasteboard_screenlock_mgr_part_enabled) {
+    external_deps += [ "screenlock_mgr:screenlock_client" ]
+    defines += [ "PB_SCREENLOCK_MGR_ENABLE" ]
+  }
+  if (pasteboard_dataclassification_enabled) {
+    external_deps += [ "dataclassification:data_transit_mgr" ]
+    defines += [ "PB_DATACLASSIFICATION_ENABLE" ]
+  }
+}
+
+group("fuzztest") {
+  testonly = true
+  deps = [ ":PasteboardConcurrentFuzzTest" ]
+}
