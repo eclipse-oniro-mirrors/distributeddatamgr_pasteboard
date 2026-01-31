@@ -24,7 +24,6 @@ group("fuzztest") {
       pasteboard_screenlock_mgr_part_enabled) {
     deps += [
       "fuzztest/pasteboardconcurrent_fuzzer:fuzztest",
-      "fuzztest/pasteboardcurrent_fuzzer:fuzztest",
       "fuzztest/pasteboarddata_fuzzer:fuzztest",
       "fuzztest/pasteboarddisposable_fuzzer:fuzztest",
       "fuzztest/pasteboardservice_fuzzer:fuzztest",

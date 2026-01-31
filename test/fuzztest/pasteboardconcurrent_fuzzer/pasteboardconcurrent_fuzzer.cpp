@@ -40,22 +40,6 @@ int dup(int fd)
     (void)fd;
     return -1;
 }
-
-ssize_t read(int fd, void *buf, size_t count)
-{
-    (void)fd;
-    (void)buf;
-    (void)count;
-    return 0;
-}
-
-size_t write(int fd, const void *buf, size_t count)
-{
-    (void)fd;
-    (void)buf;
-    (void)count;
-    return 0;
-}
 } // extern "C"
 
 namespace {
