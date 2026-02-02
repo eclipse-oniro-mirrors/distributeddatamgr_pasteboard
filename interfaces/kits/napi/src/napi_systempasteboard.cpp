@@ -1341,7 +1341,6 @@ napi_value SystemPasteboardNapi::SystemPasteboardInit(napi_env env, napi_value e
         DECLARE_NAPI_WRITABLE_FUNCTION("removeAppShareOptions", RemoveAppShareOptions),
         DECLARE_NAPI_WRITABLE_FUNCTION("getDataWithProgress", GetDataWithProgress),
         DECLARE_NAPI_WRITABLE_FUNCTION("getChangeCount", GetChangeCount),
-        DECLARE_NAPI_WRITABLE_FUNCTION("hasRemoteData", HasRemoteData),
     };
     napi_value constructor;
     napi_define_class(env, "SystemPasteboard", NAPI_AUTO_LENGTH, New, nullptr,

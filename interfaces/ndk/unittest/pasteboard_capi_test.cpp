@@ -2100,18 +2100,6 @@ HWTEST_F(PasteboardCapiTest, OH_Pasteboard_HasDataTest001, TestSize.Level2)
 }
 
 /**
- * @tc.name: OH_Pasteboard_HasRemoteDataTest001
- * @tc.desc: OH_Pasteboard_HasRemoteDataTest001
- * @tc.type: FUNC
- * @tc.require: AROOOH5R5G
- */
-HWTEST_F(PasteboardCapiTest, OH_Pasteboard_HasRemoteDataTest001, TestSize.Level2)
-{
-    bool ret = OH_Pasteboard_HasRemoteData(nullptr);
-    EXPECT_FALSE(ret);
-}
-
-/**
  * @tc.name: OH_Pasteboard_GetDataTest008
  * @tc.desc: OH_Pasteboard_GetDataTest008
  * @tc.type: FUNC

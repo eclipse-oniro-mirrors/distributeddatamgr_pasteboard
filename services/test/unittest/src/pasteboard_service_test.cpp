@@ -1450,6 +1450,5 @@ HWTEST_F(PasteboardServiceTest, clearInner002, TestSize.Level1)
     EXPECT_EQ(hasData, true);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "clearInner002 end");
 }
-
 } // namespace MiscServices
 } // namespace OHOS
