@@ -37,14 +37,14 @@ public:
     MOCK_METHOD(int32_t, StartAbility, (const OHOS::AAFwk::Want& want), (override));
 };
 
-static PasteboardAbilityManagerWrapper* gAbilityManagerWrapper = nullptr;
+static PasteboardAbilityManagerWrapper* g_abilityManagerWrapper = nullptr;
 
 namespace OHOS {
 namespace MiscServices {
 int32_t PasteboardAbilityManager::StartAbility(const OHOS::AAFwk::Want& want)
 {
-    if (gAbilityManagerWrapper != nullptr) {
-        return gAbilityManagerWrapper->StartAbility(want);
+    if (g_abilityManagerWrapper != nullptr) {
+        return g_abilityManagerWrapper->StartAbility(want);
     }
     return 0;
 }
@@ -56,13 +56,13 @@ public:
     static void SetUpTestCase()
     {
         gMockManager = new MockPasteboardAbilityManager();
-        gAbilityManagerWrapper = gMockManager;
+        g_abilityManagerWrapper = gMockManager;
     }
     static void TearDownTestCase()
     {
         delete gMockManager;
         gMockManager = nullptr;
-        gAbilityManagerWrapper = nullptr;
+        g_abilityManagerWrapper = nullptr;
     }
     void SetUp() override {}
     void TearDown() override {}
