@@ -696,21 +696,6 @@ bool PasteboardClient::HasPasteData()
     return ret;
 }
 
-bool PasteboardClient::HasRemoteData()
-{
-    PASTEBOARD_HILOGD(PASTEBOARD_MODULE_CLIENT, "HasRemoteData start.");
-    auto proxyService = GetPasteboardService();
-    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(proxyService != nullptr, false,
-        PASTEBOARD_MODULE_CLIENT, "proxyService is nullptr");
-    bool ret = false;
-    int32_t errCode = proxyService->HasRemoteData(ret);
-    if (errCode != ERR_OK) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CLIENT, "has remote data failed, ret=%{public}d", errCode);
-        return false;
-    }
-    return ret;
-}
-
 void PasteboardClient::CreateGetterAgent(sptr<PasteboardDelayGetterClient> &delayGetterAgent,
     std::shared_ptr<PasteboardDelayGetter> &delayGetter, sptr<PasteboardEntryGetterClient> &entryGetterAgent,
     std::map<uint32_t, std::shared_ptr<UDMF::EntryGetter>> &entryGetters, PasteData &pasteData)

@@ -348,27 +348,6 @@ napi_value SystemPasteboardNapi::HasPasteData(napi_env env, napi_callback_info i
     return asyncCall.Call(env, exec);
 }
 
-napi_value SystemPasteboardNapi::HasRemoteData(napi_env env, napi_callback_info info)
-{
-    PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "SystemPasteboardNapi HasRemoteData() is called!");
-    auto block = std::make_shared<BlockObject<std::shared_ptr<bool>>>(SYNC_TIMEOUT);
-    std::thread thread([block]() {
-        bool ret = PasteboardClient::GetInstance()->HasRemoteData();
-        auto ptr = std::make_shared<bool>(ret);
-        block->SetValue(ptr);
-    });
-    thread.detach();
-    auto value = block->GetValue();
-    napi_value result = nullptr;
-    if (value == nullptr) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "time out, HasRemoteData failed.");
-        napi_get_boolean(env, false, &result);
-        return result;
-    }
-    napi_get_boolean(env, *value, &result);
-    return result;
-}
-
 napi_value SystemPasteboardNapi::HasData(napi_env env, napi_callback_info info)
 {
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "HasData is called!");

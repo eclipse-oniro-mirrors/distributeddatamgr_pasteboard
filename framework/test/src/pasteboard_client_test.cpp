@@ -345,33 +345,6 @@ HWTEST_F(PasteboardClientTest, HasDataType004, TestSize.Level0)
 }
 
 /**
- * @tc.name: HasRemoteDataTest001
- * @tc.desc: if !pasteData->HasRemoteData()
- * @tc.type: FUNC
- * @tc.require: issueshI5YDEV
- * @tc.author:
- */
-HWTEST_F(PasteboardClientTest, HasRemoteDataTest001, TestSize.Level1)
-{
-    OHOS::Uri uri("file://com.ohos/data/storage/el2/distributedfiles/networkid=a92ded");
-    auto data = PasteboardClient::GetInstance()->CreateUriData(uri);
-    ASSERT_NE(data, nullptr);
-
-    PasteboardClient::GetInstance()->Clear();
-    auto has = PasteboardClient::GetInstance()->HasPasteData();
-    ASSERT_FALSE(has);
-
-    int32_t ret = PasteboardClient::GetInstance()->SetPasteData(*data);
-    ASSERT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
-
-    has = PasteboardClient::GetInstance()->HasDataType(MIMETYPE_TEXT_URI);
-    EXPECT_EQ(has, true);
-    auto hasRemoteData = PasteboardClient::GetInstance()->HasRemoteData();
-    EXPECT_EQ(hasRemoteData, false);
-    PasteboardClient::GetInstance()->Clear();
-}
-
-/**
  * @tc.name: GetDataSource001
  * @tc.desc: Get the source of the data.
  * @tc.type: FUNC

@@ -904,20 +904,6 @@ HWTEST_F(PasteboardServiceMockTest, HasPasteDataTest001, TestSize.Level1)
 }
 
 /**
- * @tc.name: HasRemoteDataTest001
- * @tc.desc: test Func HasRemoteData
- * @tc.type: FUNC
- */
-HWTEST_F(PasteboardServiceMockTest, HasRemoteDataTest001, TestSize.Level1)
-{
-    PasteboardService service;
-    bool flag = false;
-    int32_t result = service.HasRemoteData(flag);
-    EXPECT_EQ(result, ERR_OK);
-    EXPECT_EQ(flag, false);
-}
-
-/**
  * @tc.name: HasDataTypeTest003
  * @tc.desc: currentScreenStatus is ScreenEvent::ScreenUnlocked.
  * @tc.type: FUNC

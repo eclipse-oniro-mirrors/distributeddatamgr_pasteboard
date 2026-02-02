@@ -323,18 +323,6 @@ bool OH_Pasteboard_HasType(OH_Pasteboard* pasteboard, const char* type);
 bool OH_Pasteboard_HasData(OH_Pasteboard* pasteboard);
 
 /**
- * @brief Checks whether the paste data is in a remote device.
- *
- * @param pasteboard Pointer to the {@link OH_Pasteboard} instance.
- * @return Returns a boolean value, which indicates whether the paste data is in a remote device.
- *         The value {@code true} means the paste data is in a remote device.
- *         The value {@code false} means the opposite.
- * @see OH_Pasteboard.
- * @since 24
- */
-bool OH_Pasteboard_HasRemoteData(OH_Pasteboard* pasteboard);
-
-/**
  * @brief Obtains data from the Pasteboard.
  *
  * @param pasteboard Pointer to the {@link OH_Pasteboard} instance.
