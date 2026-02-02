@@ -399,20 +399,18 @@ ohos_unittest("PasteboardLinkedListTest") {
 ohos_unittest("PasteboardDialogTest") {
   module_out_path = module_output_path
   include_dirs = [
-    "${pasteboard_utils_path}/native/include",
     "${pasteboard_framework_path}/include",
     "${pasteboard_root_path}/adapter/security_level",
     "${pasteboard_service_path}/core/include",
     "${pasteboard_service_path}/load/include",
     "${pasteboard_service_path}/switch",
+    "${pasteboard_utils_path}/native/include",
   ]
   sources = [
     "unittest/src/pasteboard_dialog_test.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_dialog.cpp",
     ]
   external_deps = [ 
-    "googletest:gtest_main",
-    "hilog:libhilog",
     "ability_base:base",
     "ability_base:want",
     "ability_base:zuri",
@@ -432,6 +430,8 @@ ohos_unittest("PasteboardDialogTest") {
     "ffrt:libffrt",
     "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
+    "googletest:gtest_main",
+    "hilog:libhilog",
     "imf:inputmethod_client",
     "input:libmmi-client",
     "ipc:ipc_single",
@@ -2111,6 +2111,7 @@ group("unittest") {
     ":PasteboardDelayManagerTest",
     ":PasteboardDelayProxyTest",
     ":PasteboardDelayStubTest",
+    ":PasteboardDialogTest",
     ":PasteboardDisposableManagerTest",
     ":PasteboardEntryGetterProxyTest",
     ":PasteboardEntryGetterStubTest",
@@ -2118,6 +2119,5 @@ group("unittest") {
     ":PasteboardLoadTest",
     ":PasteboardPatternTest",
     ":PasteboardServiceTest",
-    ":PasteboardDialogTest",
   ]
 }
