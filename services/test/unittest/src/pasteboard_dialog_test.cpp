@@ -41,7 +41,8 @@ static PasteboardAbilityManagerWrapper* gAbilityManagerWrapper = nullptr;
 
 namespace OHOS {
 namespace MiscServices {
-int32_t PasteboardAbilityManager::StartAbility(const OHOS::AAFwk::Want& want) {
+int32_t PasteboardAbilityManager::StartAbility(const OHOS::AAFwk::Want& want)
+{
     if (gAbilityManagerWrapper != nullptr) {
         return gAbilityManagerWrapper->StartAbility(want);
     }
@@ -52,11 +53,13 @@ int32_t PasteboardAbilityManager::StartAbility(const OHOS::AAFwk::Want& want) {
 
 class PasteboardDialogTest : public testing::Test {
 public:
-    static void SetUpTestCase() {
+    static void SetUpTestCase()
+    {
         gMockManager = new MockPasteboardAbilityManager();
         gAbilityManagerWrapper = gMockManager;
     }
-    static void TearDownTestCase() {
+    static void TearDownTestCase()
+    {
         delete gMockManager;
         gMockManager = nullptr;
         gAbilityManagerWrapper = nullptr;

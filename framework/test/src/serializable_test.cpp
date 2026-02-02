@@ -520,7 +520,7 @@ HWTEST_F(SerializableTest, GetValueTest001, TestSize.Level0)
 HWTEST_F(SerializableTest, SetValueTest001, TestSize.Level0)
 {
     Serializable::json node = nullptr;
-    bool ret = Serializable::SetValue(node, true, "");    
+    bool ret = Serializable::SetValue(node, true, "");
     ASSERT_TRUE(ret);
     ASSERT_TRUE(cJSON_IsBool(node));
     ASSERT_EQ(cJSON_IsTrue(node), true);

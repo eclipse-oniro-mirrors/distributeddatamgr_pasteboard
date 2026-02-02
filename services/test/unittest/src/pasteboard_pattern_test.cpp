@@ -494,7 +494,7 @@ HWTEST_F(PasteboardPatternTest, DetectPlainTextTest002, TestSize.Level1)
  */
 HWTEST_F(PasteboardPatternTest, ExtractHtmlContentTest001, TestSize.Level1)
 {
-    std::string invalidHtml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"; 
+    std::string invalidHtml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
     const std::set<Pattern> patternsToCheck = { Pattern::URL };
     PasteData pasteData;
     auto record = std::make_shared<PasteDataRecord>();
@@ -507,7 +507,7 @@ HWTEST_F(PasteboardPatternTest, ExtractHtmlContentTest001, TestSize.Level1)
     record->AddEntry(utdId, htmlEntry);
     pasteData.AddRecord(record);
     std::set<Pattern> result = PatternDetection::Detect(patternsToCheck, pasteData, false, true);
-    ASSERT_TRUE(result.empty()); 
+    ASSERT_TRUE(result.empty());
 }
 
 /**
@@ -517,7 +517,7 @@ HWTEST_F(PasteboardPatternTest, ExtractHtmlContentTest001, TestSize.Level1)
  */
 HWTEST_F(PasteboardPatternTest, ExtractHtmlContentTest002, TestSize.Level1)
 {
-    std::string emptyContentHtml = "<html></html>"; 
+    std::string emptyContentHtml = "<html></html>";
     const std::set<Pattern> patternsToCheck = { Pattern::URL };
     PasteData pasteData;
     auto record = std::make_shared<PasteDataRecord>();
@@ -530,6 +530,6 @@ HWTEST_F(PasteboardPatternTest, ExtractHtmlContentTest002, TestSize.Level1)
     record->AddEntry(utdId, htmlEntry);
     pasteData.AddRecord(record);
     std::set<Pattern> result = PatternDetection::Detect(patternsToCheck, pasteData, false, true);
-    ASSERT_TRUE(result.empty()); 
+    ASSERT_TRUE(result.empty());
 }
 } // namespace OHOS::MiscServices
