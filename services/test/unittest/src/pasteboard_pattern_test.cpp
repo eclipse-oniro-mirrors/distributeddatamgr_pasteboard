@@ -449,9 +449,10 @@ HWTEST_F(PasteboardPatternTest, DetectPlainTextTest001, TestSize.Level1)
     );
     record1->AddEntry(utdId1, plainEntry1);
     pasteData.AddRecord(record1);
+
     auto record2 = std::make_shared<PasteDataRecord>();
     std::string utdId2 = "utd_002";
-    std::string plainText2 = "123456";
+    std::string plainText2 = "https://ohos.com 123456";
     auto plainEntry2 = std::make_shared<PasteDataEntry>(
         utdId2,
         MIMETYPE_TEXT_PLAIN,
@@ -461,7 +462,7 @@ HWTEST_F(PasteboardPatternTest, DetectPlainTextTest001, TestSize.Level1)
     pasteData.AddRecord(record2);
     std::set<Pattern> result = PatternDetection::Detect(patternsToCheck, pasteData, true, false);
     ASSERT_EQ(result.count(Pattern::URL), 1);
-    ASSERT_TRUE(result.find(Pattern::NUMBER) != result.end());
+    ASSERT_EQ(result.count(Pattern::NUMBER), 1);
 }
 
 /**

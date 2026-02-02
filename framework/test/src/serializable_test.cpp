@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2026 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,8 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <gtest/gtest.h>
+
 #include <gmock/gmock.h>
+#include <gtest/gtest.h>
 #include "clip/clip_plugin.h"
 #include "config.h"
 #include "pasteboard_hilog.h"
@@ -543,7 +544,9 @@ HWTEST_F(SerializableTest, SetValueTest002, TestSize.Level0)
     bool ret = Serializable::SetValue(node, testValue, "");
     ASSERT_TRUE(ret);
     ASSERT_TRUE(cJSON_IsArray(node));
-    cJSON_Delete(node);
+    if (node != nullptr) {
+        cJSON_Delete(node);
+    }
 }
 
 /**
@@ -589,7 +592,9 @@ HWTEST_F(SerializableTest, SetValueTest004, TestSize.Level0)
     ASSERT_TRUE(subNode != nullptr);
     ASSERT_TRUE(cJSON_IsBool(subNode));
     ASSERT_TRUE(cJSON_IsTrue(subNode));
-    cJSON_Delete(node);
+    if (node != nullptr) {
+        cJSON_Delete(node);
+    }
 }
 /**
  * @tc.name: GetSubNodeTest001
