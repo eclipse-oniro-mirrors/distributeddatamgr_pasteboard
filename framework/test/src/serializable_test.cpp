@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,16 +12,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <gtest/gtest.h>
 
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
 #include "clip/clip_plugin.h"
 #include "config.h"
 #include "pasteboard_hilog.h"
 #include "serializable/serializable.h"
 
 namespace OHOS::DistributedData {
+using namespace testing;
 using namespace testing::ext;
 using namespace OHOS::MiscServices;
+class MockSerializable : public OHOS::DistributedData::Serializable {
+public:
+    MOCK_CONST_METHOD1(Marshal, bool(OHOS::DistributedData::Serializable::json &node));
+    MOCK_METHOD1(Unmarshal, bool(const OHOS::DistributedData::Serializable::json &node));
+    bool Unmarshall(const std::string &jsonStr) { return true; }
+};
 class SerializableTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
@@ -487,5 +495,117 @@ HWTEST_F(SerializableTest, GlobalEventTest001, TestSize.Level0)
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_INNERKIT, "Unmarshall event failed.");
     }
     ASSERT_TRUE(event == event1);
+}
+
+/**
+ * @tc.name: GetValueTest001
+ * @tc.desc: GetValue return false
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(SerializableTest, GetValueTest001, TestSize.Level0)
+{
+    std::string value;
+    Serializable::json nullNode = nullptr;
+    bool ret = Serializable::GetValue(nullNode, "key", value);
+    ASSERT_FALSE(ret);
+}
+/**
+ * @tc.name: SetValueTest001
+ * @tc.desc: test SetValue name.empty
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(SerializableTest, SetValueTest001, TestSize.Level0)
+{
+    Serializable::json node = nullptr;
+    bool ret = Serializable::SetValue(node, true, "");
+    ASSERT_TRUE(ret);
+    ASSERT_TRUE(cJSON_IsBool(node));
+    ASSERT_EQ(cJSON_IsTrue(node), true);
+    if (node != nullptr) {
+        cJSON_Delete(node);
+    }
+}
+
+/**
+ * @tc.name: SetValueTest002
+ * @tc.desc: test SetValue name.empty branch (vector<uint8_t> version)
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(SerializableTest, SetValueTest002, TestSize.Level0)
+{
+    Serializable::json node = nullptr;
+    std::vector<uint8_t> testValue = {1, 2, 3};
+    bool ret = Serializable::SetValue(node, testValue, "");
+    ASSERT_TRUE(ret);
+    ASSERT_TRUE(cJSON_IsArray(node));
+    if (node != nullptr) {
+        cJSON_Delete(node);
+    }
+}
+
+/**
+ * @tc.name: SetValueTest003
+ * @tc.desc: test SetValue - cover !value.Marshal
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(SerializableTest, SetValueTest003, TestSize.Level0)
+{
+    OHOS::DistributedData::Serializable::json node = nullptr;
+    MockSerializable mockValue;
+    std::string name = "test_key";
+    EXPECT_CALL(mockValue, Marshal(_)).WillOnce(Return(false));
+    bool ret = OHOS::DistributedData::Serializable::SetValue(node, mockValue, name);
+    ASSERT_FALSE(ret);
+}
+
+/**
+ * @tc.name: SetValueTest004
+ * @tc.desc: test SetValue - cover SetValueToObject + return true
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(SerializableTest, SetValueTest004, TestSize.Level0)
+{
+    OHOS::DistributedData::Serializable::json node = cJSON_CreateObject();
+    MockSerializable mockValue;
+    std::string name = "test_serializable_key";
+    EXPECT_CALL(mockValue, Marshal(_))
+        .WillOnce(DoAll(
+            Invoke([](OHOS::DistributedData::Serializable::json &node) {
+                node = cJSON_CreateBool(true);
+                return true;
+            })
+        ));
+
+    bool ret = OHOS::DistributedData::Serializable::SetValue(node, mockValue, name);
+    ASSERT_TRUE(ret);
+    cJSON* subNode = cJSON_GetObjectItem(node, name.c_str());
+    ASSERT_TRUE(subNode != nullptr);
+    ASSERT_TRUE(cJSON_IsBool(subNode));
+    ASSERT_TRUE(cJSON_IsTrue(subNode));
+    if (node != nullptr) {
+        cJSON_Delete(node);
+    }
+}
+/**
+ * @tc.name: GetSubNodeTest001
+ * @tc.desc: test GetSubNode - cover cJSON_IsNull(node)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(SerializableTest, GetSubNodeTest001, TestSize.Level0)
+{
+    Serializable::json nullNode = nullptr;
+    auto result = Serializable::GetSubNode(nullNode, "test_key");
+    ASSERT_EQ(result, nullptr);
 }
 } // namespace OHOS::DistributedData

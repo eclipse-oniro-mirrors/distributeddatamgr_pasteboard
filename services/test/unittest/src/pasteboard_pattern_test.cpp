@@ -14,8 +14,9 @@
  */
 
 #include <gtest/gtest.h>
-
+#include <gmock/gmock.h>
 #include "pasteboard_client.h"
+#include "paste_data_record.h"
 #include "pasteboard_error.h"
 #include "pasteboard_hilog.h"
 #include "pasteboard_observer_callback.h"
@@ -23,8 +24,8 @@
 #include "pixel_map.h"
 #include "uri.h"
 #include "want.h"
-
 namespace OHOS::MiscServices {
+using namespace testing;
 using namespace testing::ext;
 class PasteboardPatternTest : public testing::Test {
 public:
@@ -427,5 +428,109 @@ HWTEST_F(PasteboardPatternTest, PasteboardPatternTest010, TestSize.Level1)
     EXPECT_FALSE(isValid);
 
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteboardPatternTest010 end");
+}
+
+/**
+ * @tc.name: DetectPlainTextTest001
+ * @tc.desc: DetectPlainText covers branch: patternsOut.find(pattern) != patternsOut.end()
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardPatternTest, DetectPlainTextTest001, TestSize.Level1)
+{
+    const std::set<Pattern> patternsToCheck = { Pattern::URL, Pattern::NUMBER };
+    PasteData pasteData;
+    auto record1 = std::make_shared<PasteDataRecord>();
+    std::string utdId1 = "utd_001";
+    std::string plainText1 = "https://ohos.com";
+    auto plainEntry1 = std::make_shared<PasteDataEntry>(
+        utdId1,
+        MIMETYPE_TEXT_PLAIN,
+        plainText1
+    );
+    record1->AddEntry(utdId1, plainEntry1);
+    pasteData.AddRecord(record1);
+
+    auto record2 = std::make_shared<PasteDataRecord>();
+    std::string utdId2 = "utd_002";
+    std::string plainText2 = "https://ohos.com 123456";
+    auto plainEntry2 = std::make_shared<PasteDataEntry>(
+        utdId2,
+        MIMETYPE_TEXT_PLAIN,
+        plainText2
+    );
+    record2->AddEntry(utdId2, plainEntry2);
+    pasteData.AddRecord(record2);
+    std::set<Pattern> result = PatternDetection::Detect(patternsToCheck, pasteData, true, false);
+    ASSERT_EQ(result.count(Pattern::URL), 1);
+    ASSERT_EQ(result.count(Pattern::NUMBER), 1);
+}
+
+/**
+ * @tc.name: DetectPlainTextTest002
+ * @tc.desc: DetectPlainText covers branch: if (it == patterns_.end())
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardPatternTest, DetectPlainTextTest002, TestSize.Level1)
+{
+    const std::set<Pattern> patternsToCheck = { static_cast<Pattern>(0xFF) };
+    PasteData pasteData;
+    auto record = std::make_shared<PasteDataRecord>();
+    std::string utdId = "utd_003";
+    std::string plainText = "test text";
+    auto plainEntry = std::make_shared<PasteDataEntry>(
+        utdId,
+        MIMETYPE_TEXT_PLAIN,
+        plainText
+    );
+    record->AddEntry(utdId, plainEntry);
+    pasteData.AddRecord(record);
+    std::set<Pattern> result = PatternDetection::Detect(patternsToCheck, pasteData, true, false);
+    ASSERT_TRUE(result.empty());
+}
+
+/**
+ * @tc.name: ExtractHtmlContentTest001
+ * @tc.desc: Cover the branch of 'if (rootNode == nullptr)' in ExtractHtmlContent function
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardPatternTest, ExtractHtmlContentTest001, TestSize.Level1)
+{
+    std::string invalidHtml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
+    const std::set<Pattern> patternsToCheck = { Pattern::URL };
+    PasteData pasteData;
+    auto record = std::make_shared<PasteDataRecord>();
+    std::string utdId = "utd_html_001";
+    auto htmlEntry = std::make_shared<PasteDataEntry>(
+        utdId,
+        MIMETYPE_TEXT_HTML,
+        invalidHtml
+    );
+    record->AddEntry(utdId, htmlEntry);
+    pasteData.AddRecord(record);
+    std::set<Pattern> result = PatternDetection::Detect(patternsToCheck, pasteData, false, true);
+    ASSERT_TRUE(result.empty());
+}
+
+/**
+ * @tc.name: ExtractHtmlContentTest002
+ * @tc.desc: Cover the branch of 'if (xmlStr == nullptr)' in ExtractHtmlContent function
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardPatternTest, ExtractHtmlContentTest002, TestSize.Level1)
+{
+    std::string emptyContentHtml = "<html></html>";
+    const std::set<Pattern> patternsToCheck = { Pattern::URL };
+    PasteData pasteData;
+    auto record = std::make_shared<PasteDataRecord>();
+    std::string utdId = "utd_html_002";
+    auto htmlEntry = std::make_shared<PasteDataEntry>(
+        utdId,
+        MIMETYPE_TEXT_HTML,
+        emptyContentHtml
+    );
+    record->AddEntry(utdId, htmlEntry);
+    pasteData.AddRecord(record);
+    std::set<Pattern> result = PatternDetection::Detect(patternsToCheck, pasteData, false, true);
+    ASSERT_TRUE(result.empty());
 }
 } // namespace OHOS::MiscServices

@@ -239,6 +239,38 @@ HWTEST_F(PasteboardDelayManagerTest, GetPrimaryDelayEntryInfoTest001, TestSize.L
 }
 
 /**
+ * @tc.name: GetPrimaryDelayEntryInfoTest002
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardDelayManagerTest, GetPrimaryDelayEntryInfoTest002, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetPrimaryDelayEntryInfoTest002 start");
+    PasteData pasteData;
+    pasteData.records_.push_back(nullptr);
+    std::vector<DelayEntryInfo> infoList1 = DelayManager::GetPrimaryDelayEntryInfo(pasteData);
+    EXPECT_EQ(infoList1.size(), 0);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetPrimaryDelayEntryInfoTest002 end");
+}
+
+/**
+ * @tc.name: GetPrimaryDelayEntryInfoTest003
+ * @tc.desc:
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardDelayManagerTest, GetPrimaryDelayEntryInfoTest003, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetPrimaryDelayEntryInfoTest003 start");
+    PasteData pasteData;
+    auto delayRecordWithEmptyEntry = std::make_shared<PasteDataRecord>();
+    delayRecordWithEmptyEntry->SetDelayRecordFlag(true);
+    pasteData.AddRecord(delayRecordWithEmptyEntry);
+    std::vector<DelayEntryInfo> infoList = DelayManager::GetPrimaryDelayEntryInfo(pasteData);
+    EXPECT_EQ(infoList.size(), 0);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetPrimaryDelayEntryInfoTest003 end");
+}
+
+/**
  * @tc.name: GetLocalEntryValueTest001
  * @tc.desc:
  * @tc.type: FUNC
