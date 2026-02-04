@@ -410,7 +410,7 @@ ohos_unittest("PasteboardDialogTest") {
     "unittest/src/pasteboard_dialog_test.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_dialog.cpp",
     ]
-  external_deps = [ 
+  external_deps = [
     "ability_base:base",
     "ability_base:want",
     "ability_base:zuri",
@@ -428,9 +428,10 @@ ohos_unittest("PasteboardDialogTest") {
     "dfs_service:distributed_file_daemon_kit_inner",
     "eventhandler:libeventhandler",
     "ffrt:libffrt",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
     "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
-    "googletest:gtest_main",
     "hilog:libhilog",
     "imf:inputmethod_client",
     "input:libmmi-client",
