@@ -14,7 +14,6 @@
  */
 
 #include <gtest/gtest.h>
-#include <gmock/gmock.h>
 #include "pasteboard_client.h"
 #include "paste_data_record.h"
 #include "pasteboard_error.h"
