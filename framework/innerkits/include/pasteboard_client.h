@@ -272,13 +272,6 @@ public:
     bool HasPasteData();
 
     /**
-     * HasRemoteData
-     * @description check remote paste data exist in the pasteboard.
-     * @return bool. True exists, false does not exist
-     */
-    bool HasRemoteData();
-
-    /**
      * Clear
      * @description Clear Current pasteboard data.
      * @return void.

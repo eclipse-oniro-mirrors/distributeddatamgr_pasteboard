@@ -27,7 +27,6 @@
         OH_Pasteboard_GetDataSource;
         OH_Pasteboard_HasType;
         OH_Pasteboard_HasData;
-        OH_Pasteboard_HasRemoteData;
         OH_Pasteboard_GetData;
         OH_Pasteboard_SetData;
         OH_Pasteboard_ClearData;

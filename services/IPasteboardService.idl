@@ -62,7 +62,6 @@ interface OHOS.MiscServices.IPasteboardService {
     [ipccode 305] void GetChangeCount([out] unsigned int changeCount);
     [ipccode 306] void DetectPatterns([in] Pattern[] patternsToCheck, [out] Pattern[] funcResult);
     [ipccode 307] void HasUtdType([in] String utdType, [out] boolean funcResult);
-    [ipccode 308] void HasRemoteData([out] boolean funcResult);
 
     [ipccode 400] void SetGlobalShareOption([in] Map<unsigned int, int> globalShareOptions);
     [ipccode 401] void RemoveGlobalShareOption([in] unsigned int[] tokenIds);
