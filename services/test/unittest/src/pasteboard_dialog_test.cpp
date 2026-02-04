@@ -13,39 +13,20 @@
  * limitations under the License.
  */
 
-#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include "pasteboard_dialog.h"
 #include "pasteboard_ability_manager.h"
 #include "pasteboard_error.h"
 #include "pasteboard_hilog.h"
 #include "want.h"
-
 using namespace testing;
 using namespace testing::ext;
 using namespace OHOS::AAFwk;
 using namespace OHOS::MiscServices;
-
-class PasteboardAbilityManagerWrapper {
-public:
-    virtual ~PasteboardAbilityManagerWrapper() = default;
-    virtual int32_t StartAbility(const OHOS::AAFwk::Want& want) = 0;
-};
-
-class MockPasteboardAbilityManager : public PasteboardAbilityManagerWrapper {
-public:
-    MOCK_METHOD(int32_t, StartAbility, (const OHOS::AAFwk::Want& want), (override));
-};
-
-static PasteboardAbilityManagerWrapper* g_abilityManagerWrapper = nullptr;
-
 namespace OHOS {
 namespace MiscServices {
 int32_t PasteboardAbilityManager::StartAbility(const OHOS::AAFwk::Want& want)
 {
-    if (g_abilityManagerWrapper != nullptr) {
-        return g_abilityManagerWrapper->StartAbility(want);
-    }
     return 0;
 }
 } // namespace MiscServices
@@ -53,24 +34,11 @@ int32_t PasteboardAbilityManager::StartAbility(const OHOS::AAFwk::Want& want)
 
 class PasteboardDialogTest : public testing::Test {
 public:
-    static void SetUpTestCase()
-    {
-        gMockManager = new MockPasteboardAbilityManager();
-        g_abilityManagerWrapper = gMockManager;
-    }
-    static void TearDownTestCase()
-    {
-        delete gMockManager;
-        gMockManager = nullptr;
-        g_abilityManagerWrapper = nullptr;
-    }
+    static void SetUpTestCase() {}
+    static void TearDownTestCase() {}
     void SetUp() override {}
     void TearDown() override {}
-
-    static MockPasteboardAbilityManager* gMockManager;
 };
-
-MockPasteboardAbilityManager* PasteboardDialogTest::gMockManager = nullptr;
 
 /**
  * @tc.name: ShowProgressTest001
@@ -82,7 +50,6 @@ MockPasteboardAbilityManager* PasteboardDialogTest::gMockManager = nullptr;
 HWTEST_F(PasteboardDialogTest, ShowProgressTest001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ShowProgressTest001 start");
-    EXPECT_CALL(*gMockManager, StartAbility(_)).WillOnce(Return(0));
     PasteboardDialog::ProgressMessageInfo message = {
         .promptText = "test success",
         .remoteDeviceName = "local device",
