@@ -34,6 +34,7 @@ PastedSwitch::PastedSwitch() : userId_(ERROR_USERID)
         std::thread thread([userId = userId_, this]() {
             SetSwitch(userId);
         });
+        pthread_setname_np(thread.native_handle(), "SetSwitch");
         thread.detach();
     });
 }

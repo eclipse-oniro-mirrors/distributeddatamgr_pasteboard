@@ -622,9 +622,11 @@ UDMF::ValueType PastedataRecordEntryGetterInstance::GetValueByType(const std::st
     bool noNeedClean = false;
     {
         std::unique_lock<std::mutex> lock(entryGetterWork->mutex);
-        int ret = uv_queue_work(loop, work, [](uv_work_t *work) {
+        int ret = uv_queue_work_internal(loop, work, [](uv_work_t *work) {
             PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "GetValueByType callback");
-        }, UvWorkGetRecordByEntryGetter);
+        }, [](uv_work_t *work, int _status) {
+            UvWorkGetRecordByEntryGetter(work, _status);
+        }, "NGetValueByType");
         if (ret != 0) {
             delete entryGetterWork;
             entryGetterWork = nullptr;

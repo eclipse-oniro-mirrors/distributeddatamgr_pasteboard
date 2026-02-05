@@ -895,6 +895,7 @@ static ani_boolean HasDataType([[maybe_unused]] ani_env *env, [[maybe_unused]] a
         std::shared_ptr<int> value = std::make_shared<int>(static_cast<int>(ret));
         block->SetValue(value);
     });
+    pthread_setname_np(thread.native_handle(), "AHasDataType");
     thread.detach();
     auto value = block->GetValue();
     if (value == nullptr) {
@@ -956,6 +957,7 @@ static ani_object GetDataSync([[maybe_unused]] ani_env *env, [[maybe_unused]] an
         std::shared_ptr<int32_t> value = std::make_shared<int32_t>(ret);
         block->SetValue(value);
     });
+    pthread_setname_np(thread.native_handle(), "AGetDataSync");
     thread.detach();
     auto value = block->GetValue();
     if (value == nullptr) {
@@ -980,6 +982,7 @@ static ani_string GetDataSource([[maybe_unused]] ani_env *env, [[maybe_unused]] 
         std::shared_ptr<int> value = std::make_shared<int>(ret);
         block->SetValue(value);
     });
+    pthread_setname_np(thread.native_handle(), "AGetDataSource");
     thread.detach();
 
     auto value = block->GetValue();

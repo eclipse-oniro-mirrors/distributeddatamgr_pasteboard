@@ -17,6 +17,7 @@
 #include "ohos.pasteboard.pasteboard.proj.hpp"
 #include "stdexcept"
 #include "taihe/runtime.hpp"
+#include <pthread.h>
 #include <thread>
 
 #include "ani_common_want.h"
@@ -720,6 +721,7 @@ public:
             auto value = std::make_shared<std::pair<int32_t, std::string>>(ret, bundleName);
             block->SetValue(value);
         });
+        pthread_setname_np(thread.native_handle(), "TGetDataSource");
         thread.detach();
         auto value = block->GetValue();
         if (value == nullptr) {
@@ -738,6 +740,7 @@ public:
         std::string mimeTypeStr = std::string(mimeType);
         auto block = std::make_shared<OHOS::BlockObject<std::shared_ptr<bool>>>(SYNC_TIMEOUT);
         ffrt::submit([block, mimeTypeStr]() mutable {
+            pthread_setname_np(pthread_self(), "THasDataType");
             bool ret = PasteboardClient::GetInstance()->HasDataType(mimeTypeStr);
             auto ptr = std::make_shared<bool>(ret);
             block->SetValue(ptr);
@@ -758,6 +761,7 @@ public:
             auto ptr = std::make_shared<int>(0);
             block->SetValue(ptr);
         });
+        pthread_setname_np(thread.native_handle(), "TClearDataSync");
         thread.detach();
         auto value = block->GetValue();
         if (value == nullptr) {
@@ -786,6 +790,7 @@ public:
             auto ptr = std::make_shared<int32_t>(ret);
             block->SetValue(ptr);
         });
+        pthread_setname_np(thread.native_handle(), "TGetDataSync");
         thread.detach();
         auto value = block->GetValue();
         if (value == nullptr) {
@@ -825,6 +830,7 @@ public:
             auto ptr = std::make_shared<bool>(ret);
             block->SetValue(ptr);
         });
+        pthread_setname_np(thread.native_handle(), "THasDataSync");
         thread.detach();
         std::shared_ptr<bool> value = block->GetValue();
         if (value == nullptr) {
@@ -842,6 +848,7 @@ public:
             auto ptr = std::make_shared<bool>(ret);
             block->SetValue(ptr);
         });
+        pthread_setname_np(thread.native_handle(), "THasRemoteData");
         thread.detach();
         std::shared_ptr<bool> value = block->GetValue();
         if (value == nullptr) {
@@ -874,6 +881,7 @@ public:
             auto ptr = std::make_shared<int32_t>(ret);
             block->SetValue(ptr);
         });
+        pthread_setname_np(thread.native_handle(), "TSetDataSync");
         thread.detach();
         std::shared_ptr<int32_t> value = block->GetValue();
         if (value == nullptr) {
@@ -926,6 +934,7 @@ public:
             auto ptr = std::make_shared<bool>(ret);
             block->SetValue(ptr);
         });
+        pthread_setname_np(thread.native_handle(), "TIsRemoteData");
         thread.detach();
         std::shared_ptr<bool> value = block->GetValue();
         if (value == nullptr) {
@@ -960,6 +969,7 @@ public:
             auto ptr = std::make_shared<int32_t>(ret);
             block->SetValue(ptr);
         });
+        pthread_setname_np(thread.native_handle(), "TGetUnifiedData");
         thread.detach();
         std::shared_ptr<int32_t> value = block->GetValue();
         if (value == nullptr) {
@@ -1014,6 +1024,7 @@ public:
             auto ptr = std::make_shared<int32_t>(ret);
             block->SetValue(ptr);
         });
+        pthread_setname_np(thread.native_handle(), "TSetUnifiedData");
         thread.detach();
         std::shared_ptr<int32_t> value = block->GetValue();
         if (value == nullptr) {

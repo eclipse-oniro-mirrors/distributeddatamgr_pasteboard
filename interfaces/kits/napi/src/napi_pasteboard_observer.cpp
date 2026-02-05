@@ -52,7 +52,7 @@ void PasteboardObserverImpl::OnPasteboardChanged()
         PASTEBOARD_CHECK_AND_RETURN_LOGE(status == napi_ok, PASTEBOARD_MODULE_JS_NAPI,
             "release callback failed, status=%{public}d", status);
     };
-    auto ret = napi_send_event(env_, task, napi_eprio_high);
+    auto ret = napi_send_event(env_, task, napi_eprio_high, "NPasteboardChan");
     PASTEBOARD_CHECK_AND_RETURN_LOGE(ret == napi_ok, PASTEBOARD_MODULE_JS_NAPI,
         "napi_send_event failed, result=%{public}d", ret);
 }

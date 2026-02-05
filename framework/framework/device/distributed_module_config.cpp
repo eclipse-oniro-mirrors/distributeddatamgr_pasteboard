@@ -14,6 +14,7 @@
  */
 #include "device/distributed_module_config.h"
 
+#include <pthread.h>
 #include <thread>
 #include "device/dev_profile.h"
 #include "pasteboard_error.h"
@@ -88,6 +89,7 @@ void DistributedModuleConfig::GetRetryTask()
         }
         retrying_.store(false);
     });
+    pthread_setname_np(remover.native_handle(), "GetRetryTask");
     remover.detach();
 }
 

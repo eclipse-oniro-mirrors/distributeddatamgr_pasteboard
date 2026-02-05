@@ -534,6 +534,7 @@ void HiViewAdapter::ReportUseBehaviour(PasteData& pastData, const char* state, i
         }
         PASTEBOARD_HILOGD(PASTEBOARD_MODULE_SERVICE, "end.");
     });
+    pthread_setname_np(thread.native_handle(), "ReportUseBehavi");
     thread.detach();
 }
 
