@@ -116,7 +116,7 @@ int32_t DistributedModuleConfig::GetEnabledStatus()
             return static_cast<int32_t>(PasteboardError::E_OK);
         }
     }
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "remoteEnabledStatus is false.");
+    PASTEBOARD_HILOGD(PASTEBOARD_MODULE_SERVICE, "remoteEnabledStatus is false.");
     return static_cast<int32_t>(PasteboardError::NO_TRUST_DEVICE_ERROR);
 }
 

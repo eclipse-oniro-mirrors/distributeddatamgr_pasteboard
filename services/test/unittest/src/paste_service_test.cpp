@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -84,7 +84,7 @@ void PasteboardServiceTest::TearDownTestCase(void)
     DeleteTestTokenId();
 }
 
-void PasteboardServiceTest::SetUp(void) { }
+void PasteboardServiceTest::SetUp(void) {}
 
 void PasteboardServiceTest::TearDown(void)
 {
@@ -187,8 +187,8 @@ string GetTime()
     time_t curtime;
     time(&curtime);
     tm *nowtime = localtime(&curtime);
-    std::string targetTime = std::to_string(1900 + nowtime->tm_year) + "-" + std::to_string(1 + nowtime->tm_mon) + "-" +
-        std::to_string(nowtime->tm_mday) + " " + std::to_string(nowtime->tm_hour) + ":" +
+    std::string targetTime = std::to_string(1900 + nowtime->tm_year) + "-" + std::to_string(1 + nowtime->tm_mon) +
+        "-" + std::to_string(nowtime->tm_mday) + " " + std::to_string(nowtime->tm_hour) + ":" +
         std::to_string(nowtime->tm_min) + ":" + std::to_string(nowtime->tm_sec);
     return targetTime;
 }
@@ -1665,7 +1665,7 @@ HWTEST_F(PasteboardServiceTest, HasPasteDataTest001, TestSize.Level1)
 HWTEST_F(PasteboardServiceTest, SetAppShareOptions, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetAppShareOptions start");
-    uint64_t tempTokenID = testAppTokenId_ | SYSTEM_APP_MASK;
+    uint64_t tempTokenID = testAppTokenId_;
     auto result = SetSelfTokenID(tempTokenID);
     AccessTokenKit::GrantPermission(
         tempTokenID, "ohos.permission.MANAGE_PASTEBOARD_APP_SHARE_OPTION", PERMISSION_USER_SET);
@@ -1705,6 +1705,20 @@ HWTEST_F(PasteboardServiceTest, SetAppShareOptions, TestSize.Level1)
     PasteboardClient::GetInstance()->SetGlobalShareOption(globalShareOptions);
     ret = PasteboardClient::GetInstance()->RemoveAppShareOptions();
     EXPECT_TRUE(ret == 0);
+
+    PasteboardClient::GetInstance()->RemoveGlobalShareOption(tokenIds);
+    uint64_t tempSysTokenID = testAppTokenId_ | SYSTEM_APP_MASK;
+    result = SetSelfTokenID(tempSysTokenID);
+    setting = ShareOption::InApp;
+    ret = PasteboardClient::GetInstance()->SetAppShareOptions(setting);
+    EXPECT_TRUE(ret == 0);
+
+    ret = PasteboardClient::GetInstance()->SetAppShareOptions(setting);
+    EXPECT_TRUE(ret == static_cast<int32_t>(PasteboardError::INVALID_OPERATION_ERROR));
+
+    ret = PasteboardClient::GetInstance()->RemoveAppShareOptions();
+    EXPECT_TRUE(ret == 0);
+
 
     PasteboardServiceTest::RestoreSelfTokenId();
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetAppShareOptions end");

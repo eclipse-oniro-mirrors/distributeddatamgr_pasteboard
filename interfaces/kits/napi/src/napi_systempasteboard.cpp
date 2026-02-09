@@ -1114,7 +1114,6 @@ void SystemPasteboardNapi::ProgressNotify(std::shared_ptr<GetDataParams> params)
 void SystemPasteboardNapi::CallJsProgressNotify(napi_env env, napi_value jsFunction, void *context, void *data)
 {
     #define AGR_COUNT 1
-    #define DEVICE_NAME_LEN 512
     (void)context;
     ProgressInfo *info = (ProgressInfo *)data;
     if (info == nullptr) {

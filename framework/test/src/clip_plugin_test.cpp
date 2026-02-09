@@ -29,13 +29,13 @@ public:
     void TearDown();
 };
 
-void ClipPluginTest::SetUpTestCase(void) { }
+void ClipPluginTest::SetUpTestCase(void) {}
 
-void ClipPluginTest::TearDownTestCase(void) { }
+void ClipPluginTest::TearDownTestCase(void) {}
 
-void ClipPluginTest::SetUp(void) { }
+void ClipPluginTest::SetUp(void) {}
 
-void ClipPluginTest::TearDown(void) { }
+void ClipPluginTest::TearDown(void) {}
 
 class CustomClipPlugin : public ClipPlugin {
 public:

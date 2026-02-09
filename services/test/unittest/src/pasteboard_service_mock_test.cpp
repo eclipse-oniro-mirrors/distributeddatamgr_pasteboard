@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -111,7 +111,7 @@ class DistributedFileDaemonManager {
 public:
     DistributedFileDaemonManager() {}
     ~DistributedFileDaemonManager() {}
-    int CloseP2PConnection(DmDeviceInfo &remoteDevice);
+    int DisconnectDfs(const std::string &networkId);
 };
 
 class PasteboardServiceInterface {
@@ -133,7 +133,7 @@ public:
     virtual bool IsDelayData() const = 0;
     virtual bool IsDelayRecord() const = 0;
     virtual int GetRemoteDeviceInfo(const std::string &networkId, DmDeviceInfo &remoteDevice) = 0;
-    virtual int CloseP2PConnection(DmDeviceInfo &remoteDevice) = 0;
+    virtual int DisconnectDfs(const std::string &networkId) = 0;
     virtual int VerifyAccessToken(AccessTokenID tokenID, const std::string &permissionName) = 0;
     virtual ATokenTypeEnum GetTokenTypeFlag(AccessTokenID tokenId) = 0;
     virtual std::vector<std::string> GetMimeTypes() = 0;
@@ -167,7 +167,7 @@ public:
     MOCK_CONST_METHOD0(IsOn, bool());
     MOCK_CONST_METHOD0(IsDelayData, bool());
     MOCK_CONST_METHOD0(IsDelayRecord, bool());
-    MOCK_METHOD1(CloseP2PConnection, int(DmDeviceInfo &remoteDevice));
+    MOCK_METHOD1(DisconnectDfs, int(const std::string &networkId));
     MOCK_METHOD2(GetRemoteDeviceInfo, int(const std::string &networkId, DmDeviceInfo &remoteDevice));
     MOCK_CONST_METHOD1(GetRecordById, std::shared_ptr<PasteDataRecord>(uint32_t recordId));
     MOCK_METHOD2(VerifyAccessToken, int(AccessTokenID tokenID, const std::string &permissionName));
@@ -551,6 +551,7 @@ HWTEST_F(PasteboardServiceMockTest, GetRecordValueByTypeTest001, TestSize.Level1
 
     service.clips_.InsertOrAssign(ACCOUNT_IDS_RANDOM, data);
     NiceMock<PasteboardServiceInterfaceMock> mock;
+    EXPECT_CALL(mock, GetTokenTypeFlag).WillRepeatedly(Return(ATokenTypeEnum::TOKEN_NATIVE));
     EXPECT_CALL(mock, GetCallingTokenID()).WillOnce(Return(service.delayTokenId_.load()));
     EXPECT_CALL(mock, HasContent(testing::_)).WillOnce(Return(false));
     EXPECT_CALL(mock, GetRecordById(testing::_)).WillOnce(Return(record));
@@ -584,6 +585,7 @@ HWTEST_F(PasteboardServiceMockTest, GetRecordValueByTypeTest002, TestSize.Level1
 
     service.clips_.InsertOrAssign(ACCOUNT_IDS_RANDOM, data);
     NiceMock<PasteboardServiceInterfaceMock> mock;
+    EXPECT_CALL(mock, GetTokenTypeFlag).WillRepeatedly(Return(ATokenTypeEnum::TOKEN_NATIVE));
     EXPECT_CALL(mock, GetCallingTokenID()).WillOnce(Return(service.delayTokenId_.load()));
     EXPECT_CALL(mock, HasContent(testing::_)).WillOnce(Return(true));
     EXPECT_CALL(mock, GetRecordById(testing::_)).WillOnce(Return(record));
@@ -617,6 +619,7 @@ HWTEST_F(PasteboardServiceMockTest, GetRecordValueByTypeTest003, TestSize.Level1
 
     service.clips_.InsertOrAssign(ACCOUNT_IDS_RANDOM, data);
     NiceMock<PasteboardServiceInterfaceMock> mock;
+    EXPECT_CALL(mock, GetTokenTypeFlag).WillRepeatedly(Return(ATokenTypeEnum::TOKEN_NATIVE));
     EXPECT_CALL(mock, GetCallingTokenID()).WillOnce(Return(service.delayTokenId_.load()));
     EXPECT_CALL(mock, HasContent(testing::_)).WillOnce(Return(true));
     EXPECT_CALL(mock, GetRecordById(testing::_)).WillOnce(Return(record));
@@ -751,7 +754,7 @@ HWTEST_F(PasteboardServiceMockTest, GetRecordValueByTypeTest009, TestSize.Level1
     NiceMock<PasteboardServiceInterfaceMock> mock;
     EXPECT_CALL(mock, Decode(testing::_)).WillRepeatedly(Return(false));
     int32_t result = service.GetRecordValueByType(dataId, recordId, rawDataSize, buffer, fd);
-    EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::INVALID_DATA_ERROR));
+    EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::INVALID_DATA_SIZE));
     close(fd);
 }
 
@@ -801,8 +804,9 @@ HWTEST_F(PasteboardServiceMockTest, GetRecordValueByTypeTest011, TestSize.Level1
     data->AddRecord(record);
     data->SetRemote(false);
     entry->SetMimeType(MIMETYPE_TEXT_URI);
-    
+
     service.clips_.InsertOrAssign(ACCOUNT_IDS_RANDOM, data);
+    EXPECT_CALL(mock, GetTokenTypeFlag).WillRepeatedly(Return(ATokenTypeEnum::TOKEN_NATIVE));
     EXPECT_CALL(mock, Decode(testing::_)).WillRepeatedly(Return(true));
     EXPECT_CALL(mock, GetCallingTokenID()).WillOnce(Return(service.delayTokenId_.load()));
     EXPECT_CALL(mock, HasContent(testing::_)).WillOnce(Return(true));
@@ -936,8 +940,7 @@ HWTEST_F(PasteboardServiceMockTest, HasDataTypeTest004, TestSize.Level1)
     auto release = [&PLUGIN_NAME_VAL, this](ClipPlugin *plugin) {
         ClipPlugin::DestroyPlugin(PLUGIN_NAME_VAL, plugin);
     };
-    tempPasteboard->clipPlugin_ =
-        std::shared_ptr<ClipPlugin>(ClipPlugin::CreatePlugin(PLUGIN_NAME_VAL), release);
+    tempPasteboard->clipPlugin_ = std::shared_ptr<ClipPlugin>(ClipPlugin::CreatePlugin(PLUGIN_NAME_VAL), release);
     testing::NiceMock<PasteboardServiceInterfaceMock> mock;
     EXPECT_CALL(mock, IsOn()).WillOnce(testing::Return(false));
     bool funcResult;
@@ -969,7 +972,8 @@ HWTEST_F(PasteboardServiceMockTest, GetPasteDataTest001, TestSize.Level1)
     if (fd >= 0) {
         close(fd);
     }
-    EXPECT_EQ(realErrCode, static_cast<int32_t>(PasteboardError::NO_DATA_ERROR));
+    result = realErrCode;
+    EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::NO_DATA_ERROR));
 }
 
 /**
@@ -993,7 +997,8 @@ HWTEST_F(PasteboardServiceMockTest, GetPasteDataTest002, TestSize.Level1)
     if (fd >= 0) {
         close(fd);
     }
-    EXPECT_EQ(realErrCode, static_cast<int32_t>(PasteboardError::PERMISSION_VERIFICATION_ERROR));
+    result = realErrCode;
+    EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::PERMISSION_VERIFICATION_ERROR));
 }
 
 /**
@@ -1018,7 +1023,8 @@ HWTEST_F(PasteboardServiceMockTest, GetPasteDataTest003, TestSize.Level1)
     if (fd >= 0) {
         close(fd);
     }
-    EXPECT_EQ(realErrCode, static_cast<int32_t>(PasteboardError::NO_DATA_ERROR));
+    result = realErrCode;
+    EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::NO_DATA_ERROR));
 }
 
 /**
@@ -3217,6 +3223,18 @@ HWTEST_F(PasteboardServiceMockTest, DeletePreSyncP2pFromP2pMapTest, TestSize.Lev
     std::string networkId = "TestNetworkId";
     tempPasteboard->ffrtTimer_ = std::make_shared<FFRTTimer>();
     EXPECT_NE(tempPasteboard->ffrtTimer_, nullptr);
+    std::string p2pPreSyncId = "P2pPreSyncId_";
+    std::string pasteId = "TestPasteId";
+    std::shared_ptr<BlockObject<int32_t>> block = std::make_shared<BlockObject<int32_t>>(2000, 0);
+    EXPECT_NE(block, nullptr);
+    PasteboardService::PasteboardP2pInfo p2pInfo;
+    p2pInfo.callPid = 123;
+    p2pInfo.isSuccess = false;
+    ConcurrentMap<std::string, PasteboardService::PasteboardP2pInfo> p2pMap;
+    p2pMap.Insert(p2pPreSyncId, p2pInfo);
+    p2pMap.Insert(pasteId, p2pInfo);
+    tempPasteboard->p2pMap_.Insert(networkId, p2pMap);
+    tempPasteboard->preSyncP2pMap_.insert(std::make_pair(networkId, block));
     tempPasteboard->DeletePreSyncP2pFromP2pMap(networkId);
 }
 
@@ -3340,6 +3358,7 @@ HWTEST_F(PasteboardServiceMockTest, PreEstablishP2PLinkTest001, TestSize.Level1)
     EXPECT_NE(clipPlugin, nullptr);
     tempPasteboard->PreEstablishP2PLink(networkId, clipPlugin.get());
     tempPasteboard->p2pEstablishInfo_.pasteBlock = nullptr;
+    tempPasteboard->PreEstablishP2PLink(networkId, clipPlugin.get());
     std::string p2pPresyncId = "P2pPreSyncId_";
     PasteboardService::PasteboardP2pInfo p2pInfo;
     p2pInfo.callPid = 123;
