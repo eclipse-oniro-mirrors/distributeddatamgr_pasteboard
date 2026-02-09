@@ -402,7 +402,6 @@ private:
     bool SetDistributedData(int32_t user, PasteData &data);
     bool SetCurrentDistributedData(PasteData &data, Event event);
     bool SetCurrentData();
-    bool SetCurrentData(Event event, PasteData &data);
     void CleanDistributedData(int32_t user);
     void OnConfigChange(bool isOn);
     void OnConfigChangeInner(bool isOn);

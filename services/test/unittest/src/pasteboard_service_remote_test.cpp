@@ -89,6 +89,7 @@ class MyTestPasteboardChangedObserver : public PasteboardObserverStub {
         return;
     }
     void OnPasteboardEvent(const PasteboardChangedEvent &event)
+    {
         return;
     }
 };
