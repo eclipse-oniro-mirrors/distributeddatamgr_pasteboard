@@ -16,7 +16,6 @@
 #ifndef OHOS_PASTEBOARD_SECURITY_LEVEL_H
 #define OHOS_PASTEBOARD_SECURITY_LEVEL_H
 #include <string>
-
 #include <atomic>
 #ifdef PB_DATACLASSIFICATION_ENABLE
 #include "dev_slinfo_mgr.h"
