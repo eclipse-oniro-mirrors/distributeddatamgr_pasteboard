@@ -15,7 +15,6 @@
 
 #ifndef PASTE_BOARD_CLIENT_H
 #define PASTE_BOARD_CLIENT_H
-#include "pasteboard_hilog.h"
 
 #include <singleton.h>
 
@@ -24,6 +23,7 @@
 #include "pasteboard_delay_getter_client.h"
 #include "pasteboard_disposable_observer.h"
 #include "pasteboard_entry_getter_client.h"
+#include "pasteboard_hilog.h"
 #include "pasteboard_observer.h"
 #include "pasteboard_progress_signal.h"
 

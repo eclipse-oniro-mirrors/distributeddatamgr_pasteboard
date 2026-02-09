@@ -36,6 +36,7 @@ public:
         uint32_t dataId = 0;
         uint64_t expiration = 0;
         bool isDelay = false;
+        bool notNeedLink = false;
         std::string deviceId;
         std::string account;
         std::vector<std::string> dataType;

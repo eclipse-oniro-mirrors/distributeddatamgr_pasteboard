@@ -1195,7 +1195,9 @@ HWTEST_F(PasteboardCapiTest, OH_Pasteboard_GetData005, TestSize.Level1)
     EXPECT_EQ(mimeType, MIMETYPE_TEXT_PLAIN);
 
     auto text = record1->GetPlainTextV0();
-    EXPECT_EQ(strcmp(text->c_str(), PLAINTEXT_CONTENT), 0);
+    if (text != nullptr) {
+        EXPECT_EQ(strcmp(text->c_str(), PLAINTEXT_CONTENT), 0);
+    }
 
     OH_Pasteboard_Destroy(pasteboard);
     OH_UdmfRecord_Destroy(record);

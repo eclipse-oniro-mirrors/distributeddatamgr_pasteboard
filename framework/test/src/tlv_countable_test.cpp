@@ -75,8 +75,8 @@ HWTEST_F(TLVCountableTest, CountVariantBranchTest003, TestSize.Level1)
     using TestVariant = std::variant<std::monostate, int, std::string>;
     TestVariant testVariant;
     
-    size_t result = TLVCountable::CountVariant<TestVariant, std::monostate, int, std::string>(std::variant_npos,
-        testVariant);
+    size_t result = TLVCountable::CountVariant<TestVariant, std::monostate, int, std::string>(
+        static_cast<uint32_t>(std::variant_npos), testVariant);
     EXPECT_EQ(result, 0);
 }
 

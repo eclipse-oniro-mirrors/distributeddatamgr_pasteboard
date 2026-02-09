@@ -242,6 +242,7 @@ ohos_unittest("PasteServInterfaceMockTest") {
     "${pasteboard_service_path}/dfx/src/command.cpp",
     "${pasteboard_service_path}/dfx/src/fault/pasteboard_fault_impl.cpp",
     "${pasteboard_service_path}/dfx/src/hiview_adapter.cpp",
+    "${pasteboard_service_path}/dfx/src/pasteboard_dump_helper.cpp",
     "${pasteboard_service_path}/dfx/src/pasteboard_event_dfx.cpp",
     "${pasteboard_service_path}/dfx/src/pasteboard_trace.cpp",
     "${pasteboard_service_path}/dfx/src/reporter.cpp",

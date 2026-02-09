@@ -313,8 +313,9 @@ private:
     struct DistributedMemory {
         std::mutex mutex;
         bool isRunning = false;
-        std::shared_ptr<PasteData> data;
-        Event event;
+        std::shared_ptr<PasteData> latestData;
+        Event latestEvent;
+        Event currentEvent;
     };
     DistributedMemory setDistributedMemory_;
 
@@ -370,7 +371,7 @@ private:
     std::shared_ptr<BlockObject<int32_t>> CheckAndReuseP2PLink(const std::string &networkId,
         const std::string &pasteId);
     void EstablishP2PLink(const std::string &networkId, const std::string &pasteId);
-    bool IsContainUri(const std::vector<std::string> &dataType);
+    bool IsContainUri(const Event &evt);
     std::shared_ptr<BlockObject<int32_t>> EstablishP2PLinkTask(
         const std::string &pasteId, const ClipPlugin::GlobalEvent &event);
     void OnEstablishP2PLinkTask(const std::string &networkId, std::shared_ptr<BlockObject<int32_t>> pasteBlock);
@@ -397,8 +398,10 @@ private:
     int32_t GetLocalEntryValue(int32_t userId, PasteData &data, PasteDataRecord &record, PasteDataEntry &entry);
     int32_t GetFullDelayPasteData(int32_t userId, PasteData &data);
     bool IsDisallowDistributed();
+    bool IsNeedLink(PasteData &data);
     bool SetDistributedData(int32_t user, PasteData &data);
     bool SetCurrentDistributedData(PasteData &data, Event event);
+    bool SetCurrentData();
     bool SetCurrentData(Event event, PasteData &data);
     void CleanDistributedData(int32_t user);
     void OnConfigChange(bool isOn);

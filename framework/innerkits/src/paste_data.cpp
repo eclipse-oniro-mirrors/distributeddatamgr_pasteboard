@@ -70,7 +70,10 @@ PasteData::PasteData()
     props_.shareOption = ShareOption::CrossDevice;
 } // LCOV_EXCL_STOP
 
-PasteData::~PasteData() {}
+PasteData::~PasteData()
+{ // LCOV_EXCL_START
+    std::vector<std::shared_ptr<PasteDataRecord>>().swap(records_);
+} // LCOV_EXCL_STOP
 
 PasteData::PasteData(const PasteData &data)
     : rawDataSize_(data.rawDataSize_), deviceId_(data.deviceId_), userId_(data.userId_), valid_(data.valid_),
@@ -377,16 +380,6 @@ void PasteData::SetTokenId(uint32_t tokenId)
     props_.tokenId = tokenId;
 } // LCOV_EXCL_STOP
 
-void PasteData::RemoveEmptyEntry()
-{ // LCOV_EXCL_START
-    for (auto &record : records_) {
-        if (record != nullptr) {
-            record->RemoveEmptyEntry();
-        }
-    }
-    RefreshMimeProp();
-} // LCOV_EXCL_STOP
-
 bool PasteData::RemoveRecordAt(std::size_t number)
 { // LCOV_EXCL_START
     if (records_.size() > number) {
@@ -410,6 +403,16 @@ bool PasteData::ReplaceRecordAt(std::size_t number, std::shared_ptr<PasteDataRec
     } else {
         return false;
     }
+} // LCOV_EXCL_STOP
+
+void PasteData::RemoveEmptyEntry()
+{ // LCOV_EXCL_START
+    for (auto &record : records_) {
+        if (record != nullptr) {
+            record->RemoveEmptyEntry();
+        }
+    }
+    RefreshMimeProp();
 } // LCOV_EXCL_STOP
 
 bool PasteData::HasMimeType(const std::string &mimeType)
@@ -713,6 +716,7 @@ PasteData *PasteData::Unmarshalling(Parcel &parcel)
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(!pasteDataTlv.empty(), nullptr, PASTEBOARD_MODULE_COMMON, "vector empty");
 
     PasteData *pasteData = new (std::nothrow) PasteData();
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(pasteData != nullptr, nullptr, PASTEBOARD_MODULE_COMMON, "malloc failed");
     if (!pasteData->Decode(pasteDataTlv)) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_COMMON, "decode failed");
         delete pasteData;

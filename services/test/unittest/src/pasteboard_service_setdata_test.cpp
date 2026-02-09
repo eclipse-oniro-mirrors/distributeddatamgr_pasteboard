@@ -81,7 +81,7 @@ class MyTestPasteboardChangedObserver : public PasteboardObserverStub {
     {
         return;
     }
-    void OnPasteboardEvent(std::string bundleName, int32_t status)
+    void OnPasteboardEvent(const PasteboardChangedEvent &event)
     {
         return;
     }
@@ -543,7 +543,7 @@ HWTEST_F(PasteboardServiceSetDataTest, SetCurrentDataTest001, TestSize.Level1)
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
 
-    tempPasteboard->SetCurrentData(event);
+    tempPasteboard->SetCurrentData();
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetCurrentDataTest001 end");
 }
 

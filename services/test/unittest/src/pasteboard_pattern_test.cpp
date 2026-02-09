@@ -34,13 +34,13 @@ public:
     void TearDown();
 };
 
-void PasteboardPatternTest::SetUpTestCase(void) { }
+void PasteboardPatternTest::SetUpTestCase(void) {}
 
-void PasteboardPatternTest::TearDownTestCase(void) { }
+void PasteboardPatternTest::TearDownTestCase(void) {}
 
-void PasteboardPatternTest::SetUp(void) { }
+void PasteboardPatternTest::SetUp(void) {}
 
-void PasteboardPatternTest::TearDown(void) { }
+void PasteboardPatternTest::TearDown(void) {}
 
 /**
  * @tc.name: PasteboardPatternTest001
