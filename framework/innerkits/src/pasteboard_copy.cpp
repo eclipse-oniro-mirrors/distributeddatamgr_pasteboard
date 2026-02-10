@@ -264,14 +264,16 @@ void PasteBoardCopyFile::HandleProgress(int32_t index, const CopyInfo &info, uin
 
     if (ProgressSignalClient::GetInstance().CheckCancelIfNeed() && canCancel_.load()) {
         PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "Cancel copy.");
-        std::thread([info]() {
+        std::thread thread([info]() {
             canCancel_.store(false);
             auto ret = Storage::DistributedFile::FileCopyManager::GetInstance().Cancel(info.srcUri, info.destUri);
             if (ret != ERRNO_NOERR) {
                 canCancel_.store(true);
                 PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CLIENT, "Cancel failed. errno=%{public}d", ret);
             }
-        }).detach();
+        });
+        pthread_setname_np(thread.native_handle(), "HandleProgress");
+        thread.detach();
         return;
     }
 

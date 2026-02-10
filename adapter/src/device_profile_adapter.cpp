@@ -135,6 +135,7 @@ public:
         std::string status = newProfile.GetCharacteristicValue();
         if (g_onProfileUpdateCallback != nullptr) {
             std::thread thread(g_onProfileUpdateCallback, udid, status == STATUS_ENABLE);
+            pthread_setname_np(thread.native_handle(), "OnProfileUpdate");
             thread.detach();
         }
         return ERR_OK;

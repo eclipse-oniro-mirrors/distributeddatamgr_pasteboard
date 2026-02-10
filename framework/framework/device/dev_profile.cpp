@@ -14,6 +14,7 @@
  */
 
 #include "device/dev_profile.h"
+#include <pthread.h>
 #include <thread>
 
 #include "device/device_profile_proxy.h"
@@ -58,6 +59,7 @@ void DevProfile::PostDelayReleaseProxy()
                 proxy_ = nullptr;
             }
         });
+        pthread_setname_np(thread.native_handle(), "PostDelayReleas");
         thread.detach();
     };
 

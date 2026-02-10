@@ -94,6 +94,7 @@ int32_t LoadSystemAbilityFailImpl(int32_t systemAbilityId, const sptr<ISystemAbi
         }
         callback->OnLoadSystemAbilityFail(systemAbilityId);
     });
+    pthread_setname_np(thread.native_handle(), "LoadSaFail");
     thread.detach();
     return ERR_OK;
 }
@@ -107,6 +108,7 @@ int32_t LoadSystemAbilitySuccImpl(int32_t systemAbilityId, const sptr<ISystemAbi
         sptr<IRemoteObject> remoteObject = new DistributedDeviceProfileStub();
         callback->OnLoadSystemAbilitySuccess(systemAbilityId, remoteObject);
     });
+    pthread_setname_np(thread.native_handle(), "LoadSaSucc");
     thread.detach();
     return ERR_OK;
 }
