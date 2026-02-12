@@ -581,6 +581,10 @@ MiscServices::Pattern PatternAdapter::FromTaihe(pasteboardTaihe::Pattern value)
             return MiscServices::Pattern::NUMBER;
         case pasteboardTaihe::Pattern::key_t::EMAIL_ADDRESS:
             return MiscServices::Pattern::EMAIL_ADDRESS;
+        case pasteboardTaihe::Pattern::key_t::HTTP_URL:
+            return MiscServices::Pattern::HTTP_URL;
+        case pasteboardTaihe::Pattern::key_t::FLIGHT_NUMBER:
+            return MiscServices::Pattern::FLIGHT_NUMBER;
         default:
             return MiscServices::Pattern::COUNT;
     }
@@ -595,6 +599,10 @@ pasteboardTaihe::Pattern PatternAdapter::ToTaihe(MiscServices::Pattern value)
             return pasteboardTaihe::Pattern::key_t::NUMBER;
         case MiscServices::Pattern::EMAIL_ADDRESS:
             return pasteboardTaihe::Pattern::key_t::EMAIL_ADDRESS;
+        case MiscServices::Pattern::HTTP_URL:
+            return pasteboardTaihe::Pattern::key_t::HTTP_URL;
+        case MiscServices::Pattern::FLIGHT_NUMBER:
+            return pasteboardTaihe::Pattern::key_t::FLIGHT_NUMBER;
         default:
             return pasteboardTaihe::Pattern::key_t::COUNT;
     }
