@@ -46,7 +46,8 @@ static bool IsMimeType(const char* type)
         MIMETYPE_TEXT_HTML,
         MIMETYPE_TEXT_PLAIN,
         MIMETYPE_TEXT_URI,
-        MIMETYPE_TEXT_WANT
+        MIMETYPE_TEXT_WANT,
+        MIMETYPE_AUTOFILL_SECURE
     };
     for (const char* mimeType : mimeTypes) {
         if (strcmp(type, mimeType) == 0) {
