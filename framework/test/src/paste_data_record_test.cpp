@@ -226,7 +226,7 @@ void PasteDataRecordTest::CheckLinkUds(const std::shared_ptr<PasteDataEntry> ent
 
 /**
  * @tc.name: GetValidTypesTest001
- * @tc.desc: GetValidTypesTest001;
+ * @tc.desc: Get valid types test
  * @tc.type: FUNC
  * @tc.require:entries
  * @tc.author: tarowang
@@ -312,6 +312,8 @@ HWTEST_F(PasteDataRecordTest, GetEntries001, TestSize.Level0)
  * @tc.name: BuilderTest001
  * @tc.desc: PasteDataRecord::Builder
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataRecordTest, BuilderTest001, TestSize.Level0)
 {
@@ -332,6 +334,8 @@ HWTEST_F(PasteDataRecordTest, BuilderTest001, TestSize.Level0)
  * @tc.name: SetUriTest001
  * @tc.desc: SetUri & GetUriV0
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataRecordTest, SetUriTest001, TestSize.Level0)
 {
@@ -346,6 +350,8 @@ HWTEST_F(PasteDataRecordTest, SetUriTest001, TestSize.Level0)
  * @tc.name: NewMultiTypeRecordTest001
  * @tc.desc: NewMultiTypeRecord
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataRecordTest, NewMultiTypeRecordTest001, TestSize.Level0)
 {
@@ -391,6 +397,8 @@ public:
  * @tc.name: GetEntryGetterTest001
  * @tc.desc: SetEntryGetter & GetEntryGetter
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataRecordTest, GetEntryGetterTest001, TestSize.Level0)
 {
@@ -410,6 +418,8 @@ HWTEST_F(PasteDataRecordTest, GetEntryGetterTest001, TestSize.Level0)
  * @tc.name: NewMultiTypeDelayRecordTest001
  * @tc.desc: NewMultiTypeDelayRecord
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataRecordTest, NewMultiTypeDelayRecordTest001, TestSize.Level0)
 {
@@ -427,6 +437,8 @@ HWTEST_F(PasteDataRecordTest, NewMultiTypeDelayRecordTest001, TestSize.Level0)
  * @tc.name: ClearPixelMapTest001
  * @tc.desc: ClearPixelMap & GetPixelMapV0
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataRecordTest, ClearPixelMapTest001, TestSize.Level0)
 {
@@ -446,6 +458,8 @@ HWTEST_F(PasteDataRecordTest, ClearPixelMapTest001, TestSize.Level0)
  * @tc.name: GetHtmlTextV0Test001
  * @tc.desc: GetHtmlTextV0
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataRecordTest, GetHtmlTextV0Test001, TestSize.Level0)
 {
@@ -461,6 +475,8 @@ HWTEST_F(PasteDataRecordTest, GetHtmlTextV0Test001, TestSize.Level0)
  * @tc.name: GetHtmlTextV0Test002
  * @tc.desc: GetHtmlTextV0
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataRecordTest, GetHtmlTextV0Test002, TestSize.Level0)
 {
@@ -476,6 +492,8 @@ HWTEST_F(PasteDataRecordTest, GetHtmlTextV0Test002, TestSize.Level0)
  * @tc.name: GetHtmlTextV0Test003
  * @tc.desc: GetHtmlTextV0
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataRecordTest, GetHtmlTextV0Test003, TestSize.Level0)
 {
@@ -491,6 +509,8 @@ HWTEST_F(PasteDataRecordTest, GetHtmlTextV0Test003, TestSize.Level0)
  * @tc.name: GetHtmlTextTest001
  * @tc.desc: GetHtmlText
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataRecordTest, GetHtmlTextTest001, TestSize.Level0)
 {
@@ -504,6 +524,8 @@ HWTEST_F(PasteDataRecordTest, GetHtmlTextTest001, TestSize.Level0)
  * @tc.name: GetHtmlTextTest002
  * @tc.desc: GetHtmlText
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataRecordTest, GetHtmlTextTest002, TestSize.Level0)
 {
@@ -519,6 +541,8 @@ HWTEST_F(PasteDataRecordTest, GetHtmlTextTest002, TestSize.Level0)
  * @tc.name: GetPlainTextV0Test001
  * @tc.desc: GetPlainTextV0
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataRecordTest, GetPlainTextV0Test001, TestSize.Level0)
 {
@@ -534,6 +558,8 @@ HWTEST_F(PasteDataRecordTest, GetPlainTextV0Test001, TestSize.Level0)
  * @tc.name: GetPlainTextV0Test002
  * @tc.desc: GetPlainTextV0
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataRecordTest, GetPlainTextV0Test002, TestSize.Level0)
 {
@@ -549,6 +575,8 @@ HWTEST_F(PasteDataRecordTest, GetPlainTextV0Test002, TestSize.Level0)
  * @tc.name: GetPlainTextV0Test003
  * @tc.desc: GetPlainTextV0
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataRecordTest, GetPlainTextV0Test003, TestSize.Level0)
 {
@@ -564,6 +592,8 @@ HWTEST_F(PasteDataRecordTest, GetPlainTextV0Test003, TestSize.Level0)
  * @tc.name: GetPlainTextTest001
  * @tc.desc: GetPlainText
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataRecordTest, GetPlainTextTest001, TestSize.Level0)
 {
@@ -577,6 +607,8 @@ HWTEST_F(PasteDataRecordTest, GetPlainTextTest001, TestSize.Level0)
  * @tc.name: GetPlainTextTest002
  * @tc.desc: GetPlainText
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataRecordTest, GetPlainTextTest002, TestSize.Level0)
 {
@@ -592,6 +624,8 @@ HWTEST_F(PasteDataRecordTest, GetPlainTextTest002, TestSize.Level0)
  * @tc.name: GetPixelMapTest001
  * @tc.desc: GetPixelMap
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataRecordTest, GetPixelMapTest001, TestSize.Level0)
 {
@@ -605,6 +639,8 @@ HWTEST_F(PasteDataRecordTest, GetPixelMapTest001, TestSize.Level0)
  * @tc.name: GetPixelMapTest002
  * @tc.desc: GetPixelMap
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataRecordTest, GetPixelMapTest002, TestSize.Level0)
 {
@@ -628,6 +664,8 @@ HWTEST_F(PasteDataRecordTest, GetPixelMapTest002, TestSize.Level0)
  * @tc.name: GetUriV0Test001
  * @tc.desc: GetUriV0
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataRecordTest, GetUriV0Test001, TestSize.Level0)
 {
@@ -643,6 +681,8 @@ HWTEST_F(PasteDataRecordTest, GetUriV0Test001, TestSize.Level0)
  * @tc.name: GetUriV0Test002
  * @tc.desc: GetUriV0
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataRecordTest, GetUriV0Test002, TestSize.Level0)
 {
@@ -658,6 +698,8 @@ HWTEST_F(PasteDataRecordTest, GetUriV0Test002, TestSize.Level0)
  * @tc.name: GetUriV0Test003
  * @tc.desc: GetUriV0
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataRecordTest, GetUriV0Test003, TestSize.Level0)
 {
@@ -672,6 +714,8 @@ HWTEST_F(PasteDataRecordTest, GetUriV0Test003, TestSize.Level0)
  * @tc.name: GetUriTest001
  * @tc.desc: GetUri
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataRecordTest, GetUriTest001, TestSize.Level0)
 {
@@ -687,6 +731,8 @@ HWTEST_F(PasteDataRecordTest, GetUriTest001, TestSize.Level0)
  * @tc.name: GetUriTest002
  * @tc.desc: GetUri
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataRecordTest, GetUriTest002, TestSize.Level0)
 {
@@ -701,6 +747,8 @@ HWTEST_F(PasteDataRecordTest, GetUriTest002, TestSize.Level0)
  * @tc.name: ConstructorTest001
  * @tc.desc: PasteDataRecord::PasteDataRecord
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataRecordTest, ConstructorTest001, TestSize.Level0)
 {
@@ -713,6 +761,8 @@ HWTEST_F(PasteDataRecordTest, ConstructorTest001, TestSize.Level0)
  * @tc.name: AddEntryTest002
  * @tc.desc: AddEntry & GetEntry
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataRecordTest, AddEntryTest002, TestSize.Level0)
 {
@@ -735,6 +785,8 @@ HWTEST_F(PasteDataRecordTest, AddEntryTest002, TestSize.Level0)
  * @tc.name: AddEntryTest003
  * @tc.desc: AddEntry & GetEntry
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataRecordTest, AddEntryTest003, TestSize.Level0)
 {
@@ -753,6 +805,8 @@ HWTEST_F(PasteDataRecordTest, AddEntryTest003, TestSize.Level0)
  * @tc.name: AddEntryTest004
  * @tc.desc: AddEntry & GetEntry
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataRecordTest, AddEntryTest004, TestSize.Level0)
 {
@@ -773,6 +827,8 @@ HWTEST_F(PasteDataRecordTest, AddEntryTest004, TestSize.Level0)
  * @tc.name: SetTextContentTest001
  * @tc.desc: SetTextContent & GetTextContent
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataRecordTest, SetTextContentTest001, TestSize.Level0)
 {
@@ -789,6 +845,8 @@ HWTEST_F(PasteDataRecordTest, SetTextContentTest001, TestSize.Level0)
  * @tc.name: GetValidMimeTypesTest001
  * @tc.desc: GetValidMimeTypes
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataRecordTest, GetValidMimeTypesTest001, TestSize.Level0)
 {
@@ -802,6 +860,8 @@ HWTEST_F(PasteDataRecordTest, GetValidMimeTypesTest001, TestSize.Level0)
  * @tc.name: AddEntryByMimeTypeTest001
  * @tc.desc: AddEntryByMimeType & GetEntryByMimeType
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataRecordTest, AddEntryByMimeTypeTest001, TestSize.Level0)
 {
@@ -817,6 +877,8 @@ HWTEST_F(PasteDataRecordTest, AddEntryByMimeTypeTest001, TestSize.Level0)
  * @tc.name: AddEntryByMimeTypeTest002
  * @tc.desc: AddEntryByMimeType & GetEntryByMimeType
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataRecordTest, AddEntryByMimeTypeTest002, TestSize.Level0)
 {
@@ -832,6 +894,8 @@ HWTEST_F(PasteDataRecordTest, AddEntryByMimeTypeTest002, TestSize.Level0)
  * @tc.name: AddEntryByMimeTypeTest003
  * @tc.desc: AddEntryByMimeType & GetMimeTypes
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataRecordTest, AddEntryByMimeTypeTest003, TestSize.Level0)
 {
@@ -847,6 +911,8 @@ HWTEST_F(PasteDataRecordTest, AddEntryByMimeTypeTest003, TestSize.Level0)
  * @tc.name: AddEntryByMimeTypeTest004
  * @tc.desc: AddEntryByMimeType & GetEntryByMimeType
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataRecordTest, AddEntryByMimeTypeTest004, TestSize.Level0)
 {
@@ -871,6 +937,8 @@ HWTEST_F(PasteDataRecordTest, AddEntryByMimeTypeTest004, TestSize.Level0)
  * @tc.name: HasEmptyEntryTest001
  * @tc.desc: HasEmptyEntry
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataRecordTest, HasEmptyEntryTest001, TestSize.Level0)
 {
@@ -886,6 +954,8 @@ HWTEST_F(PasteDataRecordTest, HasEmptyEntryTest001, TestSize.Level0)
  * @tc.name: HasEmptyEntryTest002
  * @tc.desc: HasEmptyEntry
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataRecordTest, HasEmptyEntryTest002, TestSize.Level0)
 {
@@ -905,6 +975,8 @@ HWTEST_F(PasteDataRecordTest, HasEmptyEntryTest002, TestSize.Level0)
  * @tc.name: GetUDMFValueTest001
  * @tc.desc: SetUDMFValue & GetUDMFValue
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataRecordTest, GetUDMFValueTest001, TestSize.Level0)
 {
@@ -925,6 +997,8 @@ HWTEST_F(PasteDataRecordTest, GetUDMFValueTest001, TestSize.Level0)
  * @tc.name: GetUDMFValueTest002
  * @tc.desc: GetUDMFValue
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataRecordTest, GetUDMFValueTest002, TestSize.Level0)
 {
@@ -953,6 +1027,8 @@ HWTEST_F(PasteDataRecordTest, GetUDMFValueTest002, TestSize.Level0)
  * @tc.name: IsDelayRecordTest
  * @tc.desc: IsDelayRecord
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataRecordTest, IsDelayRecordTest, TestSize.Level0)
 {
@@ -967,6 +1043,8 @@ HWTEST_F(PasteDataRecordTest, IsDelayRecordTest, TestSize.Level0)
  * @tc.name: GetEntryByMimeType001
  * @tc.desc: GetEntryByMimeType(MIMETYPE_TEXT_WANT)
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataRecordTest, GetEntryByMimeType001, TestSize.Level0)
 {
@@ -985,6 +1063,8 @@ HWTEST_F(PasteDataRecordTest, GetEntryByMimeType001, TestSize.Level0)
  * @tc.name: GetEntryByMimeType002
  * @tc.desc: GetEntryByMimeType(MIMETYPE_TEXT_PLAIN)
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataRecordTest, GetEntryByMimeType002, TestSize.Level0)
 {
@@ -1002,6 +1082,8 @@ HWTEST_F(PasteDataRecordTest, GetEntryByMimeType002, TestSize.Level0)
  * @tc.name: GetEntryByMimeType003
  * @tc.desc: GetEntryByMimeType(MIMETYPE_TEXT_HTML)
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataRecordTest, GetEntryByMimeType003, TestSize.Level0)
 {
@@ -1019,6 +1101,8 @@ HWTEST_F(PasteDataRecordTest, GetEntryByMimeType003, TestSize.Level0)
  * @tc.name: GetEntryByMimeType004
  * @tc.desc: GetEntryByMimeType(MIMETYPE_TEXT_URI)
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataRecordTest, GetEntryByMimeType004, TestSize.Level0)
 {
@@ -1036,6 +1120,8 @@ HWTEST_F(PasteDataRecordTest, GetEntryByMimeType004, TestSize.Level0)
  * @tc.name: GetEntryByMimeType005
  * @tc.desc: GetEntryByMimeType(MIMETYPE_PIXELMAP)
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataRecordTest, GetEntryByMimeType005, TestSize.Level0)
 {
@@ -1062,6 +1148,8 @@ HWTEST_F(PasteDataRecordTest, GetEntryByMimeType005, TestSize.Level0)
  * @tc.name: GetEntryByMimeType006
  * @tc.desc: GetEntryByMimeType(custom)
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataRecordTest, GetEntryByMimeType006, TestSize.Level0)
 {
@@ -1099,6 +1187,8 @@ HWTEST_F(PasteDataRecordTest, GetEntryByMimeType006, TestSize.Level0)
  * @tc.name: GetEntryByMimeType007
  * @tc.desc: GetEntryByMimeType(custom)
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataRecordTest, GetEntryByMimeType007, TestSize.Level0)
 {
@@ -1125,7 +1215,7 @@ HWTEST_F(PasteDataRecordTest, GetEntryByMimeType007, TestSize.Level0)
 
 /**
  * @tc.name: GetPassUriTest001
- * @tc.desc:
+ * @tc.desc: Get pass uri test
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author:
@@ -1139,7 +1229,7 @@ HWTEST_F(PasteDataRecordTest, GetPassUriTest001, TestSize.Level0)
 
 /**
  * @tc.name: GetPassUriTest002
- * @tc.desc:
+ * @tc.desc: Get pass uri test
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author:
@@ -1154,6 +1244,8 @@ HWTEST_F(PasteDataRecordTest, GetPassUriTest002, TestSize.Level0)
  * @tc.name: EncodeRemoteTest001
  * @tc.desc: test encode & decode remote plain-text
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataRecordTest, EncodeRemoteTest001, TestSize.Level0)
 {
@@ -1190,6 +1282,8 @@ HWTEST_F(PasteDataRecordTest, EncodeRemoteTest001, TestSize.Level0)
  * @tc.name: EncodeRemoteTest002
  * @tc.desc: test encode & decode remote html
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataRecordTest, EncodeRemoteTest002, TestSize.Level0)
 {
@@ -1227,6 +1321,8 @@ HWTEST_F(PasteDataRecordTest, EncodeRemoteTest002, TestSize.Level0)
  * @tc.name: EncodeRemoteTest003
  * @tc.desc: test encode & decode remote uri
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataRecordTest, EncodeRemoteTest003, TestSize.Level0)
 {
@@ -1262,6 +1358,8 @@ HWTEST_F(PasteDataRecordTest, EncodeRemoteTest003, TestSize.Level0)
  * @tc.name: EncodeRemoteTest004
  * @tc.desc: test encode & decode remote pixelMap
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataRecordTest, EncodeRemoteTest004, TestSize.Level0)
 {
@@ -1305,6 +1403,8 @@ HWTEST_F(PasteDataRecordTest, EncodeRemoteTest004, TestSize.Level0)
  * @tc.name: EncodeRemoteTest005
  * @tc.desc: test encode & decode remote want
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataRecordTest, EncodeRemoteTest005, TestSize.Level0)
 {
@@ -1341,6 +1441,8 @@ HWTEST_F(PasteDataRecordTest, EncodeRemoteTest005, TestSize.Level0)
  * @tc.name: EncodeRemoteTest006
  * @tc.desc: test encode & decode remote custom
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataRecordTest, EncodeRemoteTest006, TestSize.Level0)
 {
