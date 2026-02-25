@@ -19,6 +19,7 @@
 #include <regex>
 
 #include "convert_utils.h"
+#include "fd_san.h"
 #include "ffrt/ffrt_utils.h"
 #include "hitrace_meter.h"
 #include "pasteboard_copy.h"
@@ -280,7 +281,7 @@ void PasteboardClient::CloseSharedMemFd(int fd)
 {
     if (fd >= 0) {
         PASTEBOARD_HILOGD(PASTEBOARD_MODULE_CLIENT, "CloseSharedMemFd:%{public}d", fd);
-        close(fd);
+        fdsan_close_with_tag(fd, PASTEBOARD_FD_TAG);
     }
 }
 
@@ -491,6 +492,7 @@ int32_t PasteboardClient::ProcessPasteData(T &data, int64_t rawDataSize, int fd,
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CLIENT, "fail fd:%{public}d", fd);
         return ret;
     }
+    fdsan_exchange_owner_tag(fd, 0, PASTEBOARD_FD_TAG);
     MessageParcelWarp messageReply;
     if (rawDataSize <= 0 || rawDataSize > messageReply.GetRawDataSize()) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CLIENT, "Invalid raw data size:%{public}" PRId64, rawDataSize);

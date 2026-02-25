@@ -29,6 +29,7 @@
 #include "dlp_permission.h"
 #endif // WITH_DLP
 #include "eventcenter/pasteboard_event.h"
+#include "fd_san.h"
 #include "hiview_adapter.h"
 #include "input_method_controller.h"
 #include "ipasteboard_changed_observer.h"
@@ -2724,7 +2725,7 @@ void PasteboardService::CloseSharedMemFd(int fd)
 {
     if (fd >= 0) {
         PASTEBOARD_HILOGD(PASTEBOARD_MODULE_SERVICE, "Close fd:%{public}d", fd);
-        close(fd);
+        fdsan_close_with_tag(fd, PASTEBOARD_FD_TAG);
     }
 }
 
@@ -2783,6 +2784,7 @@ int32_t PasteboardService::SetPasteData(int fd, int64_t rawDataSize, const std::
 {
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(
         fd >= 0, static_cast<int32_t>(PasteboardError::INVALID_PARAM_ERROR), PASTEBOARD_MODULE_SERVICE, "fd invalid");
+    fdsan_exchange_owner_tag(fd, 0, PASTEBOARD_FD_TAG);
     MessageParcelWarp messageData;
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "fd=%{public}d, agedTime_ = %{public}d,"
         "rawDataSize=%{public}" PRId64, fd, agedTime_.load(), rawDataSize);
