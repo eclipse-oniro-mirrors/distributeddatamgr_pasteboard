@@ -359,7 +359,9 @@ napi_value SystemPasteboardNapi::HasRemoteData(napi_env env, napi_callback_info 
         auto ptr = std::make_shared<bool>(ret);
         block->SetValue(ptr);
     });
+#ifndef CROSS_PLATFORM
     pthread_setname_np(thread.native_handle(), "NHasRemoteData");
+#endif
     thread.detach();
     auto value = block->GetValue();
     napi_value result = nullptr;
@@ -626,7 +628,9 @@ napi_value SystemPasteboardNapi::GetUnifiedDataSync(napi_env env, napi_callback_
         std::shared_ptr<int32_t> value = std::make_shared<int32_t>(ret);
         block->SetValue(value);
     });
+#ifndef CROSS_PLATFORM
     pthread_setname_np(thread.native_handle(), "NGetUnifiedData");
+#endif
     thread.detach();
     auto value = block->GetValue();
     if (!CheckExpression(env, value != nullptr, JSErrorCode::REQUEST_TIME_OUT,
@@ -679,7 +683,9 @@ napi_value SystemPasteboardNapi::SetUnifiedDataSync(napi_env env, napi_callback_
         std::shared_ptr<int32_t> value = std::make_shared<int32_t>(ret);
         block->SetValue(value);
     });
+#ifndef CROSS_PLATFORM
     pthread_setname_np(thread.native_handle(), "NSetUnifiedData");
+#endif
     thread.detach();
     auto value = block->GetValue();
     if (!CheckExpression(env, value != nullptr, JSErrorCode::REQUEST_TIME_OUT,
@@ -827,7 +833,9 @@ napi_value SystemPasteboardNapi::IsRemoteData(napi_env env, napi_callback_info i
         std::shared_ptr<int32_t> value = std::make_shared<int32_t>(static_cast<int32_t>(ret));
         block->SetValue(value);
     });
+#ifndef CROSS_PLATFORM
     pthread_setname_np(thread.native_handle(), "NIsRemoteData");
+#endif
     thread.detach();
     auto value = block->GetValue();
     if (!CheckExpression(env, value != nullptr, JSErrorCode::REQUEST_TIME_OUT,
@@ -850,7 +858,9 @@ napi_value SystemPasteboardNapi::GetDataSource(napi_env env, napi_callback_info 
         auto value = std::make_shared<std::pair<int32_t, std::string>>(ret, bundleName);
         block->SetValue(value);
     });
+#ifndef CROSS_PLATFORM
     pthread_setname_np(thread.native_handle(), "NGetDataSource");
+#endif
     thread.detach();
     auto value = block->GetValue();
     if (!CheckExpression(env, value != nullptr, JSErrorCode::REQUEST_TIME_OUT,
@@ -923,7 +933,9 @@ napi_value SystemPasteboardNapi::HasDataType(napi_env env, napi_callback_info in
     }
     auto block = std::make_shared<BlockObject<std::shared_ptr<int32_t>>>(SYNC_TIMEOUT);
     ffrt::submit([block, mimeType]() {
+    #ifndef CROSS_PLATFORM
         pthread_setname_np(pthread_self(), "NHasDataType");
+    #endif
         auto ret = PasteboardClient::GetInstance()->HasDataType(mimeType);
         PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "ret=%{public}d", ret);
         std::shared_ptr<int32_t> value = std::make_shared<int32_t>(static_cast<int32_t>(ret));
@@ -979,7 +991,9 @@ napi_value SystemPasteboardNapi::ClearDataSync(napi_env env, napi_callback_info 
         std::shared_ptr<int32_t> value = std::make_shared<int32_t>(0);
         block->SetValue(value);
     });
+#ifndef CROSS_PLATFORM
     pthread_setname_np(thread.native_handle(), "NClearDataSync");
+#endif
     thread.detach();
     auto value = block->GetValue();
     if (!CheckExpression(env, value != nullptr, JSErrorCode::REQUEST_TIME_OUT,
@@ -1009,7 +1023,9 @@ napi_value SystemPasteboardNapi::GetDataSync(napi_env env, napi_callback_info in
         std::shared_ptr<int32_t> value = std::make_shared<int32_t>(ret);
         block->SetValue(value);
     });
+#ifndef CROSS_PLATFORM
     pthread_setname_np(thread.native_handle(), "NGetDataSync");
+#endif
     thread.detach();
     auto value = block->GetValue();
     if (!CheckExpression(env, value != nullptr, JSErrorCode::REQUEST_TIME_OUT,
@@ -1055,7 +1071,9 @@ napi_value SystemPasteboardNapi::SetDataSync(napi_env env, napi_callback_info in
         std::shared_ptr<int32_t> value = std::make_shared<int32_t>(ret);
         block->SetValue(value);
     });
+#ifndef CROSS_PLATFORM
     pthread_setname_np(thread.native_handle(), "NSetDataSync");
+#endif
     thread.detach();
     auto value = block->GetValue();
     if (!CheckExpression(env, value != nullptr, JSErrorCode::REQUEST_TIME_OUT,
@@ -1084,7 +1102,9 @@ napi_value SystemPasteboardNapi::HasDataSync(napi_env env, napi_callback_info in
         std::shared_ptr<int32_t> value = std::make_shared<int32_t>(static_cast<int32_t>(ret));
         block->SetValue(value);
     });
+#ifndef CROSS_PLATFORM
     pthread_setname_np(thread.native_handle(), "NHasDataSync");
+#endif
     thread.detach();
     auto value = block->GetValue();
     if (!CheckExpression(env, value != nullptr, JSErrorCode::REQUEST_TIME_OUT,
