@@ -18,6 +18,7 @@
 #include "common_func.h"
 #include "copy/file_copy_manager.h"
 #include "file_uri.h"
+#include "pasteboard_common.h"
 #include "pasteboard_error.h"
 #include "pasteboard_hilog.h"
 
@@ -272,7 +273,7 @@ void PasteBoardCopyFile::HandleProgress(int32_t index, const CopyInfo &info, uin
                 PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CLIENT, "Cancel failed. errno=%{public}d", ret);
             }
         });
-        pthread_setname_np(thread.native_handle(), "HandleProgress");
+        PasteBoardCommon::SetThreadTaskName(thread, "HandleProgress");
         thread.detach();
         return;
     }

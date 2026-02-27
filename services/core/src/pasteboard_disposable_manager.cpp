@@ -20,6 +20,7 @@
 #include "ffrt/ffrt_utils.h"
 #include "ipc_skeleton.h"
 #include "parameters.h"
+#include "pasteboard_common.h"
 #include "pasteboard_error.h"
 #include "pasteboard_hilog.h"
 #include "pasteboard_window_manager.h"
@@ -105,7 +106,7 @@ bool DisposableManager::TryProcessDisposableData(PasteData &pasteData,
         PASTEBOARD_CHECK_AND_RETURN_LOGE(data != nullptr, PASTEBOARD_MODULE_SERVICE, "data is null");
         ProcessMatchedInfo(matchedInfoList, *data, delayGetter, entryGetter);
     });
-    pthread_setname_np(thread.native_handle(), "ProcessMatchedInfo");
+    PasteBoardCommon::SetThreadTaskName(thread, "ProcessMatchedInfo");
     thread.detach();
     return true;
 }
@@ -171,7 +172,7 @@ int32_t DisposableManager::AddDisposableInfo(const DisposableInfo &info)
         std::thread thread([=]() {
             RemoveDisposableInfo(pid, true);
         });
-        pthread_setname_np(thread.native_handle(), "RemoveDisposabl");
+        PasteBoardCommon::SetThreadTaskName(thread, "RemoveDisposabl");
         thread.detach();
     };
     std::string taskName = "disposable_expiration[pid=" + std::to_string(info.pid) + "]";

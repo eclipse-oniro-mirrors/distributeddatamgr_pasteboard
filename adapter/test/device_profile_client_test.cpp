@@ -20,6 +20,7 @@
 #include "distributed_device_profile_errors.h"
 #include "distributed_device_profile_proxy.h"
 #include "iservice_registry.h"
+#include "pasteboard_common.h"
 #include "system_ability_definition.h"
 #include "system_ability_manager_mock.h"
 
@@ -94,7 +95,7 @@ int32_t LoadSystemAbilityFailImpl(int32_t systemAbilityId, const sptr<ISystemAbi
         }
         callback->OnLoadSystemAbilityFail(systemAbilityId);
     });
-    pthread_setname_np(thread.native_handle(), "LoadSaFail");
+    PasteBoardCommon::SetThreadTaskName(thread, "LoadSaFail");
     thread.detach();
     return ERR_OK;
 }
@@ -108,7 +109,7 @@ int32_t LoadSystemAbilitySuccImpl(int32_t systemAbilityId, const sptr<ISystemAbi
         sptr<IRemoteObject> remoteObject = new DistributedDeviceProfileStub();
         callback->OnLoadSystemAbilitySuccess(systemAbilityId, remoteObject);
     });
-    pthread_setname_np(thread.native_handle(), "LoadSaSucc");
+    PasteBoardCommon::SetThreadTaskName(thread, "LoadSaSucc");
     thread.detach();
     return ERR_OK;
 }

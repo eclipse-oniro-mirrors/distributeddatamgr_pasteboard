@@ -16,6 +16,7 @@
 #ifndef PASTEBOARD_COMMON_H
 #define PASTEBOARD_COMMON_H
 
+#include <string>
 #include <sys/stat.h>
 
 #include "bundle_mgr_proxy.h"
@@ -41,6 +42,8 @@ public:
         std::string &dataDir);
     static std::string GetDirByAuthority(const std::pair<std::string, int32_t> &authority);
     static int32_t Stat(const std::string &path, struct stat *buf);
+    static void SetThreadTaskName(std::thread &thread, const std::string &taskName);
+    static void SetTaskName(const std::string &taskName);
 
 private:
     int32_t apiTargetVersion_ = 0;

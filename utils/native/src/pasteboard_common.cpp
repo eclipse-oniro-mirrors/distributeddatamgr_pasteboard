@@ -17,7 +17,9 @@
 
 #include <if_system_ability_manager.h>
 #include <iservice_registry.h>
+#include <pthread.h>
 #include <system_ability_definition.h>
+#include <thread>
 #include <unistd.h>
 
 #include "pasteboard_hilog.h"
@@ -100,6 +102,20 @@ bool PasteBoardCommon::IsValidMimeType(const std::string &mimeType)
 int32_t PasteBoardCommon::Stat(const std::string &path, struct stat *buf)
 {
     return stat(path.c_str(), buf);
+}
+
+void PasteBoardCommon::SetThreadTaskName(std::thread &thread, const std::string &taskName)
+{
+#ifndef CROSS_PLATFORM
+    pthread_setname_np(thread.native_handle(), taskName.c_str());
+#endif
+}
+
+void PasteBoardCommon::SetTaskName(const std::string &taskName)
+{
+#ifndef CROSS_PLATFORM
+    pthread_setname_np(pthread_self(), taskName.c_str());
+#endif
 }
 } // namespace MiscServices
 } // namespace OHOS

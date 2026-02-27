@@ -20,6 +20,7 @@
 #include <thread>
 
 #include "def.h"
+#include "pasteboard_common.h"
 #include "pasteboard_hilog.h"
 #include "pasteboard_error.h"
 #include "pasteboard_time.h"
@@ -486,7 +487,7 @@ void HiViewAdapter::StartTimerThread()
         }
     };
     std::thread th = std::thread(fun);
-    pthread_setname_np(th.native_handle(), "HiViewReport");
+    PasteBoardCommon::SetThreadTaskName(th, "HiViewReport");
     th.detach();
 }
 
@@ -534,7 +535,7 @@ void HiViewAdapter::ReportUseBehaviour(PasteData& pastData, const char* state, i
         }
         PASTEBOARD_HILOGD(PASTEBOARD_MODULE_SERVICE, "end.");
     });
-    pthread_setname_np(thread.native_handle(), "ReportUseBehavi");
+    PasteBoardCommon::SetThreadTaskName(thread, "ReportUseBehavi");
     thread.detach();
 }
 
