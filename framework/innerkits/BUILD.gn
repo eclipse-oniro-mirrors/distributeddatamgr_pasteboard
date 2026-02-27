@@ -183,6 +183,7 @@ ohos_shared_library("pasteboard_client") {
     "hitrace:hitrace_meter",
     "image_framework:image_native",
     "ipc:ipc_single",
+    "json:nlohmann_json_static",
     "libuv:uv",
     "libxml2:libxml2",
     "samgr:samgr_proxy",

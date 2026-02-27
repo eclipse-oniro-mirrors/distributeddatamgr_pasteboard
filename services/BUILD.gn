@@ -151,6 +151,7 @@ ohos_shared_library("pasteboard_service") {
     "init:libbegetutil",
     "input:libmmi-client",
     "ipc:ipc_single",
+    "json:nlohmann_json_static",
     "libxml2:libxml2",
     "memmgr:memmgrclient",
     "os_account:os_account_innerkits",
