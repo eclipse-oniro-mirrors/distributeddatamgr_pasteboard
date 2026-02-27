@@ -2096,9 +2096,36 @@ ohos_unittest("EntityRecognitionObserverStubTest") {
   ]
 }
 
+ohos_unittest("HiViewAdapterTest") {
+  module_out_path = module_output_path
+  sources = [
+    "${pasteboard_root_path}/services/dfx/src/hiview_adapter.cpp",
+    "${pasteboard_utils_path}/native/src/pasteboard_time.cpp",
+    "unittest/src/hiview_adapter_test.cpp",
+  ]
+  configs = [ ":module_private_config" ]
+  cflags = [ "-fno-access-control" ]
+  deps = [
+    "${pasteboard_framework_path}:pasteboard_framework",
+    "${pasteboard_innerkits_path}:pasteboard_client",
+    "${pasteboard_innerkits_path}:pasteboard_data",
+    "${pasteboard_service_path}:pasteboard_service",
+  ]
+  external_deps = [
+    "c_utils:utils",
+    "ffrt:libffrt",
+    "googletest:gtest_main",
+    "hisysevent:libhisysevent",
+    "hilog:libhilog",
+    "init:libbegetutil",
+    "udmf:udmf_client",
+  ]
+}
+
 group("unittest") {
   testonly = true
   deps = [
+    ":HiViewAdapterTest",
     ":PasteboardAbilityManagerTest",
     ":PasteboardDeduplicateMemoryTest",
     ":PasteboardDelayManagerTest",
