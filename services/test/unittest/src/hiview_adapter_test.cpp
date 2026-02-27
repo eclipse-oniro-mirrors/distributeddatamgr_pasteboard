@@ -40,7 +40,7 @@ void HiViewAdapterTest::TearDown(void) { }
 /**
  * @tc.name: CopyTimeConsumingCountTest001
  * @tc.desc: Test CopyTimeConsumingCount dataLevel Invalid
- * @tc.type: 
+ * @tc.type: FUNC
  */
 HWTEST_F(HiViewAdapterTest, CopyTimeConsumingCountTest001, TestSize.Level1)
 {
@@ -54,7 +54,7 @@ HWTEST_F(HiViewAdapterTest, CopyTimeConsumingCountTest001, TestSize.Level1)
 /**
  * @tc.name: CopyTimeConsumingCountTest002
  * @tc.desc: Test CopyTimeConsumingCount timeLevel not in copyTimeConsumingStat_
- * @tc.type: 
+ * @tc.type: FUNC
  */
 HWTEST_F(HiViewAdapterTest, CopyTimeConsumingCountTest002, TestSize.Level1)
 {
@@ -72,7 +72,7 @@ HWTEST_F(HiViewAdapterTest, CopyTimeConsumingCountTest002, TestSize.Level1)
 /**
  * @tc.name: PasteTimeConsumingCountTest001
  * @tc.desc: Test PasteTimeConsumingCount dataLevel Invalid
- * @tc.type: 
+ * @tc.type: FUNC
  */
 HWTEST_F(HiViewAdapterTest, PasteTimeConsumingCountTest001, TestSize.Level1)
 {
@@ -86,7 +86,7 @@ HWTEST_F(HiViewAdapterTest, PasteTimeConsumingCountTest001, TestSize.Level1)
 /**
  * @tc.name: PasteTimeConsumingCountTest002
  * @tc.desc: Test PasteTimeConsumingCount timeLevel not in pasteTimeConsumingStat_
- * @tc.type: 
+ * @tc.type: FUNC
  */
 HWTEST_F(HiViewAdapterTest, PasteTimeConsumingCountTest002, TestSize.Level1)
 {
@@ -104,7 +104,7 @@ HWTEST_F(HiViewAdapterTest, PasteTimeConsumingCountTest002, TestSize.Level1)
 /**
  * @tc.name: RemotePasteTimeConsumingCountTest001
  * @tc.desc: Test RemotePasteTimeConsumingCount dataLevel Invalid
- * @tc.type: 
+ * @tc.type: FUNC
  */
 HWTEST_F(HiViewAdapterTest, RemotePasteTimeConsumingCountTest001, TestSize.Level1)
 {
@@ -118,7 +118,7 @@ HWTEST_F(HiViewAdapterTest, RemotePasteTimeConsumingCountTest001, TestSize.Level
 /**
  * @tc.name: RemotePasteTimeConsumingCountTest002
  * @tc.desc: Test RemotePasteTimeConsumingCount timeLevel not in remotePasteTimeConsumingStat_
- * @tc.type: 
+ * @tc.type: FUNC
  */
 HWTEST_F(HiViewAdapterTest, RemotePasteTimeConsumingCountTest002, TestSize.Level1)
 {
@@ -136,7 +136,7 @@ HWTEST_F(HiViewAdapterTest, RemotePasteTimeConsumingCountTest002, TestSize.Level
 /**
  * @tc.name: GetDataLevelTest001
  * @tc.desc: Test GetDataLevel timeLevel dataLevel Invalid
- * @tc.type: 
+ * @tc.type: FUNC
  */
 HWTEST_F(HiViewAdapterTest, GetDataLevelTest001, TestSize.Level1)
 {
@@ -149,7 +149,7 @@ HWTEST_F(HiViewAdapterTest, GetDataLevelTest001, TestSize.Level1)
 /**
  * @tc.name: ReportStatisticEventTest001
  * @tc.desc: Test ReportStatisticEvent timeConsumingStat empty
- * @tc.type: 
+ * @tc.type: FUNC
  */
 HWTEST_F(HiViewAdapterTest, ReportStatisticEventTest001, TestSize.Level1)
 {
@@ -162,7 +162,7 @@ HWTEST_F(HiViewAdapterTest, ReportStatisticEventTest001, TestSize.Level1)
 /**
  * @tc.name: ReportBehaviourTest001
  * @tc.desc: Test ReportBehaviour timeConsumingStat empty
- * @tc.type: 
+ * @tc.type: FUNC
  */
 HWTEST_F(HiViewAdapterTest, ReportBehaviourTest001, TestSize.Level1)
 {
@@ -174,7 +174,7 @@ HWTEST_F(HiViewAdapterTest, ReportBehaviourTest001, TestSize.Level1)
 /**
  * @tc.name: ReportBehaviourTest002
  * @tc.desc: Test ReportBehaviour timeConsumingStat not empty
- * @tc.type: 
+ * @tc.type: FUNC
  */
 HWTEST_F(HiViewAdapterTest, ReportBehaviourTest002, TestSize.Level1)
 {
@@ -191,7 +191,7 @@ HWTEST_F(HiViewAdapterTest, ReportBehaviourTest002, TestSize.Level1)
 /**
  * @tc.name: InvokePasteBoardBehaviourTest001
  * @tc.desc: Test InvokePasteBoardBehaviour copyPasteboardBehaviour_ empty
- * @tc.type: 
+ * @tc.type: FUNC
  */
 HWTEST_F(HiViewAdapterTest, InvokePasteBoardBehaviourTest001, TestSize.Level1)
 {
@@ -203,7 +203,7 @@ HWTEST_F(HiViewAdapterTest, InvokePasteBoardBehaviourTest001, TestSize.Level1)
 /**
  * @tc.name: InvokePasteBoardBehaviourTest002
  * @tc.desc: Test InvokePasteBoardBehaviour pastePasteboardBehaviour_ empty
- * @tc.type: 
+ * @tc.type: FUNC
  */
 HWTEST_F(HiViewAdapterTest, InvokePasteBoardBehaviourTest002, TestSize.Level1)
 {
@@ -215,7 +215,7 @@ HWTEST_F(HiViewAdapterTest, InvokePasteBoardBehaviourTest002, TestSize.Level1)
 /**
  * @tc.name: InvokePasteBoardBehaviourTest003
  * @tc.desc: Test InvokePasteBoardBehaviour remotePastePasteboardBehaviour_ empty
- * @tc.type:
+ * @tc.type: FUNC
  */
 HWTEST_F(HiViewAdapterTest, InvokePasteBoardBehaviourTest003, TestSize.Level1)
 {
