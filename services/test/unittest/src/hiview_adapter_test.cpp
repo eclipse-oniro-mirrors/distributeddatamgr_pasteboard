@@ -215,7 +215,7 @@ HWTEST_F(HiViewAdapterTest, InvokePasteBoardBehaviourTest002, TestSize.Level1)
 /**
  * @tc.name: InvokePasteBoardBehaviourTest003
  * @tc.desc: Test InvokePasteBoardBehaviour remotePastePasteboardBehaviour_ empty
- * @tc.type: 
+ * @tc.type:
  */
 HWTEST_F(HiViewAdapterTest, InvokePasteBoardBehaviourTest003, TestSize.Level1)
 {

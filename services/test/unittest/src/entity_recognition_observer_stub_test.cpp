@@ -67,7 +67,6 @@ HWTEST_F(EntityRecognitionObserverStubTest, OnRecognitionEventStubTest001, TestS
 {
     OHOS::MessageParcel data;
     data.WriteString("test");
-    // data.WriteUint32(static_cast<uint32_t>(EntityType::MAX) + 10);
     data.WriteUint32(static_cast<uint32_t>(EntityType::MAX) - 1);
     OHOS::MessageParcel reply;
     auto pbserver = std::make_shared<MockEntityObserver>();
