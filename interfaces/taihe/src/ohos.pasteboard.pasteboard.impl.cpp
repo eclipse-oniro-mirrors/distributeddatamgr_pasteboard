@@ -721,7 +721,7 @@ public:
             auto value = std::make_shared<std::pair<int32_t, std::string>>(ret, bundleName);
             block->SetValue(value);
         });
-        PasteBoardCommon::SetThreadTaskName(thread, "TGetDataSource");
+        PasteBoardCommonUtils::SetThreadTaskName(thread, "TGetDataSource");
         thread.detach();
         auto value = block->GetValue();
         if (value == nullptr) {
@@ -761,7 +761,7 @@ public:
             auto ptr = std::make_shared<int>(0);
             block->SetValue(ptr);
         });
-        PasteBoardCommon::SetThreadTaskName(thread, "TClearDataSync");
+        PasteBoardCommonUtils::SetThreadTaskName(thread, "TClearDataSync");
         thread.detach();
         auto value = block->GetValue();
         if (value == nullptr) {
@@ -790,7 +790,7 @@ public:
             auto ptr = std::make_shared<int32_t>(ret);
             block->SetValue(ptr);
         });
-        PasteBoardCommon::SetThreadTaskName(thread, "TGetDataSync");
+        PasteBoardCommonUtils::SetThreadTaskName(thread, "TGetDataSync");
         thread.detach();
         auto value = block->GetValue();
         if (value == nullptr) {
@@ -830,7 +830,7 @@ public:
             auto ptr = std::make_shared<bool>(ret);
             block->SetValue(ptr);
         });
-        PasteBoardCommon::SetThreadTaskName(thread, "THasDataSync");
+        PasteBoardCommonUtils::SetThreadTaskName(thread, "THasDataSync");
         thread.detach();
         std::shared_ptr<bool> value = block->GetValue();
         if (value == nullptr) {
@@ -848,7 +848,7 @@ public:
             auto ptr = std::make_shared<bool>(ret);
             block->SetValue(ptr);
         });
-        PasteBoardCommon::SetThreadTaskName(thread, "THasRemoteData");
+        PasteBoardCommonUtils::SetThreadTaskName(thread, "THasRemoteData");
         thread.detach();
         std::shared_ptr<bool> value = block->GetValue();
         if (value == nullptr) {
@@ -881,7 +881,7 @@ public:
             auto ptr = std::make_shared<int32_t>(ret);
             block->SetValue(ptr);
         });
-        PasteBoardCommon::SetThreadTaskName(thread, "TSetDataSync");
+        PasteBoardCommonUtils::SetThreadTaskName(thread, "TSetDataSync");
         thread.detach();
         std::shared_ptr<int32_t> value = block->GetValue();
         if (value == nullptr) {
@@ -934,7 +934,7 @@ public:
             auto ptr = std::make_shared<bool>(ret);
             block->SetValue(ptr);
         });
-        PasteBoardCommon::SetThreadTaskName(thread, "TIsRemoteData");
+        PasteBoardCommonUtils::SetThreadTaskName(thread, "TIsRemoteData");
         thread.detach();
         std::shared_ptr<bool> value = block->GetValue();
         if (value == nullptr) {
@@ -969,7 +969,7 @@ public:
             auto ptr = std::make_shared<int32_t>(ret);
             block->SetValue(ptr);
         });
-        PasteBoardCommon::SetThreadTaskName(thread, "TGetUnifiedData");
+        PasteBoardCommonUtils::SetThreadTaskName(thread, "TGetUnifiedData");
         thread.detach();
         std::shared_ptr<int32_t> value = block->GetValue();
         if (value == nullptr) {
@@ -1024,7 +1024,7 @@ public:
             auto ptr = std::make_shared<int32_t>(ret);
             block->SetValue(ptr);
         });
-        PasteBoardCommon::SetThreadTaskName(thread, "TSetUnifiedData");
+        PasteBoardCommonUtils::SetThreadTaskName(thread, "TSetUnifiedData");
         thread.detach();
         std::shared_ptr<int32_t> value = block->GetValue();
         if (value == nullptr) {

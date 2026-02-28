@@ -35,7 +35,7 @@ PastedSwitch::PastedSwitch() : userId_(ERROR_USERID)
         std::thread thread([userId = userId_, this]() {
             SetSwitch(userId);
         });
-        PasteBoardCommon::SetThreadTaskName(thread, "SetSwitch");
+        PasteBoardCommonUtils::SetThreadTaskName(thread, "SetSwitch");
         thread.detach();
     });
 }
