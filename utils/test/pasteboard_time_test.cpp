@@ -68,4 +68,40 @@ HWTEST_F(PasteboardTimeTest, GetWallTimeMs, TestSize.Level0)
     auto result = PasteBoardTime::GetWallTimeMs();
     EXPECT_TRUE(result >= 0);
 }
+
+/**
+ * @tc.name: GetWallTimeMsMultipleCalls
+ * @tc.desc: Get wall time multiple times.
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardTimeTest, GetWallTimeMsMultipleCalls, TestSize.Level1)
+{
+    auto result1 = PasteBoardTime::GetWallTimeMs();
+    auto result2 = PasteBoardTime::GetWallTimeMs();
+    EXPECT_TRUE(result2 >= result1);
+}
+
+/**
+ * @tc.name: GetBootTimeMsMultipleCalls
+ * @tc.desc: Get boot time multiple times.
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardTimeTest, GetBootTimeMsMultipleCalls, TestSize.Level1)
+{
+    auto result1 = PasteBoardTime::GetBootTimeMs();
+    auto result2 = PasteBoardTime::GetBootTimeMs();
+    EXPECT_TRUE(result2 >= result1);
+}
+
+/**
+ * @tc.name: GetCurrentTimeMicrosMultipleCalls
+ * @tc.desc: Get current time micros multiple times.
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardTimeTest, GetCurrentTimeMicrosMultipleCalls, TestSize.Level1)
+{
+    auto result1 = PasteBoardTime::GetCurrentTimeMicros();
+    auto result2 = PasteBoardTime::GetCurrentTimeMicros();
+    EXPECT_TRUE(result2 >= result1);
+}
 } // namespace OHOS::MiscServices
