@@ -17,7 +17,7 @@
 #include <thread>
 #include <chrono>
 
-#include "common/pasteboard_common.h"
+#include "common/pasteboard_common_utils.h"
 
 namespace OHOS::MiscServices {
 using namespace testing::ext;

@@ -13,19 +13,24 @@
  * limitations under the License.
  */
 
-#ifndef PASTEBOARD_COMMON_H
-#define PASTEBOARD_COMMON_H
+#include "pasteboard_common_utils.h"
 
-#include <string>
-#include <thread>
+#include <pthread.h>
 
 namespace OHOS {
 namespace MiscServices {
-class PasteBoardCommon {
-public:
-    static void SetThreadTaskName(std::thread &thread, const std::string &taskName);
-    static void SetTaskName(const std::string &taskName);
-};
+void PasteBoardCommon::SetThreadTaskName(std::thread &thread, const std::string &taskName)
+{
+#ifndef CROSS_PLATFORM
+    pthread_setname_np(thread.native_handle(), taskName.c_str());
+#endif
+}
+
+void PasteBoardCommon::SetTaskName(const std::string &taskName)
+{
+#ifndef CROSS_PLATFORM
+    pthread_setname_np(pthread_self(), taskName.c_str());
+#endif
+}
 } // namespace MiscServices
 } // namespace OHOS
-#endif // PASTEBOARD_COMMON_H

@@ -16,7 +16,7 @@
 #include "device/dev_profile.h"
 #include <thread>
 
-#include "common/include/pasteboard_common.h"
+#include "common/include/pasteboard_common_utils.h"
 #include "device/device_profile_proxy.h"
 #include "device/dm_adapter.h"
 #include "ffrt/ffrt_utils.h"
