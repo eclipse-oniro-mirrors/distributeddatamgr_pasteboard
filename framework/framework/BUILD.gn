@@ -23,6 +23,7 @@ config("module_public_config") {
     "${pasteboard_utils_path}/native/include",
     "${pasteboard_service_path}/dfx/src",
     "include",
+    "common",
   ]
 }
 
@@ -37,7 +38,7 @@ ohos_shared_library("pasteboard_framework") {
     debug = false
   }
   sources = [
-    "${pasteboard_utils_path}/native/src/pasteboard_common.cpp",
+    "common/pasteboard_common.cpp",
     "clip/clip_plugin.cpp",
     "clip/default_clip.cpp",
     "device/dev_profile.cpp",

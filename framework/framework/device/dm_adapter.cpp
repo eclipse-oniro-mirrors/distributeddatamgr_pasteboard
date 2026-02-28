@@ -15,9 +15,9 @@
 
 #include <thread>
 
+#include "common/pasteboard_common.h"
 #include "device/dm_adapter.h"
 
-#include "pasteboard_common.h"
 #include "pasteboard_error.h"
 #include "pasteboard_hilog.h"
 

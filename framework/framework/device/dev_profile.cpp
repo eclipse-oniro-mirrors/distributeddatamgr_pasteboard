@@ -16,10 +16,10 @@
 #include "device/dev_profile.h"
 #include <thread>
 
+#include "common/pasteboard_common.h"
 #include "device/device_profile_proxy.h"
 #include "device/dm_adapter.h"
 #include "ffrt/ffrt_utils.h"
-#include "pasteboard_common.h"
 #include "pasteboard_error.h"
 #include "pasteboard_event_ue.h"
 #include "pasteboard_hilog.h"

@@ -26,7 +26,6 @@ ohos_unittest("PasteboardUtilsNativeTest") {
   sources = [
     "${pasteboard_utils_path}/native/src/pasteboard_common.cpp",
     "${pasteboard_utils_path}/native/src/pasteboard_time.cpp",
-    "pasteboard_common_test.cpp",
     "pasteboard_time_test.cpp",
   ]
 
