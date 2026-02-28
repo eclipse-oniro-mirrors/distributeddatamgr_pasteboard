@@ -86,5 +86,4 @@ HWTEST_F(PasteboardCommonTest, GetAnonymousStringTest001, TestSize.Level0)
     std::string anonStr = "anon**6789";
     EXPECT_EQ(resultStr, anonStr);
 }
-
 } // namespace OHOS::MiscServices

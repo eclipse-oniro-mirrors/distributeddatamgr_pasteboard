@@ -16,7 +16,6 @@
 #ifndef PASTEBOARD_COMMON_H
 #define PASTEBOARD_COMMON_H
 
-#include <string>
 #include <sys/stat.h>
 
 #include "bundle_mgr_proxy.h"
