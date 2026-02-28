@@ -924,7 +924,7 @@ napi_value SystemPasteboardNapi::HasDataType(napi_env env, napi_callback_info in
     }
     auto block = std::make_shared<BlockObject<std::shared_ptr<int32_t>>>(SYNC_TIMEOUT);
     ffrt::submit([block, mimeType]() {
-        PasteBoardCommon::SetTaskName("NHasDataType");
+        PasteBoardCommonUtils::SetTaskName("NHasDataType");
         auto ret = PasteboardClient::GetInstance()->HasDataType(mimeType);
         PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "ret=%{public}d", ret);
         std::shared_ptr<int32_t> value = std::make_shared<int32_t>(static_cast<int32_t>(ret));

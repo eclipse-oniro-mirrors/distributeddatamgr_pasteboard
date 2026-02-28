@@ -89,7 +89,7 @@ void DistributedModuleConfig::GetRetryTask()
         }
         retrying_.store(false);
     });
-    PasteBoardCommon::SetThreadTaskName(remover, "GetRetryTask");
+    PasteBoardCommonUtils::SetThreadTaskName(remover, "GetRetryTask");
     remover.detach();
 }
 

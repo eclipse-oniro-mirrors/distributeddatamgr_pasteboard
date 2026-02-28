@@ -106,7 +106,7 @@ bool DisposableManager::TryProcessDisposableData(PasteData &pasteData,
         PASTEBOARD_CHECK_AND_RETURN_LOGE(data != nullptr, PASTEBOARD_MODULE_SERVICE, "data is null");
         ProcessMatchedInfo(matchedInfoList, *data, delayGetter, entryGetter);
     });
-    PasteBoardCommon::SetThreadTaskName(thread, "ProcessMatchedInfo");
+    PasteBoardCommonUtils::SetThreadTaskName(thread, "ProcessMatchedInfo");
     thread.detach();
     return true;
 }
@@ -172,7 +172,7 @@ int32_t DisposableManager::AddDisposableInfo(const DisposableInfo &info)
         std::thread thread([=]() {
             RemoveDisposableInfo(pid, true);
         });
-        PasteBoardCommon::SetThreadTaskName(thread, "RemoveDisposabl");
+        PasteBoardCommonUtils::SetThreadTaskName(thread, "RemoveDisposabl");
         thread.detach();
     };
     std::string taskName = "disposable_expiration[pid=" + std::to_string(info.pid) + "]";

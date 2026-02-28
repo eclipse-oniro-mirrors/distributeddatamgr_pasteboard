@@ -19,14 +19,14 @@
 
 namespace OHOS {
 namespace MiscServices {
-void PasteBoardCommon::SetThreadTaskName(std::thread &thread, const std::string &taskName)
+void PasteBoardCommonUtils::SetThreadTaskName(std::thread &thread, const std::string &taskName)
 {
 #ifndef CROSS_PLATFORM
     pthread_setname_np(thread.native_handle(), taskName.c_str());
 #endif
 }
 
-void PasteBoardCommon::SetTaskName(const std::string &taskName)
+void PasteBoardCommonUtils::SetTaskName(const std::string &taskName)
 {
 #ifndef CROSS_PLATFORM
     pthread_setname_np(pthread_self(), taskName.c_str());

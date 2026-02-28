@@ -481,6 +481,6 @@ void OH_Pasteboard_SyncDelayedDataAsync(OH_Pasteboard* pasteboard, void (*callba
         PASTEBOARD_CHECK_AND_RETURN_LOGE(callback != nullptr, PASTEBOARD_MODULE_CAPI, "callback is null");
         callback(errCode);
     });
-    PasteBoardCommon::SetThreadTaskName(thread, "SyncDelayedData");
+    PasteBoardCommonUtils::SetThreadTaskName(thread, "SyncDelayedData");
     thread.detach();
 }

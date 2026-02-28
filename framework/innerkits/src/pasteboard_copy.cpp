@@ -273,7 +273,7 @@ void PasteBoardCopyFile::HandleProgress(int32_t index, const CopyInfo &info, uin
                 PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CLIENT, "Cancel failed. errno=%{public}d", ret);
             }
         });
-        PasteBoardCommon::SetThreadTaskName(thread, "HandleProgress");
+        PasteBoardCommonUtils::SetThreadTaskName(thread, "HandleProgress");
         thread.detach();
         return;
     }

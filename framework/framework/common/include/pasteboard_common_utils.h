@@ -21,7 +21,7 @@
 
 namespace OHOS {
 namespace MiscServices {
-class PasteBoardCommon {
+class PasteBoardCommonUtils {
 public:
     static void SetThreadTaskName(std::thread &thread, const std::string &taskName);
     static void SetTaskName(const std::string &taskName);

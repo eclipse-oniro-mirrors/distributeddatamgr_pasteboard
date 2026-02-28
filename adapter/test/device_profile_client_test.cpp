@@ -95,7 +95,7 @@ int32_t LoadSystemAbilityFailImpl(int32_t systemAbilityId, const sptr<ISystemAbi
         }
         callback->OnLoadSystemAbilityFail(systemAbilityId);
     });
-    PasteBoardCommon::SetThreadTaskName(thread, "LoadSaFail");
+    PasteBoardCommonUtils::SetThreadTaskName(thread, "LoadSaFail");
     thread.detach();
     return ERR_OK;
 }
@@ -109,7 +109,7 @@ int32_t LoadSystemAbilitySuccImpl(int32_t systemAbilityId, const sptr<ISystemAbi
         sptr<IRemoteObject> remoteObject = new DistributedDeviceProfileStub();
         callback->OnLoadSystemAbilitySuccess(systemAbilityId, remoteObject);
     });
-    PasteBoardCommon::SetThreadTaskName(thread, "LoadSaSucc");
+    PasteBoardCommonUtils::SetThreadTaskName(thread, "LoadSaSucc");
     thread.detach();
     return ERR_OK;
 }

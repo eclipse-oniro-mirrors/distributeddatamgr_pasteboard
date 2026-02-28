@@ -52,7 +52,7 @@ HWTEST_F(PasteboardCommonTest, SetThreadTaskNameTest001, TestSize.Level0)
         std::this_thread::sleep_for(std::chrono::milliseconds(THREAD_SLEEP_MS));
         threadExecuted = true;
     });
-    PasteBoardCommon::SetThreadTaskName(thread, "TestThreadName");
+    PasteBoardCommonUtils::SetThreadTaskName(thread, "TestThreadName");
     thread.join();
     EXPECT_TRUE(threadExecuted);
 }
@@ -69,7 +69,7 @@ HWTEST_F(PasteboardCommonTest, SetThreadTaskNameTest002, TestSize.Level0)
         std::this_thread::sleep_for(std::chrono::milliseconds(THREAD_SLEEP_MS));
         threadExecuted = true;
     });
-    PasteBoardCommon::SetThreadTaskName(thread, "");
+    PasteBoardCommonUtils::SetThreadTaskName(thread, "");
     thread.join();
     EXPECT_TRUE(threadExecuted);
 }
@@ -83,7 +83,7 @@ HWTEST_F(PasteboardCommonTest, SetTaskNameTest001, TestSize.Level0)
 {
     bool nameSet = false;
     std::thread thread([&nameSet]() {
-        PasteBoardCommon::SetTaskName("TestCurrentThreadName");
+        PasteBoardCommonUtils::SetTaskName("TestCurrentThreadName");
         nameSet = true;
     });
     thread.join();
@@ -99,7 +99,7 @@ HWTEST_F(PasteboardCommonTest, SetTaskNameTest002, TestSize.Level0)
 {
     bool nameSet = false;
     std::thread thread([&nameSet]() {
-        PasteBoardCommon::SetTaskName("");
+        PasteBoardCommonUtils::SetTaskName("");
         nameSet = true;
     });
     thread.join();
@@ -115,7 +115,7 @@ HWTEST_F(PasteboardCommonTest, SetTaskNameInThreadTest001, TestSize.Level0)
 {
     bool nameSet = false;
     std::thread thread([&nameSet]() {
-        PasteBoardCommon::SetTaskName("ThreadTaskName");
+        PasteBoardCommonUtils::SetTaskName("ThreadTaskName");
         nameSet = true;
     });
     thread.join();

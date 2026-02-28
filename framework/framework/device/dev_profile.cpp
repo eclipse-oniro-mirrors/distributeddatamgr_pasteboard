@@ -59,7 +59,7 @@ void DevProfile::PostDelayReleaseProxy()
                 proxy_ = nullptr;
             }
         });
-        PasteBoardCommon::SetThreadTaskName(thread, "PostDelayReleas");
+        PasteBoardCommonUtils::SetThreadTaskName(thread, "PostDelayReleas");
         thread.detach();
     };
 

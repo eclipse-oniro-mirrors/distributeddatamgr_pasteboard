@@ -487,7 +487,7 @@ void HiViewAdapter::StartTimerThread()
         }
     };
     std::thread th = std::thread(fun);
-    PasteBoardCommon::SetThreadTaskName(th, "HiViewReport");
+    PasteBoardCommonUtils::SetThreadTaskName(th, "HiViewReport");
     th.detach();
 }
 
@@ -535,7 +535,7 @@ void HiViewAdapter::ReportUseBehaviour(PasteData& pastData, const char* state, i
         }
         PASTEBOARD_HILOGD(PASTEBOARD_MODULE_SERVICE, "end.");
     });
-    PasteBoardCommon::SetThreadTaskName(thread, "ReportUseBehavi");
+    PasteBoardCommonUtils::SetThreadTaskName(thread, "ReportUseBehavi");
     thread.detach();
 }
 

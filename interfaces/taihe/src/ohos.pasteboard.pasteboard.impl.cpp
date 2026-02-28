@@ -740,7 +740,7 @@ public:
         std::string mimeTypeStr = std::string(mimeType);
         auto block = std::make_shared<OHOS::BlockObject<std::shared_ptr<bool>>>(SYNC_TIMEOUT);
         ffrt::submit([block, mimeTypeStr]() mutable {
-            PasteBoardCommon::SetTaskName("THasDataType");
+            PasteBoardCommonUtils::SetTaskName("THasDataType");
             bool ret = PasteboardClient::GetInstance()->HasDataType(mimeTypeStr);
             auto ptr = std::make_shared<bool>(ret);
             block->SetValue(ptr);

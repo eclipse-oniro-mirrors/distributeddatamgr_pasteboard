@@ -620,7 +620,7 @@ int32_t PasteboardService::ExtractEntity(const std::string &entity, std::string 
 
 void PasteboardService::OnRecognizePasteData(const std::string &primaryText)
 {
-    PasteBoardCommon::SetTaskName("PasteDataRecognize");
+    PasteBoardCommonUtils::SetTaskName("PasteDataRecognize");
     std::lock_guard lock(entityRecognizeMutex_);
     auto nulHandle = dlopen(NLU_SO_PATH, RTLD_NOW);
     PASTEBOARD_CHECK_AND_RETURN_LOGE(nulHandle != nullptr, PASTEBOARD_MODULE_SERVICE, "Can not get AIEngine handle");
