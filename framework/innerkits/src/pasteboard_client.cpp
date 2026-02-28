@@ -362,10 +362,7 @@ void PasteboardClient::GetProgressByProgressInfo(std::shared_ptr<GetDataParams> 
 {
     PASTEBOARD_CHECK_AND_RETURN_LOGE(params != nullptr, PASTEBOARD_MODULE_CLIENT, "params is null!");
 
-    if (params->info == nullptr) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CLIENT, "params->info is null!");
-        return;
-    }
+    PASTEBOARD_CHECK_AND_RETURN_LOGE(params->info != nullptr, PASTEBOARD_MODULE_CLIENT, "params->info is null!");
     std::unique_lock<std::mutex> lock(instanceLock_);
     std::string progressKey = g_progressKey;
     lock.unlock();
@@ -427,10 +424,7 @@ void PasteboardClient::ProgressSmoothToTwentyPercent(PasteData &pasteData, std::
 
 void PasteboardClient::UpdateProgress(std::shared_ptr<GetDataParams> params, int progressValue)
 {
-    if (params == nullptr) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CLIENT, "params is null!");
-        return;
-    }
+    PASTEBOARD_CHECK_AND_RETURN_LOGE(params != nullptr, PASTEBOARD_MODULE_CLIENT, "params is null!");
     if (params->info != nullptr) {
         params->info->percentage = progressValue;
     }
@@ -587,14 +581,12 @@ int32_t PasteboardClient::ProgressAfterTwentyPercent(PasteData &pasteData, std::
 
 int32_t PasteboardClient::CheckProgressParam(std::shared_ptr<GetDataParams> params)
 {
-    if (params == nullptr) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CLIENT, "Invalid param!");
-        return static_cast<int32_t>(PasteboardError::INVALID_PARAM_ERROR);
-    }
-    if (isPasting_) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CLIENT, "task copying!");
-        return static_cast<int32_t>(PasteboardError::TASK_PROCESSING);
-    }
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(params != nullptr,
+        static_cast<int32_t>(PasteboardError::INVALID_PARAM_ERROR),
+        PASTEBOARD_MODULE_CLIENT, "Invalid param!");
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(!isPasting_,
+        static_cast<int32_t>(PasteboardError::TASK_PROCESSING),
+        PASTEBOARD_MODULE_CLIENT, "task copying!");
     ProgressSignalClient::GetInstance().Init();
     return static_cast<int32_t>(PasteboardError::E_OK);
 }
@@ -898,10 +890,8 @@ void PasteboardClient::Resubscribe()
 bool PasteboardClient::Subscribe(PasteboardObserverType type, sptr<PasteboardObserver> callback)
 {
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_CLIENT, "start.");
-    if (callback == nullptr) {
-        PASTEBOARD_HILOGW(PASTEBOARD_MODULE_CLIENT, "callback is null");
-        return false;
-    }
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGW(callback != nullptr, false,
+        PASTEBOARD_MODULE_CLIENT, "callback is null");
     auto proxyService = GetPasteboardService();
     {
         std::lock_guard<std::mutex> lock(observerSetMutex_);
@@ -1024,10 +1014,8 @@ std::map<uint32_t, ShareOption> PasteboardClient::GetGlobalShareOption(const std
         PASTEBOARD_MODULE_CLIENT, "proxyService is nullptr");
     std::unordered_map<uint32_t, int32_t> funcResult = {};
     int32_t ret = proxyService->GetGlobalShareOption(tokenIds, funcResult);
-    if (ret != ERR_OK) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CLIENT, "GetGlobalShareOption failed, ret=%{public}d", ret);
-        return {};
-    }
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(ret == ERR_OK, {},
+        PASTEBOARD_MODULE_CLIENT, "GetGlobalShareOption failed, ret=%{public}d", ret);
     std::map<uint32_t, ShareOption> result;
     for (const auto &pair : funcResult) {
         result[pair.first] = static_cast<ShareOption>(pair.second);
@@ -1094,10 +1082,8 @@ std::vector<std::string> PasteboardClient::GetMimeTypes()
         PASTEBOARD_MODULE_CLIENT, "proxyService is nullptr");
     std::vector<std::string> mimeTypes = {};
     int32_t ret = proxyService->GetMimeTypes(mimeTypes);
-    if (ret != ERR_OK) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CLIENT, "GetMimeTypes failed, ret=%{public}d", ret);
-        return {};
-    }
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(ret == ERR_OK, {},
+        PASTEBOARD_MODULE_CLIENT, "GetMimeTypes failed, ret=%{public}d", ret);
     return mimeTypes;
 }
 
@@ -1140,10 +1126,8 @@ bool PasteboardClient::HasUtdType(const std::string &utdType)
 
 std::set<Pattern> PasteboardClient::DetectPatterns(const std::set<Pattern> &patternsToCheck)
 {
-    if (!PatternDetection::IsValid(patternsToCheck)) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CLIENT, "Invalid number in Pattern set!");
-        return {};
-    }
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(PatternDetection::IsValid(patternsToCheck), {},
+        PASTEBOARD_MODULE_CLIENT, "Invalid number in Pattern set!");
 
     auto proxyService = GetPasteboardService();
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(proxyService != nullptr, {},
@@ -1189,10 +1173,9 @@ int32_t PasteboardClient::HandleSignalValue(const std::string &signalValue)
         static_cast<int32_t>(PasteboardError::INVALID_DATA_SIZE), PASTEBOARD_MODULE_CLIENT,
         "progress invalid signalValue: %{public}s", signalValue.c_str());
     static const std::regex numberRegex(R"(^[+-]?\d+$)");
-    if (!std::regex_match(signalValue, numberRegex)) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CLIENT, "progressStatusValue invalid = %{public}s", signalValue.c_str());
-        return static_cast<int32_t>(PasteboardError::INVALID_PARAM_ERROR);
-    }
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(std::regex_match(signalValue, numberRegex),
+        static_cast<int32_t>(PasteboardError::INVALID_PARAM_ERROR),
+        PASTEBOARD_MODULE_CLIENT, "progressStatusValue invalid = %{public}s", signalValue.c_str());
     auto ret = std::from_chars(signalValue.data(), signalValue.data() + signalValue.size(), progressStatusValue);
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(ret.ec == std::errc(),
         static_cast<int32_t>(PasteboardError::INVALID_PARAM_ERROR), PASTEBOARD_MODULE_CLIENT,
