@@ -43,6 +43,7 @@ ohos_unittest("PasteboardFrameworkTest") {
   module_out_path = module_output_path
 
   sources = [
+    "${pasteboard_framework_path}/common/pasteboard_common_utils.cpp",
     "${pasteboard_framework_path}/clip/clip_plugin.cpp",
     "${pasteboard_framework_path}/clip/default_clip.cpp",
     "${pasteboard_framework_path}/device/dev_profile.cpp",
@@ -146,6 +147,7 @@ ohos_unittest("PasteboardFrameworkMockTest") {
   module_out_path = module_output_path
 
   sources = [
+    "${pasteboard_framework_path}/common/pasteboard_common_utils.cpp",
     "${pasteboard_framework_path}/device/dev_profile.cpp",
     "${pasteboard_framework_path}/device/distributed_module_config.cpp",
     "${pasteboard_framework_path}/device/dm_adapter.cpp",
@@ -639,12 +641,12 @@ ohos_unittest("PasteboardImgExtractorMockTest") {
   ]
 }
 
-ohos_unittest("PasteboardCommonTest") {
+ohos_unittest("PasteboardCommonUtilsTest") {
   module_out_path = module_output_path
 
   sources = [
-    "${pasteboard_framework_path}/common/src/pasteboard_common_utils.cpp",
-    "pasteboard_common_test.cpp",
+    "${pasteboard_framework_path}/common/pasteboard_common_utils.cpp",
+    "${pasteboard_framework_path}/test/pasteboard_common_utils_test.cpp",
   ]
 
   configs = [ ":module_private_config" ]
@@ -663,7 +665,7 @@ group("unittest") {
     ":MessageParcelWarpTest",
     ":PasteboardClientMockTest",
     ":PasteboardClientProxyMockTest",
-    ":PasteboardCommonTest",
+    ":PasteboardCommonUtilsTest",
     ":PasteboardDisposableClientTest",
     ":PasteboardFrameworkMockTest",
     ":PasteboardFrameworkTest",

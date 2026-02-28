@@ -15,7 +15,7 @@
 
 #include <thread>
 
-#include "common/include/pasteboard_common_utils.h"
+#include "common/pasteboard_common_utils.h"
 #include "device/dm_adapter.h"
 
 #include "pasteboard_error.h"

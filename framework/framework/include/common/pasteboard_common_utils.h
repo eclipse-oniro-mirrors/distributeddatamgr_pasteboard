@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,24 +13,21 @@
  * limitations under the License.
  */
 
-#include "pasteboard_common_utils.h"
+#ifndef PASTEBOARD_COMMON_UTILS_H
+#define PASTEBOARD_COMMON_UTILS_H
 
-#include <pthread.h>
+#include <string>
+#include <thread>
+
+#include "api/visibility.h"
 
 namespace OHOS {
 namespace MiscServices {
-void PasteBoardCommonUtils::SetThreadTaskName(std::thread &thread, const std::string &taskName)
-{
-#ifndef CROSS_PLATFORM
-    pthread_setname_np(thread.native_handle(), taskName.c_str());
-#endif
-}
-
-void PasteBoardCommonUtils::SetTaskName(const std::string &taskName)
-{
-#ifndef CROSS_PLATFORM
-    pthread_setname_np(pthread_self(), taskName.c_str());
-#endif
-}
+class API_EXPORT PasteBoardCommonUtils {
+public:
+    static void SetThreadTaskName(std::thread &thread, const std::string &taskName);
+    static void SetTaskName(const std::string &taskName);
+};
 } // namespace MiscServices
 } // namespace OHOS
+#endif // PASTEBOARD_COMMON_UTILS_H

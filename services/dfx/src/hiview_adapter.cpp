@@ -20,7 +20,7 @@
 #include <thread>
 
 #include "def.h"
-#include "pasteboard_common_utils.h"
+#include "common/pasteboard_common_utils.h"
 #include "pasteboard_hilog.h"
 #include "pasteboard_error.h"
 #include "pasteboard_time.h"

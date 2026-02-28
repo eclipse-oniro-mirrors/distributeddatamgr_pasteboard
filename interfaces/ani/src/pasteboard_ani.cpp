@@ -23,7 +23,7 @@
 #include "pasteboard_error.h"
 #include "pasteboard_hilog.h"
 #include "pasteboard_client.h"
-#include "pasteboard_common_utils.h"
+#include "common/pasteboard_common_utils.h"
 #include "pasteboard_js_err.h"
 #include "common/block_object.h"
 #include "ani_common_want.h"

@@ -39,6 +39,7 @@ ohos_shared_library("pasteboard_adapter") {
     sources += [
       "src/device_profile_adapter.cpp",
       "src/device_profile_client.cpp",
+      "${pasteboard_framework_path}/common/pasteboard_common_utils.cpp",
     ]
 
     external_deps += [

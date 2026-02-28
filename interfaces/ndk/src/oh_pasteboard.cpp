@@ -19,7 +19,7 @@
 
 #include "oh_pasteboard_observer_impl.h"
 #include "pasteboard_client.h"
-#include "pasteboard_common_utils.h"
+#include "common/pasteboard_common_utils.h"
 #include "pasteboard_hilog.h"
 #include "udmf_capi_common.h"
 

@@ -20,7 +20,7 @@
 #include "ffrt/ffrt_utils.h"
 #include "ipc_skeleton.h"
 #include "parameters.h"
-#include "pasteboard_common_utils.h"
+#include "common/pasteboard_common_utils.h"
 #include "pasteboard_error.h"
 #include "pasteboard_hilog.h"
 #include "pasteboard_window_manager.h"

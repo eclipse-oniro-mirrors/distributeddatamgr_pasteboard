@@ -18,7 +18,7 @@
 #include "datashare_delegate.h"
 #include "dev_profile.h"
 #include "parameters.h"
-#include "pasteboard_common_utils.h"
+#include "common/pasteboard_common_utils.h"
 #include "pasteboard_event_ue.h"
 #include "pasteboard_hilog.h"
 

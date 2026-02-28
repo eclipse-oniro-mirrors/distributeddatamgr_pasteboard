@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,7 +24,7 @@ using namespace testing::ext;
 
 constexpr int32_t THREAD_SLEEP_MS = 100;
 
-class PasteboardCommonTest : public testing::Test {
+class PasteboardCommonUtilsTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
     static void TearDownTestCase(void);
@@ -32,20 +32,20 @@ public:
     void TearDown();
 };
 
-void PasteboardCommonTest::SetUpTestCase(void) { }
+void PasteboardCommonUtilsTest::SetUpTestCase(void) { }
 
-void PasteboardCommonTest::TearDownTestCase(void) { }
+void PasteboardCommonUtilsTest::TearDownTestCase(void) { }
 
-void PasteboardCommonTest::SetUp(void) { }
+void PasteboardCommonUtilsTest::SetUp(void) { }
 
-void PasteboardCommonTest::TearDown(void) { }
+void PasteboardCommonUtilsTest::TearDown(void) { }
 
 /**
  * @tc.name: SetThreadTaskNameTest001
  * @tc.desc: Test SetThreadTaskName function with valid name.
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardCommonTest, SetThreadTaskNameTest001, TestSize.Level0)
+HWTEST_F(PasteboardCommonUtilsTest, SetThreadTaskNameTest001, TestSize.Level0)
 {
     bool threadExecuted = false;
     std::thread thread([&threadExecuted]() {
@@ -62,7 +62,7 @@ HWTEST_F(PasteboardCommonTest, SetThreadTaskNameTest001, TestSize.Level0)
  * @tc.desc: Test SetThreadTaskName with empty name.
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardCommonTest, SetThreadTaskNameTest002, TestSize.Level0)
+HWTEST_F(PasteboardCommonUtilsTest, SetThreadTaskNameTest002, TestSize.Level0)
 {
     bool threadExecuted = false;
     std::thread thread([&threadExecuted]() {
@@ -79,7 +79,7 @@ HWTEST_F(PasteboardCommonTest, SetThreadTaskNameTest002, TestSize.Level0)
  * @tc.desc: Test SetTaskName function with valid name.
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardCommonTest, SetTaskNameTest001, TestSize.Level0)
+HWTEST_F(PasteboardCommonUtilsTest, SetTaskNameTest001, TestSize.Level0)
 {
     bool nameSet = false;
     std::thread thread([&nameSet]() {
@@ -95,7 +95,7 @@ HWTEST_F(PasteboardCommonTest, SetTaskNameTest001, TestSize.Level0)
  * @tc.desc: Test SetTaskName with empty name.
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardCommonTest, SetTaskNameTest002, TestSize.Level0)
+HWTEST_F(PasteboardCommonUtilsTest, SetTaskNameTest002, TestSize.Level0)
 {
     bool nameSet = false;
     std::thread thread([&nameSet]() {
@@ -111,7 +111,7 @@ HWTEST_F(PasteboardCommonTest, SetTaskNameTest002, TestSize.Level0)
  * @tc.desc: Test SetTaskName in a new thread.
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardCommonTest, SetTaskNameInThreadTest001, TestSize.Level0)
+HWTEST_F(PasteboardCommonUtilsTest, SetTaskNameInThreadTest001, TestSize.Level0)
 {
     bool nameSet = false;
     std::thread thread([&nameSet]() {

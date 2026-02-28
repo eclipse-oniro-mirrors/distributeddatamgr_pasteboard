@@ -17,7 +17,7 @@
 #include "ffrt/ffrt_utils.h"
 #include "napi_pasteboard_common.h"
 #include "pasteboard_app_event_dfx.h"
-#include "pasteboard_common_utils.h"
+#include "common/pasteboard_common_utils.h"
 #include "pasteboard_hilog.h"
 using namespace OHOS::MiscServices;
 using namespace OHOS::Media;
