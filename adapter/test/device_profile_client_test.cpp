@@ -20,7 +20,7 @@
 #include "distributed_device_profile_errors.h"
 #include "distributed_device_profile_proxy.h"
 #include "iservice_registry.h"
-#include "pasteboard_common.h"
+#include "pasteboard_common_utils.h"
 #include "system_ability_definition.h"
 #include "system_ability_manager_mock.h"
 

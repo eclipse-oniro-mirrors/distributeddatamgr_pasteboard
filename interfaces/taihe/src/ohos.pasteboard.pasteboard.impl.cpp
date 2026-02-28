@@ -26,7 +26,7 @@
 #include "interop_js/arkts_interop_js_api.h"
 #include "napi/native_api.h"
 #include "pasteboard_client.h"
-#include "pasteboard_common.h"
+#include "pasteboard_common_utils.h"
 #include "pasteboard_error.h"
 #include "pasteboard_hilog.h"
 #include "pasteboard_js_err.h"

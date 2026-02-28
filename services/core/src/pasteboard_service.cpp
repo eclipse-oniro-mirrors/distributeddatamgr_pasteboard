@@ -40,6 +40,7 @@
 #include "parameters.h"
 #include "pasteboard_ability_manager.h"
 #include "pasteboard_common.h"
+#include "pasteboard_common_utils.h"
 #include "pasteboard_delay_manager.h"
 #include "pasteboard_dialog.h"
 #include "pasteboard_disposable_manager.h"

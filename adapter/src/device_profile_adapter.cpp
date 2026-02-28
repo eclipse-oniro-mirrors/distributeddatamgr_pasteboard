@@ -21,7 +21,7 @@
 #include "device_profile_client.h"
 #include "distributed_device_profile_errors.h"
 #include "i_static_capability_collector.h"
-#include "pasteboard_common.h"
+#include "pasteboard_common_utils.h"
 #include "pasteboard_error.h"
 #include "pasteboard_hilog.h"
 #include "profile_change_listener_stub.h"
