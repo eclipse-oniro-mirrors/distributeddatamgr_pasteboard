@@ -32,13 +32,13 @@ public:
     void TearDown();
 };
 
-void DMAdapterTest::SetUpTestCase(void) { }
+void DMAdapterTest::SetUpTestCase(void) {}
 
-void DMAdapterTest::TearDownTestCase(void) { }
+void DMAdapterTest::TearDownTestCase(void) {}
 
-void DMAdapterTest::SetUp(void) { }
+void DMAdapterTest::SetUp(void) {}
 
-void DMAdapterTest::TearDown(void) { }
+void DMAdapterTest::TearDown(void) {}
 
 /**
  * @tc.name: OnDeviceOnline001

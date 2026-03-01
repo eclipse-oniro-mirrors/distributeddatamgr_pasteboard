@@ -38,7 +38,6 @@ ohos_unittest("PasteboardFrameworkTest") {
     debug = false
     blocklist = "./cfi_blocklist.txt"
   }
-  use_exceptions = true
   resource_config_file = "//foundation/distributeddatamgr/pasteboard/framework/test/resource/ohos_test.xml"
   module_out_path = module_output_path
 
