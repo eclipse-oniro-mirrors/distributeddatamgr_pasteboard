@@ -16,6 +16,7 @@
 #include <if_system_ability_manager.h>
 #include <iservice_registry.h>
 
+#include "fd_san.h"
 #include "message_parcel_warp.h"
 #include "pasteboard_client_death_observer_stub.h"
 #include "pasteboard_error.h"
@@ -224,10 +225,11 @@ int32_t PasteboardServiceLoader::ProcessPasteData(PasteDataEntry &data, int64_t 
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CLIENT, "fail fd:%{public}d", fd);
         return ret;
     }
+    fdsan_exchange_owner_tag(fd, 0, PASTEBOARD_FD_TAG);
     MessageParcelWarp messageReply;
     if (rawDataSize <= 0 || rawDataSize > messageReply.GetRawDataSize()) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CLIENT, "Invalid raw data size:%{public}" PRId64, rawDataSize);
-        close(fd);
+        fdsan_close_with_tag(fd, PASTEBOARD_FD_TAG);
         return ret;
     }
     bool result = false;
@@ -236,7 +238,7 @@ int32_t PasteboardServiceLoader::ProcessPasteData(PasteDataEntry &data, int64_t 
     if (rawDataSize > MIN_ASHMEM_DATA_SIZE) {
         parcelData.WriteInt64(rawDataSize);
         parcelData.WriteFileDescriptor(fd);
-        close(fd);
+        fdsan_close_with_tag(fd, PASTEBOARD_FD_TAG);
         const uint8_t *rawData =
             reinterpret_cast<const uint8_t *>(messageReply.ReadRawData(parcelData, static_cast<size_t>(rawDataSize)));
         if (rawData == nullptr) {
@@ -247,7 +249,7 @@ int32_t PasteboardServiceLoader::ProcessPasteData(PasteDataEntry &data, int64_t 
         result = entryValue.Decode(pasteDataTlv);
     } else {
         result = entryValue.Decode(recvTLV);
-        close(fd);
+        fdsan_close_with_tag(fd, PASTEBOARD_FD_TAG);
     }
     if (!result) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CLIENT, "Failed to decode pastedata in TLV");

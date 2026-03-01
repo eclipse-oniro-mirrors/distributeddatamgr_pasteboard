@@ -17,6 +17,7 @@
 #include <thread>
 #include <unistd.h>
 
+#include "fd_san.h"
 #include "ipc_skeleton.h"
 #include "message_parcel_warp.h"
 #include "pasteboard_error.h"
@@ -459,10 +460,11 @@ HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataOnlyTest001, TestSize.Level1)
     int64_t rawDataSize = 0;
     std::vector<uint8_t> buffer;
     int fd = mpw->CreateTmpFd();
+    fdsan_exchange_owner_tag(fd, 0, PASTEBOARD_FD_TAG);
     int32_t result = service->SetPasteDataOnly(dup(fd), rawDataSize, buffer);
     EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::INVALID_PARAM_ERROR));
     mpw->writeRawDataFd_ = -1;
-    close(fd);
+    fdsan_close_with_tag(fd, PASTEBOARD_FD_TAG);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetPasteDataOnlyTest001 end");
 }
 

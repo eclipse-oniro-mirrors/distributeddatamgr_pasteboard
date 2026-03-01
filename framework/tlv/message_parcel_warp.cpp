@@ -17,10 +17,10 @@
 
 #include <sys/mman.h>
 #include <sys/syscall.h>
-#include <unistd.h>
 
 #include "api/visibility.h"
 #include "ashmem.h"
+#include "fd_san.h"
 #include "parameters.h"
 #include "parcel.h"
 #include "pasteboard_hilog.h"
@@ -65,11 +65,11 @@ MessageParcelWarp::~MessageParcelWarp()
     }
 
     if (readRawDataFd_ >= 0) {
-        ::close(readRawDataFd_);
+        ::fdsan_close_with_tag(readRawDataFd_, PASTEBOARD_FD_TAG);
         readRawDataFd_ = -1;
     }
     if (writeRawDataFd_ >= 0) {
-        ::close(writeRawDataFd_);
+        ::fdsan_close_with_tag(writeRawDataFd_, PASTEBOARD_FD_TAG);
         writeRawDataFd_ = -1;
     }
     rawData_ = nullptr;
@@ -133,6 +133,7 @@ bool MessageParcelWarp::WriteRawData(MessageParcel &parcelPata, const void *data
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(fd >= 0, false, PASTEBOARD_MODULE_COMMON, "ashmem create failed");
     
     writeRawDataFd_ = fd;
+    fdsan_exchange_owner_tag(writeRawDataFd_, 0, PASTEBOARD_FD_TAG);
     int result = AshmemSetProt(fd, PROT_READ | PROT_WRITE);
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(result >= 0, false, PASTEBOARD_MODULE_COMMON, "ashmem set port failed");
     
@@ -175,6 +176,7 @@ const void *MessageParcelWarp::ReadRawData(MessageParcel &parcelPata, size_t siz
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(fd >= 0, nullptr,
         PASTEBOARD_MODULE_COMMON, "read file descriptor failed fd:%{public}d", fd);
     readRawDataFd_ = fd;
+    fdsan_exchange_owner_tag(readRawDataFd_, 0, PASTEBOARD_FD_TAG);
 
     void *ptr = ::mmap(nullptr, size, PROT_READ, MAP_SHARED, fd, 0);
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(ptr != MAP_FAILED, nullptr,
@@ -191,6 +193,7 @@ int MessageParcelWarp::CreateTmpFd()
     int fd = AshmemCreate("PasteboardTmpAshmem", 1);
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(fd >= 0, -1, PASTEBOARD_MODULE_COMMON, "ashmem create failed");
     writeRawDataFd_ = fd;
+    fdsan_exchange_owner_tag(writeRawDataFd_, 0, PASTEBOARD_FD_TAG);
     return fd;
 }
 
