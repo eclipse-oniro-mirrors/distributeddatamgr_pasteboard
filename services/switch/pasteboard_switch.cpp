@@ -18,6 +18,7 @@
 #include "datashare_delegate.h"
 #include "dev_profile.h"
 #include "parameters.h"
+#include "common/pasteboard_common_utils.h"
 #include "pasteboard_event_ue.h"
 #include "pasteboard_hilog.h"
 
@@ -34,7 +35,7 @@ PastedSwitch::PastedSwitch() : userId_(ERROR_USERID)
         std::thread thread([userId = userId_, this]() {
             SetSwitch(userId);
         });
-        pthread_setname_np(thread.native_handle(), "SetSwitch");
+        PasteBoardCommonUtils::SetThreadTaskName(thread, "SetSwitch");
         thread.detach();
     });
 }

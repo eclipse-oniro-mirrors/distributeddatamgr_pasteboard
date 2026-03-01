@@ -15,11 +15,11 @@
 
 #define LOG_TAG "Pasteboard_Capi"
 
-#include <pthread.h>
 #include <thread>
 
 #include "oh_pasteboard_observer_impl.h"
 #include "pasteboard_client.h"
+#include "common/pasteboard_common_utils.h"
 #include "pasteboard_hilog.h"
 #include "udmf_capi_common.h"
 
@@ -481,6 +481,6 @@ void OH_Pasteboard_SyncDelayedDataAsync(OH_Pasteboard* pasteboard, void (*callba
         PASTEBOARD_CHECK_AND_RETURN_LOGE(callback != nullptr, PASTEBOARD_MODULE_CAPI, "callback is null");
         callback(errCode);
     });
-    pthread_setname_np(thread.native_handle(), "SyncDelayedData");
+    PasteBoardCommonUtils::SetThreadTaskName(thread, "SyncDelayedData");
     thread.detach();
 }

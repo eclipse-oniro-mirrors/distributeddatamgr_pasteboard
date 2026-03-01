@@ -40,6 +40,7 @@
 #include "parameters.h"
 #include "pasteboard_ability_manager.h"
 #include "pasteboard_common.h"
+#include "common/pasteboard_common_utils.h"
 #include "pasteboard_delay_manager.h"
 #include "pasteboard_dialog.h"
 #include "pasteboard_disposable_manager.h"
@@ -386,7 +387,7 @@ void PasteboardService::SetCriticalTimer()
             Memory::MemMgrClient::GetInstance().SetCritical(getpid(), false, PASTEBOARD_SERVICE_ID);
             isCritical_.store(false);
         });
-        pthread_setname_np(thread.native_handle(), "SetCriticalTime");
+        PasteBoardCommonUtils::SetThreadTaskName(thread, "SetCriticalTime");
         thread.detach();
     };
 
@@ -619,7 +620,7 @@ int32_t PasteboardService::ExtractEntity(const std::string &entity, std::string 
 
 void PasteboardService::OnRecognizePasteData(const std::string &primaryText)
 {
-    pthread_setname_np(pthread_self(), "PasteDataRecognize");
+    PasteBoardCommonUtils::SetTaskName("PasteDataRecognize");
     std::lock_guard lock(entityRecognizeMutex_);
     auto nulHandle = dlopen(NLU_SO_PATH, RTLD_NOW);
     PASTEBOARD_CHECK_AND_RETURN_LOGE(nulHandle != nullptr, PASTEBOARD_MODULE_SERVICE, "Can not get AIEngine handle");
@@ -671,7 +672,7 @@ void PasteboardService::RecognizePasteData(PasteData &pasteData)
                 PASTEBOARD_MODULE_SERVICE, "PasteboardService is not running.");
             OnRecognizePasteData(primaryText);
         });
-        pthread_setname_np(thread.native_handle(), "RecognizePaste");
+        PasteBoardCommonUtils::SetThreadTaskName(thread, "RecognizePaste");
         thread.detach();
     };
     FFRTUtils::SubmitTask(task);
@@ -1611,7 +1612,7 @@ int32_t PasteboardService::GetRemotePasteData(int32_t userId, const Event &event
         block->SetValue(pasteDataTime);
         taskMgr_.ClearRemoteDataTask(event);
     });
-    pthread_setname_np(thread.native_handle(), "GetRemotePaste");
+    PasteBoardCommonUtils::SetThreadTaskName(thread, "GetRemotePaste");
     thread.detach();
     auto value = block->GetValue();
     if (value != nullptr && value->data != nullptr) {
@@ -1788,7 +1789,7 @@ void PasteboardService::EstablishP2PLink(const std::string &networkId, const std
             std::thread thread([=]() {
                 PasteComplete(networkId, pasteId);
             });
-            pthread_setname_np(thread.native_handle(), "PasteComplete01");
+            PasteBoardCommonUtils::SetThreadTaskName(thread, "PasteComplete01");
             thread.detach();
         };
         ffrtTimer_->SetTimer(pasteId, task, MIN_TRANMISSION_TIME);
@@ -1816,7 +1817,7 @@ std::shared_ptr<BlockObject<int32_t>> PasteboardService::CheckAndReuseP2PLink(
             std::thread thread([=]() {
                 PasteComplete(networkId, pasteId);
             });
-            pthread_setname_np(thread.native_handle(), "PasteComplete02");
+            PasteBoardCommonUtils::SetThreadTaskName(thread, "PasteComplete02");
             thread.detach();
         };
         ffrtTimer_->SetTimer(pasteId, task, MIN_TRANMISSION_TIME);
@@ -1910,7 +1911,7 @@ std::shared_ptr<BlockObject<int32_t>> PasteboardService::EstablishP2PLinkTask(
         std::thread thread([=]() {
             OnEstablishP2PLinkTask(networkId, pasteBlock);
         });
-        pthread_setname_np(thread.native_handle(), "OnEstablishP2P");
+        PasteBoardCommonUtils::SetThreadTaskName(thread, "OnEstablishP2P");
         thread.detach();
     };
     std::string taskName = pasteId + P2P_ESTABLISH_STR;
@@ -2347,7 +2348,7 @@ void PasteboardService::SetDataExpirationTimer(int32_t userId)
         std::thread thread([=]() {
             ClearAgedData(userId);
         });
-        pthread_setname_np(thread.native_handle(), "ClearAgedData");
+        PasteBoardCommonUtils::SetThreadTaskName(thread, "ClearAgedData");
         thread.detach();
     };
 
@@ -3335,7 +3336,7 @@ void PasteboardService::NotifyObservers(std::string bundleName, int32_t userId, 
             }
         }
     });
-    pthread_setname_np(thread.native_handle(), "NotifyObservers");
+    PasteBoardCommonUtils::SetThreadTaskName(thread, "NotifyObservers");
     thread.detach();
 }
 
@@ -3526,7 +3527,7 @@ void PasteboardService::AddPreSyncP2pTimeoutTask(const std::string &networkId)
             std::lock_guard<std::mutex> tmpMutex(p2pMapMutex_);
             DeletePreSyncP2pMap(networkId);
         });
-        pthread_setname_np(thread.native_handle(), "PasteComplete03");
+        PasteBoardCommonUtils::SetThreadTaskName(thread, "PasteComplete03");
         thread.detach();
     };
     ffrtTimer_->SetTimer(taskName, p2pTask, PRE_ESTABLISH_P2P_LINK_TIME);
@@ -3643,7 +3644,7 @@ void PasteboardService::PreEstablishP2PLinkCallback(const std::string &networkId
         std::thread thread([=]() {
             PreEstablishP2PLink(networkId, clipPlugin);
         });
-        pthread_setname_np(thread.native_handle(), "PreEstablishP2P");
+        PasteBoardCommonUtils::SetThreadTaskName(thread, "PreEstablishP2P");
         thread.detach();
     };
     std::string taskName = "PreEstablishP2PLink_";
@@ -3675,7 +3676,7 @@ void PasteboardService::PreSyncSwitchMonitorCallback()
         std::thread thread([=]() {
             RegisterPreSyncMonitor();
         });
-        pthread_setname_np(thread.native_handle(), "PreSyncSwitchMo");
+        PasteBoardCommonUtils::SetThreadTaskName(thread, "PreSyncSwitchMo");
         thread.detach();
     };
     ffrtTimer_->SetTimer(REGISTER_PRESYNC_MONITOR, monitorTask);
@@ -3695,7 +3696,7 @@ void PasteboardService::RegisterPreSyncMonitor()
         std::thread thread([=]() {
             UnRegisterPreSyncMonitor();
         });
-        pthread_setname_np(thread.native_handle(), "RegisterPreSync");
+        PasteBoardCommonUtils::SetThreadTaskName(thread, "RegisterPreSync");
         thread.detach();
     };
     if (subscribeActiveId_ != INVALID_SUBSCRIBE_ID) {
@@ -3949,14 +3950,14 @@ bool PasteboardService::SetCurrentDistributedData(PasteData &data, Event event)
                     auto result = SetCurrentData(event, data);
                     block->SetValue(true);
                 });
-                pthread_setname_np(innerThread.native_handle(), "SetCurrentData");
+                PasteBoardCommonUtils::SetThreadTaskName(innerThread, "SetCurrentData");
                 innerThread.detach();
             }
             bool ret = block->GetValue();
             PASTEBOARD_CHECK_AND_RETURN_LOGE(ret, PASTEBOARD_MODULE_SERVICE, "timeout,seqId:%{public}hu", event.seqId);
         }
     });
-    pthread_setname_np(thread.native_handle(), "SetDistributeDa");
+    PasteBoardCommonUtils::SetThreadTaskName(thread, "SetDistributeDa");
     thread.detach();
     return true;
 }
@@ -4435,7 +4436,7 @@ int32_t PasteboardService::SyncDelayedData()
             return true;
         });
     });
-    pthread_setname_np(thread.native_handle(), "SyncDelayedData");
+    PasteBoardCommonUtils::SetThreadTaskName(thread, "SyncDelayedData");
     thread.detach();
     return ERR_OK;
 }
@@ -4546,7 +4547,7 @@ void PasteboardService::OnConfigChange(bool isOn)
     std::thread thread([=]() {
         OnConfigChangeInner(isOn);
     });
-    pthread_setname_np(thread.native_handle(), "OnConfigChange");
+    PasteBoardCommonUtils::SetThreadTaskName(thread, "OnConfigChange");
     thread.detach();
 }
 
@@ -4641,7 +4642,7 @@ void PasteBoardCommonEventSubscriber::OnReceiveEvent(const EventFwk::CommonEvent
     std::thread thread([=] {
         OnReceiveEventInner(data);
     });
-    pthread_setname_np(thread.native_handle(), "OnReceiveEvent");
+    PasteBoardCommonUtils::SetThreadTaskName(thread, "OnReceiveEvent");
     thread.detach();
 }
 
@@ -4737,7 +4738,7 @@ void PasteboardService::ClearUriOnUninstall(std::shared_ptr<PasteData> pasteData
         PASTEBOARD_CHECK_AND_RETURN_LOGE(clipPlugin_ != nullptr, PASTEBOARD_MODULE_SERVICE, "clipPlugin is null");
         clipPlugin_->Clear(pasteData->userId_);
     });
-    pthread_setname_np(thread.native_handle(), "ClearUriUninsta");
+    PasteBoardCommonUtils::SetThreadTaskName(thread, "ClearUriUninsta");
     thread.detach();
 }
 
@@ -4746,7 +4747,7 @@ void PasteBoardAccountStateSubscriber::OnStateChanged(const AccountSA::OsAccount
     std::thread thread([=]() {
         OnStateChangedInner(data);
     });
-    pthread_setname_np(thread.native_handle(), "OnStateChanged");
+    PasteBoardCommonUtils::SetThreadTaskName(thread, "OnStateChanged");
     thread.detach();
 }
 

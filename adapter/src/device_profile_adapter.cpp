@@ -21,6 +21,7 @@
 #include "device_profile_client.h"
 #include "distributed_device_profile_errors.h"
 #include "i_static_capability_collector.h"
+#include "common/pasteboard_common_utils.h"
 #include "pasteboard_error.h"
 #include "pasteboard_hilog.h"
 #include "profile_change_listener_stub.h"
@@ -135,7 +136,7 @@ public:
         std::string status = newProfile.GetCharacteristicValue();
         if (g_onProfileUpdateCallback != nullptr) {
             std::thread thread(g_onProfileUpdateCallback, udid, status == STATUS_ENABLE);
-            pthread_setname_np(thread.native_handle(), "OnProfileUpdate");
+            PasteBoardCommonUtils::SetThreadTaskName(thread, "OnProfileUpdate");
             thread.detach();
         }
         return ERR_OK;
