@@ -29,16 +29,16 @@ public:
     void TearDown();
 };
 
-void DevProfileTest::SetUpTestCase(void) { }
+void DevProfileTest::SetUpTestCase(void) {}
 
 void DevProfileTest::TearDownTestCase(void)
 {
     DevProfile::GetInstance().ClearDeviceProfileService();
 }
 
-void DevProfileTest::SetUp(void) { }
+void DevProfileTest::SetUp(void) {}
 
-void DevProfileTest::TearDown(void) { }
+void DevProfileTest::TearDown(void) {}
 
 /**
  * @tc.name: GetDeviceVersionTest001

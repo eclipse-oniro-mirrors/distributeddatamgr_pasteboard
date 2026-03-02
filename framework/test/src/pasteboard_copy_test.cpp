@@ -376,4 +376,128 @@ HWTEST_F(PasteboardCopyTest, ShouldKeepRecordTest001, TestSize.Level0)
     int32_t result = pasteBoardCopyFile.ShouldKeepRecord(ret, destUri, record);
     EXPECT_FALSE(result);
 }
+
+/**
+ * @tc.name: ProcessCallBackTest001
+ * @tc.desc: 测试ProcessCallBack在totalSize为0的情况
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PasteboardCopyTest, ProcessCallBackTest001, TestSize.Level0)
+{
+    PasteBoardCopyFile &pasteBoardCopyFile = PasteBoardCopyFile::GetInstance();
+    pasteBoardCopyFile.recordSize_.store(1);
+
+    std::shared_ptr<GetDataParams> dataParams = std::make_shared<GetDataParams>();
+    dataParams->info = new ProgressInfo();
+    dataParams->info->percentage = 0;
+
+    CopyInfo info;
+    int32_t recordProcessedIndex = 1;
+
+    using ProcessCallBack = std::function<void(uint64_t processSize, uint64_t totalSize)>;
+    ProcessCallBack listener = [=, &pasteBoardCopyFile](uint64_t processSize, uint64_t totalSize) {
+        uint32_t percentage = 0;
+        if (totalSize != 0) {
+            percentage = static_cast<uint32_t>((100 * processSize) / totalSize);
+        }
+        pasteBoardCopyFile.HandleProgress(recordProcessedIndex, info, percentage, dataParams);
+    };
+
+    listener(100, 0);
+    EXPECT_EQ(dataParams->info->percentage, 20);
+}
+
+/**
+ * @tc.name: ProcessCallBackTest002
+ * @tc.desc: 测试ProcessCallBack在正常情况下的处理
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PasteboardCopyTest, ProcessCallBackTest002, TestSize.Level0)
+{
+    PasteBoardCopyFile &pasteBoardCopyFile = PasteBoardCopyFile::GetInstance();
+    pasteBoardCopyFile.recordSize_.store(1);
+
+    std::shared_ptr<GetDataParams> dataParams = std::make_shared<GetDataParams>();
+    dataParams->info = new ProgressInfo();
+    dataParams->info->percentage = 0;
+
+    CopyInfo info;
+    int32_t recordProcessedIndex = 1;
+
+    using ProcessCallBack = std::function<void(uint64_t processSize, uint64_t totalSize)>;
+    ProcessCallBack listener = [=, &pasteBoardCopyFile](uint64_t processSize, uint64_t totalSize) {
+        uint32_t percentage = 0;
+        if (totalSize != 0) {
+            percentage = static_cast<uint32_t>((100 * processSize) / totalSize);
+        }
+        pasteBoardCopyFile.HandleProgress(recordProcessedIndex, info, percentage, dataParams);
+    };
+
+    listener(500, 1000);
+    EXPECT_EQ(dataParams->info->percentage, 60);
+}
+
+/**
+ * @tc.name: ProcessCallBackTest003
+ * @tc.desc: 测试ProcessCallBack在processSize大于totalSize的情况
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PasteboardCopyTest, ProcessCallBackTest003, TestSize.Level0)
+{
+    PasteBoardCopyFile &pasteBoardCopyFile = PasteBoardCopyFile::GetInstance();
+    pasteBoardCopyFile.recordSize_.store(1);
+
+    std::shared_ptr<GetDataParams> dataParams = std::make_shared<GetDataParams>();
+    dataParams->info = new ProgressInfo();
+    dataParams->info->percentage = 0;
+
+    CopyInfo info;
+    int32_t recordProcessedIndex = 1;
+
+    using ProcessCallBack = std::function<void(uint64_t processSize, uint64_t totalSize)>;
+    ProcessCallBack listener = [=, &pasteBoardCopyFile](uint64_t processSize, uint64_t totalSize) {
+        uint32_t percentage = 0;
+        if (totalSize != 0) {
+            percentage = static_cast<uint32_t>((100 * processSize) / totalSize);
+        }
+        pasteBoardCopyFile.HandleProgress(recordProcessedIndex, info, percentage, dataParams);
+    };
+
+    listener(1500, 1000);
+    EXPECT_GE(dataParams->info->percentage, 100);
+}
+
+/**
+ * @tc.name: ProcessCallBackTest004
+ * @tc.desc: 测试ProcessCallBack在processSize为0的情况
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PasteboardCopyTest, ProcessCallBackTest004, TestSize.Level0)
+{
+    PasteBoardCopyFile &pasteBoardCopyFile = PasteBoardCopyFile::GetInstance();
+    pasteBoardCopyFile.recordSize_.store(1);
+
+    std::shared_ptr<GetDataParams> dataParams = std::make_shared<GetDataParams>();
+    dataParams->info = new ProgressInfo();
+    dataParams->info->percentage = 0;
+
+    CopyInfo info;
+    int32_t recordProcessedIndex = 1;
+
+    using ProcessCallBack = std::function<void(uint64_t processSize, uint64_t totalSize)>;
+    ProcessCallBack listener = [=, &pasteBoardCopyFile](uint64_t processSize, uint64_t totalSize) {
+        uint32_t percentage = 0;
+        if (totalSize != 0) {
+            percentage = static_cast<uint32_t>((100 * processSize) / totalSize);
+        }
+        pasteBoardCopyFile.HandleProgress(recordProcessedIndex, info, percentage, dataParams);
+    };
+
+    listener(0, 1000);
+    EXPECT_EQ(dataParams->info->percentage, 20);
+}
 } // namespace OHOS::MiscServices

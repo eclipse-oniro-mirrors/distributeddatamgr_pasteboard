@@ -19,6 +19,7 @@
 #include "device/dm_adapter.h"
 #include "distributed_device_profile_errors.h"
 #include "pasteboard_error.h"
+#include "pasteboard_hilog.h"
 
 using namespace testing;
 using namespace testing::ext;

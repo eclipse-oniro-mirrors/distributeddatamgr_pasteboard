@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -79,7 +79,8 @@ HWTEST_F(DFXTest, DFXTest002, TestSize.Level1)
     status = Reporter::GetInstance().TimeConsumingStatistic().Report(timeConsumingStat);
     ASSERT_EQ(status, ReportStatus::SUCCESS);
 
-    timeConsumingStat = { .pasteboardState = SPS_COPY_STATE,
+    timeConsumingStat = {
+        .pasteboardState = SPS_COPY_STATE,
         .dataSize = DATA_LEVEL_ONE,
         .timeConsuming = TCS_TIME_CONSUMING_LEVEL_ONE
     };
