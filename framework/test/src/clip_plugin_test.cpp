@@ -55,6 +55,11 @@ public:
         (void)data;
         return std::make_pair(0, 0);
     }
+
+    bool IsWiFiEnable() override
+    {
+        return false;
+    }
 };
 
 /**
@@ -295,5 +300,20 @@ HWTEST_F(ClipPluginTest, GetMimeTypesTest, TestSize.Level0)
     ClipPlugin::GlobalEvent event;
     auto ret = clipPlugin->GetMimeTypes(mimeTypes, event);
     ASSERT_EQ(0, ret);
+}
+
+/**
+ * @tc.name: IsWiFiEnableTest
+ * @tc.desc: IsWiFiEnable.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(ClipPluginTest, IsWiFiEnableTest, TestSize.Level0)
+{
+    auto clipPlugin = std::make_shared<CustomClipPlugin>();
+    ASSERT_NE(clipPlugin, nullptr);
+    bool result = clipPlugin->IsWiFiEnable();
+    ASSERT_EQ(result, false);
 }
 } // namespace OHOS::MiscServices

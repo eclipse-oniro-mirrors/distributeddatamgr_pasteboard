@@ -148,6 +148,11 @@ int32_t ClipPlugin::GetMimeTypes(std::vector<uint8_t> &mimeTypes, const GlobalEv
     return 0;
 }
 
+bool ClipPlugin::IsWiFiEnable()
+{
+    return false;
+}
+
 bool ClipPlugin::GlobalEvent::Marshal(Serializable::json &node) const
 {
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(SetValue(node, version, GET_NAME(version)),
