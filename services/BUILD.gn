@@ -24,6 +24,8 @@ idl_gen_interface("pasteboard_service_interface") {
   sources_common = [ "PasteboardTypes.idl" ]
   log_domainid = "0xD001C00"
   log_tag = "PBIDL"
+
+  inputs = [ "PasteboardTypes.idl" ]
 }
 
 config("pasteboard_service_config") {

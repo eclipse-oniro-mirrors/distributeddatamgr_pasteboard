@@ -1157,21 +1157,22 @@ bool PasteboardService::WriteRawData(const void *data, int64_t size, int &serFd)
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(fd >= 0, false, PASTEBOARD_MODULE_SERVICE, "ashmem create failed");
 
     int32_t result = AshmemSetProt(fd, PROT_READ | PROT_WRITE);
+    fdsan_exchange_owner_tag(fd, 0, PASTEBOARD_FD_TAG);
     if (result < 0) {
-        close(fd);
+        fdsan_close_with_tag(fd, PASTEBOARD_FD_TAG);
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "ashmem set prot failed");
         return false;
     }
     void *ptr = ::mmap(nullptr, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
     if (ptr == MAP_FAILED) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "mmap failed, fd:%{public}d", fd);
-        close(fd);
+        fdsan_close_with_tag(fd, PASTEBOARD_FD_TAG);
         return false;
     }
     if (!messageData.MemcpyData(ptr, static_cast<size_t>(size), data, size)) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "memcpy_s failed, fd:%{public}d", fd);
         ::munmap(ptr, size);
-        close(fd);
+        fdsan_close_with_tag(fd, PASTEBOARD_FD_TAG);
         return false;
     }
     ::munmap(ptr, size);
