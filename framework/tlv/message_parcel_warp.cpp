@@ -72,7 +72,7 @@ MessageParcelWarp::~MessageParcelWarp()
     #ifndef CROSS_PLATFORM
         ::fdsan_close_with_tag(readRawDataFd_, PASTEBOARD_FD_TAG);
     #else
-        ::close(writeRawDataFd_);
+        ::close(readRawDataFd_);
     #endif
         readRawDataFd_ = -1;
     }

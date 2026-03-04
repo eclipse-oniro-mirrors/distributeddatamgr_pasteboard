@@ -507,7 +507,7 @@ HWTEST_F(PasteboardServiceCheckTest, IsConstraintEnabled001, TestSize.Level1)
     EXPECT_NE(tempPasteboard, nullptr);
 
     int32_t userId = 100;
-    tempPasteboard->IsConstraintEnable(userId);
+    tempPasteboard->IsConstraintEnabled(userId);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "IsConstraintEnabled001 end");
 }
 

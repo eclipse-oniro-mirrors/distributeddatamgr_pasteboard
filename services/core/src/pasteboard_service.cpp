@@ -3966,11 +3966,12 @@ bool PasteboardService::SetCurrentDistributedData(PasteData &data, Event event)
             if (!isNeedCheck) {
                 isNeedCheck = true;
             }
-            std::thread thread([this, block]() mutable {
+            std::thread innerThread([this, block]() mutable {
                 auto result = SetCurrentData();
                 block->SetValue(true);
             });
-            thread.detach();
+            PasteBoardCommonUtils::SetThreadTaskName(thread, "SetCurrentData");
+            innerThread.detach();
             bool ret = block->GetValue();
             PASTEBOARD_CHECK_AND_RETURN_LOGE(ret, PASTEBOARD_MODULE_SERVICE, "timeout,seqId:%{public}hu", event.seqId);
         }
