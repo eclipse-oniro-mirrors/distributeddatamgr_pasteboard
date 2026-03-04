@@ -99,6 +99,7 @@ constexpr const char *COVER_DELAY_DATA = "COVER_DELAY_DATA";
 constexpr const char *UE_COPY = "DISTRIBUTED_PASTEBOARD_COPY";
 constexpr const char *UE_PASTE = "DISTRIBUTED_PASTEBOARD_PASTE";
 constexpr int32_t INVALID_VERSION = -1;
+constexpr int32_t WIFI_DISABLED = 1;
 constexpr int32_t ADD_PERMISSION_CHECK_SDK_VERSION = 12;
 constexpr int32_t CTRLV_EVENT_SIZE = 2;
 constexpr int32_t CONTROL_TYPE_ALLOW_SEND_RECEIVE = 1;
@@ -2553,6 +2554,9 @@ std::pair<int32_t, ClipPlugin::GlobalEvent> PasteboardService::GetValidDistribut
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "plugin is null");
         return std::make_pair(static_cast<int32_t>(PasteboardError::PLUGIN_IS_NULL), evt);
     }
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(plugin->IsWiFiEnable(),
+        std::make_pair(static_cast<int32_t>(PasteboardError::GET_LOCAL_DATA), evt), PASTEBOARD_MODULE_SERVICE,
+        "wifi is disabled");
     auto events = plugin->GetTopEvents(1, user);
     if (events.empty()) {
         PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "plugin event is empty");
@@ -4571,6 +4575,14 @@ void PasteboardService::CleanDistributedData(int32_t user)
     clipPlugin->Clear(user);
 }
 
+bool PasteboardService::IsValidCurrentEvent()
+{
+    auto expiration = PasteBoardTime::GetBootTimeMs();
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGD(
+        expiration < currentEvent_.expiration, false, PASTEBOARD_MODULE_SERVICE, "event is invalid");
+    return true;
+}
+
 void PasteboardService::CloseDistributedStore(int32_t user, bool isNeedClear)
 {
     std::lock_guard<decltype(mutex)> lockGuard(mutex);
@@ -4689,9 +4701,10 @@ void PasteBoardCommonEventSubscriber::OnReceiveEventInner(const EventFwk::Common
 {
     auto want = data.GetWant();
     std::string action = want.GetAction();
+    int32_t eventState = data.GetCode();
+    int32_t userId = data.GetCode();
     if (action == EventFwk::CommonEventSupport::COMMON_EVENT_USER_SWITCHED) {
         std::lock_guard<std::mutex> lock(mutex_);
-        int32_t userId = data.GetCode();
         PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "user id switched: %{public}d", userId);
         if (pasteboardService_ != nullptr) {
             pasteboardService_->ChangeStoreStatus(userId);
@@ -4702,7 +4715,6 @@ void PasteBoardCommonEventSubscriber::OnReceiveEventInner(const EventFwk::Common
         }
     } else if (action == EventFwk::CommonEventSupport::COMMON_EVENT_USER_STOPPING) {
         std::lock_guard<std::mutex> lock(mutex_);
-        int32_t userId = data.GetCode();
         PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "user id is stopping: %{public}d", userId);
         if (pasteboardService_ != nullptr) {
             pasteboardService_->Clear();
@@ -4719,6 +4731,10 @@ void PasteBoardCommonEventSubscriber::OnReceiveEventInner(const EventFwk::Common
         auto tokenId = want.GetIntParam("accessTokenId", -1);
         if (pasteboardService_ != nullptr) {
             pasteboardService_->ClearUriOnUninstall(tokenId);
+        }
+    } else if (action == EventFwk::CommonEventSupport::COMMON_EVENT_WIFI_POWER_STATE && eventState == WIFI_DISABLED) {
+        if (pasteboardService_->IsValidCurrentEvent()) {
+            pasteboardService_->CleanDistributedData(userId);
         }
     }
 }
@@ -4846,6 +4862,7 @@ void PasteboardService::CommonEventSubscriber()
     matchingSkills.AddEvent(EventFwk::CommonEventSupport::COMMON_EVENT_SCREEN_LOCKED);
     matchingSkills.AddEvent(EventFwk::CommonEventSupport::COMMON_EVENT_SCREEN_UNLOCKED);
     matchingSkills.AddEvent(EventFwk::CommonEventSupport::COMMON_EVENT_PACKAGE_REMOVED);
+    matchingSkills.AddEvent(EventFwk::CommonEventSupport::COMMON_EVENT_WIFI_POWER_STATE);
     EventFwk::CommonEventSubscribeInfo subscribeInfo(matchingSkills);
     commonEventSubscriber_ = std::make_shared<PasteBoardCommonEventSubscriber>(subscribeInfo, this);
     EventFwk::CommonEventManager::SubscribeCommonEvent(commonEventSubscriber_);

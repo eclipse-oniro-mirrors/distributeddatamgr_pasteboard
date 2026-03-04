@@ -1690,5 +1690,31 @@ HWTEST_F(PasteboardServiceTest, HasRemoteUriTest004, TestSize.Level1)
     EXPECT_EQ(result, false);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "HasRemoteUriTest004 end");
 }
+
+/**
+ * @tc.name: IsValidCurrentEventTest001
+ * @tc.desc: test Func IsValidCurrentEvent
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceTest, IsValidCurrentEventTest001, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "IsValidCurrentEventTest001 start");
+    auto service = std::make_shared<PasteboardService>();
+    EXPECT_NE(service, nullptr);
+    
+    // Test case 1: When current event is expired (expiration < current time)
+    // Set expiration to a past time
+    service->currentEvent_.expiration = 0; // Far in the past
+    bool result = service->IsValidCurrentEvent();
+    EXPECT_EQ(result, false);
+    
+    // Test case 2: When current event is not expired (expiration > current time)
+    // Set expiration to a future time
+    service->currentEvent_.expiration = UINT64_MAX; // Far in the future
+    result = service->IsValidCurrentEvent();
+    EXPECT_EQ(result, true);
+    
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "IsValidCurrentEventTest001 end");
+}
 } // namespace MiscServices
 } // namespace OHOS

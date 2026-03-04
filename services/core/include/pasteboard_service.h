@@ -189,6 +189,8 @@ public:
     static int32_t GetCurrentAccountId();
     void ClearUriOnUninstall(int32_t tokenId);
     void ClearUriOnUninstall(std::shared_ptr<PasteData> pasteData);
+    void CleanDistributedData(int32_t user);
+    bool IsValidCurrentEvent();
 
     static std::shared_mutex pasteDataMutex_;
 
@@ -403,7 +405,6 @@ private:
     bool SetDistributedData(int32_t user, PasteData &data);
     bool SetCurrentDistributedData(PasteData &data, Event event);
     bool SetCurrentData();
-    void CleanDistributedData(int32_t user);
     void OnConfigChange(bool isOn);
     void OnConfigChangeInner(bool isOn);
     std::shared_ptr<ClipPlugin> GetClipPlugin();
