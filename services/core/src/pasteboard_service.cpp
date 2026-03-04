@@ -3970,7 +3970,7 @@ bool PasteboardService::SetCurrentDistributedData(PasteData &data, Event event)
                 auto result = SetCurrentData();
                 block->SetValue(true);
             });
-            PasteBoardCommonUtils::SetThreadTaskName(thread, "SetCurrentData");
+            PasteBoardCommonUtils::SetThreadTaskName(innerThread, "SetCurrentData");
             innerThread.detach();
             bool ret = block->GetValue();
             PASTEBOARD_CHECK_AND_RETURN_LOGE(ret, PASTEBOARD_MODULE_SERVICE, "timeout,seqId:%{public}hu", event.seqId);
