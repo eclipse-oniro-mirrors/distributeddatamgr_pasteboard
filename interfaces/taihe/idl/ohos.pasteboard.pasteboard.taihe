@@ -48,6 +48,8 @@ enum Pattern: i32 {
     URL = 0,
     NUMBER = 1,
     EMAIL_ADDRESS = 2,
+    HTTP_URL = 3,
+    FLIGHT_NUMBER = 4,
     COUNT
 }
 

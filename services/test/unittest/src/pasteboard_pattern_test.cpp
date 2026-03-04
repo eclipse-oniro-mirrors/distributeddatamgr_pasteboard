@@ -532,4 +532,653 @@ HWTEST_F(PasteboardPatternTest, ExtractHtmlContentTest002, TestSize.Level1)
     std::set<Pattern> result = PatternDetection::Detect(patternsToCheck, pasteData, false, true);
     ASSERT_TRUE(result.empty());
 }
+
+/**
+ * @tc.name: DetectHttpLinkTest001
+ * @tc.desc: Test HTTP_URL detection with valid URL (https:// with letter start)
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardPatternTest, DetectHttpLinkTest001, TestSize.Level1)
+{
+    const std::set<Pattern> patternsToCheck = { Pattern::HTTP_URL };
+    PasteData pasteData;
+    auto record = std::make_shared<PasteDataRecord>();
+    std::string utdId = "utd_http_001";
+    std::string plainText = "https://www.example.com/path";
+    auto plainEntry = std::make_shared<PasteDataEntry>(
+        utdId,
+        MIMETYPE_TEXT_PLAIN,
+        plainText
+    );
+    record->AddEntry(utdId, plainEntry);
+    pasteData.AddRecord(record);
+    std::set<Pattern> result = PatternDetection::Detect(patternsToCheck, pasteData, false, true);
+    ASSERT_EQ(result.count(Pattern::HTTP_URL), 1);
+}
+
+/**
+ * @tc.name: DetectHttpLinkTest002
+ * @tc.desc: Test HTTP_URL with digit start after protocol
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardPatternTest, DetectHttpLinkTest002, TestSize.Level1)
+{
+    const std::set<Pattern> patternsToCheck = { Pattern::HTTP_URL };
+    PasteData pasteData;
+    auto record = std::make_shared<PasteDataRecord>();
+    std::string utdId = "utd_http_002";
+    std::string plainText = "http://123.example.com";
+    auto plainEntry = std::make_shared<PasteDataEntry>(
+        utdId,
+        MIMETYPE_TEXT_PLAIN,
+        plainText
+    );
+    record->AddEntry(utdId, plainEntry);
+    pasteData.AddRecord(record);
+    std::set<Pattern> result = PatternDetection::Detect(patternsToCheck, pasteData, false, true);
+    ASSERT_EQ(result.count(Pattern::HTTP_URL), 1);
+}
+
+/**
+ * @tc.name: DetectHttpLinkTest003
+ * @tc.desc: Test HTTP_URL with special character start (invalid)
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardPatternTest, DetectHttpLinkTest003, TestSize.Level1)
+{
+    const std::set<Pattern> patternsToCheck = { Pattern::HTTP_URL };
+    PasteData pasteData;
+    auto record = std::make_shared<PasteDataRecord>();
+    std::string utdId = "utd_http_003";
+    std::string plainText = "https:/";
+    auto plainEntry = std::make_shared<PasteDataEntry>(
+        utdId,
+        MIMETYPE_TEXT_PLAIN,
+        plainText
+    );
+    record->AddEntry(utdId, plainEntry);
+    pasteData.AddRecord(record);
+    std::set<Pattern> result = PatternDetection::Detect(patternsToCheck, pasteData, false, true);
+    ASSERT_EQ(result.count(Pattern::HTTP_URL), 0);
+}
+
+/**
+ * @tc.name: DetectHttpLinkTest004
+ * @tc.desc: Test HTTP_URL with hyphen start (invalid)
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardPatternTest, DetectHttpLinkTest004, TestSize.Level1)
+{
+    const std::set<Pattern> patternsToCheck = { Pattern::HTTP_URL };
+    PasteData pasteData;
+    auto record = std::make_shared<PasteDataRecord>();
+    std::string utdId = "utd_http_004";
+    std::string plainText = "http://-example.com";
+    auto plainEntry = std::make_shared<PasteDataEntry>(
+        utdId,
+        MIMETYPE_TEXT_PLAIN,
+        plainText
+    );
+    record->AddEntry(utdId, plainEntry);
+    pasteData.AddRecord(record);
+    std::set<Pattern> result = PatternDetection::Detect(patternsToCheck, pasteData, false, true);
+    ASSERT_EQ(result.count(Pattern::HTTP_URL), 1);
+}
+
+/**
+ * @tc.name: DetectHttpLinkTest005
+ * @tc.desc: Test HTTP_URL detection with valid URL (length >= 7 with dot)
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardPatternTest, DetectHttpLinkTest005, TestSize.Level1)
+{
+    const std::set<Pattern> patternsToCheck = { Pattern::HTTP_URL };
+    PasteData pasteData;
+    auto record = std::make_shared<PasteDataRecord>();
+    std::string utdId = "utd_http_005";
+    std::string plainText = "http://a.b";
+    auto plainEntry = std::make_shared<PasteDataEntry>(
+        utdId,
+        MIMETYPE_TEXT_PLAIN,
+        plainText
+    );
+    record->AddEntry(utdId, plainEntry);
+    pasteData.AddRecord(record);
+    std::set<Pattern> result = PatternDetection::Detect(patternsToCheck, pasteData, false, true);
+    ASSERT_EQ(result.count(Pattern::HTTP_URL), 1);
+}
+
+/**
+ * @tc.name: DetectFlightNumberTest007
+ * @tc.desc: Test FLIGHT_NUMBER with 2 letters + 4 digits (6 chars)
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardPatternTest, DetectFlightNumberTest001, TestSize.Level1)
+{
+    const std::set<Pattern> patternsToCheck = { Pattern::FLIGHT_NUMBER };
+    PasteData pasteData;
+    auto record = std::make_shared<PasteDataRecord>();
+    std::string utdId = "utd_flight_001b";
+    std::string plainText = "CZ5678 is my flight";
+    auto plainEntry = std::make_shared<PasteDataEntry>(
+        utdId,
+        MIMETYPE_TEXT_PLAIN,
+        plainText
+    );
+    record->AddEntry(utdId, plainEntry);
+    pasteData.AddRecord(record);
+    std::set<Pattern> result = PatternDetection::Detect(patternsToCheck, pasteData, false, true);
+    ASSERT_EQ(result.count(Pattern::FLIGHT_NUMBER), 1);
+}
+
+/**
+ * @tc.name: DetectFlightNumberTest002
+ * @tc.desc: Test FLIGHT_NUMBER with 1 digit + 1 letter + 3 digits (5 chars)
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardPatternTest, DetectFlightNumberTest002, TestSize.Level1)
+{
+    const std::set<Pattern> patternsToCheck = { Pattern::FLIGHT_NUMBER };
+    PasteData pasteData;
+    auto record = std::make_shared<PasteDataRecord>();
+    std::string utdId = "utd_flight_002";
+    std::string plainText = "1A123 departure time";
+    auto plainEntry = std::make_shared<PasteDataEntry>(
+        utdId,
+        MIMETYPE_TEXT_PLAIN,
+        plainText
+    );
+    record->AddEntry(utdId, plainEntry);
+    pasteData.AddRecord(record);
+    std::set<Pattern> result = PatternDetection::Detect(patternsToCheck, pasteData, false, true);
+    ASSERT_EQ(result.count(Pattern::FLIGHT_NUMBER), 1);
+}
+
+/**
+ * @tc.name: DetectFlightNumberTest003
+ * @tc.desc: Test FLIGHT_NUMBER with 2 letters + 3 digits + 1 letter (6 chars)
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardPatternTest, DetectFlightNumberTest003, TestSize.Level1)
+{
+    const std::set<Pattern> patternsToCheck = { Pattern::FLIGHT_NUMBER };
+    PasteData pasteData;
+    auto record = std::make_shared<PasteDataRecord>();
+    std::string utdId = "utd_flight_003";
+    std::string plainText = "CA123A booking";
+    auto plainEntry = std::make_shared<PasteDataEntry>(
+        utdId,
+        MIMETYPE_TEXT_PLAIN,
+        plainText
+    );
+    record->AddEntry(utdId, plainEntry);
+    pasteData.AddRecord(record);
+    std::set<Pattern> result = PatternDetection::Detect(patternsToCheck, pasteData, false, true);
+    ASSERT_EQ(result.count(Pattern::FLIGHT_NUMBER), 1);
+}
+
+/**
+ * @tc.name: DetectFlightNumberTest004
+ * @tc.desc: Test FLIGHT_NUMBER with 2 letters + 4 digits + 1 letter (7 chars)
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardPatternTest, DetectFlightNumberTest004, TestSize.Level1)
+{
+    const std::set<Pattern> patternsToCheck = { Pattern::FLIGHT_NUMBER };
+    PasteData pasteData;
+    auto record = std::make_shared<PasteDataRecord>();
+    std::string utdId = "utd_flight_004";
+    std::string plainText = "CA1234A flight";
+    auto plainEntry = std::make_shared<PasteDataEntry>(
+        utdId,
+        MIMETYPE_TEXT_PLAIN,
+        plainText
+    );
+    record->AddEntry(utdId, plainEntry);
+    pasteData.AddRecord(record);
+    std::set<Pattern> result = PatternDetection::Detect(patternsToCheck, pasteData, false, true);
+    ASSERT_EQ(result.count(Pattern::FLIGHT_NUMBER), 1);
+}
+
+/**
+ * @tc.name: DetectFlightNumberTest005
+ * @tc.desc: Test FLIGHT_NUMBER with 1 digit + 1 letter + 4 digits (6 chars)
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardPatternTest, DetectFlightNumberTest005, TestSize.Level1)
+{
+    const std::set<Pattern> patternsToCheck = { Pattern::FLIGHT_NUMBER };
+    PasteData pasteData;
+    auto record = std::make_shared<PasteDataRecord>();
+    std::string utdId = "utd_flight_005";
+    std::string plainText = "1A1234";
+    auto plainEntry = std::make_shared<PasteDataEntry>(
+        utdId,
+        MIMETYPE_TEXT_PLAIN,
+        plainText
+    );
+    record->AddEntry(utdId, plainEntry);
+    pasteData.AddRecord(record);
+    std::set<Pattern> result = PatternDetection::Detect(patternsToCheck, pasteData, false, true);
+    ASSERT_EQ(result.count(Pattern::FLIGHT_NUMBER), 1);
+}
+
+/**
+ * @tc.name: DetectFlightNumberTest006
+ * @tc.desc: Test FLIGHT_NUMBER with 1 digit + 1 letter + 4 digits + 1 letter (7 chars)
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardPatternTest, DetectFlightNumberTest006, TestSize.Level1)
+{
+    const std::set<Pattern> patternsToCheck = { Pattern::FLIGHT_NUMBER };
+    PasteData pasteData;
+    auto record = std::make_shared<PasteDataRecord>();
+    std::string utdId = "utd_flight_006";
+    std::string plainText = "1A1234A";
+    auto plainEntry = std::make_shared<PasteDataEntry>(
+        utdId,
+        MIMETYPE_TEXT_PLAIN,
+        plainText
+    );
+    record->AddEntry(utdId, plainEntry);
+    pasteData.AddRecord(record);
+    std::set<Pattern> result = PatternDetection::Detect(patternsToCheck, pasteData, false, true);
+    ASSERT_EQ(result.count(Pattern::FLIGHT_NUMBER), 1);
+}
+
+/**
+ * @tc.name: DetectHttpLinkTest006
+ * @tc.desc: Test HTTP_URL and FLIGHT_NUMBER together with multiple valid patterns
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardPatternTest, DetectHttpLinkTest006, TestSize.Level1)
+{
+    const std::set<Pattern> patternsToCheck = { Pattern::HTTP_URL, Pattern::FLIGHT_NUMBER };
+    PasteData pasteData;
+    auto record = std::make_shared<PasteDataRecord>();
+    std::string utdId = "utd_mixed_001";
+    std::string plainText = "Visit https://example.com and take CA1234";
+    auto plainEntry = std::make_shared<PasteDataEntry>(
+        utdId,
+        MIMETYPE_TEXT_PLAIN,
+        plainText
+    );
+    record->AddEntry(utdId, plainEntry);
+    pasteData.AddRecord(record);
+    std::set<Pattern> result = PatternDetection::Detect(patternsToCheck, pasteData, false, true);
+    ASSERT_EQ(result.count(Pattern::HTTP_URL), 1);
+    ASSERT_EQ(result.count(Pattern::FLIGHT_NUMBER), 1);
+}
+
+/**
+ * @tc.name: DetectOtherPatternTest001
+ * @tc.desc: Test that other patterns (URL, NUMBER, EMAIL_ADDRESS) still work correctly
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardPatternTest, DetectOtherPatternTest001, TestSize.Level1)
+{
+    const std::set<Pattern> patternsToCheck = { Pattern::URL, Pattern::NUMBER, Pattern::EMAIL_ADDRESS };
+    PasteData pasteData;
+    auto record = std::make_shared<PasteDataRecord>();
+    std::string utdId = "utd_other_001";
+    std::string plainText = "Contact test@example.com or call +123.456. Visit http://files.server.com";
+    auto plainEntry = std::make_shared<PasteDataEntry>(
+        utdId,
+        MIMETYPE_TEXT_PLAIN,
+        plainText
+    );
+    record->AddEntry(utdId, plainEntry);
+    pasteData.AddRecord(record);
+    std::set<Pattern> result = PatternDetection::Detect(patternsToCheck, pasteData, false, true);
+    ASSERT_EQ(result.count(Pattern::URL), 1);
+    ASSERT_EQ(result.count(Pattern::NUMBER), 1);
+    ASSERT_EQ(result.count(Pattern::EMAIL_ADDRESS), 1);
+}
+
+/**
+ * @tc.name: DetectRegexNoMatchTest001
+ * @tc.desc: Test HTTP_URL with text that does not match regex at all
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardPatternTest, DetectRegexNoMatchTest001, TestSize.Level1)
+{
+    const std::set<Pattern> patternsToCheck = { Pattern::HTTP_URL };
+    PasteData pasteData;
+    auto record = std::make_shared<PasteDataRecord>();
+    std::string utdId = "utd_nomatch_001";
+    std::string plainText = "This is just plain text with no URLs or http links";
+    auto plainEntry = std::make_shared<PasteDataEntry>(
+        utdId,
+        MIMETYPE_TEXT_PLAIN,
+        plainText
+    );
+    record->AddEntry(utdId, plainEntry);
+    pasteData.AddRecord(record);
+    std::set<Pattern> result = PatternDetection::Detect(patternsToCheck, pasteData, false, true);
+    ASSERT_EQ(result.count(Pattern::HTTP_URL), 0);
+}
+
+/**
+ * @tc.name: DetectRegexNoMatchTest002
+ * @tc.desc: Test FLIGHT_NUMBER with text that does not match regex at all
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardPatternTest, DetectRegexNoMatchTest002, TestSize.Level1)
+{
+    const std::set<Pattern> patternsToCheck = { Pattern::FLIGHT_NUMBER };
+    PasteData pasteData;
+    auto record = std::make_shared<PasteDataRecord>();
+    std::string utdId = "utd_nomatch_002";
+    std::string plainText = "No flight numbers here, just some text like A1 or BC123";
+    auto plainEntry = std::make_shared<PasteDataEntry>(
+        utdId,
+        MIMETYPE_TEXT_PLAIN,
+        plainText
+    );
+    record->AddEntry(utdId, plainEntry);
+    pasteData.AddRecord(record);
+    std::set<Pattern> result = PatternDetection::Detect(patternsToCheck, pasteData, false, true);
+    ASSERT_EQ(result.count(Pattern::FLIGHT_NUMBER), 1);
+}
+
+/**
+ * @tc.name: DetectHttpLinkTest007
+ * @tc.desc: Test HTTP_URL with regex match but fails length <= 7 validation
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardPatternTest, DetectHttpLinkTest007, TestSize.Level1)
+{
+    const std::set<Pattern> patternsToCheck = { Pattern::HTTP_URL };
+    PasteData pasteData;
+    auto record = std::make_shared<PasteDataRecord>();
+    std::string utdId = "utd_http_007";
+    std::string plainText = "http://ab.c";
+    auto plainEntry = std::make_shared<PasteDataEntry>(
+        utdId,
+        MIMETYPE_TEXT_PLAIN,
+        plainText
+    );
+    record->AddEntry(utdId, plainEntry);
+    pasteData.AddRecord(record);
+    std::set<Pattern> result = PatternDetection::Detect(patternsToCheck, pasteData, false, true);
+    ASSERT_EQ(result.count(Pattern::HTTP_URL), 1);
+}
+
+/**
+ * @tc.name: DetectFlightNumberTest007
+ * @tc.desc: Test FLIGHT_NUMBER with valid regex match but fails length validation (7 chars)
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardPatternTest, DetectFlightNumberTest007, TestSize.Level1)
+{
+    const std::set<Pattern> patternsToCheck = { Pattern::FLIGHT_NUMBER };
+    PasteData pasteData;
+    auto record = std::make_shared<PasteDataRecord>();
+    std::string utdId = "utd_flight_007";
+    std::string plainText = "CA123456 is too long";
+    auto plainEntry = std::make_shared<PasteDataEntry>(
+        utdId,
+        MIMETYPE_TEXT_PLAIN,
+        plainText
+    );
+    record->AddEntry(utdId, plainEntry);
+    pasteData.AddRecord(record);
+    std::set<Pattern> result = PatternDetection::Detect(patternsToCheck, pasteData, false, true);
+    ASSERT_EQ(result.count(Pattern::FLIGHT_NUMBER), 0);
+}
+
+/**
+ * @tc.name: DetectHttpLinkTest008
+ * @tc.desc: Test HTTP_URL with valid regex match and length but no dot (invalid)
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardPatternTest, DetectHttpLinkTest008, TestSize.Level1)
+{
+    const std::set<Pattern> patternsToCheck = { Pattern::HTTP_URL };
+    PasteData pasteData;
+    auto record = std::make_shared<PasteDataRecord>();
+    std::string utdId = "utd_http_008";
+    std::string plainText = "https://examplecom";
+    auto plainEntry = std::make_shared<PasteDataEntry>(
+        utdId,
+        MIMETYPE_TEXT_PLAIN,
+        plainText
+    );
+    record->AddEntry(utdId, plainEntry);
+    pasteData.AddRecord(record);
+    std::set<Pattern> result = PatternDetection::Detect(patternsToCheck, pasteData, false, true);
+    ASSERT_EQ(result.count(Pattern::HTTP_URL), 1);
+}
+
+/**
+ * @tc.name: DetectMixedPatternsTest001
+ * @tc.desc: Test multiple patterns with only some matching
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardPatternTest, DetectMixedPatternsTest001, TestSize.Level1)
+{
+    const std::set<Pattern> patternsToCheck = { Pattern::HTTP_URL, Pattern::FLIGHT_NUMBER, Pattern::URL };
+    PasteData pasteData;
+    auto record = std::make_shared<PasteDataRecord>();
+    std::string utdId = "utd_mixed_002";
+    std::string plainText = "Visit htp://example.com and no valid http links or flight numbers";
+    auto plainEntry = std::make_shared<PasteDataEntry>(
+        utdId,
+        MIMETYPE_TEXT_PLAIN,
+        plainText
+    );
+    record->AddEntry(utdId, plainEntry);
+    pasteData.AddRecord(record);
+    std::set<Pattern> result = PatternDetection::Detect(patternsToCheck, pasteData, false, true);
+    ASSERT_EQ(result.count(Pattern::HTTP_URL), 0);
+    ASSERT_EQ(result.count(Pattern::FLIGHT_NUMBER), 0);
+    ASSERT_EQ(result.count(Pattern::URL), 1);
+}
+
+/**
+ * @tc.name: DetectHttpLinkTest009
+ * @tc.desc: Test HTTP_URL with http:// protocol
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardPatternTest, DetectHttpLinkTest009, TestSize.Level1)
+{
+    const std::set<Pattern> patternsToCheck = { Pattern::HTTP_URL };
+    PasteData pasteData;
+    auto record = std::make_shared<PasteDataRecord>();
+    std::string utdId = "utd_http_009";
+    std::string plainText = "http://example.com";
+    auto plainEntry = std::make_shared<PasteDataEntry>(
+        utdId,
+        MIMETYPE_TEXT_PLAIN,
+        plainText
+    );
+    record->AddEntry(utdId, plainEntry);
+    pasteData.AddRecord(record);
+    std::set<Pattern> result = PatternDetection::Detect(patternsToCheck, pasteData, false, true);
+    ASSERT_EQ(result.count(Pattern::HTTP_URL), 1);
+}
+
+/**
+ * @tc.name: DetectFlightNumberTest008
+ * @tc.desc: Test FLIGHT_NUMBER with too short (4 chars, invalid)
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardPatternTest, DetectFlightNumberTest008, TestSize.Level1)
+{
+    const std::set<Pattern> patternsToCheck = { Pattern::FLIGHT_NUMBER };
+    PasteData pasteData;
+    auto record = std::make_shared<PasteDataRecord>();
+    std::string utdId = "utd_flight_008";
+    std::string plainText = "CA12";
+    auto plainEntry = std::make_shared<PasteDataEntry>(
+        utdId,
+        MIMETYPE_TEXT_PLAIN,
+        plainText
+    );
+    record->AddEntry(utdId, plainEntry);
+    pasteData.AddRecord(record);
+    std::set<Pattern> result = PatternDetection::Detect(patternsToCheck, pasteData, false, true);
+    ASSERT_EQ(result.count(Pattern::FLIGHT_NUMBER), 0);
+}
+
+/**
+ * @tc.name: DetectFlightNumberTest009
+ * @tc.desc: Test FLIGHT_NUMBER with too long (8 chars, invalid)
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardPatternTest, DetectFlightNumberTest009, TestSize.Level1)
+{
+    const std::set<Pattern> patternsToCheck = { Pattern::FLIGHT_NUMBER };
+    PasteData pasteData;
+    auto record = std::make_shared<PasteDataRecord>();
+    std::string utdId = "utd_flight_009";
+    std::string plainText = "CA123456A";
+    auto plainEntry = std::make_shared<PasteDataEntry>(
+        utdId,
+        MIMETYPE_TEXT_PLAIN,
+        plainText
+    );
+    record->AddEntry(utdId, plainEntry);
+    pasteData.AddRecord(record);
+    std::set<Pattern> result = PatternDetection::Detect(patternsToCheck, pasteData, false, true);
+    ASSERT_EQ(result.count(Pattern::FLIGHT_NUMBER), 0);
+}
+
+/**
+ * @tc.name: DetectFlightNumberTest010
+ * @tc.desc: Test FLIGHT_NUMBER with invalid format (3 letters)
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardPatternTest, DetectFlightNumberTest010, TestSize.Level1)
+{
+    const std::set<Pattern> patternsToCheck = { Pattern::FLIGHT_NUMBER };
+    PasteData pasteData;
+    auto record = std::make_shared<PasteDataRecord>();
+    std::string utdId = "utd_flight_010";
+    std::string plainText = "ABC123";
+    auto plainEntry = std::make_shared<PasteDataEntry>(
+        utdId,
+        MIMETYPE_TEXT_PLAIN,
+        plainText
+    );
+    record->AddEntry(utdId, plainEntry);
+    pasteData.AddRecord(record);
+    std::set<Pattern> result = PatternDetection::Detect(patternsToCheck, pasteData, false, true);
+    ASSERT_EQ(result.count(Pattern::FLIGHT_NUMBER), 0);
+}
+
+/**
+ * @tc.name: DetectFlightNumberTest011
+ * @tc.desc: Test FLIGHT_NUMBER with invalid format (2 digits)
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardPatternTest, DetectFlightNumberTest011, TestSize.Level1)
+{
+    const std::set<Pattern> patternsToCheck = { Pattern::FLIGHT_NUMBER };
+    PasteData pasteData;
+    auto record = std::make_shared<PasteDataRecord>();
+    std::string utdId = "utd_flight_011";
+    std::string plainText = "12A123";
+    auto plainEntry = std::make_shared<PasteDataEntry>(
+        utdId,
+        MIMETYPE_TEXT_PLAIN,
+        plainText
+    );
+    record->AddEntry(utdId, plainEntry);
+    pasteData.AddRecord(record);
+    std::set<Pattern> result = PatternDetection::Detect(patternsToCheck, pasteData, false, true);
+    ASSERT_EQ(result.count(Pattern::FLIGHT_NUMBER), 0);
+}
+
+/**
+ * @tc.name: DetectFlightNumberTest012
+ * @tc.desc: Test FLIGHT_NUMBER with 2 letters + 3 digits + 1 letter (6 chars, lowercase)
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardPatternTest, DetectFlightNumberTest012, TestSize.Level1)
+{
+    const std::set<Pattern> patternsToCheck = { Pattern::FLIGHT_NUMBER };
+    PasteData pasteData;
+    auto record = std::make_shared<PasteDataRecord>();
+    std::string utdId = "utd_flight_012";
+    std::string plainText = "ca123a booking";
+    auto plainEntry = std::make_shared<PasteDataEntry>(
+        utdId,
+        MIMETYPE_TEXT_PLAIN,
+        plainText
+    );
+    record->AddEntry(utdId, plainEntry);
+    pasteData.AddRecord(record);
+    std::set<Pattern> result = PatternDetection::Detect(patternsToCheck, pasteData, false, true);
+    ASSERT_EQ(result.count(Pattern::FLIGHT_NUMBER), 0);
+}
+
+/**
+ * @tc.name: DetectHttpLinkTest010
+ * @tc.desc: Test HTTP_URL with single character after protocol (http://s)
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardPatternTest, DetectHttpLinkTest010, TestSize.Level1)
+{
+    const std::set<Pattern> patternsToCheck = { Pattern::HTTP_URL };
+    PasteData pasteData;
+    auto record = std::make_shared<PasteDataRecord>();
+    std::string utdId = "utd_http_010";
+    std::string plainText = "http://s";
+    auto plainEntry = std::make_shared<PasteDataEntry>(
+        utdId,
+        MIMETYPE_TEXT_PLAIN,
+        plainText
+    );
+    record->AddEntry(utdId, plainEntry);
+    pasteData.AddRecord(record);
+    std::set<Pattern> result = PatternDetection::Detect(patternsToCheck, pasteData, false, true);
+    ASSERT_EQ(result.count(Pattern::HTTP_URL), 1);
+}
+
+/**
+ * @tc.name: DetectHttpLinkTest011
+ * @tc.desc: Test HTTP_URL with single character after protocol (https://s)
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardPatternTest, DetectHttpLinkTest011, TestSize.Level1)
+{
+    const std::set<Pattern> patternsToCheck = { Pattern::HTTP_URL };
+    PasteData pasteData;
+    auto record = std::make_shared<PasteDataRecord>();
+    std::string utdId = "utd_http_011";
+    std::string plainText = "https://s";
+    auto plainEntry = std::make_shared<PasteDataEntry>(
+        utdId,
+        MIMETYPE_TEXT_PLAIN,
+        plainText
+    );
+    record->AddEntry(utdId, plainEntry);
+    pasteData.AddRecord(record);
+    std::set<Pattern> result = PatternDetection::Detect(patternsToCheck, pasteData, false, true);
+    ASSERT_EQ(result.count(Pattern::HTTP_URL), 1);
+}
+
+/**
+ * @tc.name: DetectHttpLinkTest012
+ * @tc.desc: Test HTTP_URL with single digit after protocol (http://1)
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardPatternTest, DetectHttpLinkTest012, TestSize.Level1)
+{
+    const std::set<Pattern> patternsToCheck = { Pattern::HTTP_URL };
+    PasteData pasteData;
+    auto record = std::make_shared<PasteDataRecord>();
+    std::string utdId = "utd_http_012";
+    std::string plainText = "http://1";
+    auto plainEntry = std::make_shared<PasteDataEntry>(
+        utdId,
+        MIMETYPE_TEXT_PLAIN,
+        plainText
+    );
+    record->AddEntry(utdId, plainEntry);
+    pasteData.AddRecord(record);
+    std::set<Pattern> result = PatternDetection::Detect(patternsToCheck, pasteData, false, true);
+    ASSERT_EQ(result.count(Pattern::HTTP_URL), 1);
+}
 } // namespace OHOS::MiscServices

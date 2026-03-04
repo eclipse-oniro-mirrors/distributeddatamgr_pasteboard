@@ -22,14 +22,21 @@
 #include "pasteboard_pattern.h"
 
 namespace OHOS::MiscServices {
+
+constexpr int32_t MIN_HTTP_URL_LENGTH = 7;
+constexpr int32_t MIN_FLIGHT_NUMBER_LENGTH = 5;
+constexpr int32_t MAX_FLIGHT_NUMBER_LENGTH = 7;
+
 std::map<uint32_t, std::string> PatternDetection::patterns_{
     { static_cast<uint32_t>(Pattern::URL), std::string("[a-zA-Z0-9+.-]+://[-a-zA-Z0-9+&@#/%?"
                                                        "=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_]") },
     { static_cast<uint32_t>(Pattern::NUMBER), std::string("[-+]?[0-9]*\\.?[0-9]+") },
     { static_cast<uint32_t>(Pattern::EMAIL_ADDRESS), std::string("(([a-zA-Z0-9_\\-\\.\\%\\+]+)@"
-                                                                "(([a-zA-Z0-9\\-]+(?:\\.[a-zA-Z0-9\\-]+)*)|"
-                                                                "(?:\\[([0-9]{1,3}\\.){3}[0-9]{1,3}\\]))"
-                                                                "([a-zA-Z]{1,}|[0-9]{1,3}))") },
+                                                                 "(([a-zA-Z0-9\\-]+(?:\\.[a-zA-Z0-9\\-]+)*)|"
+                                                                 "(?:\\[([0-9]{1,3}\\.){3}[0-9]{1,3}\\]))"
+                                                                 "([a-zA-Z]{1,}|[0-9]{1,3}|\\.[a-zA-Z0-9\\-]+))") },
+    { static_cast<uint32_t>(Pattern::HTTP_URL), std::string("https?://[^\\s]+") },
+    { static_cast<uint32_t>(Pattern::FLIGHT_NUMBER), std::string("\\b([A-Z]{2}|[0-9][A-Z])\\d{3,4}[A-Z]?\\b") },
 };
 
 const std::set<Pattern> PatternDetection::Detect(
@@ -66,7 +73,25 @@ void PatternDetection::DetectPlainText(
             continue;
         }
         std::regex curRegex(it->second);
-        if (std::regex_search(plainText, curRegex)) {
+        std::smatch match;
+
+        if (!std::regex_search(plainText, match, curRegex)) {
+            continue;
+        }
+
+        std::string matched = match.str();
+        bool isValidPattern = false;
+
+        if (pattern == Pattern::HTTP_URL) {
+            isValidPattern = matched.length() >= MIN_HTTP_URL_LENGTH;
+        } else if (pattern == Pattern::FLIGHT_NUMBER) {
+            isValidPattern = (matched.length() >= MIN_FLIGHT_NUMBER_LENGTH &&
+                matched.length() <= MAX_FLIGHT_NUMBER_LENGTH);
+        } else {
+            isValidPattern = true;
+        }
+
+        if (isValidPattern) {
             patternsOut.insert(pattern);
         }
     }
