@@ -83,6 +83,9 @@ PasteData::PasteData(const PasteData &data)
 { // LCOV_EXCL_START
     this->props_ = data.props_;
     for (const auto &item : data.records_) {
+        if (item == nullptr) {
+            continue;
+        }
         this->records_.emplace_back(std::make_shared<PasteDataRecord>(*item));
     }
 } // LCOV_EXCL_STOP
@@ -116,6 +119,9 @@ PasteData &PasteData::operator=(const PasteData &data)
     this->deviceId_ = data.deviceId_;
     this->pasteId_ = data.pasteId_;
     for (const auto &item : data.records_) {
+        if (item == nullptr) {
+            continue;
+        }
         this->records_.emplace_back(std::make_shared<PasteDataRecord>(*item));
     }
     this->recordId_ = data.GetRecordId();
