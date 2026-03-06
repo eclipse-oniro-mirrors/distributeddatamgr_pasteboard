@@ -83,7 +83,10 @@ PasteData::PasteData(const PasteData &data)
 { // LCOV_EXCL_START
     this->props_ = data.props_;
     for (const auto &item : data.records_) {
-        PASTEBOARD_CHECK_AND_RETURN_LOGE(item != nullptr, PASTEBOARD_MODULE_CLIENT, "record is null");
+        if (item == nullptr) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CLIENT, "record is null");
+            continue;
+        }
         this->records_.emplace_back(std::make_shared<PasteDataRecord>(*item));
     }
 } // LCOV_EXCL_STOP
