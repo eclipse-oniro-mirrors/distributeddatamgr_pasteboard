@@ -391,6 +391,16 @@ bool PasteData::RemoveRecordAt(std::size_t number)
     }
 } // LCOV_EXCL_STOP
 
+void PasteData::RemoveEmptyEntry()
+{ // LCOV_EXCL_START
+    for (auto &record : records_) {
+        if (record != nullptr) {
+            record->RemoveEmptyEntry();
+        }
+    }
+    RefreshMimeProp();
+} // LCOV_EXCL_STOP
+
 bool PasteData::ReplaceRecordAt(std::size_t number, std::shared_ptr<PasteDataRecord> record)
 { // LCOV_EXCL_START
     if (record == nullptr) {
@@ -403,16 +413,6 @@ bool PasteData::ReplaceRecordAt(std::size_t number, std::shared_ptr<PasteDataRec
     } else {
         return false;
     }
-} // LCOV_EXCL_STOP
-
-void PasteData::RemoveEmptyEntry()
-{ // LCOV_EXCL_START
-    for (auto &record : records_) {
-        if (record != nullptr) {
-            record->RemoveEmptyEntry();
-        }
-    }
-    RefreshMimeProp();
 } // LCOV_EXCL_STOP
 
 bool PasteData::HasMimeType(const std::string &mimeType)

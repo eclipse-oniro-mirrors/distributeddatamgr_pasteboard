@@ -13,12 +13,11 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_FD_SAN_H
-#define OHOS_FD_SAN_H
+#ifndef OHOS_PASTEBOARD_FD_SAN_H
+#define OHOS_PASTEBOARD_FD_SAN_H
 
-#include <stdio.h>
 #include "pasteboard_hilog.h"
 
-#define PASTEBOARD_FD_TAG fdsan_create_owner_tag(FDSAN_OWNER_TYPE_FILE, BASE_PASTEBOARD_DOMAIN_ID)
+#define PASTEBOARD_FD_TAG BASE_PASTEBOARD_DOMAIN_ID
 
-#endif // OHOS_FD_SAN_H
+#endif // OHOS_PASTEBOARD_FD_SAN_H
