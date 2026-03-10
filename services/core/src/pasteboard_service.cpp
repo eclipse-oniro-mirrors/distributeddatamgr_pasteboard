@@ -4580,8 +4580,8 @@ void PasteboardService::CleanDistributedData(int32_t user)
 bool PasteboardService::IsValidCurrentEvent()
 {
     auto expiration = PasteBoardTime::GetBootTimeMs();
-    PASTEBOARD_CHECK_AND_RETURN_RET_LOGD(
-        static_cast<uint64_t>(expiration) < currentEvent_.expiration, false, PASTEBOARD_MODULE_SERVICE, "event is invalid");
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGD(static_cast<uint64_t>(expiration) < currentEvent_.expiration,
+        false, PASTEBOARD_MODULE_SERVICE, "event is invalid");
     return true;
 }
 
