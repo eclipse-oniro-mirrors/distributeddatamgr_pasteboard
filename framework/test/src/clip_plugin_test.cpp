@@ -55,11 +55,6 @@ public:
         (void)data;
         return std::make_pair(0, 0);
     }
-
-    bool IsWiFiEnable() override
-    {
-        return false;
-    }
 };
 
 /**
