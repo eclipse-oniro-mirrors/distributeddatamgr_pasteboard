@@ -4581,7 +4581,7 @@ bool PasteboardService::IsValidCurrentEvent()
 {
     auto expiration = PasteBoardTime::GetBootTimeMs();
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGD(
-        expiration < currentEvent_.expiration, false, PASTEBOARD_MODULE_SERVICE, "event is invalid");
+        static_cast<uint64_t>(expiration) < currentEvent_.expiration, false, PASTEBOARD_MODULE_SERVICE, "event is invalid");
     return true;
 }
 
