@@ -4528,7 +4528,12 @@ void PasteboardService::GenerateDistributedUri(PasteData &data)
                     continue;
                 }
             }
-            auto it = dfsUris.find(item->GetOriginUri()->ToString());
+            auto originUri = item->GetOriginUri();
+            if(originUri == nullptr) {
+                PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CLIENT, "OriginUri is null");
+                continue;
+            }
+            auto it = dfsUris.find(originUri->ToString());
             if (it != dfsUris.end()) {
                 item->SetConvertUri(it->second.uriStr);
                 fileSize += it->second.fileSize;
