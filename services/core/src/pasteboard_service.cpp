@@ -4529,7 +4529,7 @@ void PasteboardService::GenerateDistributedUri(PasteData &data)
                 }
             }
             auto originUri = item->GetOriginUri();
-            if(originUri == nullptr) {
+            if (originUri == nullptr) {
                 PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CLIENT, "OriginUri is null");
                 continue;
             }

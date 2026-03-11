@@ -294,7 +294,7 @@ void FuzzGetPasteData(FuzzedDataProvider &fdp)
 
 void FuzzClear(FuzzedDataProvider &fdp)
 {
-    (void)fdp;
+    fdp.ConsumeBool();
     g_pasteboardService->Clear();
 }
 
@@ -361,7 +361,7 @@ void FuzzIsRemoteData(FuzzedDataProvider &fdp)
 
 void FuzzSyncDelayedData(FuzzedDataProvider &fdp)
 {
-    (void)fdp;
+    fdp.ConsumeBool();
     g_pasteboardService->SyncDelayedData();
 }
 
@@ -494,7 +494,7 @@ void FuzzSetAppShareOptions(FuzzedDataProvider &fdp)
 
 void FuzzRemoveAppShareOptions(FuzzedDataProvider &fdp)
 {
-    (void)fdp;
+    fdp.ConsumeBool();
     g_pasteboardService->RemoveAppShareOptions();
 }
 
@@ -524,7 +524,7 @@ void FuzzPasteComplete(FuzzedDataProvider &fdp)
 
 void FuzzDetachPasteboard(FuzzedDataProvider &fdp)
 {
-    (void)fdp;
+    fdp.ConsumeBool();
     g_pasteboardService->DetachPasteboard();
 }
 
