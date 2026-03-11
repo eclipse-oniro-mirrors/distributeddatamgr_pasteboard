@@ -825,6 +825,7 @@ int32_t PasteboardService::GetRecordValueByType(int64_t &rawDataSize,
         PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(fd >= 0,
             static_cast<int32_t>(PasteboardError::SERIALIZATION_ERROR),
             PASTEBOARD_MODULE_SERVICE, "ashmem create failed");
+        fdsan_exchange_owner_tag(fd, 0, PASTEBOARD_FD_TAG);
         buffer = std::move(entryValueTLV);
     }
 
@@ -1155,10 +1156,11 @@ bool PasteboardService::WriteRawData(const void *data, int64_t size, int &serFd)
         PASTEBOARD_MODULE_SERVICE, "size invalid, size:%{public}" PRId64, size);
 
     int fd = AshmemCreate("WriteRawData Ashmem", size);
-    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(fd >= 0, false, PASTEBOARD_MODULE_SERVICE, "ashmem create failed");
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(fd >= 0, static_cast<int32_t>(PasteboardError::SERIALIZATION_ERROR),
+        PASTEBOARD_MODULE_SERVICE, "ashmem create failed");
+    fdsan_exchange_owner_tag(fd, 0, PASTEBOARD_FD_TAG);
 
     int32_t result = AshmemSetProt(fd, PROT_READ | PROT_WRITE);
-    fdsan_exchange_owner_tag(fd, 0, PASTEBOARD_FD_TAG);
     if (result < 0) {
         fdsan_close_with_tag(fd, PASTEBOARD_FD_TAG);
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "ashmem set prot failed");
@@ -1245,6 +1247,8 @@ int32_t PasteboardService::GetPasteData(int &fd, int64_t &size, std::vector<uint
     int32_t ret = GetPasteDataInner(fd, size, rawData, pasteId, syncTime, ueReportInfo);
     if (fd == -1) {
         fd = AshmemCreate("GetPasteData Ashmem", 1);
+        PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(fd >= 0, false, PASTEBOARD_MODULE_SERVICE, "ashmem create failed");
+        fdsan_exchange_owner_tag(fd, 0, PASTEBOARD_FD_TAG);
     }
     ueReportInfo.ret = (ret == static_cast<int32_t>(PasteboardError::E_OK) ? E_OK_OPERATION : ret);
     ueReportInfo.commonInfo = GetCommonState(size);
@@ -1334,6 +1338,7 @@ int32_t PasteboardService::DealData(int &fd, int64_t &size, std::vector<uint8_t>
         PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(serviceFd >= 0,
             static_cast<int32_t>(PasteboardError::SERIALIZATION_ERROR),
             PASTEBOARD_MODULE_SERVICE, "create fd failed");
+        fdsan_exchange_owner_tag(serviceFd, 0, PASTEBOARD_FD_TAG);
     }
     size = tlvSize;
     fd = serviceFd;
