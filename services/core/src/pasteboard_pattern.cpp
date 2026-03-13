@@ -35,7 +35,7 @@ std::map<uint32_t, std::string> PatternDetection::patterns_{
                                                                  "(([a-zA-Z0-9\\-]+(?:\\.[a-zA-Z0-9\\-]+)*)|"
                                                                  "(?:\\[([0-9]{1,3}\\.){3}[0-9]{1,3}\\]))"
                                                                  "([a-zA-Z]{1,}|[0-9]{1,3}|\\.[a-zA-Z0-9\\-]+))") },
-    { static_cast<uint32_t>(Pattern::HTTP_URL), std::string("https?://[^\\s]+") },
+    { static_cast<uint32_t>(Pattern::HTTP_URL), std::string("(?:^|\\s+)https?://[^\\s]+") },
     { static_cast<uint32_t>(Pattern::FLIGHT_NUMBER), std::string("\\b([A-Z]{2}|[0-9][A-Z])\\d{3,4}[A-Z]?\\b") },
 };
 

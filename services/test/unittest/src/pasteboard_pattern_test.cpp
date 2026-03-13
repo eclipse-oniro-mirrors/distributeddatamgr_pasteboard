@@ -1181,4 +1181,73 @@ HWTEST_F(PasteboardPatternTest, DetectHttpLinkTest012, TestSize.Level1)
     std::set<Pattern> result = PatternDetection::Detect(patternsToCheck, pasteData, false, true);
     ASSERT_EQ(result.count(Pattern::HTTP_URL), 1);
 }
+
+/**
+ * @tc.name: DetectHttpLinkTest013
+ * @tc.desc: Test HTTP_URL with prefix before protocol (invalid)
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardPatternTest, DetectHttpLinkTest013, TestSize.Level1)
+{
+    const std::set<Pattern> patternsToCheck = { Pattern::HTTP_URL };
+    PasteData pasteData;
+    auto record = std::make_shared<PasteDataRecord>();
+    std::string utdId = "utd_http_013";
+    std::string plainText = "ceshihttp://aa.com";
+    auto plainEntry = std::make_shared<PasteDataEntry>(
+        utdId,
+        MIMETYPE_TEXT_PLAIN,
+        plainText
+    );
+    record->AddEntry(utdId, plainEntry);
+    pasteData.AddRecord(record);
+    std::set<Pattern> result = PatternDetection::Detect(patternsToCheck, pasteData, false, true);
+    ASSERT_EQ(result.count(Pattern::HTTP_URL), 0);
+}
+
+/**
+ * @tc.name: DetectHttpLinkTest014
+ * @tc.desc: Test HTTP_URL with space before protocol
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardPatternTest, DetectHttpLinkTest014, TestSize.Level1)
+{
+    const std::set<Pattern> patternsToCheck = { Pattern::HTTP_URL };
+    PasteData pasteData;
+    auto record = std::make_shared<PasteDataRecord>();
+    std::string utdId = "utd_http_014";
+    std::string plainText = "AC1234 http://ac.com";
+    auto plainEntry = std::make_shared<PasteDataEntry>(
+        utdId,
+        MIMETYPE_TEXT_PLAIN,
+        plainText
+    );
+    record->AddEntry(utdId, plainEntry);
+    pasteData.AddRecord(record);
+    std::set<Pattern> result = PatternDetection::Detect(patternsToCheck, pasteData, false, true);
+    ASSERT_EQ(result.count(Pattern::HTTP_URL), 1);
+}
+
+/**
+ * @tc.name: DetectHttpLinkTest015
+ * @tc.desc: Test HTTP_URL with comma before protocol (invalid)
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardPatternTest, DetectHttpLinkTest015, TestSize.Level1)
+{
+    const std::set<Pattern> patternsToCheck = { Pattern::HTTP_URL };
+    PasteData pasteData;
+    auto record = std::make_shared<PasteDataRecord>();
+    std::string utdId = "utd_http_015";
+    std::string plainText = "text,http://example.com";
+    auto plainEntry = std::make_shared<PasteDataEntry>(
+        utdId,
+        MIMETYPE_TEXT_PLAIN,
+        plainText
+    );
+    record->AddEntry(utdId, plainEntry);
+    pasteData.AddRecord(record);
+    std::set<Pattern> result = PatternDetection::Detect(patternsToCheck, pasteData, false, true);
+    ASSERT_EQ(result.count(Pattern::HTTP_URL), 0);
+}
 } // namespace OHOS::MiscServices
