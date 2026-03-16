@@ -4530,15 +4530,10 @@ void PasteboardService::GenerateDistributedUri(PasteData &data)
             if (item->GetOriginUri() == nullptr) {
                 if (!item->GetConvertUri().empty()) {
                     item->SetConvertUri(" ");
-                    continue;
                 }
-            }
-            auto originUri = item->GetOriginUri();
-            if (originUri == nullptr) {
-                PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CLIENT, "OriginUri is null");
                 continue;
             }
-            auto it = dfsUris.find(originUri->ToString());
+            auto it = dfsUris.find(item->GetOriginUri()->ToString());
             if (it != dfsUris.end()) {
                 item->SetConvertUri(it->second.uriStr);
                 fileSize += it->second.fileSize;
