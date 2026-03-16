@@ -26,13 +26,14 @@
 #include "common/pasteboard_common_utils.h"
 #include "system_ability_definition.h"
 #include "system_ability_manager_mock.h"
+#include "pasteboard_hilog.h"
 
 namespace OHOS::MiscServices {
 using namespace OHOS::DistributedDeviceProfile;
 using namespace testing::ext;
 using testing::NiceMock;
 
-constexpr const char *SWITCH_ID = "SwitchStatus_Key_Distributed_Pasteboard";
+constexpr const char *SWITCH_ID = "SwitchSwitchStatus_Key_Distributed_Pasteboard";
 constexpr const char *CHARACTER_ID = "SwitchStatus";
 constexpr const char *SERVICE_ID = "pasteboardService";
 constexpr const char *STATIC_CHARACTER_ID = "static_capability";
@@ -137,8 +138,10 @@ static void TestProfileUpdateCallback(const std::string &udid, bool status)
  */
 HWTEST_F(AdapterDeviceProfileAdapterTest, TestRegisterUpdateCallback001, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestRegisterUpdateCallback001 start");
     int32_t ret = adapter->RegisterUpdateCallback(nullptr);
     EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::INVALID_PARAM_ERROR));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestRegisterUpdateCallback001 end");
 }
 
 /**
@@ -148,8 +151,10 @@ HWTEST_F(AdapterDeviceProfileAdapterTest, TestRegisterUpdateCallback001, TestSiz
  */
 HWTEST_F(AdapterDeviceProfileAdapterTest, TestRegisterUpdateCallback002, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestRegisterUpdateCallback002 start");
     int32_t ret = adapter->RegisterUpdateCallback(TestProfileUpdateCallback);
     EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestRegisterUpdateCallback002 end");
 }
 
 /**
@@ -159,9 +164,11 @@ HWTEST_F(AdapterDeviceProfileAdapterTest, TestRegisterUpdateCallback002, TestSiz
  */
 HWTEST_F(AdapterDeviceProfileAdapterTest, TestPutDeviceStatus001, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestPutDeviceStatus001 start");
     std::string udid = "test_udid_001";
     int32_t ret = adapter->PutDeviceStatus(udid, true);
     EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestPutDeviceStatus001 end");
 }
 
 /**
@@ -171,11 +178,12 @@ HWTEST_F(AdapterDeviceProfileAdapterTest, TestPutDeviceStatus001, TestSize.Level
  */
 HWTEST_F(AdapterDeviceProfileAdapterTest, TestPutDeviceStatus002, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestPutDeviceStatus002 start");
     std::string udid = "test_udid_002";
     g_mockStub->putCharacteristicProfileRet_ = DP_CACHE_EXIST;
     int32_t ret = adapter->PutDeviceStatus(udid, false);
-
     EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestPutDeviceStatus002 end");
 }
 
 /**
@@ -185,10 +193,12 @@ HWTEST_F(AdapterDeviceProfileAdapterTest, TestPutDeviceStatus002, TestSize.Level
  */
 HWTEST_F(AdapterDeviceProfileAdapterTest, TestPutDeviceStatus003, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestPutDeviceStatus003 start");
     std::string udid = "test_udid_003";
     g_mockStub->putCharacteristicProfileRet_ = DP_INVALID_PARAMS;
     int32_t ret = adapter->PutDeviceStatus(udid, true);
     EXPECT_NE(ret, static_cast<int32_t>(PasteboardError::E_OK));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestPutDeviceStatus003 end");
 }
 
 /**
@@ -198,10 +208,12 @@ HWTEST_F(AdapterDeviceProfileAdapterTest, TestPutDeviceStatus003, TestSize.Level
  */
 HWTEST_F(AdapterDeviceProfileAdapterTest, TestPutDeviceStatus004, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestPutDeviceStatus004 start");
     std::string udid = "test_udid_004";
     g_mockStub->putCharacteristicProfileRet_ = DP_DB_ERROR;
     int32_t ret = adapter->PutDeviceStatus(udid, false);
     EXPECT_NE(ret, static_cast<int32_t>(PasteboardError::E_OK));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestPutDeviceStatus004 end");
 }
 
 /**
@@ -211,6 +223,7 @@ HWTEST_F(AdapterDeviceProfileAdapterTest, TestPutDeviceStatus004, TestSize.Level
  */
 HWTEST_F(AdapterDeviceProfileAdapterTest, TestGetDeviceStatus001, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestGetDeviceStatus001 start");
     g_mockStub->mockProfile_.SetDeviceId("test_udid_005");
     g_mockStub->mockProfile_.SetServiceName(SWITCH_ID);
     g_mockStub->mockProfile_.SetCharacteristicKey(CHARACTER_ID);
@@ -221,6 +234,7 @@ HWTEST_F(AdapterDeviceProfileAdapterTest, TestGetDeviceStatus001, TestSize.Level
     int32_t ret = adapter->GetDeviceStatus(udid, status);
     EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
     EXPECT_TRUE(status);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestGetDeviceStatus001 end");
 }
 
 /**
@@ -230,6 +244,7 @@ HWTEST_F(AdapterDeviceProfileAdapterTest, TestGetDeviceStatus001, TestSize.Level
  */
 HWTEST_F(AdapterDeviceProfileAdapterTest, TestGetDeviceStatus002, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestGetDeviceStatus002 start");
     g_mockStub->mockProfile_.SetDeviceId("test_udid_006");
     g_mockStub->mockProfile_.SetServiceName(SWITCH_ID);
     g_mockStub->mockProfile_.SetCharacteristicKey(CHARACTER_ID);
@@ -240,6 +255,7 @@ HWTEST_F(AdapterDeviceProfileAdapterTest, TestGetDeviceStatus002, TestSize.Level
     int32_t ret = adapter->GetDeviceStatus(udid, status);
     EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
     EXPECT_FALSE(status);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestGetDeviceStatus002 end");
 }
 
 /**
@@ -249,6 +265,7 @@ HWTEST_F(AdapterDeviceProfileAdapterTest, TestGetDeviceStatus002, TestSize.Level
  */
 HWTEST_F(AdapterDeviceProfileAdapterTest, TestGetDeviceStatus003, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestGetDeviceStatus003 start");
     g_mockStub->mockProfile_.SetDeviceId("test_udid_007");
     g_mockStub->mockProfile_.SetServiceName(SWITCH_ID);
     g_mockStub->mockProfile_.SetCharacteristicKey(CHARACTER_ID);
@@ -259,6 +276,7 @@ HWTEST_F(AdapterDeviceProfileAdapterTest, TestGetDeviceStatus003, TestSize.Level
     int32_t ret = adapter->GetDeviceStatus(udid, status);
     EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
     EXPECT_FALSE(status);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestGetDeviceStatus003 end");
 }
 
 /**
@@ -268,12 +286,14 @@ HWTEST_F(AdapterDeviceProfileAdapterTest, TestGetDeviceStatus003, TestSize.Level
  */
 HWTEST_F(AdapterDeviceProfileAdapterTest, TestGetDeviceStatus004, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestGetDeviceStatus004 start");
     g_mockStub->getCharacteristicProfileRet_ = DP_INVALID_PARAMS;
 
     std::string udid = "test_udid_008";
     bool status = false;
     int32_t ret = adapter->GetDeviceStatus(udid, status);
     EXPECT_NE(ret, static_cast<int32_t>(PasteboardError::E_OK));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestGetDeviceStatus004 end");
 }
 
 /**
@@ -283,60 +303,14 @@ HWTEST_F(AdapterDeviceProfileAdapterTest, TestGetDeviceStatus004, TestSize.Level
  */
 HWTEST_F(AdapterDeviceProfileAdapterTest, TestGetDeviceStatus005, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestGetDeviceStatus005 start");
     g_mockStub->getCharacteristicProfileRet_ = DP_DB_ERROR;
 
     std::string udid = "test_udid_009";
     bool status = false;
     int32_t ret = adapter->GetDeviceStatus(udid, status);
     EXPECT_NE(ret, static_cast<int32_t>(PasteboardError::E_OK));
-}
-
-HWTEST_F(AdapterDeviceProfileAdapterTest, TestGetDeviceStatus002, TestSize.Level1)
-{
-    g_mockStub->mockProfile_.SetDeviceId("test_udid_006");
-    g_mockStub->mockProfile_.SetServiceName(SWITCH_ID);
-    g_mockStub->mockProfile_.SetCharacteristicKey(CHARACTER_ID);
-    g_mockStub->mockProfile_.SetCharacteristicValue("0");
-
-    std::string udid = "test_udid_006";
-    bool status = true;
-    int32_t ret = adapter->GetDeviceStatus(udid, status);
-    EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
-    EXPECT_FALSE(status);
-}
-
-HWTEST_F(AdapterDeviceProfileAdapterTest, TestGetDeviceStatus003, TestSize.Level1)
-{
-    g_mockStub->mockProfile_.SetDeviceId("test_udid_007");
-    g_mockStub->mockProfile_.SetServiceName(SWITCH_ID);
-    g_mockStub->mockProfile_.SetCharacteristicKey(CHARACTER_ID);
-    g_mockStub->mockProfile_.SetCharacteristicValue("invalid_value");
-
-    std::string udid = "test_udid_007";
-    bool status = true;
-    int32_t ret = adapter->GetDeviceStatus(udid, status);
-    EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
-    EXPECT_FALSE(status);
-}
-
-HWTEST_F(AdapterDeviceProfileAdapterTest, TestGetDeviceStatus004, TestSize.Level1)
-{
-    g_mockStub->getCharacteristicProfileRet_ = DP_INVALID_PARAMS;
-
-    std::string udid = "test_udid_008";
-    bool status = false;
-    int32_t ret = adapter->GetDeviceStatus(udid, status);
-    EXPECT_NE(ret, static_cast<int32_t>(PasteboardError::E_OK));
-}
-
-HWTEST_F(AdapterDeviceProfileAdapterTest, TestGetDeviceStatus005, TestSize.Level1)
-{
-    g_mockStub->getCharacteristicProfileRet_ = DP_DB_ERROR;
-
-    std::string udid = "test_udid_009";
-    bool status = false;
-    int32_t ret = adapter->GetDeviceStatus(udid, status);
-    EXPECT_NE(ret, static_cast<int32_t>(PasteboardError::E_OK));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestGetDeviceStatus005 end");
 }
 
 /**
@@ -346,6 +320,7 @@ HWTEST_F(AdapterDeviceProfileAdapterTest, TestGetDeviceStatus005, TestSize.Level
  */
 HWTEST_F(AdapterDeviceProfileAdapterTest, TestGetDeviceVersion001, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestGetDeviceVersion001 start");
     g_mockStub->mockProfile_.SetDeviceId("test_udid_010");
     g_mockStub->mockProfile_.SetServiceName(SERVICE_ID);
     g_mockStub->mockProfile_.SetCharacteristicKey(STATIC_CHARACTER_ID);
@@ -353,9 +328,10 @@ HWTEST_F(AdapterDeviceProfileAdapterTest, TestGetDeviceVersion001, TestSize.Leve
 
     std::string udid = "test_udid_010";
     uint32_t versionId = 0;
-    bool ret = adapter->GetDeviceVersion(udid, versionId);
+    bool (ret = adapter->GetDeviceVersion(udid, versionId);
     EXPECT_TRUE(ret);
     EXPECT_EQ(versionId, 123);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestGetDeviceVersion001 end");
 }
 
 /**
@@ -365,6 +341,7 @@ HWTEST_F(AdapterDeviceProfileAdapterTest, TestGetDeviceVersion001, TestSize.Leve
  */
 HWTEST_F(AdapterDeviceProfileAdapterTest, TestGetDeviceVersion002, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestGetDeviceVersion002 start");
     g_mockStub->mockProfile_.SetDeviceId("test_udid_011");
     g_mockStub->mockProfile_.SetServiceName(SERVICE_ID);
     g_mockStub->mockProfile_.SetCharacteristicKey(STATIC_CHARACTER_ID);
@@ -375,6 +352,7 @@ HWTEST_F(AdapterDeviceProfileAdapterTest, TestGetDeviceVersion002, TestSize.Leve
     bool ret = adapter->GetDeviceVersion(udid, versionId);
     EXPECT_TRUE(ret);
     EXPECT_EQ(versionId, 0);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestGetDeviceVersion002 end");
 }
 
 /**
@@ -384,6 +362,7 @@ HWTEST_F(AdapterDeviceProfileAdapterTest, TestGetDeviceVersion002, TestSize.Leve
  */
 HWTEST_F(AdapterDeviceProfileAdapterTest, TestGetDeviceVersion003, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestGetDeviceVersion003 start");
     g_mockStub->mockProfile_.SetDeviceId("test_udid_012");
     g_mockStub->mockProfile_.SetServiceName(SERVICE_ID);
     g_mockStub->mockProfile_.SetCharacteristicKey(STATIC_CHARACTER_ID);
@@ -394,6 +373,7 @@ HWTEST_F(AdapterDeviceProfileAdapterTest, TestGetDeviceVersion003, TestSize.Leve
     bool ret = adapter->GetDeviceVersion(udid, versionId);
     EXPECT_TRUE(ret);
     EXPECT_EQ(versionId, 4294967295);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestGetDeviceVersion003 end");
 }
 
 /**
@@ -403,12 +383,14 @@ HWTEST_F(AdapterDeviceProfileAdapterTest, TestGetDeviceVersion003, TestSize.Leve
  */
 HWTEST_F(AdapterDeviceProfileAdapterTest, TestGetDeviceVersion004, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestGetDeviceVersion004 start");
     g_mockStub->getCharacteristicProfileRet_ = DP_INVALID_PARAMS;
 
     std::string udid = "test_udid_013";
     uint32_t versionId = 0;
     bool ret = adapter->GetDeviceVersion(udid, versionId);
     EXPECT_FALSE(ret);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestGetDeviceVersion004 end");
 }
 
 /**
@@ -418,6 +400,7 @@ HWTEST_F(AdapterDeviceProfileAdapterTest, TestGetDeviceVersion004, TestSize.Leve
  */
 HWTEST_F(AdapterDeviceProfileAdapterTest, TestGetDeviceVersion005, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestGetDeviceVersion005 start");
     g_mockStub->mockProfile_.SetDeviceId("test_udid_014");
     g_mockStub->mockProfile_.SetServiceName(SERVICE_ID);
     g_mockStub->mockProfile_.SetCharacteristicKey(STATIC_CHARACTER_ID);
@@ -427,6 +410,7 @@ HWTEST_F(AdapterDeviceProfileAdapterTest, TestGetDeviceVersion005, TestSize.Leve
     uint32_t versionId = 0;
     bool ret = adapter->GetDeviceVersion(udid, versionId);
     EXPECT_FALSE(ret);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestGetDeviceVersion005 end");
 }
 
 /**
@@ -436,6 +420,7 @@ HWTEST_F(AdapterDeviceProfileAdapterTest, TestGetDeviceVersion005, TestSize.Leve
  */
 HWTEST_F(AdapterDeviceProfileAdapterTest, TestGetDeviceVersion006, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestGetDeviceVersion006 start");
     g_mockStub->mockProfile_.SetDeviceId("test_udid_015");
     g_mockStub->mockProfile_.SetServiceName(SERVICE_ID);
     g_mockStub->mockProfile_.SetCharacteristicKey(STATIC_CHARACTER_ID);
@@ -445,6 +430,7 @@ HWTEST_F(AdapterDeviceProfileAdapterTest, TestGetDeviceVersion006, TestSize.Leve
     uint32_t versionId = 0;
     bool ret = adapter->GetDeviceVersion(udid, versionId);
     EXPECT_FALSE(ret);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestGetDeviceVersion006 end");
 }
 
 /**
@@ -454,15 +440,17 @@ HWTEST_F(AdapterDeviceProfileAdapterTest, TestGetDeviceVersion006, TestSize.Leve
  */
 HWTEST_F(AdapterDeviceProfileAdapterTest, TestGetDeviceVersion007, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestGetDeviceVersion007 start");
     g_mockStub->mockProfile_.SetDeviceId("test_udid_016");
     g_mockStub->mockProfile_.SetServiceName(SERVICE_ID);
     g_mockStub->mockProfile_.SetCharacteristicKey(STATIC_CHARACTER_ID);
     g_mockStub->mockProfile_.SetCharacteristicValue("{\"PasteboardVersionId\": \"not_a_number\"}");
 
-    std::string udid = "test_udid_016";
+    std::string uudid = "test_udid_016";
     uint32_t versionId = 0;
     bool ret = adapter->GetDeviceVersion(udid, versionId);
     EXPECT_FALSE(ret);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestGetDeviceVersion007 end");
 }
 
 /**
@@ -472,15 +460,17 @@ HWTEST_F(AdapterDeviceProfileAdapterTest, TestGetDeviceVersion007, TestSize.Leve
  */
 HWTEST_F(AdapterDeviceProfileAdapterTest, TestGetDeviceVersion008, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestGetDeviceVersion008 start");
     g_mockStub->mockProfile_.SetDeviceId("test_udid_017");
     g_mockStub->mockProfile_.SetServiceName(SERVICE_ID);
     g_mockStub->mockProfile_.SetCharacteristicKey(STATIC_CHARACTER_ID);
     g_mockStub->mockProfile_.SetCharacteristicValue("{\"PasteboardVersionId\": -1}");
 
-    std::string udid = "test_udid_017";
+    std::string uudid = "test_udid_017";
     uint32_t versionId = 0;
     bool ret = adapter->GetDeviceVersion(udid, versionId);
     EXPECT_FALSE(ret);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestGetDeviceVersion008 end");
 }
 
 /**
@@ -490,6 +480,7 @@ HWTEST_F(AdapterDeviceProfileAdapterTest, TestGetDeviceVersion008, TestSize.Leve
  */
 HWTEST_F(AdapterDeviceProfileAdapterTest, TestGetDeviceVersion009, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestGetDeviceVersion009 start");
     g_mockStub->mockProfile_.SetDeviceId("test_udid_018");
     g_mockStub->mockProfile_.SetServiceName(SERVICE_ID);
     g_mockStub->mockProfile_.SetCharacteristicKey(STATIC_CHARACTER_ID);
@@ -499,6 +490,7 @@ HWTEST_F(AdapterDeviceProfileAdapterTest, TestGetDeviceVersion009, TestSize.Leve
     uint32_t versionId = 0;
     bool ret = adapter->GetDeviceVersion(udid, versionId);
     EXPECT_FALSE(ret);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestGetDeviceVersion009 end");
 }
 
 /**
@@ -508,6 +500,7 @@ HWTEST_F(AdapterDeviceProfileAdapterTest, TestGetDeviceVersion009, TestSize.Leve
  */
 HWTEST_F(AdapterDeviceProfileAdapterTest, TestGetDeviceVersion010, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestGetDeviceVersion010 start");
     g_mockStub->mockProfile_.SetDeviceId("test_udid_019");
     g_mockStub->mockProfile_.SetServiceName(SERVICE_ID);
     g_mockStub->mockProfile_.SetCharacteristicKey(STATIC_CHARACTER_ID);
@@ -517,6 +510,7 @@ HWTEST_F(AdapterDeviceProfileAdapterTest, TestGetDeviceVersion010, TestSize.Leve
     uint32_t versionId = 0;
     bool ret = adapter->GetDeviceVersion(udid, versionId);
     EXPECT_FALSE(ret);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestGetDeviceVersion010 end");
 }
 
 /**
@@ -526,9 +520,11 @@ HWTEST_F(AdapterDeviceProfileAdapterTest, TestGetDeviceVersion010, TestSize.Leve
  */
 HWTEST_F(AdapterDeviceProfileAdapterTest, TestSubscribeProfileEvent001, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestSubscribeProfileEvent001 start");
     std::string udid = "test_udid_020";
     int32_t ret = adapter->SubscribeProfileEvent(udid);
     EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestSubscribeProfileEvent001 end");
 }
 
 /**
@@ -538,10 +534,12 @@ HWTEST_F(AdapterDeviceProfileAdapterTest, TestSubscribeProfileEvent001, TestSize
  */
 HWTEST_F(AdapterDeviceProfileAdapterTest, TestSubscribeProfileEvent002, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestSubscribeProfileEvent002 start");
     std::string udid = "test_udid_021";
     adapter->SubscribeProfileEvent(udid);
     int32_t ret = adapter->SubscribeProfileEvent(udid);
     EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::INVALID_PARAM_ERROR));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestSubscribeProfileEvent002 end");
 }
 
 /**
@@ -551,11 +549,13 @@ HWTEST_F(AdapterDeviceProfileAdapterTest, TestSubscribeProfileEvent002, TestSize
  */
 HWTEST_F(AdapterDeviceProfileAdapterTest, TestSubscribeProfileEvent003, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestSubscribeProfileEvent003 start");
     g_mockStub->subscribeDeviceProfileRet_ = DP_INVALID_PARAMS;
 
     std::string udid = "test_udid_022";
     int32_t ret = adapter->SubscribeProfileEvent(udid);
     EXPECT_NE(ret, static_cast<int32_t>(PasteboardError::E_OK));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestSubscribeProfileEvent003 end");
 }
 
 /**
@@ -565,11 +565,13 @@ HWTEST_F(AdapterDeviceProfileAdapterTest, TestSubscribeProfileEvent003, TestSize
  */
 HWTEST_F(AdapterDeviceProfileAdapterTest, TestSubscribeProfileEvent004, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestSubscribeProfileEvent004 start");
     g_mockStub->subscribeDeviceProfileRet_ = DP_DB_ERROR;
 
     std::string udid = "test_udid_023";
     int32_t ret = adapter->SubscribeProfileEvent(udid);
     EXPECT_NE(ret, static_cast<int32_t>(PasteboardError::E_OK));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestSubscribeProfileEvent004 end");
 }
 
 /**
@@ -579,10 +581,12 @@ HWTEST_F(AdapterDeviceProfileAdapterTest, TestSubscribeProfileEvent004, TestSize
  */
 HWTEST_F(AdapterDeviceProfileAdapterTest, TestUnSubscribeProfileEvent001, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestUnSubscribeProfileEvent001 start");
     std::string udid = "test_udid_024";
     adapter->SubscribeProfileEvent(udid);
     int32_t ret = adapter->UnSubscribeProfileEvent(udid);
     EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestUnSubscribeProfileEvent001 end");
 }
 
 /**
@@ -592,9 +596,11 @@ HWTEST_F(AdapterDeviceProfileAdapterTest, TestUnSubscribeProfileEvent001, TestSi
  */
 HWTEST_F(AdapterDeviceProfileAdapterTest, TestUnSubscribeProfileEvent002, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestUnSubscribeProfileEvent002 start");
     std::string udid = "test_udid_025";
     int32_t ret = adapter->UnSubscribeProfileEvent(udid);
     EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::INVALID_PARAM_ERROR));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestUnSubscribeProfileEvent002 end");
 }
 
 /**
@@ -604,12 +610,14 @@ HWTEST_F(AdapterDeviceProfileAdapterTest, TestUnSubscribeProfileEvent002, TestSi
  */
 HWTEST_F(AdapterDeviceProfileAdapterTest, TestUnSubscribeProfileEvent003, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestUnSubscribeProfileEvent003 start");
     std::string udid = "test_udid_026";
     adapter->SubscribeProfileEvent(udid);
     g_mockStub->unSubscribeDeviceProfileRet_ = DP_INVALID_PARAMS;
 
     int32_t ret = adapter->UnSubscribeProfileEvent(udid);
     EXPECT_NE(ret, static_cast<int32_t>(PasteboardError::E_OK));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestUnSubscribeProfileEvent003 end");
 }
 
 /**
@@ -619,12 +627,14 @@ HWTEST_F(AdapterDeviceProfileAdapterTest, TestUnSubscribeProfileEvent003, TestSi
  */
 HWTEST_F(AdapterDeviceProfileAdapterTest, TestUnSubscribeProfileEvent004, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestUnSubscribeProfileEvent004 start");
     std::string udid = "test_udid_027";
     adapter->SubscribeProfileEvent(udid);
     g_mockStub->unSubscribeDeviceProfileRet_ = DP_DB_ERROR;
 
     int32_t ret = adapter->UnSubscribeProfileEvent(udid);
-    EXPECT_NE(ret, static_cast<int32_t>(PasteboardError::EOK));
+    EXPECT_NE(ret, static_cast<int32_t>(PasteboardError::E_OK));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestUnSubscribeProfileEvent004 end");
 }
 
 /**
@@ -634,7 +644,9 @@ HWTEST_F(AdapterDeviceProfileAdapterTest, TestUnSubscribeProfileEvent004, TestSi
  */
 HWTEST_F(AdapterDeviceProfileAdapterTest, TestSendSubscribeInfos001, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestSendSubscribeInfos001 start");
     adapter->SendSubscribeInfos();
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestSendSubscribeInfos001 end");
 }
 
 /**
@@ -644,9 +656,11 @@ HWTEST_F(AdapterDeviceProfileAdapterTest, TestSendSubscribeInfos001, TestSize.Le
  */
 HWTEST_F(AdapterDeviceProfileAdapterTest, TestSendSubscribeInfos002, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestSendSubscribeInfos002 start");
     std::string udid = "test_udid_028";
     adapter->SubscribeProfileEvent(udid);
     adapter->SendSubscribeInfos();
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestSendSubscribeInfos002 end");
 }
 
 /**
@@ -656,7 +670,9 @@ HWTEST_F(AdapterDeviceProfileAdapterTest, TestSendSubscribeInfos002, TestSize.Le
  */
 HWTEST_F(AdapterDeviceProfileAdapterTest, TestClearDeviceProfileService001, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestClearDeviceProfileService001 start");
     adapter->ClearDeviceProfileService();
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestClearDeviceProfileService001 end");
 }
 
 /**
@@ -666,11 +682,13 @@ HWTEST_F(AdapterDeviceProfileAdapterTest, TestClearDeviceProfileService001, Test
  */
 HWTEST_F(AdapterDeviceProfileAdapterTest, TestOnProfileUpdateCallback001, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestOnProfileUpdateCallback001 start");
     adapter->RegisterUpdateCallback(TestProfileUpdateCallback);
 
     std::string udid = "test_udid_029";
     adapter->SubscribeProfileEvent(udid);
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestOnProfileUpdateCallback001 end");
 }
 
 /**
@@ -680,9 +698,11 @@ HWTEST_F(AdapterDeviceProfileAdapterTest, TestOnProfileUpdateCallback001, TestSi
  */
 HWTEST_F(AdapterDeviceProfileAdapterTest, TestOnProfileUpdateCallback002, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestOnProfileUpdateCallback002 start");
     std::string udid = "test_udid_030";
     adapter->SubscribeProfileEvent(udid);
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestOnProfileUpdateCallback002 end");
 }
 
 /**
@@ -692,12 +712,14 @@ HWTEST_F(AdapterDeviceProfileAdapterTest, TestOnProfileUpdateCallback002, TestSi
  */
 HWTEST_F(AdapterDeviceProfileAdapterTest, TestOnProfileUpdateCallback003, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestOnProfileUpdateCallback003 start");
     adapter->RegisterUpdateCallback(TestProfileUpdateCallback);
     adapter->RegisterUpdateCallback(TestProfileUpdateCallback);
 
     std::string udid = "test_udid_031";
     adapter->SubscribeProfileEvent(udid);
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestOnProfileUpdateCallback003 end");
 }
 
 /**
@@ -707,6 +729,7 @@ HWTEST_F(AdapterDeviceProfileAdapterTest, TestOnProfileUpdateCallback003, TestSi
  */
 HWTEST_F(AdapterDeviceProfileAdapterTest, TestOnProfileUpdateCallback004, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestOnProfileUpdateCallback004 start");
     adapter->RegisterUpdateCallback(TestProfileUpdateCallback);
 
     std::string udid1 = "test_udid_032";
@@ -714,6 +737,7 @@ HWTEST_F(AdapterDeviceProfileAdapterTest, TestOnProfileUpdateCallback004, TestSi
     adapter->SubscribeProfileEvent(udid1);
     adapter->SubscribeProfileEvent(udid2);
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestOnProfileUpdateCallback004 end");
 }
 
 /**
@@ -723,10 +747,12 @@ HWTEST_F(AdapterDeviceProfileAdapterTest, TestOnProfileUpdateCallback004, TestSi
  */
 HWTEST_F(AdapterDeviceProfileAdapterTest, TestOnProfileUpdateCallback005, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestOnProfileUpdateCallback005 start");
     std::string udid = "test_udid_034";
     adapter->SubscribeProfileEvent(udid);
     adapter->UnSubscribeProfileEvent(udid);
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestOnProfileUpdateCallback005 end");
 }
 
 /**
@@ -736,12 +762,14 @@ HWTEST_F(AdapterDeviceProfileAdapterTest, TestOnProfileUpdateCallback005, TestSi
  */
 HWTEST_F(AdapterDeviceProfileAdapterTest, TestOnProfileUpdateCallback006, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestOnProfileUpdateCallback006 start");
     adapter->RegisterUpdateCallback(TestProfileUpdateCallback);
 
     std::string udid = "test_udid_035";
     adapter->SubscribeProfileEvent(udid);
     adapter->PutDeviceStatus(udid, true);
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestOnProfileUpdateCallback006 end");
 }
 
 /**
@@ -751,12 +779,14 @@ HWTEST_F(AdapterDeviceProfileAdapterTest, TestOnProfileUpdateCallback006, TestSi
  */
 HWTEST_F(AdapterDeviceProfileAdapterTest, TestOnProfileUpdateCallback007, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestOnProfileUpdateCallback007 start");
     adapter->RegisterUpdateCallback(TestProfileUpdateCallback);
 
     std::string udid = "test_udid_036";
     adapter->SubscribeProfileEvent(udid);
     adapter->PutDeviceStatus(udid, false);
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestOnProfileUpdateCallback007 end");
 }
 
 /**
@@ -766,6 +796,7 @@ HWTEST_F(AdapterDeviceProfileAdapterTest, TestOnProfileUpdateCallback007, TestSi
  */
 HWTEST_F(AdapterDeviceProfileAdapterTest, TestOnProfileUpdateCallback008, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestOnProfileUpdateCallback008 start");
     adapter->RegisterUpdateCallback(TestProfileUpdateCallback);
 
     std::string udid = "test_udid_037";
@@ -773,6 +804,7 @@ HWTEST_F(AdapterDeviceProfileAdapterTest, TestOnProfileUpdateCallback008, TestSi
     adapter->PutDeviceStatus(udid, true);
     adapter->PutDeviceStatus(udid, false);
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestOnProfileUpdateCallback008 end");
 }
 
 /**
@@ -782,10 +814,12 @@ HWTEST_F(AdapterDeviceProfileAdapterTest, TestOnProfileUpdateCallback008, TestSi
  */
 HWTEST_F(AdapterDeviceProfileAdapterTest, TestOnProfileUpdateCallback009, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestOnProfileUpdateCallback009 start");
     std::string udid = "test_udid_038";
     adapter->SubscribeProfileEvent(udid);
     adapter->PutDeviceStatus(udid, true);
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestOnProfileUpdateCallback009 end");
 }
 
 /**
@@ -795,12 +829,14 @@ HWTEST_F(AdapterDeviceProfileAdapterTest, TestOnProfileUpdateCallback009, TestSi
  */
 HWTEST_F(AdapterDeviceProfileAdapterTest, TestOnProfileUpdateCallback010, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestOnProfileUpdateCallback010 start");
     adapter->RegisterUpdateCallback(TestProfileUpdateCallback);
 
     std::string udid = "";
     adapter->SubscribeProfileEvent(udid);
     adapter->PutDeviceStatus(udid, true);
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestOnProfileUpdateCallback010 end");
 }
 
 /**
@@ -810,6 +846,7 @@ HWTEST_F(AdapterDeviceProfileAdapterTest, TestOnProfileUpdateCallback010, TestSi
  */
 HWTEST_F(AdapterDeviceProfileAdapterTest, TestOnProfileUpdateCallback011, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestOnProfileUpdateCallback011 start");
     adapter->RegisterUpdateCallback(TestProfileUpdateCallback);
 
     std::string udid = "test_udid_039";
@@ -817,6 +854,7 @@ HWTEST_F(AdapterDeviceProfileAdapterTest, TestOnProfileUpdateCallback011, TestSi
     adapter->UnSubscribeProfileEvent(udid);
     adapter->PutDeviceStatus(udid, true);
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestOnProfileUpdateCallback011 end");
 }
 
 /**
@@ -826,6 +864,7 @@ HWTEST_F(AdapterDeviceProfileAdapterTest, TestOnProfileUpdateCallback011, TestSi
  */
 HWTEST_F(AdapterDeviceProfileAdapterTest, TestOnProfileUpdateCallback012, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestOnProfileUpdateCallback012 start");
     adapter->RegisterUpdateCallback(TestProfileUpdateCallback);
 
     std::string udid = "test_udid_040";
@@ -833,6 +872,7 @@ HWTEST_F(AdapterDeviceProfileAdapterTest, TestOnProfileUpdateCallback012, TestSi
     adapter->SendSubscribeInfos();
     adapter->PutDeviceStatus(udid, true);
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestOnProfileUpdateCallback012 end");
 }
 
 /**
@@ -842,6 +882,7 @@ HWTEST_F(AdapterDeviceProfileAdapterTest, TestOnProfileUpdateCallback012, TestSi
  */
 HWTEST_F(AdapterDeviceProfileAdapterTest, TestOnProfileUpdateCallback013, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestOnProfileUpdateCallback013 start");
     adapter->RegisterUpdateCallback(TestProfileUpdateCallback);
 
     std::string udid = "test_udid_041";
@@ -849,124 +890,7 @@ HWTEST_F(AdapterDeviceProfileAdapterTest, TestOnProfileUpdateCallback013, TestSi
     adapter->PutDeviceStatus(udid, true);
     adapter->SendSubscribeInfos();
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
-}
-
-HWTEST_F(AdapterDeviceProfileAdapterTest, TestOnProfileUpdateCallback002, TestSize.Level1)
-{
-    std::string udid = "test_udid_030";
-    adapter->SubscribeProfileEvent(udid);
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-}
-
-HWTEST_F(AdapterDeviceProfileAdapterTest, TestOnProfileUpdateCallback003, TestSize.Level1)
-{
-    adapter->RegisterUpdateCallback(TestProfileUpdateCallback);
-    adapter->RegisterUpdateCallback(TestProfileUpdateCallback);
-
-    std::string udid = "test_udid_031";
-    adapter->SubscribeProfileEvent(udid);
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-}
-
-HWTEST_F(AdapterDeviceProfileAdapterTest, TestOnProfileUpdateCallback004, TestSize.Level1)
-{
-    adapter->RegisterUpdateCallback(TestProfileUpdateCallback);
-
-    std::string udid1 = "test_udid_032";
-    std::string udid2 = "test_udid_033";
-    adapter->SubscribeProfileEvent(udid1);
-    adapter->SubscribeProfileEvent(udid2);
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-}
-
-HWTEST_F(AdapterDeviceProfileAdapterTest, TestOnProfileUpdateCallback005, TestSize.Level1)
-{
-    std::string udid = "test_udid_034";
-    adapter->SubscribeProfileEvent(udid);
-    adapter->UnSubscribeProfileEvent(udid);
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-}
-
-HWTEST_F(AdapterDeviceProfileAdapterTest, TestOnProfileUpdateCallback006, TestSize.Level1)
-{
-    adapter->RegisterUpdateCallback(TestProfileUpdateCallback);
-
-    std::string udid = "test_udid_035";
-    adapter->SubscribeProfileEvent(udid);
-    adapter->PutDeviceStatus(udid, true);
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-}
-
-HWTEST_F(AdapterDeviceProfileAdapterTest, TestOnProfileUpdateCallback007, TestSize.Level1)
-{
-    adapter->RegisterUpdateCallback(TestProfileUpdateCallback);
-
-    std::string udid = "test_udid_036";
-    adapter->SubscribeProfileEvent(udid);
-    adapter->PutDeviceStatus(udid, false);
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-}
-
-HWTEST_F(AdapterDeviceProfileAdapterTest, TestOnProfileUpdateCallback008, TestSize.Level1)
-{
-    adapter->RegisterUpdateCallback(TestProfileUpdateCallback);
-
-    std::string udid = "test_udid_037";
-    adapter->SubscribeProfileEvent(udid);
-    adapter->PutDeviceStatus(udid, true);
-    adapter->PutDeviceStatus(udid, false);
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-}
-
-HWTEST_F(AdapterDeviceProfileAdapterTest, TestOnProfileUpdateCallback009, TestSize.Level1)
-{
-    std::string udid = "test_udid_038";
-    adapter->SubscribeProfileEvent(udid);
-    adapter->PutDeviceStatus(udid, true);
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-}
-
-HWTEST_F(AdapterDeviceProfileAdapterTest, TestOnProfileUpdateCallback010, TestSize.Level1)
-{
-    adapter->RegisterUpdateCallback(TestProfileUpdateCallback);
-
-    std::string udid = "";
-    adapter->SubscribeProfileEvent(udid);
-    adapter->PutDeviceStatus(udid, true);
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-}
-
-HWTEST_F(AdapterDeviceProfileAdapterTest, TestOnProfileUpdateCallback011, TestSize.Level1)
-{
-    adapter->RegisterUpdateCallback(TestProfileUpdateCallback);
-
-    std::string udid = "test_udid_039";
-    adapter->SubscribeProfileEvent(udid);
-    adapter->UnSubscribeProfileEvent(udid);
-    adapter->PutDeviceStatus(udid, true);
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-}
-
-HWTEST_F(AdapterDeviceProfileAdapterTest, TestOnProfileUpdateCallback012, TestSize.Level1)
-{
-    adapter->RegisterUpdateCallback(TestProfileUpdateCallback);
-
-    std::string udid = "test_udid_040";
-    adapter->SubscribeProfileEvent(udid);
-    adapter->SendSubscribeInfos();
-    adapter->PutDeviceStatus(udid, true);
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-}
-
-HWTEST_F(AdapterDeviceProfileAdapterTest, TestOnProfileUpdateCallback013, TestSize.Level1)
-{
-    adapter->RegisterUpdateCallback(TestProfileUpdateCallback);
-
-    std::string udid = "test_udid_041";
-    adapter->SubscribeProfileEvent(udid);
-    adapter->PutDeviceStatus(udid, true);
-    adapter->SendSubscribeInfos();
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestOnProfileUpdateCallback013 end");
 }
 
 } // namespace OHOS::MiscServices
