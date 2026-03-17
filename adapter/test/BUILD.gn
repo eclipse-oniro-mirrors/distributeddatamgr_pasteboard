@@ -54,8 +54,6 @@ ohos_unittest("AdapterDeviceProfileAdapterTest") {
   include_dirs = [
     "${pasteboard_framework_path}/include",
     "${pasteboard_root_path}/adapter/include",
-    "${pasteboard_root_path}/adapter/test/mock/device_profile",
-    "${pasteboard_root_path}/adapter/test/mock/samgr",
     "${pasteboard_utils_path}/native/include",
   ]
 
@@ -64,9 +62,6 @@ ohos_unittest("AdapterDeviceProfileAdapterTest") {
     "${pasteboard_root_path}/adapter/src/device_profile_adapter.cpp",
     "${pasteboard_root_path}/adapter/src/device_profile_client.cpp",
     "device_profile_adapter_test.cpp",
-    "mock/device_profile/distributed_device_profile_proxy.cpp",
-    "mock/samgr/iservice_registry.cpp",
-    "mock/samgr/system_ability_manager_mock.cpp",
   ]
 
   external_deps = [

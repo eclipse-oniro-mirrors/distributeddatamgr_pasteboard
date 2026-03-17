@@ -19,101 +19,20 @@
 #include <mutex>
 
 #include "device_profile_adapter.h"
-#include "device_profile_client.h"
-#include "distributed_device_profile_errors.h"
-#include "distributed_device_profile_proxy.h"
-#include "iservice_registry.h"
-#include "common/pasteboard_common_utils.h"
-#include "system_ability_definition.h"
-#include "system_ability_manager_mock.h"
 #include "pasteboard_hilog.h"
 
 namespace OHOS::MiscServices {
-using namespace OHOS::DistributedDeviceProfile;
 using namespace testing::ext;
-using testing::NiceMock;
-
-constexpr const char *SWITCH_ID = "SwitchStatus_Key_Distributed_Pasteboard";
-constexpr const char *CHARACTER_ID = "SwitchStatus";
-constexpr const char *SERVICE_ID = "pasteboardService";
-constexpr const char *STATIC_CHARACTER_ID = "static_capability";
-constexpr const char *VERSION_ID = "PasteboardVersionId";
 
 static std::mutex g_callbackMutex;
 static std::string g_callbackUdid;
 static bool g_callbackStatus;
 
-class MockDistributedDeviceProfileStub : public IRemoteStub<IDistributedDeviceProfile> {
-public:
-    int32_t PutCharacteristicProfile(const CharacteristicProfile &characteristicProfile) override
-    {
-        (void)characteristicProfile;
-        return putCharacteristicProfileRet_;
-    }
-
-    int32_t GetCharacteristicProfile(const std::string &deviceId, const std::string &serviceName,
-        const std::string &characteristicId, CharacteristicProfile &characteristicProfile) override
-    {
-        (void)deviceId;
-        (void)serviceName;
-        (void)characteristicId;
-        if (getCharacteristicProfileRet_ != DP_SUCCESS) {
-            return getCharacteristicProfileRet_;
-        }
-        characteristicProfile = mockProfile_;
-        return DP_SUCCESS;
-    }
-
-    int32_t SubscribeDeviceProfile(const SubscribeInfo &subscribeInfo) override
-    {
-        (void)subscribeInfo;
-        return subscribeDeviceProfileRet_;
-    }
-
-    int32_t UnSubscribeDeviceProfile(const SubscribeInfo &subscribeInfo) override
-    {
-        (void)subscribeInfo;
-        return unSubscribeDeviceProfileRet_;
-    }
-
-    int32_t SendSubscribeInfos(std::map<std::string, SubscribeInfo> listenerMap) override
-    {
-        (void)listenerMap;
-        return ERR_OK;
-    }
-
-    int32_t putCharacteristicProfileRet_ = DP_SUCCESS;
-    int32_t getCharacteristicProfileRet_ = DP_SUCCESS;
-    int32_t subscribeDeviceProfileRet_ = DP_SUCCESS;
-    int32_t unSubscribeDeviceProfileRet_ = DP_SUCCESS;
-    CharacteristicProfile mockProfile_;
-};
-
-static sptr<MockDistributedDeviceProfileStub> g_mockStub;
-
 class AdapterDeviceProfileAdapterTest : public testing::Test {
 public:
-    static void SetUpTestCase()
-    {
-        sptr<ISystemAbilityManager> samgr = sptr<SystemAbilityManager>::MakeSptr();
-        SystemAbilityManagerClient::GetInstance().SetSystemAbilityManager(samgr);
-        g_mockStub = new MockDistributedDeviceProfileStub();
-        sptr<IRemoteObject> remoteObject = g_mockStub;
-        DeviceProfileClient::GetInstance().dpProxy_ = iface_cast<IDistributedDeviceProfile>(remoteObject);
-    }
-
-    static void TearDownTestCase()
-    {
-        DeviceProfileClient::GetInstance().ClearDeviceProfileService();
-    }
-
     void SetUp()
     {
         adapter = GetDeviceProfileAdapter();
-        g_mockStub->putCharacteristicProfileRet_ = DP_SUCCESS;
-        g_mockStub->getCharacteristicProfileRet_ = DP_SUCCESS;
-        g_mockStub->subscribeDeviceProfileRet_ = DP_SUCCESS;
-        g_mockStub->unSubscribeDeviceProfileRet_ = DP_SUCCESS;
     }
 
     void TearDown()
