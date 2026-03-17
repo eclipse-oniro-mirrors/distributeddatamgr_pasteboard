@@ -143,9 +143,10 @@ HWTEST_F(AdapterDeviceProfileAdapterTest, TestOnCharacteristicProfileUpdate001, 
 
     std::string udid = "test_udid_001";
     adapter->SubscribeProfileEvent(udid);
-);
     adapter->PutDeviceStatus(udid, true);
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    EXPECT_EQ(g_callbackUdid, udid);
+    EXPECT_EQ(g_callbackStatus, true);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestOnCharacteristicProfileUpdate001 end");
 }
 
@@ -163,6 +164,8 @@ HWTEST_F(AdapterDeviceProfileAdapterTest, TestOnCharacteristicProfileUpdate002, 
     adapter->SubscribeProfileEvent(udid);
     adapter->PutDeviceStatus(udid, false);
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    EXPECT_EQ(g_callbackUdid, udid);
+    EXPECT_EQ(g_callbackStatus, false);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestOnCharacteristicProfileUpdate002 end");
 }
 
@@ -171,13 +174,14 @@ HWTEST_F(AdapterDeviceProfileAdapterTest, TestOnCharacteristicProfileUpdate002, 
  * @tc.desc: test OnCharacteristicProfileUpdate without callback
  * @tc.type: FUNC
  */
-HWTEST_F(AdapterDeviceProfileAdapterTest, TestOnCharacteristic characteristicUpdate003, TestSize.Level1)
+HWTEST_F(AdapterDeviceProfileAdapterTest, TestOnCharacteristicProfileUpdate003, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestOnCharacteristicProfileUpdate003 start");
     std::string udid = "test_udid_003";
     adapter->SubscribeProfileEvent(udid);
     adapter->PutDeviceStatus(udid, true);
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    EXPECT_EQ(g_callbackUdid, "");
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestOnCharacteristicProfileUpdate003 end");
 }
 
@@ -195,6 +199,8 @@ HWTEST_F(AdapterDeviceProfileAdapterTest, TestOnCharacteristicProfileUpdate004, 
     adapter->SubscribeProfileEvent(udid);
     adapter->PutDeviceStatus(udid, true);
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    EXPECT_EQ(g_callbackUdid, udid);
+    EXPECT_EQ(g_callbackStatus, true);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestOnCharacteristicProfileUpdate004 end");
 }
 
@@ -213,6 +219,8 @@ HWTEST_F(AdapterDeviceProfileAdapterTest, TestOnCharacteristicProfileUpdate005, 
     adapter->PutDeviceStatus(udid, true);
     adapter->PutDeviceStatus(udid, false);
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    EXPECT_EQ(g_callbackUdid, udid);
+    EXPECT_EQ(g_callbackStatus, false);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestOnCharacteristicProfileUpdate005 end");
 }
 
