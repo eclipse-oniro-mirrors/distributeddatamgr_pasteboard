@@ -67,10 +67,11 @@ ohos_unittest("AdapterDeviceProfileAdapterTest") {
   external_deps = [
     "cJSON:cjson",
     "c_utils:utils",
-    "device_profile_service:device_profile_service",
-    "googletest:gmock",
+    "device_info_manager:distributed_device_profile_common",
+    "device_info_manager:distributed_device_profile_sdk",
     "hilog:libhilog",
     "ipc:ipc_single",
+    "samgr:samgr_proxy",
   ]
 }
 
