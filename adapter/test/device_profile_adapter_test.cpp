@@ -33,20 +33,23 @@ public:
     void SetUp()
     {
         adapter = GetDeviceProfileAdapter();
+        g_callbackUdid = "";
+        g_callbackStatus = false;
     }
 
     void TearDown()
     {
         DeinitDeviceProfileAdapter();
+        g_onProfileUpdateCallback = nullptr;
     }
 
     IDeviceProfileAdapter *adapter;
 };
 
-static void TestProfileUpdateCallback(const std::string &udid, bool status)
+static void TestProfileUpdateCallback(const std::string &testUdid, bool status)
 {
     std::lock_guard<std::mutex> lock(g_callbackMutex);
-    g_callbackUdid = udid;
+    g_callbackUdid = testUdid;
     g_callbackStatus = status;
 }
 
@@ -141,6 +144,160 @@ HWTEST_F(AdapterDeviceProfileAdapterTest, TestOnCharacteristicProfileUpdate005, 
     EXPECT_EQ(g_callbackUdid, udid);
     EXPECT_EQ(g_callbackStatus, false);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestOnCharacteristicProfileUpdate005 end");
+}
+
+/**
+ * @tc.name: TestOnCharacteristicProfileUpdateDirect001
+ * @tc.desc: test SubscribeDPChangeListener::OnCharacteristicProfileUpdate with callback registered, status true
+ * @tc.type: FUNC
+ */
+HWTEST_F(AdapterDeviceProfileAdapterTest, TestOnCharacteristicProfileUpdateDirect001, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestOnCharacteristicProfileUpdateDirect001 start");
+    adapter->RegisterUpdateCallback(TestProfileUpdateCallback);
+    g_onProfileUpdateCallback = TestProfileUpdateCallback;
+
+    SubscribeDPChangeListener listener;
+    CharacteristicProfile oldProfile;
+    CharacteristicProfile newProfile;
+    newProfile.SetDeviceId("test_device_direct_001");
+    newProfile.SetCharacteristicValue("1");
+
+    int32_t ret = listener.OnCharacteristicProfileUpdate(oldProfile, newProfile);
+    EXPECT_EQ(ret, ERR_OK);
+    
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    EXPECT_EQ(g_callbackUdid, "test_device_direct_001");
+    EXPECT_EQ(g_callbackStatus, true);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestOnCharacteristicProfileUpdateDirect001 end");
+}
+
+/**
+ * @tc.name: TestOnCharacteristicProfileUpdateDirect002
+ * @tc.desc: test SubscribeDPChangeListener::OnCharacteristicProfileUpdate with callback registered, status false
+ * @tc.type: FUNC
+ */
+HWTEST_F(AdapterDeviceProfileAdapterTest, TestOnCharacteristicProfileUpdateDirect002, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestOnCharacteristicProfileUpdateDirect002 start");
+    adapter->RegisterUpdateCallback(TestProfileUpdateCallback);
+    g_onProfileUpdateCallback = TestProfileUpdateCallback;
+
+    SubscribeDPChangeListener listener;
+    CharacteristicProfile oldProfile;
+    CharacteristicProfile newProfile;
+    newProfile.SetDeviceId("test_device_direct_002");
+    newProfile.SetCharacteristicValue("0");
+
+    int32_t ret = listener.OnCharacteristicProfileUpdate(oldProfile, newProfile);
+    EXPECT_EQ(ret, ERR_OK);
+    
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    EXPECT_EQ(g_callbackUdid, "test_device_direct_002");
+    EXPECT_EQ(g_callbackStatus, false);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestOnCharacteristicProfileUpdateDirect002 end");
+}
+
+/**
+ * @tc.name: TestOnCharacteristicProfileUpdateDirect003
+ * @tc.desc: test SubscribeDPChangeListener::OnCharacteristicProfileUpdate without callback registered
+ * @tc.type: FUNC
+ */
+HWTEST_F(AdapterDeviceProfileAdapterTest, TestOnCharacteristicProfileUpdateDirect003, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestOnCharacteristicProfileUpdateDirect003 start");
+    g_onProfileUpdateCallback = nullptr;
+
+    SubscribeDPChangeListener listener;
+    CharacteristicProfile oldProfile;
+    CharacteristicProfile newProfile;
+    newProfile.SetDeviceId("test_device_direct_003");
+    newProfile.SetCharacteristicValue("1");
+
+    int32_t ret = listener.OnCharacteristicProfileUpdate(oldProfile, newProfile);
+    EXPECT_EQ(ret, ERR_OK);
+    
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    EXPECT_EQ(g_callbackUdid, "");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestOnCharacteristicProfileUpdateDirect003 end");
+}
+
+/**
+ * @tc.name: TestOnCharacteristicProfileUpdateDirect004
+ * @tc.desc: test SubscribeDPChangeListener::OnCharacteristicProfileUpdate with empty udid
+ * @tc.type: FUNC
+ */
+HWTEST_F(AdapterDeviceProfileAdapterTest, TestOnCharacteristicProfileUpdateDirect004, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestOnCharacteristicProfileUpdateDirect004 start");
+    adapter->RegisterUpdateCallback(TestProfileUpdateCallback);
+    g_onProfileUpdateCallback = TestProfileUpdateCallback;
+
+    SubscribeDPChangeListener listener;
+    CharacteristicProfile oldProfile;
+    CharacteristicProfile newProfile;
+    newProfile.SetDeviceId("");
+    newProfile.SetCharacteristicValue("1");
+
+    int32_t ret = listener.OnCharacteristicProfileUpdate(oldProfile, newProfile);
+    EXPECT_EQ(ret, ERR_OK);
+    
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    EXPECT_EQ(g_callbackUdid, "");
+    EXPECT_EQ(g_callbackStatus, true);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestOnCharacteristicProfileUpdateDirect004 end");
+}
+
+/**
+ * @tc.name: TestOnCharacteristicProfileUpdateDirect005
+ * @tc.desc: test SubscribeDPChangeListener::OnCharacteristicProfileUpdate with invalid status value
+ * @tc.type: FUNC
+ */
+HWTEST_F(AdapterDeviceProfileAdapterTest, TestOnCharacteristicProfileUpdateDirect005, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestOnCharacteristicProfileUpdateDirect005 start");
+    adapter->RegisterUpdateCallback(TestProfileUpdateCallback);
+    g_onProfileUpdateCallback = TestProfileUpdateCallback;
+
+    SubscribeDPChangeListener listener;
+    CharacteristicProfile oldProfile;
+    CharacteristicProfile newProfile;
+    newProfile.SetDeviceId("test_device_direct_005");
+    newProfile.SetCharacteristicValue("invalid");
+
+    int32_t ret = listener.OnCharacteristicProfileUpdate(oldProfile, newProfile);
+    EXPECT_EQ(ret, ERR_OK);
+    
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    EXPECT_EQ(g_callbackUdid, "test_device_direct_005");
+    EXPECT_EQ(g_callbackStatus, false);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestOnCharacteristicProfileUpdateDirect005 end");
+}
+
+/**
+ * @tc.name: TestOnCharacteristicProfileUpdateDirect006
+ * @tc.desc: test SubscribeDPChangeListener::OnCharacteristicProfileUpdate with empty status value
+ * @tc.type: FUNC
+ */
+HWTEST_F(AdapterDeviceProfileAdapterTest, TestOnCharacteristicProfileUpdateDirect006, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestOnCharacteristicProfileUpdateDirect006 start");
+    adapter->RegisterUpdateCallback(TestProfileUpdateCallback);
+    g_onProfileUpdateCallback = TestProfileUpdateCallback;
+
+    SubscribeDPChangeListener listener;
+    CharacteristicProfile oldProfile;
+    CharacteristicProfile newProfile;
+    newProfile.SetDeviceId("test_device_direct_006");
+    newProfile.SetCharacteristicValue("");
+
+    int32_t ret = listener.OnCharacteristicProfileUpdate(oldProfile, newProfile);
+    EXPECT_EQ(ret, ERR_OK);
+    
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    EXPECT_EQ(g_callbackUdid, "test_device_direct_006");
+    EXPECT_EQ(g_callbackStatus, false);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestOnCharacteristicProfileUpdateDirect006 end");
 }
 
 } // namespace OHOS::MiscServices
