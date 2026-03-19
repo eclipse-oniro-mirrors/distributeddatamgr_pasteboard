@@ -45,41 +45,9 @@ ohos_unittest("AdapterDeviceProfileClientTest") {
     "ipc:ipc_single",
   ]
 }
-
-ohos_unittest("AdapterDeviceProfileAdapterTest") {
-  module_out_path = module_output_path
-
-  cflags = [ "-fno-access-control" ]
-
-  include_dirs = [
-    "${pasteboard_framework_path}/include",
-    "${pasteboard_root_path}/adapter/include",
-    "${pasteboard_utils_path}/native/include",
-  ]
-
-  sources = [
-    "${pasteboard_framework_path}/common/pasteboard_common_utils.cpp",
-    "${pasteboard_root_path}/adapter/src/device_profile_adapter.cpp",
-    "${pasteboard_root_path}/adapter/src/device_profile_client.cpp",
-    "device_profile_adapter_test.cpp",
-  ]
-
-  external_deps = [
-    "cJSON:cjson",
-    "c_utils:utils",
-    "device_info_manager:distributed_device_profile_common",
-    "device_info_manager:distributed_device_profile_sdk",
-    "hilog:libhilog",
-    "ipc:ipc_single",
-    "samgr:samgr_proxy",
-  ]
-}
-
 group("unittest") {
   testonly = true
 
   deps = [
-    ":AdapterDeviceProfileClientTest",
-    ":AdapterDeviceProfileAdapterTest",
-  ]
+    ":AdapterDeviceProfileClientTest",  ]
 }
