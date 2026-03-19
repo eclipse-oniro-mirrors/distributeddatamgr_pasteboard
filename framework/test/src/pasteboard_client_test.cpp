@@ -26,6 +26,8 @@ using namespace testing;
 using namespace OHOS::Media;
 constexpr const uid_t EDM_UID = 3057;
 constexpr int32_t PERCENTAGE = 70;
+constexpr uint32_t HAS_DATA_TYPE_TIMEOUT = 5000; // 5s
+constexpr uint32_t HAS_DATA_TYPE_WAIT = 100; // 100ms
 using Patterns = std::set<Pattern>;
 
 class PasteboardClientTest : public testing::Test {
@@ -342,6 +344,168 @@ HWTEST_F(PasteboardClientTest, HasDataType004, TestSize.Level0)
     ASSERT_TRUE(ret);
     auto result = PasteboardClient::GetInstance()->HasDataType(MIMETYPE_TEXT_URI);
     ASSERT_FALSE(result);
+}
+
+/**
+ * @tc.name: HasDataTypeWithTimeout001
+ * @tc.desc: data type is MIMETYPE_TEXT_PLAIN with timeout
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(PasteboardClientTest, HasDataTypeWithTimeout001, TestSize.Level0)
+{
+    std::string plainText = "helloWorld";
+    auto newData = PasteboardClient::GetInstance()->CreatePlainTextData(plainText);
+    PasteboardClient::GetInstance()->SetPasteData(*newData);
+    auto ret = PasteboardClient::GetInstance()->HasDataType(MIMETYPE_TEXT_PLAIN, HAS_DATA_TYPE_TIMEOUT);
+    ASSERT_TRUE(ret);
+    auto result = PasteboardClient::GetInstance()->HasDataType(MIMETYPE_TEXT_URI, HAS_DATA_TYPE_TIMEOUT);
+    ASSERT_FALSE(result);
+}
+
+/**
+ * @tc.name: HasDataTypeWithTimeout002
+ * @tc.desc: data type is MIMETYPE_TEXT_HTML with timeout
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(PasteboardClientTest, HasDataTypeWithTimeout002, TestSize.Level0)
+{
+    std::string htmlText = "<div class='disable'>helloWorld</div>";
+    auto newPasteData = PasteboardClient::GetInstance()->CreateHtmlData(htmlText);
+    PasteboardClient::GetInstance()->SetPasteData(*newPasteData);
+    auto ret = PasteboardClient::GetInstance()->HasDataType(MIMETYPE_TEXT_HTML, HAS_DATA_TYPE_TIMEOUT);
+    ASSERT_TRUE(ret);
+    auto result = PasteboardClient::GetInstance()->HasDataType(MIMETYPE_TEXT_PLAIN, HAS_DATA_TYPE_TIMEOUT);
+    ASSERT_FALSE(result);
+}
+
+/**
+ * @tc.name: HasDataTypeWithTimeout003
+ * @tc.desc: data type is MIMETYPE_TEXT_URI with timeout
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(PasteboardClientTest, HasDataTypeWithTimeout003, TestSize.Level0)
+{
+    OHOS::Uri uri("uri");
+    auto newPasteData = PasteboardClient::GetInstance()->CreateUriData(uri);
+    PasteboardClient::GetInstance()->SetPasteData(*newPasteData);
+    auto ret = PasteboardClient::GetInstance()->HasDataType(MIMETYPE_TEXT_URI, HAS_DATA_TYPE_TIMEOUT);
+    ASSERT_TRUE(ret);
+    auto result = PasteboardClient::GetInstance()->HasDataType(MIMETYPE_TEXT_PLAIN, HAS_DATA_TYPE_TIMEOUT);
+    ASSERT_FALSE(result);
+}
+
+/**
+ * @tc.name: HasDataTypeWithTimeout004
+ * @tc.desc: data type is MIMETYPE_PIXELMAP with timeout
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(PasteboardClientTest, HasDataTypeWithTimeout004, TestSize.Level0)
+{
+    uint32_t color[100] = { 3, 7, 9, 9, 7, 6 };
+    InitializationOptions opts = { { 5, 7 }, PixelFormat::ARGB_8888 };
+    std::unique_ptr<PixelMap> pixelMap = PixelMap::Create(color, sizeof(color) / sizeof(color[0]), opts);
+    std::shared_ptr<PixelMap> pixelMapIn = move(pixelMap);
+    auto newPasteData = PasteboardClient::GetInstance()->CreatePixelMapData(pixelMapIn);
+    PasteboardClient::GetInstance()->SetPasteData(*newPasteData);
+    auto ret = PasteboardClient::GetInstance()->HasDataType(MIMETYPE_PIXELMAP, HAS_DATA_TYPE_TIMEOUT);
+    ASSERT_TRUE(ret);
+    auto result = PasteboardClient::GetInstance()->HasDataType(MIMETYPE_TEXT_URI, HAS_DATA_TYPE_TIMEOUT);
+    ASSERT_FALSE(result);
+}
+
+/**
+ * @tc.name: HasDataTypeWithCallback001
+ * @tc.desc: data type is MIMETYPE_TEXT_PLAIN with callback
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(PasteboardClientTest, HasDataTypeWithCallback001, TestSize.Level0)
+{
+    std::string plainText = "helloWorld";
+    auto newData = PasteboardClient::GetInstance()->CreatePlainTextData(plainText);
+    PasteboardClient::GetInstance()->SetPasteData(*newData);
+
+    auto callbackResult = std::make_shared<bool>(false);
+    PasteboardClient::GetInstance()->HasDataType(MIMETYPE_TEXT_PLAIN, [callbackResult](bool result) {
+        *callbackResult = result;
+    });
+    std::this_thread::sleep_for(std::chrono::milliseconds(HAS_DATA_TYPE_WAIT));
+    ASSERT_TRUE(*callbackResult);
+}
+
+/**
+ * @tc.name: HasDataTypeWithCallback002
+ * @tc.desc: data type is MIMETYPE_TEXT_HTML with callback
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(PasteboardClientTest, HasDataTypeWithCallback002, TestSize.Level0)
+{
+    std::string htmlText = "<div class='disable'>helloWorld</div>";
+    auto newPasteData = PasteboardClient::GetInstance()->CreateHtmlData(htmlText);
+    PasteboardClient::GetInstance()->SetPasteData(*newPasteData);
+
+    auto callbackResult = std::make_shared<bool>(false);
+    PasteboardClient::GetInstance()->HasDataType(MIMETYPE_TEXT_HTML, [callbackResult](bool result) {
+        *callbackResult = result;
+    });
+    std::this_thread::sleep_for(std::chrono::milliseconds(HAS_DATA_TYPE_WAIT));
+    ASSERT_TRUE(*callbackResult);
+}
+
+/**
+ * @tc.name: HasDataTypeWithCallback003
+ * @tc.desc: data type is MIMETYPE_TEXT_URI with callback
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(PasteboardClientTest, HasDataTypeWithCallback003, TestSize.Level0)
+{
+    OHOS::Uri uri("uri");
+    auto newPasteData = PasteboardClient::GetInstance()->CreateUriData(uri);
+    PasteboardClient::GetInstance()->SetPasteData(*newPasteData);
+
+    auto callbackResult = std::make_shared<bool>(false);
+    PasteboardClient::GetInstance()->HasDataType(MIMETYPE_TEXT_URI, [callbackResult](bool result) {
+        *callbackResult = result;
+    });
+    std::this_thread::sleep_for(std::chrono::milliseconds(HAS_DATA_TYPE_WAIT));
+    ASSERT_TRUE(*callbackResult);
+}
+
+/**
+ * @tc.name: HasDataTypeWithCallback004
+ * @tc.desc: data type is MIMETYPE_PIXELMAP with callback
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(PasteboardClientTest, HasDataTypeWithCallback004, TestSize.Level0)
+{
+    uint32_t color[100] = { 3, 7, 9, 9, 7, 6 };
+    InitializationOptions opts = { { 5, 7 }, PixelFormat::ARGB_8888 };
+    std::unique_ptr<PixelMap> pixelMap = PixelMap::Create(color, sizeof(color) / sizeof(color[0]), opts);
+    std::shared_ptr<PixelMap> pixelMapIn = move(pixelMap);
+    auto newPasteData = PasteboardClient::GetInstance()->CreatePixelMapData(pixelMapIn);
+    PasteboardClient::GetInstance()->SetPasteData(*newPasteData);
+
+    auto callbackResult = std::make_shared<bool>(false);
+    PasteboardClient::GetInstance()->HasDataType(MIMETYPE_PIXELMAP, [callbackResult](bool result) {
+        *callbackResult = result;
+    });
+    std::this_thread::sleep_for(std::chrono::milliseconds(HAS_DATA_TYPE_WAIT));
+    ASSERT_TRUE(*callbackResult);
 }
 
 /**

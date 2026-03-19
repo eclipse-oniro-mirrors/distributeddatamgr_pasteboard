@@ -18,6 +18,7 @@
 #include <thread>
 #include <regex>
 
+#include "common/block_object.h"
 #include "convert_utils.h"
 #include "fd_san.h"
 #include "ffrt/ffrt_utils.h"
@@ -1087,6 +1088,33 @@ std::vector<std::string> PasteboardClient::GetMimeTypes()
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(ret == ERR_OK, {},
         PASTEBOARD_MODULE_CLIENT, "GetMimeTypes failed, ret=%{public}d", ret);
     return mimeTypes;
+}
+
+bool PasteboardClient::HasDataType(const std::string &mimeType, uint32_t timeout)
+{
+    auto block = std::make_shared<BlockObject<std::shared_ptr<int32_t>>>(timeout);
+    ffrt::submit([block, mimeType]() {
+        bool ret = PasteboardClient::GetInstance()->HasDataType(mimeType);
+        std::shared_ptr<int32_t> value = std::make_shared<int32_t>(ret ? 1 : 0);
+        PASTEBOARD_CHECK_AND_RETURN_LOGE(block != nullptr, PASTEBOARD_MODULE_CLIENT, "block is null");
+        block->SetValue(value);
+        }, {}, {}, ffrt::task_attr().qos(static_cast<int32_t>(ffrt::qos_user_interactive)));
+
+    auto value = block->GetValue();
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(value != nullptr, false, PASTEBOARD_MODULE_CLIENT, "async task timeout");
+    return (*value) == 1;
+}
+
+void PasteboardClient::HasDataType(const std::string &mimeType, std::function<void(bool)> callback)
+{
+    PASTEBOARD_CHECK_AND_RETURN_LOGE(callback != nullptr, PASTEBOARD_MODULE_CLIENT, "callback is null");
+
+    std::thread thread([mimeType, callback] {
+        bool ret = PasteboardClient::GetInstance()->HasDataType(mimeType);
+        PASTEBOARD_CHECK_AND_RETURN_LOGE(callback != nullptr, PASTEBOARD_MODULE_CLIENT, "callback is null");
+        callback(ret);
+    });
+    thread.detach();
 }
 
 bool PasteboardClient::HasDataType(const std::string &mimeType)

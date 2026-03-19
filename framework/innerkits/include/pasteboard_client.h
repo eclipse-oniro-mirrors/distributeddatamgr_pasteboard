@@ -354,10 +354,33 @@ public:
     /**
      * HasDataType
      * @description Check if there is data of the specified type in the pasteboard.
+     * Note: This function may be time-consuming and is not recommended to be called in the main thread or UI thread.
+     * Consider using the overloaded versions with timeout or callback parameters instead.
      * @param std::string mimeType Specified mimetype.
      * @return bool. True exists, false does not exist
      */
     bool HasDataType(const std::string &mimeType);
+
+    /**
+     * HasDataType
+     * @description Check if there is data of the specified type in the pasteboard.
+     * Note: Users should evaluate the reasonable timeout range based on specific scenarios.
+     * Considering the AppFreeze detection, it is recommended to set the timeout parameter not exceeding 5 seconds.
+     * @param std::string mimeType Specified mimetype.
+     * @param uint32_t timeout Maximum waiting time (millisecond).
+     * @return bool. True exists, false does not exist
+     */
+    bool HasDataType(const std::string &mimeType, uint32_t timeout);
+
+    /**
+     * HasDataType
+     * @description Check if there is data of the specified type in the pasteboard.
+     * Note: The callback will be invoked in a new thread.
+     * @param std::string mimeType Specified mimetype.
+     * @param std::function<void(bool)> callback Asynchronous callback.
+     * @return void.
+     */
+    void HasDataType(const std::string &mimeType, std::function<void(bool)> callback);
 
     /**
      * HasUtdType
