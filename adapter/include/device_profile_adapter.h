@@ -20,11 +20,9 @@
 #include <string>
 
 #include "api/visibility.h"
-#include "profile_change_listener_stub.h"
 
 namespace OHOS {
 namespace MiscServices {
-using namespace OHOS::DistributedDeviceProfile;
 
 class IDeviceProfileAdapter {
 public:
@@ -39,29 +37,6 @@ public:
     virtual int32_t UnSubscribeProfileEvent(const std::string &udid) = 0;
     virtual void SendSubscribeInfos() = 0;
     virtual void ClearDeviceProfileService() = 0;
-};
-
-extern IDeviceProfileAdapter::OnProfileUpdateCallback g_onProfileUpdateCallback;
-
-class SubscribeDPChangeListener : public ProfileChangeListenerStub {
-public:
-    SubscribeDPChangeListener() = default;
-    ~SubscribeDPChangeListener() = default;
-
-    int32_t OnTrustDeviceProfileAdd(const TrustDeviceProfile &profile) override;
-    int32_t OnTrustDeviceProfileDelete(const TrustDeviceProfile &profile) override;
-    int32_t OnTrustDeviceProfileUpdate(const TrustDeviceProfile &oldProfile,
-        const TrustDeviceProfile &newProfile) override;
-    int32_t OnDeviceProfileAdd(const DeviceProfile &profile) override;
-    int32_t OnDeviceProfileDelete(const DeviceProfile &profile) override;
-    int32_t OnDeviceProfileUpdate(const DeviceProfile &oldProfile, const DeviceProfile &newProfile) override;
-    int32_t OnServiceProfileAdd(const ServiceProfile &profile) override;
-    int32_t OnServiceProfileDelete(const ServiceProfile &profile) override;
-    int32_t OnServiceProfileUpdate(const ServiceProfile &oldProfile, const ServiceProfile &newProfile) override;
-    int32_t OnCharacteristicProfileAdd(const CharacteristicProfile &profile) override;
-    int32_t OnCharacteristicProfileDelete(const CharacteristicProfile &profile) override;
-    int32_t OnCharacteristicProfileUpdate(const CharacteristicProfile &oldProfile,
-        const CharacteristicProfile &newProfile) override;
 };
 
 extern "C" {
