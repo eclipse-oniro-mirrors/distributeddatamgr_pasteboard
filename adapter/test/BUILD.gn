@@ -27,6 +27,7 @@ ohos_unittest("AdapterDeviceProfileClientTest") {
     "${pasteboard_root_path}/adapter/test/mock/device_profile",
     "${pasteboard_root_path}/adapter/test/mock/samgr",
     "${pasteboard_utils_path}/native/include",
+    "${pasteboard_root_path}/services/common/include",
   ]
 
   sources = [
@@ -45,9 +46,10 @@ ohos_unittest("AdapterDeviceProfileClientTest") {
     "ipc:ipc_single",
   ]
 }
+
 group("unittest") {
   testonly = true
 
   deps = [
-    ":AdapterDeviceProfileClientTest",  ]
+    ":AdapterDeviceProfileClientTest" ]
 }
