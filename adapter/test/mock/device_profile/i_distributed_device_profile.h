@@ -34,11 +34,66 @@ public:
     {
     }
 
+    void SetDeviceId(const std::string &deviceId)
+    {
+        deviceId_ = deviceId;
+    }
+
+    void SetServiceName(const std::string &serviceName)
+    {
+        serviceName_ = serviceName;
+    }
+
+    void SetCharacteristicKey(const std::string &characteristicKey)
+    {
+        characteristicKey_ = characteristicKey;
+    }
+
+    void SetCharacteristicValue(const std::string &characteristicValue)
+    {
+        characteristicValue_ = characteristicValue;
+    }
+
+    std::string GetDeviceId() const
+    {
+        return deviceId_;
+    }
+
+    std::string GetServiceName() const
+    {
+        return serviceName_;
+    }
+
+    std::string GetCharacteristicKey() const
+    {
+        return characteristicKey_;
+    }
+
+    std::string GetCharacteristicValue() const
+    {
+        return characteristicValue_;
+    }
+
 private:
     std::string deviceId_;
     std::string serviceName_;
     std::string characteristicKey_;
     std::string characteristicValue_;
+};
+
+enum class ProfileChangeType {
+    TRUST_PROFILE_ADD = 0,
+    TRUST_PROFILE_CHANGE,
+    TRUST_PROFILE_DELETE,
+    SERVICE_PROFILE_ADD,
+    SERVICE_PROFILE_CHANGE,
+    SERVICE_PROFILE_DELETE,
+    CHAR_PROFILE_ADD,
+    CHAR_PROFILE_CHANGE,
+    CHAR_PROFILE_DELETE,
+    DEVICE_PROFILE_ADD,
+    DEVICE_PROFILE_CHANGE,
+    DEVICE_PROFILE_DELETE,
 };
 
 class SubscribeInfo {
@@ -59,9 +114,37 @@ public:
         return subscribeKey_;
     }
 
+    void SetSaId(int32_t saId)
+    {
+        saId_ = saId;
+    }
+
+    void SetSubscribeKeyKey(const std::string &deviceId, const std::string &serviceName,
+        const std::string &characteristicId, const std::string &characteristicValue)
+    {
+        subscribeKey_ = deviceId + SEPARATOR + serviceName + SEPARATOR + characteristicId + SEPARATOR + characteristicValue;
+    }
+
+    void AddProfileChangeType(ProfileChangeType type)
+    {
+        profileChangeTypes_.push_back(type);
+    }
+
+    void SetListener(const sptr<IRemoteObject> &listener)
+    {
+        listener_ = listener;
+    }
+
+    sptr<IRemoteObject> GetListener() const
+    {
+        return listener_;
+    }
+
 private:
     int32_t saId_ = -1;
     std::string subscribeKey_;
+    std::vector<ProfileChangeType> profileChangeTypes_;
+    sptr<IRemoteObject> listener_;
 };
 
 class IDistributedDeviceProfile : public IRemoteBroker {
