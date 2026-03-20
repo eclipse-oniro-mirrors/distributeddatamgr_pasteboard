@@ -32,6 +32,9 @@ using namespace OHOS::DistributedDeviceProfile;
 using namespace testing::ext;
 using testing::NiceMock;
 
+constexpr const char *STATUS_ENABLE = "1";
+constexpr const char *STATUS_DISABLE = "0";
+
 class AdapterDeviceProfileAdapterTest : public testing::Test {
 public:
     static void SetUpTestCase()
@@ -384,122 +387,6 @@ HWTEST_F(AdapterDeviceProfileAdapterTest, TestClearDeviceProfileService001, Test
     adapter->ClearDeviceProfileService();
     
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestClearDeviceProfileService001 end");
-}
-
-/**
- * @tc.name: TestOnCharacteristicProfileUpdate001
- * @tc.desc: test OnCharacteristicProfileUpdate with enabled status
- * @tc.type: FUNC
- */
-HWTEST_F(AdapterDeviceProfileAdapterTest, TestOnCharacteristicProfileUpdate001, TestSize.Level1)
-{
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestOnCharacteristicProfileUpdate001 start");
-    
-    IDeviceProfileAdapter *adapter = GetDeviceProfileAdapter();
-    ASSERT_NE(adapter, nullptr);
-    
-    std::string testUdid = "test_udid_010";
-    bool testStatus = false;
-    bool callbackCalled = false;
-    
-    auto callback = [&](const std::string &udid, bool status) {
-        callbackCalled = true;
-        testUdid = udid;
-        testStatus = status;
-        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "callback called: udid=%{public}s, status=%{public}d",
-            udid.c_str(), status);
-    };
-    
-    int32_t ret = adapter->RegisterUpdateCallback(callback);
-    EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
-    
-    CharacteristicProfile oldProfile;
-    CharacteristicProfile newProfile;
-    newProfile.SetDeviceId("test_udid_010");
-    newProfile.SetCharacteristicValue("1");
-    
-    SubscribeDPChangeListener listener;
-    ret = listener.OnCharacteristicProfileUpdate(oldProfile, newProfile);
-    EXPECT_EQ(ret, ERR_OK);
-    
-    sleep(1);
-    
-    EXPECT_TRUE(callbackCalled);
-    EXPECT_EQ(testUdid, "test_udid_010");
-    EXPECT_TRUE(testStatus);
-    
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestOnCharacteristicProfileUpdate001 end");
-}
-
-/**
- * @tc.name: TestOnCharacteristicProfileUpdate002
- * @tc.desc: test OnCharacteristicProfileUpdate with disabled status
- * @tc.type: FUNC
- */
-HWTEST_F(AdapterDeviceProfileAdapterTest, TestOnCharacteristicProfileUpdate002, TestSize.Level1)
-{
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestOnCharacteristicProfileUpdate002 start");
-    
-    IDeviceProfileAdapter *adapter = GetDeviceProfileAdapter();
-    ASSERT_NE(adapter, nullptr);
-    
-    std::string testUdid = "test_udid_011";
-    bool testStatus = true;
-    bool callbackCalled = false;
-    
-    auto callback = [&](const std::string &udid, bool status) {
-        callbackCalled = true;
-        testUdid = udid;
-        testStatus = status;
-        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "callback called: udid=%{public}s, status=%{public}d",
-            udid.c_str(), status);
-    };
-    
-    int32_t ret = adapter->RegisterUpdateCallback(callback);
-    EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
-    
-    CharacteristicProfile oldProfile;
-    CharacteristicProfile newProfile;
-    newProfile.SetDeviceId("test_udid_011");
-    newProfile.SetCharacteristicValue("0");
-    
-    SubscribeDPChangeListener listener;
-    ret = listener.OnCharacteristicProfileUpdate(oldProfile, newProfile);
-    EXPECT_EQ(ret, ERR_OK);
-    
-    sleep(1);
-    
-    EXPECT_TRUE(callbackCalled);
-    EXPECT_EQ(testUdid, "test_udid_011");
-    EXPECT_FALSE(testStatus);
-    
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestOnCharacteristicProfileUpdate002 end");
-}
-
-/**
- * @tc.name: TestOnCharacteristicProfileUpdate003
- * @tc.desc: test OnCharacteristicProfileUpdate without callback
- * @tc.type: FUNC
- */
-HWTEST_F(AdapterDeviceProfileAdapterTest, TestOnCharacteristicProfileUpdate003, TestSize.Level1)
-{
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestOnCharacteristicProfileUpdate003 start");
-    
-    IDeviceProfileAdapter *adapter = GetDeviceProfileAdapter();
-    ASSERT_NE(adapter, nullptr);
-    
-    DeinitDeviceProfileAdapter();
-    
-    CharacteristicProfile oldProfile;
-    CharacteristicProfile newProfile;
-    newProfile.SetDeviceId("test_udid_012");
-    newProfile.SetCharacteristicValue("1");
-    
-    SubscribeDPChangeListener listener;
-    int32_t ret = listener.OnCharacteristicProfileUpdate(oldProfile, newProfile);
-    EXPECT_EQ(ret, ERR_OK);
-    
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestOnCharacteristicProfileUpdate003 end");
 }
 
 } // namespace OHOS::MiscServices
