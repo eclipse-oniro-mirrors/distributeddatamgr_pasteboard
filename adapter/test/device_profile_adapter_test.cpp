@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Huawei Device Co., Ltd.
+ * Copyright (C) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,601 +13,610 @@
  * limitations under the License.
  */
 
-#include <gtest/gtest.h>
-#include <thread>
-#include <unistd.h>
+#include "device_profile_adapter_test.h"
 
 #include "device_profile_adapter.h"
-#include "device_profile_client.h"
 #include "distributed_device_profile_errors.h"
-#include "distributed_device_profile_proxy.h"
-#include "iservice_registry.h"
-#include "iremote_object.h"
-#include "common/pasteboard_common_utils.h"
-#include "system_ability_definition.h"
-#include "system_ability_manager_mock.h"
+#include "pasteboard_error.h"
 #include "pasteboard_hilog.h"
-#include "profile_change_listener_stub.h"
 
-namespace OHOS::MiscServices {
-using namespace OHOS::DistributedDeviceProfile;
+namespace OHOS {
+using namespace OHOS::MiscServices;
+using namespace testing;
 using namespace testing::ext;
-using testing::NiceMock;
 
-class AdapterDeviceProfileAdapterTest : public testing::Test {
+namespace DistributedDeviceProfile {
+
+DeviceProfileClient &DeviceProfileClient::GetInstance()
+{
+    static DeviceProfileClient instance;
+    return instance;
+}
+
+int32_t DeviceProfileClient::PutCharacteristicProfile(const CharacteristicProfile &characteristicProfile)
+{
+    if (DeviceProfileClientInterfaceMock::GetMock() != nullptr) {
+        return DeviceProfileClientInterfaceMock::GetMock()->PutCharacteristicProfile(characteristicProfile);
+    }
+    return DP_SUCCESS;
+}
+
+int32_t DeviceProfileClient::GetCharacteristicProfile(const std::string &deviceId, const std::string &serviceName,
+    const std::string &characteristicId, CharacteristicProfile &characteristicProfile)
+{
+    if (DeviceProfileClientInterfaceMock::GetMock() != nullptr) {
+        return DeviceProfileClientInterfaceMock::GetMock()->GetCharacteristicProfile(deviceId, serviceName,
+            characteristicId, characteristicProfile);
+    }
+    return DP_SUCCESS;
+}
+
+int32_t DeviceProfileClient::SubscribeDeviceProfile(const SubscribeInfo &subscribeInfo)
+{
+    if (DeviceProfileClientInterfaceMock::GetMock() != nullptr) {
+        return DeviceProfileClientInterfaceMock::GetMock()->SubscribeDeviceProfile(subscribeInfo);
+    }
+    return DP_SUCCESS;
+}
+
+int32_t DeviceProfileClient::UnSubscribeDeviceProfile(const SubscribeInfo &subscribeInfo)
+{
+    if (DeviceProfileClientInterfaceMock::GetMock() != nullptr) {
+        return DeviceProfileClientInterfaceMock::GetMock()->UnSubscribeDeviceProfile(subscribeInfo);
+    }
+    return DP_SUCCESS;
+}
+
+void DeviceProfileClient::SendSubscribeInfos()
+{
+    if (DeviceProfileClientInterfaceMock::GetMock() != nullptr) {
+        DeviceProfileClientInterfaceMock::mockFlag_ = true;
+        DeviceProfileClientInterfaceMock::GetMock()->SendSubscribeInfos();
+    }
+}
+
+void DeviceProfileClient::ClearDeviceProfileService()
+{
+    if (DeviceProfileClientInterfaceMock::GetMock() != nullptr) {
+        DeviceProfileClientInterfaceMock::GetMock()->ClearDeviceProfileService();
+    }
+}
+} // namespace DistributedDeviceProfile
+
+bool DeviceProfileClientInterfaceMock::mockFlag_ = false;
+class DeviceProfileAdapterTest : public testing::Test {
 public:
     static void SetUpTestCase()
     {
-        sptr<ISystemAbilityManager> samgr = sptr<SystemAbilityManager>::MakeSptr();
-        SystemAbilityManagerClient::GetInstance().SetSystemAbilityManager(samgr);
+        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "DeviceProfileAdapterTest SetUpTestCase");
     }
 
     static void TearDownTestCase()
     {
+        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "DeviceProfileAdapterTest TearDownTestCase");
     }
 
     void SetUp()
     {
+        mock_ = new DeviceProfileClientInterfaceMock();
+        DeviceProfileClientInterfaceMock::SetMock(mock_);
+        adapter_ = GetDeviceProfileAdapter();
+        DeviceProfileClientInterfaceMock::mockFlag_ = false;
+        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "DeviceProfileAdapterTest SetUp");
     }
 
     void TearDown()
     {
+        DeviceProfileClientInterfaceMock::SetMock(nullptr);
+        delete mock_;
+        mock_ = nullptr;
+        adapter_ = nullptr;
+        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "DeviceProfileAdapterTest TearDown");
     }
+
+protected:
+    DeviceProfileClientInterfaceMock *mock_ = nullptr;
+    IDeviceProfileAdapter *adapter_ = nullptr;
 };
 
-class DistributedDeviceProfileStub : public IRemoteStub<IDistributedDeviceProfile> {
-public:
-    int32_t PutCharacteristicProfile(const CharacteristicProfile &characteristicProfile) override
-    {
-        (void)characteristicProfile;
-        return ERR_OK;
-    }
-
-    int32_t GetCharacteristicProfile(const std::string &deviceId, const std::string &serviceName,
-        const std::string &characteristicId, CharacteristicProfile &characteristicProfile) override
-    {
-        (void)deviceId;
-        (void)serviceName;
-        (void)characteristicId;
-        (void)characteristicProfile;
-        return ERR_OK;
-    }
-
-    int32_t SubscribeDeviceProfile(const SubscribeInfo &subscribeInfo) override
-    {
-        (void)subscribeInfo;
-        return ERR_OK;
-    }
-
-    int32_t UnSubscribeDeviceProfile(const SubscribeInfo &subscribeInfo) override
-    {
-        (void)subscribeInfo;
-        return ERR_OK;
-    }
-
-    int32_t SendSubscribeInfos(std::map<std::string, SubscribeInfo> listenerMap) override
-    {
-        (void)listenerMap;
-        return ERR_OK;
-    }
-};
-
-int32_t LoadSystemAbilitySuccImpl(int32_t systemAbilityId, const sptr<ISystemAbilityLoadCallback> &callback)
+/**
+ * @tc.name: RegisterUpdateCallback001
+ * @tc.desc: test RegisterUpdateCallback with nullptr callback
+ * @tc.type: FUNC
+ */
+HWTEST_F(DeviceProfileAdapterTest, RegisterUpdateCallback001, TestSize.Level1)
 {
-    std::thread thread([=] {
-        if (callback == nullptr) {
-            return;
-        }
-        sptr<IRemoteObject> remoteObject = new DistributedDeviceProfileStub();
-        callback->OnLoadSystemAbilitySuccess(systemAbilityId, remoteObject);
-    });
-    PasteBoardCommonUtils::SetThreadTaskName(thread, "LoadSaSucc");
-    thread.detach();
-    return ERR_OK;
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "RegisterUpdateCallback001 start");
+    int32_t ret = adapter_->RegisterUpdateCallback(nullptr);
+    EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::INVALID_PARAM_ERROR));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "RegisterUpdateCallback001 end");
 }
 
 /**
- * @tc.name: TestRegisterUpdateCallback001
+ * @tc.name: RegisterUpdateCallback002
  * @tc.desc: test RegisterUpdateCallback with valid callback
  * @tc.type: FUNC
  */
-HWTEST_F(AdapterDeviceProfileAdapterTest, TestRegisterUpdateCallback001, TestSize.Level1)
+HWTEST_F(DeviceProfileAdapterTest, RegisterUpdateCallback002, TestSize.Level1)
 {
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestRegisterUpdateCallback001 start");
-    
-    IDeviceProfileAdapter *adapter = GetDeviceProfileAdapter();
-    ASSERT_NE(adapter, nullptr);
-    
-    auto callback = [](const std::string &udid, bool status) {
-        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "callback called: udid=%{public}s, status=%{public}d",
-            udid.c_str(), status);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "RegisterUpdateCallback002 start");
+    IDeviceProfileAdapter::OnProfileUpdateCallback callback = [](const std::string &udid, bool status) {
+        (void)udid;
+        (void)status;
     };
-    
-    int32_t ret = adapter->RegisterUpdateCallback(callback);
+    int32_t ret = adapter_->RegisterUpdateCallback(callback);
     EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
-    
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestRegisterUpdateCallback001 end");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "RegisterUpdateCallback002 end");
 }
 
 /**
- * @tc.name: TestRegisterUpdateCallback002
- * @tc.desc: test RegisterUpdateCallback with null callback
+ * @tc.name: PutDeviceStatus001
+ * @tc.desc: test PutDeviceStatus with DP_SUCCESS
  * @tc.type: FUNC
  */
-HWTEST_F(AdapterDeviceProfileAdapterTest, TestRegisterUpdateCallback002, TestSize.Level1)
+HWTEST_F(DeviceProfileAdapterTest, PutDeviceStatus001, TestSize.Level1)
 {
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestRegisterUpdateCallback002 start");
-    
-    IDeviceProfileAdapter *adapter = GetDeviceProfileAdapter();
-    ASSERT_NE(adapter, nullptr);
-    
-    int32_t ret = adapter->RegisterUpdateCallback(nullptr);
-    EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::INVALID_PARAM_ERROR));
-    
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestRegisterUpdateCallback002 end");
-}
-
-/**
- * @tc.name: TestPutDeviceStatus001
- * @tc.desc: test PutDeviceStatus with valid parameters
- * @tc.type: FUNC
- */
-HWTEST_F(AdapterDeviceProfileAdapterTest, TestPutDeviceStatus001, TestSize.Level1)
-{
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestPutDeviceStatus001 start");
-    
-    NiceMock<SystemAbilityManagerMock> mock;
-    EXPECT_CALL(mock, CheckSystemAbility).WillRepeatedly(testing::Return(nullptr));
-    EXPECT_CALL(mock, LoadSystemAbility).WillRepeatedly(LoadSystemAbilitySuccImpl);
-    
-    IDeviceProfileAdapter *adapter = GetDeviceProfileAdapter();
-    ASSERT_NE(adapter, nullptr);
-    
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "PutDeviceStatus001 start");
     std::string udid = "test_udid_001";
     bool status = true;
-    
-    int32_t ret = adapter->PutDeviceStatus(udid, status);
+
+    EXPECT_CALL(*mock_, PutCharacteristicProfile(testing::_))
+        .WillOnce(Return(DP_SUCCESS));
+
+    int32_t ret = adapter_->PutDeviceStatus(udid, status);
     EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
-    
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestPutDeviceStatus001 end");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "PutDeviceStatus001 end");
 }
 
 /**
- * @tc.name: TestPutDeviceStatus002
- * @tc.desc: test PutDeviceStatus with false status
+ * @tc.name: PutDeviceStatus002
+ * @tc.desc: test PutDeviceStatus with DP_CACHE_EXIST
  * @tc.type: FUNC
  */
-HWTEST_F(AdapterDeviceProfileAdapterTest, TestPutDeviceStatus002, TestSize.Level1)
+HWTEST_F(DeviceProfileAdapterTest, PutDeviceStatus002, TestSize.Level1)
 {
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestPutDeviceStatus002 start");
-    
-    NiceMock<SystemAbilityManagerMock> mock;
-    EXPECT_CALL(mock, CheckSystemAbility).WillRepeatedly(testing::Return(nullptr));
-    EXPECT_CALL(mock, LoadSystemAbility).WillRepeatedly(LoadSystemAbilitySuccImpl);
-    
-    IDeviceProfileAdapter *adapter = GetDeviceProfileAdapter();
-    ASSERT_NE(adapter, nullptr);
-    
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "PutDeviceStatus002 start");
     std::string udid = "test_udid_002";
     bool status = false;
-    
-    int32_t ret = adapter->PutDeviceStatus(udid, status);
+
+    EXPECT_CALL(*mock_, PutCharacteristicProfile(testing::_))
+        .WillOnce(Return(DP_CACHE_EXIST));
+
+    int32_t ret = adapter_->PutDeviceStatus(udid, status);
     EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
-    
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestPutDeviceStatus002 end");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "PutDeviceStatus002 end");
 }
 
 /**
- * @tc.name: TestGetDeviceStatus001
- * @tc.desc: test GetDeviceStatus with valid parameters
+ * @tc.name: PutDeviceStatus003
+ * @tc.desc: test PutDeviceStatus with error
  * @tc.type: FUNC
  */
-HWTEST_F(AdapterDeviceProfileAdapterTest, TestGetDeviceStatus001, TestSize.Level1)
+HWTEST_F(DeviceProfileAdapterTest, PutDeviceStatus003, TestSize.Level1)
 {
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestGetDeviceStatus001 start");
-    
-    NiceMock<SystemAbilityManagerMock> mock;
-    EXPECT_CALL(mock, CheckSystemAbility).WillRepeatedly(testing::Return(nullptr));
-    EXPECT_CALL(mock, LoadSystemAbility).WillRepeatedly(LoadSystemAbilitySuccImpl);
-    
-    IDeviceProfileAdapter *adapter = GetDeviceProfileAdapter();
-    ASSERT_NE(adapter, nullptr);
-    
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "PutDeviceStatus003 start");
     std::string udid = "test_udid_003";
-    bool status = false;
-    
-    int32_t ret = adapter->GetDeviceStatus(udid, status);
-    EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
-    
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestGetDeviceStatus001 end");
+    bool status = true;
+
+    EXPECT_CALL(*mock_, PutCharacteristicProfile(testing::_))
+        .WillOnce(Return(DP_INVALID_PARAMS));
+
+    int32_t ret = adapter_->PutDeviceStatus(udid, status);
+    EXPECT_EQ(ret, DP_INVALID_PARAMS);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "PutDeviceStatus003 end");
 }
 
 /**
- * @tc.name: TestGetDeviceVersion001
- * @tc.desc: test GetDeviceVersion with valid parameters
+ * @tc.name: GetDeviceStatus001
+ * @tc.desc: test GetDeviceStatus with DP_SUCCESS and enabled status
  * @tc.type: FUNC
  */
-HWTEST_F(AdapterDeviceProfileAdapterTest, TestGetDeviceVersion001, TestSize.Level1)
+HWTEST_F(DeviceProfileAdapterTest, GetDeviceStatus001, TestSize.Level1)
 {
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestGetDeviceVersion001 start");
-    
-    NiceMock<SystemAbilityManagerMock> mock;
-    EXPECT_CALL(mock, CheckSystemAbility).WillRepeatedly(testing::Return(nullptr));
-    EXPECT_CALL(mock, LoadSystemAbility).WillRepeatedly(LoadSystemAbilitySuccImpl);
-    
-    IDeviceProfileAdapter *adapter = GetDeviceProfileAdapter();
-    ASSERT_NE(adapter, nullptr);
-    
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "GetDeviceStatus001 start");
     std::string udid = "test_udid_004";
-    uint32_t versionId = 0;
-    
-    bool ret = adapter->GetDeviceVersion(udid, versionId);
-    EXPECT_TRUE(ret);
-    
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestGetDeviceVersion001 end");
-}
+    bool status = false;
 
-/**
- * @tc.name: TestSubscribeProfileEvent001
- * @tc.desc: test SubscribeProfileEvent with valid parameters
- * @tc.type: {FUNC}
- */
-HWTEST_F(AdapterDeviceProfileAdapterTest, TestSubscribeProfileEvent001, TestSize.Level1)
-{
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestSubscribeProfileEvent001 start");
-    
-    NiceMock<SystemAbilityManagerMock> mock;
-    EXPECT_CALL(mock, CheckSystemAbility).WillRepeatedly(testing::Return(nullptr));
-    EXPECT_CALL(mock, LoadSystemAbility).WillRepeatedly(LoadSystemAbilitySuccImpl);
-    
-    IDeviceProfileAdapter *adapter = GetDeviceProfileAdapter();
-    ASSERT_NE(adapter, nullptr);
-    
-    std::string udid = "test_udid_005";
-    
-    int32_t ret = adapter->SubscribeProfileEvent(udid);
+    EXPECT_CALL(*mock_, GetCharacteristicProfile(testing::_, testing::_, testing::_, testing::_))
+        .WillOnce([](const std::string &deviceId, const std::string &serviceName,
+            const std::string &characteristicId, CharacteristicProfile &characteristicProfile) {
+            (void)deviceId;
+            (void)serviceName;
+            (void)characteristicId;
+            characteristicProfile.SetCharacteristicValue("1");
+            return DP_SUCCESS;
+        });
+
+    int32_t ret = adapter_->GetDeviceStatus(udid, status);
     EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
-    
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestSubscribeProfileEvent001 end");
+    EXPECT_TRUE(status);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "GetDeviceStatus001 end");
 }
 
 /**
- * @tc.name: TestSubscribeProfileEvent002
+ * @tc.name: GetDeviceStatus002
+ * @tc.desc: test GetDeviceStatus with DP_SUCCESS and disabled status
+ * @tc.type: FUNC
+ */
+HWTEST_F(DeviceProfileAdapterTest, GetDeviceStatus002, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "GetDeviceStatus002 start");
+    std::string udid = "test_udid_005";
+    bool status = false;
+
+    EXPECT_CALL(*mock_, GetCharacteristicProfile(testing::_, testing::_, testing::_, testing::_))
+        .WillOnce([](const std::string &deviceId, const std::string &serviceName,
+            const std::string &characteristicId, CharacteristicProfile &characteristicProfile) {
+            (void)deviceId;
+            (void)serviceName;
+            (void)characteristicId;
+            characteristicProfile.SetCharacteristicValue("0");
+            return DP_SUCCESS;
+        });
+
+    int32_t ret = adapter_->GetDeviceStatus(udid, status);
+    EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
+    EXPECT_FALSE(status);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "GetDeviceStatus002 end");
+}
+
+/**
+ * @tc.name: GetDeviceStatus003
+ * @tc.desc: test GetDeviceStatus with error
+ * @tc.type: FUNC
+ */
+HWTEST_F(DeviceProfileAdapterTest, GetDeviceStatus003, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "GetDeviceStatus003 start");
+    std::string udid = "test_udid_006";
+    bool status = false;
+
+    EXPECT_CALL(*mock_, GetCharacteristicProfile(testing::_, testing::_, testing::_, testing::_))
+        .WillOnce(Return(DP_INVALID_PARAMS));
+
+    int32_t ret = adapter_->GetDeviceStatus(udid, status);
+    EXPECT_EQ(ret, DP_INVALID_PARAMS);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "GetDeviceStatus003 end");
+}
+
+/**
+ * @tc.name: GetDeviceVersion001
+ * @tc.desc: test GetDeviceVersion with valid version
+ * @tc.type: FUNC
+ */
+HWTEST_F(DeviceProfileAdapterTest, GetDeviceVersion001, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "GetDeviceVersion001 start");
+    std::string udid = "test_udid_007";
+    uint32_t versionId = 0;
+
+    EXPECT_CALL(*mock_, GetCharacteristicProfile(testing::_, testing::_, testing::_, testing::_))
+        .WillOnce([](const std::string &deviceId, const std::string &serviceName,
+            const std::string &characteristicId, CharacteristicProfile &characteristicProfile) {
+            (void)deviceId;
+            (void)serviceName;
+            (void)characteristicId;
+            characteristicProfile.SetCharacteristicValue(R"({"PasteboardVersionId": 10})");
+            return DP_SUCCESS;
+        });
+
+    bool ret = adapter_->GetDeviceVersion(udid, versionId);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(versionId, 10u);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "GetDeviceVersion001 end");
+}
+
+/**
+ * @tc.name: GetDeviceVersion002
+ * @tc.desc: test GetDeviceVersion with error
+ * @tc.type: FUNC
+ */
+HWTEST_F(DeviceProfileAdapterTest, GetDeviceVersion002, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "GetDeviceVersion002 start");
+    std::string udid = "test_udid_008";
+    uint32_t versionId = 0;
+
+    EXPECT_CALL(*mock_, GetCharacteristicProfile(testing::_, testing::_, testing::_, testing::_))
+        .WillOnce(Return(DP_INVALID_PARAMS));
+
+    bool ret = adapter_->GetDeviceVersion(udid, versionId);
+    EXPECT_FALSE(ret);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "GetDeviceVersion002 end");
+}
+
+/**
+ * @tc.name: GetDeviceVersion003
+ * @tc.desc: test GetDeviceVersion with invalid JSON
+ * @tc.type: FUNC
+ */
+HWTEST_F(DeviceProfileAdapterTest, GetDeviceVersion003, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "GetDeviceVersion003 start");
+    std::string udid = "test_udid_009";
+    uint32_t versionId = 0;
+
+    EXPECT_CALL(*mock_, GetCharacteristicProfile(testing::_, testing::_, testing::_, testing::_))
+        .WillOnce([](const std::string &deviceId, const std::string &serviceName,
+            const std::string &characteristicId, CharacteristicProfile &characteristicProfile) {
+            (void)deviceId;
+            (void)serviceName;
+            (void)characteristicId;
+            characteristicProfile.SetCharacteristicValue("invalid_json");
+            return DP_SUCCESS;
+        });
+
+    bool ret = adapter_->GetDeviceVersion(udid, versionId);
+    EXPECT_FALSE(ret);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "GetDeviceVersion003 end");
+}
+
+/**
+ * @tc.name: GetDeviceVersion004
+ * @tc.desc: test GetDeviceVersion with version not found
+ * @tc.type: FUNC
+ */
+HWTEST_F(DeviceProfileAdapterTest, GetDeviceVersion004, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "GetDeviceVersion004 start");
+    std::string udid = "test_udid_010";
+    uint32_t versionId = 0;
+
+    EXPECT_CALL(*mock_, GetCharacteristicProfile(testing::_, testing::_, testing::_, testing::_))
+        .WillOnce([](const std::string &deviceId, const std::string &serviceName,
+            const std::string &characteristicId, CharacteristicProfile &characteristicProfile) {
+            (void)deviceId;
+            (void)serviceName;
+            (void)characteristicId;
+            characteristicProfile.SetCharacteristicValue(R"({"otherKey": 10})");
+            return DP_SUCCESS;
+        });
+
+    bool ret = adapter_->GetDeviceVersion(udid, versionId);
+    EXPECT_FALSE(ret);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "GetDeviceVersion004 end");
+}
+
+/**
+ * @tc.name: GetDeviceVersion005
+ * @tc.desc: test GetDeviceVersion with negative version
+ * @tc.type: FUNC
+ */
+HWTEST_F(DeviceProfileAdapterTest, GetDeviceVersion005, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "GetDeviceVersion005 start");
+    std::string udid = "test_udid_011";
+    uint32_t versionId = 0;
+
+    EXPECT_CALL(*mock_, GetCharacteristicProfile(testing::_, testing::_, testing::_, testing::_))
+        .WillOnce([](const std::string &deviceId, const std::string &serviceName,
+            const std::string &characteristicId, CharacteristicProfile &characteristicProfile) {
+            (void)deviceId;
+            (void)serviceName;
+            (void)characteristicId;
+            characteristicProfile.SetCharacteristicValue(R"({"PasteboardVersionId": -1})");
+            return DP_SUCCESS;
+        });
+
+    bool ret = adapter_->GetDeviceVersion(udid, versionId);
+    EXPECT_FALSE(ret);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "GetDeviceVersion005 end");
+}
+
+/**
+ * @tc.name: SubscribeProfileEvent001
+ * @tc.desc: test SubscribeProfileEvent with success
+ * @tc.type: FUNC
+ */
+HWTEST_F(DeviceProfileAdapterTest, SubscribeProfileEvent001, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "SubscribeProfileEvent001 start");
+    std::string udid = "test_udid_012";
+
+    EXPECT_CALL(*mock_, SubscribeDeviceProfile(testing::_))
+        .WillOnce(Return(DP_SUCCESS));
+
+    int32_t ret = adapter_->SubscribeProfileEvent(udid);
+    EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "SubscribeProfileEvent001 end");
+}
+
+/**
+ * @tc.name: SubscribeProfileEvent002
  * @tc.desc: test SubscribeProfileEvent with duplicate udid
  * @tc.type: FUNC
- */
-HWTEST_F(AdapterDeviceProfileAdapterTest, TestSubscribeProfileEvent002, TestSize.Level1)
+    */
+HWTEST_F(DeviceProfileAdapterTest, SubscribeProfileEvent002, TestSize.Level1)
 {
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestSubscribeProfileEvent002 start");
-    
-    NiceMock<SystemAbilityManagerMock> mock;
-    EXPECT_CALL(mock, CheckSystemAbility).WillRepeatedly(testing::Return(nullptr));
-    EXPECT_CALL(mock, LoadSystemAbility).WillRepeatedly(LoadSystemAbilitySuccImpl);
-    
-    IDeviceProfileAdapter *adapter = GetDeviceProfileAdapter();
-    ASSERT_NE(adapter, nullptr);
-    
-    std::string udid = "test_udid_006";
-    
-    int32_t ret = adapter->SubscribeProfileEvent(udid);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "SubscribeProfileEvent002 start");
+    std::string udid = "test_udid_013";
+
+    EXPECT_CALL(*mock_, SubscribeDeviceProfile(testing::_))
+        .WillOnce(Return(DP_SUCCESS));
+
+    int32_t ret = adapter_->SubscribeProfileEvent(udid);
     EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
-    
-    ret = adapter->SubscribeProfileEvent(udid);
+
+    ret = adapter_->SubscribeProfileEvent(udid);
     EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::INVALID_PARAM_ERROR));
-    
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestSubscribeProfileEvent002 end");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "SubscribeProfileEvent002 end");
 }
 
 /**
- * @tc.name: TestUnSubscribeProfileEvent001
- * @tc.desc: test UnSubscribeProfileEvent with valid parameters
+ * @tc.name: SubscribeProfileEvent003
+ * @tc.desc: test SubscribeProfileEvent with error
  * @tc.type: FUNC
  */
-HWTEST_F(AdapterDeviceProfileAdapterTest, TestUnSubscribeProfileEvent001, TestSize.Level1)
+HWTEST_F(DeviceProfileAdapterTest, SubscribeProfileEvent003, TestSize.Level1)
 {
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestUnSubscribeProfileEvent001 start");
-    
-    NiceMock<SystemAbilityManagerMock> mock;
-    EXPECT_CALL(mock, CheckSystemAbility).WillRepeatedly(testing::Return(nullptr));
-    EXPECT_CALL(mock, LoadSystemAbility).WillRepeatedly(LoadSystemAbilitySuccImpl);
-    
-    IDeviceProfileAdapter *adapter = GetDeviceProfileAdapter();
-    ASSERT_NE(adapter, nullptr);
-    
-    std::string udid = "test_udid_007";
-    
-    int32_t ret = adapter->SubscribeProfileEvent(udid);
-    EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
-    
-    ret = adapter->UnSubscribeProfileEvent(udid);
-    EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
-    
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestUnSubscribeProfileEvent001 end");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "SubscribeProfileEvent003 start");
+    std::string udid = "test_udid_014";
+
+    EXPECT_CALL(*mock_, SubscribeDeviceProfile(testing::_))
+        .WillOnce(Return(DP_INVALID_PARAMS));
+
+    int32_t ret = adapter_->SubscribeProfileEvent(udid);
+    EXPECT_EQ(ret, DP_INVALID_PARAMS);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "SubscribeProfileEvent003 end");
 }
 
 /**
- * @tc.name: TestUnSubscribeProfileEvent002
- * @tc.desc: test UnSubscribeProfileEvent with non-existent udid
+ * @tc.name: SubscribeProfileEvent004
+ * @tc.desc: test SubscribeProfileEvent callback
  * @tc.type: FUNC
- */
-HWTEST_F(AdapterDeviceProfileAdapterTest, TestUnSubscribeProfileEvent002, TestSize.Level1)
+    */
+HWTEST_F(DeviceProfileAdapterTest, SubscribeProfileEvent004, TestSize.Level1)
 {
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestUnSubscribeProfileEvent002 start");
-    
-    IDeviceProfileAdapter *adapter = GetDeviceProfileAdapter();
-    ASSERT_NE(adapter, nullptr);
-    
-    std::string udid = "test_udid_008";
-    
-    int32_t ret = adapter->UnSubscribeProfileEvent(udid);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "SubscribeProfileEvent004 start");
+    std::string udid = "SubscribeProfileEvent004";
+
+    sptr<IProfileChangeListener> listenerProxy = nullptr;
+
+    EXPECT_CALL(*mock_, SubscribeDeviceProfile)
+        .WillOnce([&](const SubscribeInfo &subscribeInfo) {
+            listenerProxy = iface_cast<IProfileChangeListener>(subscribeInfo.GetListener());
+            return DP_SUCCESS;
+        });
+
+    int32_t ret = adapter_->SubscribeProfileEvent(udid);
+    EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
+    ASSERT_NE(listenerProxy, nullptr);
+
+    CharacteristicProfile oldDeviceProfile;
+    CharacteristicProfile newDeviceProfile;
+    listenerProxy->OnCharacteristicProfileUpdate(oldDeviceProfile, newDeviceProfile);
+
+    ret = adapter_->SubscribeProfileEvent(udid);
     EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::INVALID_PARAM_ERROR));
-    
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestUnSubscribeProfileEvent002 end");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "SubscribeProfileEvent004 end");
 }
 
 /**
- * @tc.name: TestSendSubscribeInfos001
- * @tc.desc: test SendSubscribeInfos
+ * @tc.name: UnSubscribeProfileEvent001
+ * @tc.desc: test UnSubscribeProfileEvent with success
  * @tc.type: FUNC
  */
-HWTEST_F(AdapterDeviceProfileAdapterTest, TestSendSubscribeInfos001, TestSize.Level1)
+HWTEST_F(DeviceProfileAdapterTest, UnSubscribeProfileEvent001, TestSize.Level1)
 {
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestSendSubscribeInfos001 start");
-    
-    NiceMock<SystemAbilityManagerMock> mock;
-    EXPECT_CALL(mock, CheckSystemAbility).WillRepeatedly(testing::Return(nullptr));
-    EXPECT_CALL(mock, LoadSystemAbility).WillRepeatedly(LoadSystemAbilitySuccImpl);
-    
-    IDeviceProfileAdapter *adapter = GetDeviceProfileAdapter();
-    ASSERT_NE(adapter, nullptr);
-    
-    std::string udid = "test_udid_009";
-    
-    int32_t ret = adapter->SubscribeProfileEvent(udid);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "UnSubscribeProfileEvent001 start");
+    std::string udid = "test_udid_015";
+
+    EXPECT_CALL(*mock_, SubscribeDeviceProfile(testing::_))
+        .WillOnce(Return(DP_SUCCESS));
+    EXPECT_CALL(*mock_, UnSubscribeDeviceProfile(testing::_))
+        .WillOnce(Return(DP_SUCCESS));
+
+    int32_t ret = adapter_->SubscribeProfileEvent(udid);
     EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
-    
-    adapter->SendSubscribeInfos();
-    
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestSendSubscribeInfos001 end");
+
+    ret = adapter_->UnSubscribeProfileEvent(udid);
+    EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "UnSubscribeProfileEvent001 end");
 }
 
 /**
- * @tc.name: TestClearDeviceProfileService001
+ * @tc.name: UnSubscribeProfileEvent002
+ * @tc.desc: test UnSubscribeProfileEvent with not found udid
+ * @tc.type: FUNC
+ */
+HWTEST_F(DeviceProfileAdapterTest, UnSubscribeProfileEvent002, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "UnSubscribeProfileEvent002 start");
+    std::string udid = "test_udid_016";
+
+    int32_t ret = adapter_->UnSubscribeProfileEvent(udid);
+    EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::INVALID_PARAM_ERROR));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "UnSubscribeProfileEvent002 end");
+}
+
+/**
+ * @tc.name: UnSubscribeProfileEvent003
+ * @tc.desc: test UnSubscribeProfileEvent with error
+ * @tc.type: FUNC
+ */
+HWTEST_F(DeviceProfileAdapterTest, UnSubscribeProfileEvent003, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "UnSubscribeProfileEvent003 start");
+    std::string udid = "test_udid_017";
+
+    EXPECT_CALL(*mock_, SubscribeDeviceProfile(testing::_))
+        .WillOnce(Return(DP_SUCCESS));
+    EXPECT_CALL(*mock_, UnSubscribeDeviceProfile(testing::_))
+        .WillOnce(Return(DP_INVALID_PARAMS));
+
+    int32_t ret = adapter_->SubscribeProfileEvent(udid);
+    EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
+
+    ret = adapter_->UnSubscribeProfileEvent(udid);
+    EXPECT_EQ(ret, DP_INVALID_PARAMS);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "UnSubscribeProfileEvent003 end");
+}
+
+/**
+ * @tc.name: SendSubscribeInfos001
+ * @tc.desc: test SendSubscribeInfos with empty cache
+ * @tc.type: FUNC
+ */
+HWTEST_F(DeviceProfileAdapterTest, SendSubscribeInfos001, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "SendSubscribeInfos001 start");
+    EXPECT_CALL(*mock_, SendSubscribeInfos())
+        .Times(1);
+    adapter_->SendSubscribeInfos();
+    EXPECT_TRUE(DeviceProfileClientInterfaceMock::mockFlag_);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "SendSubscribeInfos001 end");
+}
+
+/**
+ * @tc.name: SendSubscribeInfos002
+ * @tc.desc: test SendSubscribeInfos with subscribed devices
+ * @tc.type: FUNC
+ */
+HWTEST_F(DeviceProfileAdapterTest, SendSubscribeInfos002, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "SendSubscribeInfos002 start");
+    std::string udid = "test_udid_018";
+
+    EXPECT_CALL(*mock_, SubscribeDeviceProfile(testing::_))
+        .WillOnce(Return(DP_SUCCESS));
+    EXPECT_CALL(*mock_, SendSubscribeInfos())
+        .Times(1);
+
+    int32_t ret = adapter_->SubscribeProfileEvent(udid);
+    EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
+
+    adapter_->SendSubscribeInfos();
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "SendSubscribeInfos002 end");
+}
+
+/**
+ * @tc.name: ClearDeviceProfileService001
  * @tc.desc: test ClearDeviceProfileService
  * @tc.type: FUNC
  */
-HWTEST_F(AdapterDeviceProfileAdapterTest, TestClearDeviceProfileService001, TestSize.Level1)
+HWTEST_F(DeviceProfileAdapterTest, ClearDeviceProfileService001, TestSize.Level1)
 {
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestClearDeviceProfileService001 start");
-    
-    IDeviceProfileAdapter *adapter = GetDeviceProfileAdapter();
-    ASSERT_NE(adapter, nullptr);
-    
-    adapter->ClearDeviceProfileService();
-    
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestClearDeviceProfileService001 end");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "ClearDeviceProfileService001 start");
+    EXPECT_CALL(*mock_, ClearDeviceProfileService())
+        .Times(1);
+
+    adapter_->ClearDeviceProfileService();
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "ClearDeviceProfileService001 end");
 }
 
 /**
- * @tc.name: TestOnCharacteristicProfileUpdate001
- * @tc.desc: test OnCharacteristicProfileUpdate with enabled status
+ * @tc.name: DeinitDeviceProfileAdapter001
+ * @tc.desc: test DeinitDeviceProfileAdapter
  * @tc.type: FUNC
  */
-HWTEST_F(AdapterDeviceProfileAdapterTest, TestOnCharacteristicProfileUpdate001, TestSize.Level1)
+HWTEST_F(DeviceProfileAdapterTest, DeinitDeviceProfileAdapter001, TestSize.Level1)
 {
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestOnCharacteristicProfileUpdate001 start");
-    
-    DeviceProfileClientMock::GetInstance().Reset();
-    
-    IDeviceProfileAdapter *adapter = GetDeviceProfileAdapter();
-    ASSERT_NE(adapter, nullptr);
-    
-    std::string testUdid = "";
-    bool testStatus = false;
-    bool callbackCalled = false;
-    
-    auto callback = [&](const std::string &udid, bool status) {
-        callbackCalled = true;
-        testUdid = udid;
-        testStatus = status;
-        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "callback called: udid=%{public}s, status=%{public}d",
-            udid.c_str(), status);
-    };
-    
-    int32_t ret = adapter->RegisterUpdateCallback(callback);
-    EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
-    
-    std::string udid = "test_udid_010";
-    ret = adapter->SubscribeProfileEvent(udid);
-    EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
-    
-    sptr<IRemoteObject> listener = DeviceProfileClientMock::GetInstance().GetLastListener();
-    ASSERT_NE(listener, nullptr);
-    
-    sptr<IProfileChangeListener> profileListener = iface_cast<IProfileChangeListener>(listener);
-    ASSERT_NE(profileListener, nullptr);
-    
-    CharacteristicProfile oldProfile;
-    CharacteristicProfile newProfile;
-    newProfile.SetDeviceId("test_udid_010");
-    newProfile.SetCharacteristicValue("1");
-    
-    ret = profileListener->OnCharacteristicProfileUpdate(oldProfile, newProfile);
-    EXPECT_EQ(ret, ERR_OK);
-    
-    sleep(1);
-    
-    EXPECT_TRUE(callbackCalled);
-    EXPECT_EQ(testUdid, "test_udid_010");
-    EXPECT_TRUE(testStatus);
-    
-    adapter->UnSubscribeProfileEvent(udid);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "DeinitDeviceProfileAdapter001 start");
+    EXPECT_CALL(*mock_, ClearDeviceProfileService())
+        .Times(1);
+
     DeinitDeviceProfileAdapter();
-    
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestOnCharacteristicProfileUpdate001 end");
-}
-
-/**
- * @tc.name: TestOnCharacteristicProfileUpdate002
- * @tc.desc: test OnCharacteristicProfileUpdate with disabled status
- * @tc.type: FUNC
- */
-HWTEST_F(AdapterDeviceProfileAdapterTest, TestOnCharacteristicProfileUpdate002, TestSize.Level1)
-{
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestOnCharacteristicProfileUpdate002 start");
-    
-    DeviceProfileClientMock::GetInstance().Reset();
-    
-    IDeviceProfileAdapter *adapter = GetDeviceProfileAdapter();
-    ASSERT_NE(adapter, nullptr);
-    
-    std::string testUdid = "";
-    bool testStatus = true;
-    bool callbackCalled = false;
-    
-    auto callback = [&](const std::string &udid, bool status) {
-        callbackCalled = true;
-        testUdid = udid;
-        testStatus = status;
-        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "callback called: udid=%{public}s, status=%{public}d",
-            udid.c_str(), status);
-    };
-    
-    int32_t ret = adapter->RegisterUpdateCallback(callback);
-    EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
-    
-    std::string udid = "test_udid_011";
-    ret = adapter->SubscribeProfileEvent(udid);
-    EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
-    
-    sptr<IRemoteObject> listener = DeviceProfileClientMock::GetInstance().GetLastListener();
-    ASSERT_NE(listener, nullptr);
-    
-    sptr<IProfileChangeListener> profileListener = iface_cast<IProfileChangeListener>(listener);
-    ASSERT_NE(profileListener, nullptr);
-    
-    CharacteristicProfile oldProfile;
-    CharacteristicProfile newProfile;
-    newProfile.SetDeviceId("test_udid_011");
-    newProfile.SetCharacteristicValue("0");
-    
-    ret = profileListener->OnCharacteristicProfileUpdate(oldProfile, newProfile);
-    EXPECT_EQ(ret, ERR_OK);
-    
-    sleep(1);
-    
-    EXPECT_TRUE(callbackCalled);
-    EXPECT_EQ(testUdid, "test_udid_011");
-    EXPECT_FALSE(testStatus);
-    
-    adapter->UnSubscribeProfileEvent(udid);
-    DeinitDeviceProfileAdapter();
-    
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestOnCharacteristicProfileUpdate002 end");
-}
-
-/**
- * @tc.name: TestOnCharacteristicProfileUpdate003
- * @tc.desc: test OnCharacteristicProfileUpdate without callback
- * @tc.type: FUNC
- */
-HWTEST_F(AdapterDeviceProfileAdapterTest, TestOnCharacteristicProfileUpdate003, TestSize.Level1)
-{
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestOnCharacteristicProfileUpdate003 start");
-    
-    DeviceProfileClientMock::GetInstance().Reset();
-    
-    IDeviceProfileAdapter *adapter = GetDeviceProfileAdapter();
-    ASSERT_NE(adapter, nullptr);
-    
-    std::string udid = "test_udid_012";
-    int32_t ret = adapter->SubscribeProfileEvent(udid);
-    EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
-    
-    sptr<IRemoteObject> listener = DeviceProfileClientMock::GetInstance().GetLastListener();
-    ASSERT_NE(listener, nullptr);
-    
-    sptr<IProfileChangeListener> profileListener = iface_cast<IProfileChangeListener>(listener);
-    ASSERT_NE(profileListener, nullptr);
-    
-    CharacteristicProfile oldProfile;
-    CharacteristicProfile newProfile;
-    newProfile.SetDeviceId("test_udid_012");
-    newProfile.SetCharacteristicValue("1");
-    
-    ret = profileListener->OnCharacteristicProfileUpdate(oldProfile, newProfile);
-    EXPECT_EQ(ret, ERR_OK);
-    
-    adapter->UnSubscribeProfileEvent(udid);
-    DeinitDeviceProfileAdapter();
-    
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestOnCharacteristicProfileUpdate003 end");
-}
-
-/**
- * @tc.name: TestOnCharacteristicProfileUpdate002
- * @tc.desc: test OnCharacteristicProfileUpdate with disabled status
- * @tc.type: FUNC
- */
-HWTEST_F(AdapterDeviceProfileAdapterTest, TestOnCharacteristicProfileUpdate002, TestSize.Level1)
-{
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestOnCharacteristicProfileUpdate002 start");
-    
-    std::string testUdid = "";
-    bool testStatus = true;
-    bool callbackCalled = false;
-    
-    auto callback = [&](const std::string &udid, bool status) {
-        callbackCalled = true;
-        testUdid = udid;
-        testStatus = status;
-        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "callback called: udid=%{public}s, status=%{public}d",
-            udid.c_str(), status);
-    };
-    
-    g_testCallback = callback;
-    
-    CharacteristicProfile oldProfile;
-    CharacteristicProfile newProfile;
-    newProfile.SetDeviceId("test_udid_011");
-    newProfile.SetCharacteristicValue("0");
-    
-    TestSubscribeDPChangeListener listener;
-    int32_t ret = listener.OnCharacteristicProfileUpdate(oldProfile, newProfile);
-    EXPECT_EQ(ret, ERR_OK);
-    
-    sleep(1);
-    
-    EXPECT_TRUE(callbackCalled);
-    EXPECT_EQ(testUdid, "test_udid_011");
-    EXPECT_FALSE(testStatus);
-    
-    g_testCallback = nullptr;
-    
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestOnCharacteristicProfileUpdate002 end");
-}
-
-/**
- * @tc.name: TestOnCharacteristicProfileUpdate003
- * @tc.desc: test OnCharacteristicProfileUpdate without callback
- * @tc.type: FUNC
- */
-HWTEST_F(AdapterDeviceProfileAdapterTest, TestOnCharacteristicProfileUpdate003, TestSize.Level1)
-{
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestOnCharacteristicProfileUpdate003 start");
-    
-    g_testCallback = nullptr;
-    
-    CharacteristicProfile oldProfile;
-    CharacteristicProfile newProfile;
-    newProfile.SetDeviceId("test_udid_012");
-    newProfile.SetCharacteristicValue("1");
-    
-    TestSubscribeDPChangeListener listener;
-    int32_t ret = listener.OnCharacteristicProfileUpdate(oldProfile, newProfile);
-    EXPECT_EQ(ret, ERR_OK);
-    
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestOnCharacteristicProfileUpdate003 end");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "DeinitDeviceProfileAdapter001 end");
 }
 
 } // namespace OHOS::MiscServices

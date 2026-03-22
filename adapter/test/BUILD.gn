@@ -27,7 +27,6 @@ ohos_unittest("AdapterDeviceProfileClientTest") {
     "${pasteboard_root_path}/adapter/test/mock/device_profile",
     "${pasteboard_root_path}/adapter/test/mock/samgr",
     "${pasteboard_utils_path}/native/include",
-    "${pasteboard_root_path}/services/common/include",
   ]
 
   sources = [
@@ -54,29 +53,27 @@ ohos_unittest("AdapterDeviceProfileAdapterTest") {
 
   include_dirs = [
     "${pasteboard_framework_path}/include",
+    "${pasteboard_framework_path}/common",
     "${pasteboard_root_path}/adapter/include",
-    "${pasteboard_root_path}/adapter/test/mock/device_profile",
-    "${pasteboard_root_path}/adapter/test/mock/samgr",
+    "${pasteboard_root_path}/adapter/test/include",
     "${pasteboard_utils_path}/native/include",
-    "${pasteboard_root_path}/services/common/include",
   ]
 
   sources = [
     "${pasteboard_framework_path}/common/pasteboard_common_utils.cpp",
     "${pasteboard_root_path}/adapter/src/device_profile_adapter.cpp",
     "device_profile_adapter_test.cpp",
-    "mock/device_profile/device_profile_client_mock.cpp",
-    "mock/device_profile/distributed_device_profile_proxy.cpp",
-    "mock/samgr/iservice_registry.cpp",
-    "mock/samgr/system_ability_manager_mock.cpp",
   ]
 
   external_deps = [
-    "cJSON:cjsonjson",
+    "cJSON:cjson",
     "c_utils:utils",
+    "device_info_manager:distributed_device_profile_common",
+    "device_info_manager:distributed_device_profile_sdk",
     "googletest:gmock",
     "hilog:libhilog",
     "ipc:ipc_single",
+    "samgr:samgr_proxy",
   ]
 }
 
