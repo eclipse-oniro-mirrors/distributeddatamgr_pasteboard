@@ -22,40 +22,17 @@
 #include "distributed_device_profile_errors.h"
 #include "distributed_device_profile_proxy.h"
 #include "iservice_registry.h"
+#include "iremote_object.h"
 #include "common/pasteboard_common_utils.h"
 #include "system_ability_definition.h"
 #include "system_ability_manager_mock.h"
 #include "pasteboard_hilog.h"
+#include "profile_change_listener_stub.h"
 
 namespace OHOS::MiscServices {
 using namespace OHOS::DistributedDeviceProfile;
 using namespace testing::ext;
 using testing::NiceMock;
-
-constexpr const char *STATUS_ENABLE = "1";
-constexpr const char *STATUS_DISABLE = "0";
-
-static IDeviceProfileAdapter::OnProfileUpdateCallback g_testCallback = nullptr;
-
-class TestSubscribeDPChangeListener : public ProfileChangeListenerStub {
-public:
-    TestSubscribeDPChangeListener() = default;
-    ~TestSubscribeDPChangeListener() = default;
-
-    int32_t OnCharacteristicProfileUpdate(const CharacteristicProfile &oldProfile,
-        const CharacteristicProfile &newProfile) override
-    {
-        (void)oldProfile;
-        std::string udid = newProfile.GetDeviceId();
-        std::string status = newProfile.GetCharacteristicValue();
-        if (g_testCallback != nullptr) {
-            std::thread thread(g_testCallback, udid, status == STATUS_ENABLE);
-            PasteBoardCommonUtils::SetThreadTaskName(thread, "OnProfileUpdate");
-            thread.detach();
-        }
-        return ERR_OK;
-    }
-};
 
 class AdapterDeviceProfileAdapterTest : public testing::Test {
 public:
@@ -420,6 +397,11 @@ HWTEST_F(AdapterDeviceProfileAdapterTest, TestOnCharacteristicProfileUpdate001, 
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestOnCharacteristicProfileUpdate001 start");
     
+    DeviceProfileClientMock::GetInstance().Reset();
+    
+    IDeviceProfileAdapter *adapter = GetDeviceProfileAdapter();
+    ASSERT_NE(adapter, nullptr);
+    
     std::string testUdid = "";
     bool testStatus = false;
     bool callbackCalled = false;
@@ -432,15 +414,25 @@ HWTEST_F(AdapterDeviceProfileAdapterTest, TestOnCharacteristicProfileUpdate001, 
             udid.c_str(), status);
     };
     
-    g_testCallback = callback;
+    int32_t ret = adapter->RegisterUpdateCallback(callback);
+    EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
+    
+    std::string udid = "test_udid_010";
+    ret = adapter->SubscribeProfileEvent(udid);
+    EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
+    
+    sptr<IRemoteObject> listener = DeviceProfileClientMock::GetInstance().GetLastListener();
+    ASSERT_NE(listener, nullptr);
+    
+    sptr<IProfileChangeListener> profileListener = iface_cast<IProfileChangeListener>(listener);
+    ASSERT_NE(profileListener, nullptr);
     
     CharacteristicProfile oldProfile;
     CharacteristicProfile newProfile;
     newProfile.SetDeviceId("test_udid_010");
     newProfile.SetCharacteristicValue("1");
     
-    TestSubscribeDPChangeListener listener;
-    int32_t ret = listener.OnCharacteristicProfileUpdate(oldProfile, newProfile);
+    ret = profileListener->OnCharacteristicProfileUpdate(oldProfile, newProfile);
     EXPECT_EQ(ret, ERR_OK);
     
     sleep(1);
@@ -449,9 +441,107 @@ HWTEST_F(AdapterDeviceProfileAdapterTest, TestOnCharacteristicProfileUpdate001, 
     EXPECT_EQ(testUdid, "test_udid_010");
     EXPECT_TRUE(testStatus);
     
-    g_testCallback = nullptr;
+    adapter->UnSubscribeProfileEvent(udid);
+    DeinitDeviceProfileAdapter();
     
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestOnCharacteristicProfileUpdate001 end");
+}
+
+/**
+ * @tc.name: TestOnCharacteristicProfileUpdate002
+ * @tc.desc: test OnCharacteristicProfileUpdate with disabled status
+ * @tc.type: FUNC
+ */
+HWTEST_F(AdapterDeviceProfileAdapterTest, TestOnCharacteristicProfileUpdate002, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestOnCharacteristicProfileUpdate002 start");
+    
+    DeviceProfileClientMock::GetInstance().Reset();
+    
+    IDeviceProfileAdapter *adapter = GetDeviceProfileAdapter();
+    ASSERT_NE(adapter, nullptr);
+    
+    std::string testUdid = "";
+    bool testStatus = true;
+    bool callbackCalled = false;
+    
+    auto callback = [&](const std::string &udid, bool status) {
+        callbackCalled = true;
+        testUdid = udid;
+        testStatus = status;
+        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "callback called: udid=%{public}s, status=%{public}d",
+            udid.c_str(), status);
+    };
+    
+    int32_t ret = adapter->RegisterUpdateCallback(callback);
+    EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
+    
+    std::string udid = "test_udid_011";
+    ret = adapter->SubscribeProfileEvent(udid);
+    EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
+    
+    sptr<IRemoteObject> listener = DeviceProfileClientMock::GetInstance().GetLastListener();
+    ASSERT_NE(listener, nullptr);
+    
+    sptr<IProfileChangeListener> profileListener = iface_cast<IProfileChangeListener>(listener);
+    ASSERT_NE(profileListener, nullptr);
+    
+    CharacteristicProfile oldProfile;
+    CharacteristicProfile newProfile;
+    newProfile.SetDeviceId("test_udid_011");
+    newProfile.SetCharacteristicValue("0");
+    
+    ret = profileListener->OnCharacteristicProfileUpdate(oldProfile, newProfile);
+    EXPECT_EQ(ret, ERR_OK);
+    
+    sleep(1);
+    
+    EXPECT_TRUE(callbackCalled);
+    EXPECT_EQ(testUdid, "test_udid_011");
+    EXPECT_FALSE(testStatus);
+    
+    adapter->UnSubscribeProfileEvent(udid);
+    DeinitDeviceProfileAdapter();
+    
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestOnCharacteristicProfileUpdate002 end");
+}
+
+/**
+ * @tc.name: TestOnCharacteristicProfileUpdate003
+ * @tc.desc: test OnCharacteristicProfileUpdate without callback
+ * @tc.type: FUNC
+ */
+HWTEST_F(AdapterDeviceProfileAdapterTest, TestOnCharacteristicProfileUpdate003, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestOnCharacteristicProfileUpdate003 start");
+    
+    DeviceProfileClientMock::GetInstance().Reset();
+    
+    IDeviceProfileAdapter *adapter = GetDeviceProfileAdapter();
+    ASSERT_NE(adapter, nullptr);
+    
+    std::string udid = "test_udid_012";
+    int32_t ret = adapter->SubscribeProfileEvent(udid);
+    EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
+    
+    sptr<IRemoteObject> listener = DeviceProfileClientMock::GetInstance().GetLastListener();
+    ASSERT_NE(listener, nullptr);
+    
+    sptr<IProfileChangeListener> profileListener = iface_cast<IProfileChangeListener>(listener);
+    ASSERT_NE(profileListener, nullptr);
+    
+    CharacteristicProfile oldProfile;
+    CharacteristicProfile newProfile;
+    newProfile.SetDeviceId("test_udid_012");
+    newProfile.SetCharacteristicValue("1");
+    
+    ret = profileListener->OnCharacteristicProfileUpdate(oldProfile, newProfile);
+    EXPECT_EQ(ret, ERR_OK);
+    
+    adapter->UnSubscribeProfileEvent(udid);
+    DeinitDeviceProfileAdapter();
+    
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "TestOnCharacteristicProfileUpdate003 end");
 }
 
 /**

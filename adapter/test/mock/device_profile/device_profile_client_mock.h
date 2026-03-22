@@ -56,6 +56,7 @@ public:
     {
         subscribeDeviceProfileCalled_ = true;
         lastSubscribeInfo_ = subscribeInfo;
+        lastListener_ = subscribeInfo.GetListener();
         return subscribeDeviceProfileReturn_;
     }
 
@@ -131,6 +132,11 @@ public:
         return clearDeviceProfileServiceCalled_;
     }
 
+    sptr<IRemoteObject> GetLastListener() const
+    {
+        return lastListener_;
+    }
+
     void Reset()
     {
         putCharacteristicProfileCalled_ = false;
@@ -164,6 +170,7 @@ private:
     std::string lastServiceName_;
     std::string lastCharacteristicId_;
     SubscribeInfo lastSubscribeInfo_;
+    sptr<IRemoteObject> lastListener_;
 };
 
 } // namespace DistributedDeviceProfile
