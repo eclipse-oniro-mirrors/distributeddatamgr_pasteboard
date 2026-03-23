@@ -41,7 +41,7 @@ void DevProfileTest::TearDownTestCase(void)
 {
     DevProfile::GetInstance().ClearDeviceProfileService();
     DistributedHardware::PasteDeviceManager::pasteDeviceManager = nullptr;
- 	deviceManagerMock_ = nullptr;
+    deviceManagerMock_ = nullptr;
 }
 
 void DevProfileTest::SetUp(void) {}

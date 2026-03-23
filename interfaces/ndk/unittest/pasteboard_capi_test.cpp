@@ -246,7 +246,7 @@ HWTEST_F(PasteboardCapiTest, OH_Pasteboard_Create001, TestSize.Level1)
     OH_Pasteboard_Destroy(pasteboard);
 
     OH_Pasteboard* pasteboard01 = nullptr;
- 	OH_Pasteboard_Destroy(pasteboard01);
+    OH_Pasteboard_Destroy(pasteboard01);
 }
 
 /**
@@ -491,8 +491,8 @@ HWTEST_F(PasteboardCapiTest, OH_Pasteboard_GetMimeTypes001, TestSize.Level1)
     EXPECT_TRUE(res == nullptr);
 
     OH_Pasteboard* pasteboard01 = nullptr;
- 	char** ret = OH_Pasteboard_GetMimeTypes(pasteboard01, &count);
- 	EXPECT_TRUE(ret == nullptr);
+    char** ret = OH_Pasteboard_GetMimeTypes(pasteboard01, &count);
+    EXPECT_TRUE(ret == nullptr);
 }
 
 /**
