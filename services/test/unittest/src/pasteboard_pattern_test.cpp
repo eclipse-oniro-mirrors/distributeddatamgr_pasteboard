@@ -46,6 +46,8 @@ void PasteboardPatternTest::TearDown(void) {}
  * @tc.name: PasteboardPatternTest001
  * @tc.desc: detect test.
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardPatternTest, PasteboardPatternTest001, TestSize.Level1)
 {
@@ -86,6 +88,8 @@ HWTEST_F(PasteboardPatternTest, PasteboardPatternTest001, TestSize.Level1)
  * @tc.name: PasteboardPatternTest002
  * @tc.desc: detect test.
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardPatternTest, PasteboardPatternTest002, TestSize.Level1)
 {
@@ -126,6 +130,8 @@ HWTEST_F(PasteboardPatternTest, PasteboardPatternTest002, TestSize.Level1)
  * @tc.name: PasteboardPatternTest003
  * @tc.desc: detect test.
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardPatternTest, PasteboardPatternTest003, TestSize.Level1)
 {
@@ -166,6 +172,8 @@ HWTEST_F(PasteboardPatternTest, PasteboardPatternTest003, TestSize.Level1)
  * @tc.name: PasteboardPatternTest004
  * @tc.desc: detect test.
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardPatternTest, PasteboardPatternTest004, TestSize.Level1)
 {
@@ -205,6 +213,8 @@ HWTEST_F(PasteboardPatternTest, PasteboardPatternTest004, TestSize.Level1)
  * @tc.name: PasteboardPatternTest005
  * @tc.desc: detect test.
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardPatternTest, PasteboardPatternTest005, TestSize.Level1)
 {
@@ -245,6 +255,8 @@ HWTEST_F(PasteboardPatternTest, PasteboardPatternTest005, TestSize.Level1)
  * @tc.name: PasteboardPatternTest006
  * @tc.desc: detect test.
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardPatternTest, PasteboardPatternTest006, TestSize.Level1)
 {
@@ -284,6 +296,8 @@ HWTEST_F(PasteboardPatternTest, PasteboardPatternTest006, TestSize.Level1)
  * @tc.name: PasteboardPatternTest007
  * @tc.desc: detect test.
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardPatternTest, PasteboardPatternTest007, TestSize.Level1)
 {
@@ -323,6 +337,8 @@ HWTEST_F(PasteboardPatternTest, PasteboardPatternTest007, TestSize.Level1)
  * @tc.name: PasteboardPatternTest008
  * @tc.desc: detect test.
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardPatternTest, PasteboardPatternTest008, TestSize.Level1)
 {
@@ -362,6 +378,8 @@ HWTEST_F(PasteboardPatternTest, PasteboardPatternTest008, TestSize.Level1)
  * @tc.name: PasteboardPatternTest009
  * @tc.desc: detect test.
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardPatternTest, PasteboardPatternTest009, TestSize.Level1)
 {
@@ -401,6 +419,8 @@ HWTEST_F(PasteboardPatternTest, PasteboardPatternTest009, TestSize.Level1)
  * @tc.name: PasteboardPatternTest010
  * @tc.desc: IsValid test.
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardPatternTest, PasteboardPatternTest010, TestSize.Level1)
 {
@@ -537,6 +557,8 @@ HWTEST_F(PasteboardPatternTest, ExtractHtmlContentTest002, TestSize.Level1)
  * @tc.name: DetectHttpLinkTest001
  * @tc.desc: Test HTTP_URL detection with valid URL (https:// with letter start)
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardPatternTest, DetectHttpLinkTest001, TestSize.Level1)
 {
@@ -560,6 +582,8 @@ HWTEST_F(PasteboardPatternTest, DetectHttpLinkTest001, TestSize.Level1)
  * @tc.name: DetectHttpLinkTest002
  * @tc.desc: Test HTTP_URL with digit start after protocol
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardPatternTest, DetectHttpLinkTest002, TestSize.Level1)
 {
@@ -583,6 +607,8 @@ HWTEST_F(PasteboardPatternTest, DetectHttpLinkTest002, TestSize.Level1)
  * @tc.name: DetectHttpLinkTest003
  * @tc.desc: Test HTTP_URL with special character start (invalid)
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardPatternTest, DetectHttpLinkTest003, TestSize.Level1)
 {
@@ -606,6 +632,8 @@ HWTEST_F(PasteboardPatternTest, DetectHttpLinkTest003, TestSize.Level1)
  * @tc.name: DetectHttpLinkTest004
  * @tc.desc: Test HTTP_URL with hyphen start (invalid)
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardPatternTest, DetectHttpLinkTest004, TestSize.Level1)
 {
@@ -629,6 +657,8 @@ HWTEST_F(PasteboardPatternTest, DetectHttpLinkTest004, TestSize.Level1)
  * @tc.name: DetectHttpLinkTest005
  * @tc.desc: Test HTTP_URL detection with valid URL (length >= 7 with dot)
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardPatternTest, DetectHttpLinkTest005, TestSize.Level1)
 {
@@ -652,6 +682,8 @@ HWTEST_F(PasteboardPatternTest, DetectHttpLinkTest005, TestSize.Level1)
  * @tc.name: DetectFlightNumberTest007
  * @tc.desc: Test FLIGHT_NUMBER with 2 letters + 4 digits (6 chars)
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardPatternTest, DetectFlightNumberTest001, TestSize.Level1)
 {
@@ -675,6 +707,8 @@ HWTEST_F(PasteboardPatternTest, DetectFlightNumberTest001, TestSize.Level1)
  * @tc.name: DetectFlightNumberTest002
  * @tc.desc: Test FLIGHT_NUMBER with 1 digit + 1 letter + 3 digits (5 chars)
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardPatternTest, DetectFlightNumberTest002, TestSize.Level1)
 {
@@ -698,6 +732,8 @@ HWTEST_F(PasteboardPatternTest, DetectFlightNumberTest002, TestSize.Level1)
  * @tc.name: DetectFlightNumberTest003
  * @tc.desc: Test FLIGHT_NUMBER with 2 letters + 3 digits + 1 letter (6 chars)
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardPatternTest, DetectFlightNumberTest003, TestSize.Level1)
 {
@@ -721,6 +757,8 @@ HWTEST_F(PasteboardPatternTest, DetectFlightNumberTest003, TestSize.Level1)
  * @tc.name: DetectFlightNumberTest004
  * @tc.desc: Test FLIGHT_NUMBER with 2 letters + 4 digits + 1 letter (7 chars)
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardPatternTest, DetectFlightNumberTest004, TestSize.Level1)
 {
@@ -744,6 +782,8 @@ HWTEST_F(PasteboardPatternTest, DetectFlightNumberTest004, TestSize.Level1)
  * @tc.name: DetectFlightNumberTest005
  * @tc.desc: Test FLIGHT_NUMBER with 1 digit + 1 letter + 4 digits (6 chars)
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardPatternTest, DetectFlightNumberTest005, TestSize.Level1)
 {
@@ -767,6 +807,8 @@ HWTEST_F(PasteboardPatternTest, DetectFlightNumberTest005, TestSize.Level1)
  * @tc.name: DetectFlightNumberTest006
  * @tc.desc: Test FLIGHT_NUMBER with 1 digit + 1 letter + 4 digits + 1 letter (7 chars)
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardPatternTest, DetectFlightNumberTest006, TestSize.Level1)
 {
@@ -790,6 +832,8 @@ HWTEST_F(PasteboardPatternTest, DetectFlightNumberTest006, TestSize.Level1)
  * @tc.name: DetectHttpLinkTest006
  * @tc.desc: Test HTTP_URL and FLIGHT_NUMBER together with multiple valid patterns
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardPatternTest, DetectHttpLinkTest006, TestSize.Level1)
 {
@@ -814,6 +858,8 @@ HWTEST_F(PasteboardPatternTest, DetectHttpLinkTest006, TestSize.Level1)
  * @tc.name: DetectOtherPatternTest001
  * @tc.desc: Test that other patterns (URL, NUMBER, EMAIL_ADDRESS) still work correctly
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardPatternTest, DetectOtherPatternTest001, TestSize.Level1)
 {
@@ -839,6 +885,8 @@ HWTEST_F(PasteboardPatternTest, DetectOtherPatternTest001, TestSize.Level1)
  * @tc.name: DetectRegexNoMatchTest001
  * @tc.desc: Test HTTP_URL with text that does not match regex at all
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardPatternTest, DetectRegexNoMatchTest001, TestSize.Level1)
 {
@@ -862,6 +910,8 @@ HWTEST_F(PasteboardPatternTest, DetectRegexNoMatchTest001, TestSize.Level1)
  * @tc.name: DetectRegexNoMatchTest002
  * @tc.desc: Test FLIGHT_NUMBER with text that does not match regex at all
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardPatternTest, DetectRegexNoMatchTest002, TestSize.Level1)
 {
@@ -885,6 +935,8 @@ HWTEST_F(PasteboardPatternTest, DetectRegexNoMatchTest002, TestSize.Level1)
  * @tc.name: DetectHttpLinkTest007
  * @tc.desc: Test HTTP_URL with regex match but fails length <= 7 validation
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardPatternTest, DetectHttpLinkTest007, TestSize.Level1)
 {
@@ -908,6 +960,8 @@ HWTEST_F(PasteboardPatternTest, DetectHttpLinkTest007, TestSize.Level1)
  * @tc.name: DetectFlightNumberTest007
  * @tc.desc: Test FLIGHT_NUMBER with valid regex match but fails length validation (7 chars)
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardPatternTest, DetectFlightNumberTest007, TestSize.Level1)
 {
@@ -931,6 +985,8 @@ HWTEST_F(PasteboardPatternTest, DetectFlightNumberTest007, TestSize.Level1)
  * @tc.name: DetectHttpLinkTest008
  * @tc.desc: Test HTTP_URL with valid regex match and length but no dot (invalid)
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardPatternTest, DetectHttpLinkTest008, TestSize.Level1)
 {
@@ -954,6 +1010,8 @@ HWTEST_F(PasteboardPatternTest, DetectHttpLinkTest008, TestSize.Level1)
  * @tc.name: DetectMixedPatternsTest001
  * @tc.desc: Test multiple patterns with only some matching
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardPatternTest, DetectMixedPatternsTest001, TestSize.Level1)
 {
@@ -979,6 +1037,8 @@ HWTEST_F(PasteboardPatternTest, DetectMixedPatternsTest001, TestSize.Level1)
  * @tc.name: DetectHttpLinkTest009
  * @tc.desc: Test HTTP_URL with http:// protocol
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardPatternTest, DetectHttpLinkTest009, TestSize.Level1)
 {
@@ -1002,6 +1062,8 @@ HWTEST_F(PasteboardPatternTest, DetectHttpLinkTest009, TestSize.Level1)
  * @tc.name: DetectFlightNumberTest008
  * @tc.desc: Test FLIGHT_NUMBER with too short (4 chars, invalid)
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardPatternTest, DetectFlightNumberTest008, TestSize.Level1)
 {
@@ -1025,6 +1087,8 @@ HWTEST_F(PasteboardPatternTest, DetectFlightNumberTest008, TestSize.Level1)
  * @tc.name: DetectFlightNumberTest009
  * @tc.desc: Test FLIGHT_NUMBER with too long (8 chars, invalid)
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardPatternTest, DetectFlightNumberTest009, TestSize.Level1)
 {
@@ -1048,6 +1112,8 @@ HWTEST_F(PasteboardPatternTest, DetectFlightNumberTest009, TestSize.Level1)
  * @tc.name: DetectFlightNumberTest010
  * @tc.desc: Test FLIGHT_NUMBER with invalid format (3 letters)
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardPatternTest, DetectFlightNumberTest010, TestSize.Level1)
 {
@@ -1071,6 +1137,8 @@ HWTEST_F(PasteboardPatternTest, DetectFlightNumberTest010, TestSize.Level1)
  * @tc.name: DetectFlightNumberTest011
  * @tc.desc: Test FLIGHT_NUMBER with invalid format (2 digits)
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardPatternTest, DetectFlightNumberTest011, TestSize.Level1)
 {
@@ -1094,6 +1162,8 @@ HWTEST_F(PasteboardPatternTest, DetectFlightNumberTest011, TestSize.Level1)
  * @tc.name: DetectFlightNumberTest012
  * @tc.desc: Test FLIGHT_NUMBER with 2 letters + 3 digits + 1 letter (6 chars, lowercase)
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardPatternTest, DetectFlightNumberTest012, TestSize.Level1)
 {
@@ -1117,6 +1187,8 @@ HWTEST_F(PasteboardPatternTest, DetectFlightNumberTest012, TestSize.Level1)
  * @tc.name: DetectHttpLinkTest010
  * @tc.desc: Test HTTP_URL with single character after protocol (http://s)
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardPatternTest, DetectHttpLinkTest010, TestSize.Level1)
 {
@@ -1140,6 +1212,8 @@ HWTEST_F(PasteboardPatternTest, DetectHttpLinkTest010, TestSize.Level1)
  * @tc.name: DetectHttpLinkTest011
  * @tc.desc: Test HTTP_URL with single character after protocol (https://s)
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardPatternTest, DetectHttpLinkTest011, TestSize.Level1)
 {
@@ -1163,6 +1237,8 @@ HWTEST_F(PasteboardPatternTest, DetectHttpLinkTest011, TestSize.Level1)
  * @tc.name: DetectHttpLinkTest012
  * @tc.desc: Test HTTP_URL with single digit after protocol (http://1)
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardPatternTest, DetectHttpLinkTest012, TestSize.Level1)
 {

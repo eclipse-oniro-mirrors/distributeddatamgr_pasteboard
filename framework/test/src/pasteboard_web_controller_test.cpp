@@ -443,6 +443,8 @@ HWTEST_F(PasteboardWebControllerTest, ExtractContent_008, TestSize.Level1)
  * @tc.name: SplitWebviewPasteData_001.
  * @tc.desc: record->GetRecordId() == record->GetFrom(), continue loop.
  * @tc.type: FUNC.
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardWebControllerTest, SplitWebviewPasteData_001, TestSize.Level1)
 {
@@ -459,6 +461,8 @@ HWTEST_F(PasteboardWebControllerTest, SplitWebviewPasteData_001, TestSize.Level1
  * @tc.name: SplitWebviewPasteData_002.
  * @tc.desc: htmlEntry == nullptr, continue loop.
  * @tc.type: FUNC.
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardWebControllerTest, SplitWebviewPasteData_002, TestSize.Level1)
 {
@@ -475,6 +479,8 @@ HWTEST_F(PasteboardWebControllerTest, SplitWebviewPasteData_002, TestSize.Level1
  * @tc.name: SplitWebviewPasteData_003.
  * @tc.desc: html == nullptr, continue loop.
  * @tc.type: FUNC.
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardWebControllerTest, SplitWebviewPasteData_003, TestSize.Level1)
 {
@@ -491,6 +497,8 @@ HWTEST_F(PasteboardWebControllerTest, SplitWebviewPasteData_003, TestSize.Level1
  * @tc.name: SplitWebviewPasteData_004.
  * @tc.desc: extraUriRecords.empty(), continue loop.
  * @tc.type: FUNC.
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardWebControllerTest, SplitWebviewPasteData_004, TestSize.Level1)
 {
@@ -508,6 +516,8 @@ HWTEST_F(PasteboardWebControllerTest, SplitWebviewPasteData_004, TestSize.Level1
  * @tc.name: SplitWebviewPasteData_005.
  * @tc.desc: hasExtraRecord == true, set tag and return true.
  * @tc.type: FUNC.
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardWebControllerTest, SplitWebviewPasteData_005, TestSize.Level1)
 {
@@ -525,6 +535,8 @@ HWTEST_F(PasteboardWebControllerTest, SplitWebviewPasteData_005, TestSize.Level1
  * @tc.name: SetWebviewPasteData_001.
  * @tc.desc: pasteData.GetTag() != WEBVIEW_PASTEDATA_TAG, return early.
  * @tc.type: FUNC.
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardWebControllerTest, SetWebviewPasteData_001, TestSize.Level1)
 {
@@ -540,6 +552,8 @@ HWTEST_F(PasteboardWebControllerTest, SetWebviewPasteData_001, TestSize.Level1)
  * @tc.name: SetWebviewPasteData_002.
  * @tc.desc: GetUriV0() == nullptr, continue loop.
  * @tc.type: FUNC.
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardWebControllerTest, SetWebviewPasteData_002, TestSize.Level1)
 {
@@ -557,6 +571,8 @@ HWTEST_F(PasteboardWebControllerTest, SetWebviewPasteData_002, TestSize.Level1)
  * @tc.name: SetWebviewPasteData_003.
  * @tc.desc: GetFrom() == 0, continue loop.
  * @tc.type: FUNC.
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardWebControllerTest, SetWebviewPasteData_003, TestSize.Level1)
 {
@@ -578,6 +594,8 @@ HWTEST_F(PasteboardWebControllerTest, SetWebviewPasteData_003, TestSize.Level1)
  * @tc.name: SetWebviewPasteData_004.
  * @tc.desc: GetRecordId() == GetFrom(), continue loop.
  * @tc.type: FUNC.
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardWebControllerTest, SetWebviewPasteData_004, TestSize.Level1)
 {
@@ -599,6 +617,8 @@ HWTEST_F(PasteboardWebControllerTest, SetWebviewPasteData_004, TestSize.Level1)
  * @tc.name: SetWebviewPasteData_005.
  * @tc.desc: uriStr.find(IMG_LOCAL_URI) != 0, skip uri replace.
  * @tc.type: FUNC.
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardWebControllerTest, SetWebviewPasteData_005, TestSize.Level1)
 {
@@ -620,6 +640,8 @@ HWTEST_F(PasteboardWebControllerTest, SetWebviewPasteData_005, TestSize.Level1)
  * @tc.name: SetWebviewPasteData_006.
  * @tc.desc: uriStr.find(IMG_LOCAL_URI) == 0, replace uri.
  * @tc.type: FUNC.
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardWebControllerTest, SetWebviewPasteData_006, TestSize.Level1)
 {
@@ -643,6 +665,8 @@ HWTEST_F(PasteboardWebControllerTest, SetWebviewPasteData_006, TestSize.Level1)
  * @tc.name: RetainUri_001.
  * @tc.desc: !pasteData.IsLocalPaste(), return early.
  * @tc.type: FUNC.
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardWebControllerTest, RetainUri_001, TestSize.Level1)
 {
@@ -659,6 +683,8 @@ HWTEST_F(PasteboardWebControllerTest, RetainUri_001, TestSize.Level1)
  * @tc.name: RetainUri_002.
  * @tc.desc: record != nullptr, clear convert uri.
  * @tc.type: FUNC.
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardWebControllerTest, RetainUri_002, TestSize.Level1)
 {
@@ -676,6 +702,8 @@ HWTEST_F(PasteboardWebControllerTest, RetainUri_002, TestSize.Level1)
  * @tc.name: RetainUri_003.
  * @tc.desc: record == nullptr, skip clearing.
  * @tc.type: FUNC.
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardWebControllerTest, RetainUri_003, TestSize.Level1)
 {
@@ -697,6 +725,8 @@ HWTEST_F(PasteboardWebControllerTest, RetainUri_003, TestSize.Level1)
  * @tc.name: RemoveInvalidUri_PasteData_001.
  * @tc.desc: data.IsLocalPaste(), return early.
  * @tc.type: FUNC.
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardWebControllerTest, RemoveInvalidUri_PasteData_001, TestSize.Level1)
 {
@@ -717,6 +747,8 @@ HWTEST_F(PasteboardWebControllerTest, RemoveInvalidUri_PasteData_001, TestSize.L
  * @tc.name: RemoveInvalidUri_PasteData_002.
  * @tc.desc: record == nullptr, continue loop.
  * @tc.type: FUNC.
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardWebControllerTest, RemoveInvalidUri_PasteData_002, TestSize.Level1)
 {
@@ -734,6 +766,8 @@ HWTEST_F(PasteboardWebControllerTest, RemoveInvalidUri_PasteData_002, TestSize.L
  * @tc.name: RemoveInvalidUri_PasteData_003.
  * @tc.desc: uriPtr == nullptr, continue loop.
  * @tc.type: FUNC.
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardWebControllerTest, RemoveInvalidUri_PasteData_003, TestSize.Level1)
 {
@@ -750,6 +784,8 @@ HWTEST_F(PasteboardWebControllerTest, RemoveInvalidUri_PasteData_003, TestSize.L
  * @tc.name: RemoveInvalidUri_PasteData_004.
  * @tc.desc: IsValidUri returns true, continue loop.
  * @tc.type: FUNC.
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardWebControllerTest, RemoveInvalidUri_PasteData_004, TestSize.Level1)
 {
@@ -769,6 +805,8 @@ HWTEST_F(PasteboardWebControllerTest, RemoveInvalidUri_PasteData_004, TestSize.L
  * @tc.name: RemoveInvalidUri_PasteData_005.
  * @tc.desc: IsValidUri returns false, remove uri.
  * @tc.type: FUNC.
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardWebControllerTest, RemoveInvalidUri_PasteData_005, TestSize.Level1)
 {
@@ -787,6 +825,8 @@ HWTEST_F(PasteboardWebControllerTest, RemoveInvalidUri_PasteData_005, TestSize.L
  * @tc.name: RemoveInvalidUri_Entry_001.
  * @tc.desc: entry.GetMimeType() != MIMETYPE_TEXT_URI, return false.
  * @tc.type: FUNC.
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardWebControllerTest, RemoveInvalidUri_Entry_001, TestSize.Level1)
 {
@@ -800,6 +840,8 @@ HWTEST_F(PasteboardWebControllerTest, RemoveInvalidUri_Entry_001, TestSize.Level
  * @tc.name: RemoveInvalidUri_Entry_002.
  * @tc.desc: uriPtr == nullptr, return false.
  * @tc.type: FUNC.
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardWebControllerTest, RemoveInvalidUri_Entry_002, TestSize.Level1)
 {
@@ -813,6 +855,8 @@ HWTEST_F(PasteboardWebControllerTest, RemoveInvalidUri_Entry_002, TestSize.Level
  * @tc.name: RemoveInvalidUri_Entry_003.
  * @tc.desc: IsValidUri returns true, return false.
  * @tc.type: FUNC.
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardWebControllerTest, RemoveInvalidUri_Entry_003, TestSize.Level1)
 {
@@ -826,6 +870,8 @@ HWTEST_F(PasteboardWebControllerTest, RemoveInvalidUri_Entry_003, TestSize.Level
  * @tc.name: RemoveInvalidUri_Entry_004.
  * @tc.desc: IsValidUri returns false, clear value and return true.
  * @tc.type: FUNC.
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardWebControllerTest, RemoveInvalidUri_Entry_004, TestSize.Level1)
 {
@@ -839,6 +885,8 @@ HWTEST_F(PasteboardWebControllerTest, RemoveInvalidUri_Entry_004, TestSize.Level
  * @tc.name: IsValidUri_001.
  * @tc.desc: uriPtr == nullptr, return false.
  * @tc.type: FUNC.
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardWebControllerTest, IsValidUri_001, TestSize.Level1)
 {
@@ -852,6 +900,8 @@ HWTEST_F(PasteboardWebControllerTest, IsValidUri_001, TestSize.Level1)
  * @tc.name: IsValidUri_002.
  * @tc.desc: scheme.empty(), return false.
  * @tc.type: FUNC.
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardWebControllerTest, IsValidUri_002, TestSize.Level1)
 {
@@ -865,6 +915,8 @@ HWTEST_F(PasteboardWebControllerTest, IsValidUri_002, TestSize.Level1)
  * @tc.name: IsValidUri_003.
  * @tc.desc: scheme == FILE_SCHEME && authority.empty(), return false.
  * @tc.type: FUNC.
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardWebControllerTest, IsValidUri_003, TestSize.Level1)
 {
@@ -878,6 +930,8 @@ HWTEST_F(PasteboardWebControllerTest, IsValidUri_003, TestSize.Level1)
  * @tc.name: IsValidUri_004.
  * @tc.desc: scheme == FILE_SCHEME && !hasPermission, return false.
  * @tc.type: FUNC.
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardWebControllerTest, IsValidUri_004, TestSize.Level1)
 {
@@ -891,6 +945,8 @@ HWTEST_F(PasteboardWebControllerTest, IsValidUri_004, TestSize.Level1)
  * @tc.name: IsValidUri_005.
  * @tc.desc: valid http uri with permission, return true.
  * @tc.type: FUNC.
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardWebControllerTest, IsValidUri_005, TestSize.Level1)
 {
@@ -904,6 +960,8 @@ HWTEST_F(PasteboardWebControllerTest, IsValidUri_005, TestSize.Level1)
  * @tc.name: IsValidUri_006.
  * @tc.desc: valid file uri with permission, return true.
  * @tc.type: FUNC.
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardWebControllerTest, IsValidUri_006, TestSize.Level1)
 {
@@ -917,6 +975,8 @@ HWTEST_F(PasteboardWebControllerTest, IsValidUri_006, TestSize.Level1)
  * @tc.name: RebuildWebviewPasteData_001.
  * @tc.desc: pasteData.GetTag() != WEBVIEW_PASTEDATA_TAG, return early.
  * @tc.type: FUNC.
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardWebControllerTest, RebuildWebviewPasteData_001, TestSize.Level1)
 {
@@ -933,6 +993,8 @@ HWTEST_F(PasteboardWebControllerTest, RebuildWebviewPasteData_001, TestSize.Leve
  * @tc.name: RebuildWebviewPasteData_002.
  * @tc.desc: item->GetFrom() == 0, no merge operation.
  * @tc.type: FUNC.
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardWebControllerTest, RebuildWebviewPasteData_002, TestSize.Level1)
 {
@@ -951,6 +1013,8 @@ HWTEST_F(PasteboardWebControllerTest, RebuildWebviewPasteData_002, TestSize.Leve
  * @tc.name: RebuildWebviewPasteData_003.
  * @tc.desc: item->GetFrom() > 0, merge extra uris.
  * @tc.type: FUNC.
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardWebControllerTest, RebuildWebviewPasteData_003, TestSize.Level1)
 {
@@ -969,6 +1033,8 @@ HWTEST_F(PasteboardWebControllerTest, RebuildWebviewPasteData_003, TestSize.Leve
  * @tc.name: CheckAppUriPermission_001.
  * @tc.desc: uris.empty(), return early.
  * @tc.type: FUNC.
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardWebControllerTest, CheckAppUriPermission_001, TestSize.Level1)
 {
@@ -985,6 +1051,8 @@ HWTEST_F(PasteboardWebControllerTest, CheckAppUriPermission_001, TestSize.Level1
  * @tc.name: CheckAppUriPermission_002.
  * @tc.desc: has originUri but empty check results.
  * @tc.type: FUNC.
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardWebControllerTest, CheckAppUriPermission_002, TestSize.Level1)
 {
@@ -1004,6 +1072,8 @@ HWTEST_F(PasteboardWebControllerTest, CheckAppUriPermission_002, TestSize.Level1
  * @tc.name: CheckAppUriPermission_003.
  * @tc.desc: item == nullptr, continue loop.
  * @tc.type: FUNC.
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardWebControllerTest, CheckAppUriPermission_003, TestSize.Level1)
 {
@@ -1024,6 +1094,8 @@ HWTEST_F(PasteboardWebControllerTest, CheckAppUriPermission_003, TestSize.Level1
  * @tc.name: CheckAppUriPermission_004.
  * @tc.desc: item->GetOriginUri() == nullptr, continue loop.
  * @tc.type: FUNC.
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardWebControllerTest, CheckAppUriPermission_004, TestSize.Level1)
 {
@@ -1043,6 +1115,8 @@ HWTEST_F(PasteboardWebControllerTest, CheckAppUriPermission_004, TestSize.Level1
  * @tc.name: SplitHtml2Records_001.
  * @tc.desc: html == nullptr, return empty records.
  * @tc.type: FUNC.
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardWebControllerTest, SplitHtml2Records_001, TestSize.Level1)
 {
@@ -1060,6 +1134,8 @@ HWTEST_F(PasteboardWebControllerTest, SplitHtml2Records_001, TestSize.Level1)
  * @tc.name: SplitHtml2Records_002.
  * @tc.desc: html has no img tags, return empty records.
  * @tc.type: FUNC.
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardWebControllerTest, SplitHtml2Records_002, TestSize.Level1)
 {
@@ -1077,6 +1153,8 @@ HWTEST_F(PasteboardWebControllerTest, SplitHtml2Records_002, TestSize.Level1)
  * @tc.name: SplitHtml2Records_003.
  * @tc.desc: html has img tags but no src, return empty records.
  * @tc.type: FUNC.
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardWebControllerTest, SplitHtml2Records_003, TestSize.Level1)
 {
@@ -1094,6 +1172,8 @@ HWTEST_F(PasteboardWebControllerTest, SplitHtml2Records_003, TestSize.Level1)
  * @tc.name: SplitHtml2Records_004.
  * @tc.desc: html has img with remote src, return empty records.
  * @tc.type: FUNC.
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardWebControllerTest, SplitHtml2Records_004, TestSize.Level1)
 {
@@ -1111,6 +1191,8 @@ HWTEST_F(PasteboardWebControllerTest, SplitHtml2Records_004, TestSize.Level1)
  * @tc.name: SplitHtml2Records_005.
  * @tc.desc: html has img with local src, return records.
  * @tc.type: FUNC.
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardWebControllerTest, SplitHtml2Records_005, TestSize.Level1)
 {
@@ -1128,6 +1210,8 @@ HWTEST_F(PasteboardWebControllerTest, SplitHtml2Records_005, TestSize.Level1)
  * @tc.name: UpdateHtmlRecord_001.
  * @tc.desc: htmlRecord == nullptr, return early.
  * @tc.type: FUNC.
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardWebControllerTest, UpdateHtmlRecord_001, TestSize.Level1)
 {
@@ -1142,6 +1226,8 @@ HWTEST_F(PasteboardWebControllerTest, UpdateHtmlRecord_001, TestSize.Level1)
  * @tc.name: UpdateHtmlRecord_002.
  * @tc.desc: htmlData == nullptr, return early.
  * @tc.type: FUNC.
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardWebControllerTest, UpdateHtmlRecord_002, TestSize.Level1)
 {
@@ -1156,6 +1242,8 @@ HWTEST_F(PasteboardWebControllerTest, UpdateHtmlRecord_002, TestSize.Level1)
  * @tc.name: UpdateHtmlRecord_003.
  * @tc.desc: entry == nullptr, return early.
  * @tc.type: FUNC.
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardWebControllerTest, UpdateHtmlRecord_003, TestSize.Level1)
 {
@@ -1170,6 +1258,8 @@ HWTEST_F(PasteboardWebControllerTest, UpdateHtmlRecord_003, TestSize.Level1)
  * @tc.name: UpdateHtmlRecord_004.
  * @tc.desc: holds_alternative<string>, update string value.
  * @tc.type: FUNC.
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardWebControllerTest, UpdateHtmlRecord_004, TestSize.Level1)
 {
@@ -1185,6 +1275,8 @@ HWTEST_F(PasteboardWebControllerTest, UpdateHtmlRecord_004, TestSize.Level1)
  * @tc.name: RemoveRecordById_001.
  * @tc.desc: GetRecordAt(i) == nullptr, continue loop.
  * @tc.type: FUNC.
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardWebControllerTest, RemoveRecordById_001, TestSize.Level1)
 {
@@ -1201,6 +1293,8 @@ HWTEST_F(PasteboardWebControllerTest, RemoveRecordById_001, TestSize.Level1)
  * @tc.name: RemoveRecordById_002.
  * @tc.desc: GetRecordId() != recordId, continue loop.
  * @tc.type: FUNC.
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardWebControllerTest, RemoveRecordById_002, TestSize.Level1)
 {
@@ -1218,6 +1312,8 @@ HWTEST_F(PasteboardWebControllerTest, RemoveRecordById_002, TestSize.Level1)
  * @tc.name: RemoveRecordById_003.
  * @tc.desc: RemoveRecordAt() success, return early.
  * @tc.type: FUNC.
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardWebControllerTest, RemoveRecordById_003, TestSize.Level1)
 {
@@ -1235,6 +1331,8 @@ HWTEST_F(PasteboardWebControllerTest, RemoveRecordById_003, TestSize.Level1)
  * @tc.name: RemoveAllRecord_001.
  * @tc.desc: pasteData == nullptr, return early.
  * @tc.type: FUNC.
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardWebControllerTest, RemoveAllRecord_001, TestSize.Level1)
 {
@@ -1248,6 +1346,8 @@ HWTEST_F(PasteboardWebControllerTest, RemoveAllRecord_001, TestSize.Level1)
  * @tc.name: RemoveAllRecord_002.
  * @tc.desc: RemoveRecordAt(0) success, remove all.
  * @tc.type: FUNC.
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardWebControllerTest, RemoveAllRecord_002, TestSize.Level1)
 {
@@ -1263,6 +1363,8 @@ HWTEST_F(PasteboardWebControllerTest, RemoveAllRecord_002, TestSize.Level1)
  * @tc.name: GroupRecordWithFrom_001.
  * @tc.desc: record->GetFrom() == 0, continue loop.
  * @tc.type: FUNC.
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardWebControllerTest, GroupRecordWithFrom_001, TestSize.Level1)
 {
@@ -1281,6 +1383,8 @@ HWTEST_F(PasteboardWebControllerTest, GroupRecordWithFrom_001, TestSize.Level1)
  * @tc.name: GroupRecordWithFrom_002.
  * @tc.desc: record->GetFrom() > 0, add to groupMap.
  * @tc.type: FUNC.
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardWebControllerTest, GroupRecordWithFrom_002, TestSize.Level1)
 {
@@ -1299,6 +1403,8 @@ HWTEST_F(PasteboardWebControllerTest, GroupRecordWithFrom_002, TestSize.Level1)
  * @tc.name: RemoveExtraUris_001.
  * @tc.desc: GetFrom() > 0 && MimeType == URI, remove.
  * @tc.type: FUNC.
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardWebControllerTest, RemoveExtraUris_001, TestSize.Level1)
 {
@@ -1323,6 +1429,8 @@ HWTEST_F(PasteboardWebControllerTest, RemoveExtraUris_001, TestSize.Level1)
  * @tc.name: IsLocalURI_001.
  * @tc.desc: relative path without scheme is treated as local.
  * @tc.type: FUNC.
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardWebControllerTest, IsLocalURI_001, TestSize.Level1)
 {
@@ -1340,6 +1448,8 @@ HWTEST_F(PasteboardWebControllerTest, IsLocalURI_001, TestSize.Level1)
  * @tc.name: IsLocalURI_002.
  * @tc.desc: absolute path with file:// scheme is treated as local.
  * @tc.type: FUNC.
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardWebControllerTest, IsLocalURI_002, TestSize.Level1)
 {

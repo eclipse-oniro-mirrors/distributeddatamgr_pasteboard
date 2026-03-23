@@ -46,7 +46,7 @@ EntryValue GetHtmlValue()
 }
 /**
  * @tc.name: UpdateHtmlRecordTest_001.
- * @tc.desc:
+ * @tc.desc: Update html record
  * @tc.type: FUNC.
  * @tc.require:
  * @tc.author:
@@ -70,7 +70,7 @@ HWTEST_F(WebControllerTest, UpdateHtmlRecordTest_001, TestSize.Level1)
 
 /**
  * @tc.name: UpdateHtmlRecordTest_002.
- * @tc.desc:
+ * @tc.desc: Update html record
  * @tc.type: FUNC.
  * @tc.require:
  * @tc.author:
@@ -93,7 +93,7 @@ HWTEST_F(WebControllerTest, UpdateHtmlRecordTest_002, TestSize.Level1)
 
 /**
  * @tc.name: SplitWebviewPasteDataTest_001.
- * @tc.desc:
+ * @tc.desc: Split web view paste data
  * @tc.type: FUNC.
  * @tc.require:
  * @tc.author:
@@ -114,7 +114,7 @@ HWTEST_F(WebControllerTest, SplitWebviewPasteDataTest_001, TestSize.Level1)
 
 /**
  * @tc.name: SplitWebviewPasteDataTest_002.
- * @tc.desc:
+ * @tc.desc: Split web view paste data
  * @tc.type: FUNC.
  * @tc.require:
  * @tc.author:
@@ -136,7 +136,7 @@ HWTEST_F(WebControllerTest, SplitWebviewPasteDataTest_002, TestSize.Level1)
 
 /**
  * @tc.name: SplitWebviewPasteDataTest_003.
- * @tc.desc:
+ * @tc.desc: Split web view paste data
  * @tc.type: FUNC.
  * @tc.require:
  * @tc.author:
@@ -158,7 +158,7 @@ HWTEST_F(WebControllerTest, SplitWebviewPasteDataTest_003, TestSize.Level1)
 
 /**
  * @tc.name: SplitWebviewPasteDataTest_004.
- * @tc.desc:
+ * @tc.desc: Split web view paste data
  * @tc.type: FUNC.
  * @tc.require:
  * @tc.author:
@@ -177,7 +177,7 @@ HWTEST_F(WebControllerTest, SplitWebviewPasteDataTest_004, TestSize.Level1)
 
 /**
  * @tc.name: SplitWebviewPasteDataTest_005.
- * @tc.desc:
+ * @tc.desc: Split web view paste data
  * @tc.type: FUNC.
  * @tc.require:
  * @tc.author:
@@ -196,7 +196,7 @@ HWTEST_F(WebControllerTest, SplitWebviewPasteDataTest_005, TestSize.Level1)
 
 /**
  * @tc.name: SplitWebviewPasteDataTest_006.
- * @tc.desc:
+ * @tc.desc: Split web view paste data
  * @tc.type: FUNC.
  * @tc.require:
  * @tc.author:
@@ -215,7 +215,7 @@ HWTEST_F(WebControllerTest, SplitWebviewPasteDataTest_006, TestSize.Level1)
 
 /**
 * @tc.name: SplitWebviewPasteDataTest_007.
-* @tc.desc:SplitWebviewPasteData_ShouldReturnTrue_WhenHtmlEntryIsValid
+* @tc.desc: SplitWebviewPasteData_ShouldReturnTrue_WhenHtmlEntryIsValid
 * @tc.type: FUNC.
 * @tc.require:
 * @tc.author:
@@ -235,7 +235,7 @@ HWTEST_F(WebControllerTest, SplitWebviewPasteDataTest_007, TestSize.Level1)
 
 /**
  * @tc.name: SplitWebviewPasteDataTest_008.
- * @tc.desc:
+ * @tc.desc: Split web view paste data
  * @tc.type: FUNC.
  * @tc.require:
  * @tc.author:
@@ -263,7 +263,7 @@ HWTEST_F(WebControllerTest, SplitWebviewPasteDataTest_008, TestSize.Level1)
 
 /**
  * @tc.name: SplitWebviewPasteDataTest_009.
- * @tc.desc:
+ * @tc.desc: Split web view paste data
  * @tc.type: FUNC.
  * @tc.require:
  * @tc.author:
@@ -299,7 +299,7 @@ HWTEST_F(WebControllerTest, SplitWebviewPasteDataTest_009, TestSize.Level1)
 
 /**
  * @tc.name: SplitWebviewPasteDataTest_010.
- * @tc.desc:
+ * @tc.desc: Split web view paste data
  * @tc.type: FUNC.
  * @tc.require:
  * @tc.author:
@@ -336,7 +336,7 @@ HWTEST_F(WebControllerTest, SplitWebviewPasteDataTest_010, TestSize.Level1)
 
 /**
  * @tc.name: SetWebviewPasteDataTest_001.
- * @tc.desc:
+ * @tc.desc: Set web view paste data
  * @tc.type: FUNC.
  * @tc.require:
  * @tc.author:
@@ -360,7 +360,7 @@ HWTEST_F(WebControllerTest, SetWebviewPasteDataTest_001, TestSize.Level1)
 
 /**
  * @tc.name: SetWebviewPasteDataTest_002.
- * @tc.desc:
+ * @tc.desc: Set web view paste data
  * @tc.type: FUNC.
  * @tc.require:
  * @tc.author:
@@ -383,7 +383,7 @@ HWTEST_F(WebControllerTest, SetWebviewPasteDataTest_002, TestSize.Level1)
 
 /**
  * @tc.name: SetWebviewPasteDataTest_003.
- * @tc.desc:
+ * @tc.desc: Set web view paste data
  * @tc.type: FUNC.
  * @tc.require:
  * @tc.author:
@@ -406,7 +406,7 @@ HWTEST_F(WebControllerTest, SetWebviewPasteDataTest_003, TestSize.Level1)
 
 /**
  * @tc.name: SetWebviewPasteDataTest_004.
- * @tc.desc:
+ * @tc.desc: Set web view paste data
  * @tc.type: FUNC.
  * @tc.require:
  * @tc.author:
@@ -432,7 +432,7 @@ HWTEST_F(WebControllerTest, SetWebviewPasteDataTest_004, TestSize.Level1)
 
 /**
  * @tc.name: SetWebviewPasteDataTest_005.
- * @tc.desc:
+ * @tc.desc: Set web view paste data
  * @tc.type: FUNC.
  * @tc.require:
  * @tc.author:
@@ -461,7 +461,7 @@ HWTEST_F(WebControllerTest, SetWebviewPasteDataTest_005, TestSize.Level1)
 
 /**
  * @tc.name: SetWebviewPasteDataTest_006.
- * @tc.desc:
+ * @tc.desc: Set web view paste data
  * @tc.type: FUNC.
  * @tc.require:
  * @tc.author:
@@ -490,7 +490,7 @@ HWTEST_F(WebControllerTest, SetWebviewPasteDataTest_006, TestSize.Level1)
 
 /**
  * @tc.name: SetWebviewPasteDataTest_007.
- * @tc.desc:
+ * @tc.desc: Set web view paste data
  * @tc.type: FUNC.
  * @tc.require:
  * @tc.author:
@@ -519,7 +519,7 @@ HWTEST_F(WebControllerTest, SetWebviewPasteDataTest_007, TestSize.Level1)
 
 /**
  * @tc.name: CheckAppUriPermissionTest_001.
- * @tc.desc:
+ * @tc.desc: Check app uri permission
  * @tc.type: FUNC.
  * @tc.require:
  * @tc.author:
@@ -540,7 +540,7 @@ HWTEST_F(WebControllerTest, CheckAppUriPermissionTest_001, TestSize.Level1)
 
 /**
  * @tc.name: CheckAppUriPermissionTest_002.
- * @tc.desc:
+ * @tc.desc: Check app uri permission
  * @tc.type: FUNC.
  * @tc.require:
  * @tc.author:
@@ -562,7 +562,7 @@ HWTEST_F(WebControllerTest, CheckAppUriPermissionTest_002, TestSize.Level1)
 
 /**
  * @tc.name: CheckAppUriPermissionTest_003.
- * @tc.desc:
+ * @tc.desc: Check app uri permission
  * @tc.type: FUNC.
  * @tc.require:
  * @tc.author:
@@ -587,7 +587,7 @@ HWTEST_F(WebControllerTest, CheckAppUriPermissionTest_003, TestSize.Level1)
 
 /**
  * @tc.name: CheckAppUriPermissionTest_004.
- * @tc.desc:
+ * @tc.desc: Check app uri permission
  * @tc.type: FUNC.
  * @tc.require:
  * @tc.author:
@@ -616,7 +616,7 @@ HWTEST_F(WebControllerTest, CheckAppUriPermissionTest_004, TestSize.Level1)
 
 /**
  * @tc.name: GetNeedCheckUrisTest_001.
- * @tc.desc:
+ * @tc.desc: Get need check uris
  * @tc.type: FUNC.
  * @tc.require:
  * @tc.author:
@@ -657,7 +657,7 @@ HWTEST_F(WebControllerTest, GetNeedCheckUrisTest_001, TestSize.Level1)
 
 /**
  * @tc.name: GetNeedCheckUrisTest_002.
- * @tc.desc:
+ * @tc.desc: Get need check uris
  * @tc.type: FUNC.
  * @tc.require:
  * @tc.author:
@@ -698,7 +698,7 @@ HWTEST_F(WebControllerTest, GetNeedCheckUrisTest_002, TestSize.Level1)
 
 /**
  * @tc.name: GetNeedCheckUrisTest_003.
- * @tc.desc:
+ * @tc.desc: Get need check uris
  * @tc.type: FUNC.
  * @tc.require:
  * @tc.author:
@@ -745,8 +745,10 @@ HWTEST_F(WebControllerTest, GetNeedCheckUrisTest_003, TestSize.Level1)
 
 /**
  * @tc.name: DataRemoveInvalidUriCrossTest001
- * @tc.desc:
+ * @tc.desc: Data remove invalid uri cross
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(WebControllerTest, DataRemoveInvalidUriCrossTest001, TestSize.Level1)
 {
@@ -778,8 +780,10 @@ HWTEST_F(WebControllerTest, DataRemoveInvalidUriCrossTest001, TestSize.Level1)
 
 /**
  * @tc.name: DataRemoveInvalidUriCrossTest002
- * @tc.desc:
+ * @tc.desc: Data remove invalid uri cross
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(WebControllerTest, DataRemoveInvalidUriCrossTest002, TestSize.Level1)
 {
@@ -811,8 +815,10 @@ HWTEST_F(WebControllerTest, DataRemoveInvalidUriCrossTest002, TestSize.Level1)
 
 /**
  * @tc.name: DataRemoveInvalidUriCrossTest003
- * @tc.desc:
+ * @tc.desc: Data remove invalid uri cross
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(WebControllerTest, DataRemoveInvalidUriCrossTest003, TestSize.Level1)
 {
@@ -844,8 +850,10 @@ HWTEST_F(WebControllerTest, DataRemoveInvalidUriCrossTest003, TestSize.Level1)
 
 /**
  * @tc.name: DataRemoveInvalidUriCrossTest004
- * @tc.desc:
+ * @tc.desc: Data remove invalid uri cross
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(WebControllerTest, DataRemoveInvalidUriCrossTest004, TestSize.Level1)
 {
@@ -877,8 +885,10 @@ HWTEST_F(WebControllerTest, DataRemoveInvalidUriCrossTest004, TestSize.Level1)
 
 /**
  * @tc.name: DataRemoveInvalidUriCrossTest005
- * @tc.desc:
+ * @tc.desc: Data remove invalid uri cross
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(WebControllerTest, DataRemoveInvalidUriCrossTest005, TestSize.Level1)
 {
@@ -929,8 +939,10 @@ HWTEST_F(WebControllerTest, DataRemoveInvalidUriCrossTest005, TestSize.Level1)
 
 /**
  * @tc.name: DataRemoveInvalidUriLocalTest001
- * @tc.desc:
+ * @tc.desc: Data remove invalid uri local
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(WebControllerTest, DataRemoveInvalidUriLocalTest001, TestSize.Level1)
 {
@@ -962,8 +974,10 @@ HWTEST_F(WebControllerTest, DataRemoveInvalidUriLocalTest001, TestSize.Level1)
 
 /**
  * @tc.name: DataRemoveInvalidUriLocalTest002
- * @tc.desc:
+ * @tc.desc: Data remove invalid uri local
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(WebControllerTest, DataRemoveInvalidUriLocalTest002, TestSize.Level1)
 {
@@ -995,8 +1009,10 @@ HWTEST_F(WebControllerTest, DataRemoveInvalidUriLocalTest002, TestSize.Level1)
 
 /**
  * @tc.name: DataRemoveInvalidUriLocalTest003
- * @tc.desc:
+ * @tc.desc: Data remove invalid uri local
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(WebControllerTest, DataRemoveInvalidUriLocalTest003, TestSize.Level1)
 {
@@ -1028,8 +1044,10 @@ HWTEST_F(WebControllerTest, DataRemoveInvalidUriLocalTest003, TestSize.Level1)
 
 /**
  * @tc.name: DataRemoveInvalidUriLocalTest004
- * @tc.desc:
+ * @tc.desc: Data remove invalid uri local
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(WebControllerTest, DataRemoveInvalidUriLocalTest004, TestSize.Level1)
 {
@@ -1061,8 +1079,10 @@ HWTEST_F(WebControllerTest, DataRemoveInvalidUriLocalTest004, TestSize.Level1)
 
 /**
  * @tc.name: DataRemoveInvalidUriLocalTest005
- * @tc.desc:
+ * @tc.desc: Data remove invalid uri local
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(WebControllerTest, DataRemoveInvalidUriLocalTest005, TestSize.Level1)
 {
@@ -1112,8 +1132,10 @@ HWTEST_F(WebControllerTest, DataRemoveInvalidUriLocalTest005, TestSize.Level1)
 
 /**
  * @tc.name: EntryRemoveInvalidUriTest001
- * @tc.desc:
+ * @tc.desc: Entry remove invalid uri
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(WebControllerTest, EntryRemoveInvalidUriTest001, TestSize.Level1)
 {
@@ -1147,8 +1169,10 @@ HWTEST_F(WebControllerTest, EntryRemoveInvalidUriTest001, TestSize.Level1)
 
 /**
  * @tc.name: EntryRemoveInvalidUriTest002
- * @tc.desc:
+ * @tc.desc: Entry remove invalid uri
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(WebControllerTest, EntryRemoveInvalidUriTest002, TestSize.Level1)
 {
@@ -1182,8 +1206,10 @@ HWTEST_F(WebControllerTest, EntryRemoveInvalidUriTest002, TestSize.Level1)
 
 /**
  * @tc.name: EntryRemoveInvalidUriTest003
- * @tc.desc:
+ * @tc.desc: Entry remove invalid uri
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(WebControllerTest, EntryRemoveInvalidUriTest003, TestSize.Level1)
 {
@@ -1217,8 +1243,10 @@ HWTEST_F(WebControllerTest, EntryRemoveInvalidUriTest003, TestSize.Level1)
 
 /**
  * @tc.name: EntryRemoveInvalidUriTest004
- * @tc.desc:
+ * @tc.desc: Entry remove invalid uri
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(WebControllerTest, EntryRemoveInvalidUriTest004, TestSize.Level1)
 {
@@ -1257,8 +1285,10 @@ HWTEST_F(WebControllerTest, EntryRemoveInvalidUriTest004, TestSize.Level1)
 
 /**
  * @tc.name: MatchImgExtensionTest001
- * @tc.desc:
+ * @tc.desc: Match img extension
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(WebControllerTest, MatchImgExtensionTest001, TestSize.Level1)
 {
@@ -1281,8 +1311,10 @@ HWTEST_F(WebControllerTest, MatchImgExtensionTest001, TestSize.Level1)
 
 /**
  * @tc.name: MatchImgExtensionTest002
- * @tc.desc:
+ * @tc.desc: Match img extension
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(WebControllerTest, MatchImgExtensionTest002, TestSize.Level1)
 {
