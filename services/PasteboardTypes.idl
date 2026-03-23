@@ -31,6 +31,8 @@ enum Pattern : unsigned int {
     URL = 0,
     NUMBER,
     EMAIL_ADDRESS,
+    HTTP_URL,
+    FLIGHT_NUMBER,
     COUNT
 };
 

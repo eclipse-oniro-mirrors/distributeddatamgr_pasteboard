@@ -17,6 +17,7 @@
 #include <thread>
 #include <unistd.h>
 
+#include "fd_san.h"
 #include "ipc_skeleton.h"
 #include "message_parcel_warp.h"
 #include "pasteboard_error.h"
@@ -56,8 +57,6 @@ const std::string TEST_ENTITY_TEXT =
     "然风光和文化底蕴，感受人间天堂的独特魅力。";
 const std::string TEST_ENTITY_TEXT_CN_50 =
     "清晨,从杭州市中心出发，沿着湖滨路缓缓前行。湖滨路是杭州市中心通往西湖的主要街道之一，两旁绿树成荫。";
-const std::string TEST_ENTITY_TEXT_CN_50 =
-    "清晨,从杭州市中心出发，沿着湖滨路缓缓前行。湖滨路是杭州市中心通往西湖的主要街道之一，两旁绿树成荫。";
 const std::string TEST_ENTITY_TEXT_CN_10 =
     "清晨,从杭州市中心出";
 const std::string TEST_ENTITY_TEXT_CN_5 =
@@ -81,7 +80,7 @@ class MyTestPasteboardChangedObserver : public PasteboardObserverStub {
     {
         return;
     }
-    void OnPasteboardEvent(std::string bundleName, int32_t status)
+    void OnPasteboardEvent(const PasteboardChangedEvent &event)
     {
         return;
     }
@@ -459,10 +458,11 @@ HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataOnlyTest001, TestSize.Level1)
     int64_t rawDataSize = 0;
     std::vector<uint8_t> buffer;
     int fd = mpw->CreateTmpFd();
+    fdsan_exchange_owner_tag(fd, 0, PASTEBOARD_FD_TAG);
     int32_t result = service->SetPasteDataOnly(dup(fd), rawDataSize, buffer);
     EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::INVALID_PARAM_ERROR));
     mpw->writeRawDataFd_ = -1;
-    close(fd);
+    fdsan_close_with_tag(fd, PASTEBOARD_FD_TAG);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetPasteDataOnlyTest001 end");
 }
 
@@ -543,7 +543,7 @@ HWTEST_F(PasteboardServiceSetDataTest, SetCurrentDataTest001, TestSize.Level1)
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
 
-    tempPasteboard->SetCurrentData(event);
+    tempPasteboard->SetCurrentData();
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetCurrentDataTest001 end");
 }
 

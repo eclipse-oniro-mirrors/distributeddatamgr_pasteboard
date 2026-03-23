@@ -24,6 +24,8 @@ idl_gen_interface("pasteboard_service_interface") {
   sources_common = [ "PasteboardTypes.idl" ]
   log_domainid = "0xD001C00"
   log_tag = "PBIDL"
+
+  inputs = [ "PasteboardTypes.idl" ]
 }
 
 config("pasteboard_service_config") {
@@ -151,6 +153,7 @@ ohos_shared_library("pasteboard_service") {
     "init:libbegetutil",
     "input:libmmi-client",
     "ipc:ipc_single",
+    "json:nlohmann_json_static",
     "libxml2:libxml2",
     "memmgr:memmgrclient",
     "os_account:os_account_innerkits",

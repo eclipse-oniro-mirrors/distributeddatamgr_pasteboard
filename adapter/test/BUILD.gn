@@ -22,6 +22,7 @@ ohos_unittest("AdapterDeviceProfileClientTest") {
   cflags = [ "-fno-access-control" ]
 
   include_dirs = [
+    "${pasteboard_framework_path}/include",
     "${pasteboard_root_path}/adapter/include",
     "${pasteboard_root_path}/adapter/test/mock/device_profile",
     "${pasteboard_root_path}/adapter/test/mock/samgr",
@@ -29,6 +30,7 @@ ohos_unittest("AdapterDeviceProfileClientTest") {
   ]
 
   sources = [
+    "${pasteboard_framework_path}/common/pasteboard_common_utils.cpp",
     "${pasteboard_root_path}/adapter/src/device_profile_client.cpp",
     "device_profile_client_test.cpp",
     "mock/device_profile/distributed_device_profile_proxy.cpp",

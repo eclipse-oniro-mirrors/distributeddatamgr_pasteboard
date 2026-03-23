@@ -14,8 +14,8 @@
  */
 #include "device/distributed_module_config.h"
 
-#include <pthread.h>
 #include <thread>
+#include "common/pasteboard_common_utils.h"
 #include "device/dev_profile.h"
 #include "pasteboard_error.h"
 #include "pasteboard_hilog.h"
@@ -89,7 +89,7 @@ void DistributedModuleConfig::GetRetryTask()
         }
         retrying_.store(false);
     });
-    pthread_setname_np(remover.native_handle(), "GetRetryTask");
+    PasteBoardCommonUtils::SetThreadTaskName(remover, "GetRetryTask");
     remover.detach();
 }
 
@@ -118,7 +118,7 @@ int32_t DistributedModuleConfig::GetEnabledStatus()
             return static_cast<int32_t>(PasteboardError::E_OK);
         }
     }
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "remoteEnabledStatus is false.");
+    PASTEBOARD_HILOGD(PASTEBOARD_MODULE_SERVICE, "remoteEnabledStatus is false.");
     return static_cast<int32_t>(PasteboardError::NO_TRUST_DEVICE_ERROR);
 }
 

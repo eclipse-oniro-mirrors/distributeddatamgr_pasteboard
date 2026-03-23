@@ -195,7 +195,7 @@ bool UnionAccessor::TryConvert<ani_double>(ani_double &value)
     if (env_ == nullptr) {
         return false;
     }
-    return ANI_OK == env_->Object_CallMethodByName_Double(obj_, "doubleValue", nullptr, &value);
+    return ANI_OK == env_->Object_CallMethodByName_Double(obj_, "toDouble", nullptr, &value);
 }
 
 template<>

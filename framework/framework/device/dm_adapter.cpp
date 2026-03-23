@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-#include <pthread.h>
 #include <thread>
 
+#include "common/pasteboard_common_utils.h"
 #include "device/dm_adapter.h"
 
 #include "pasteboard_error.h"
@@ -41,7 +41,7 @@ void DmStateObserver::OnDeviceOnline(const DmDeviceInfo &deviceInfo)
         PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "device on:%{public}.6s", deviceInfo.networkId);
         online_(deviceInfo);
     });
-    pthread_setname_np(thread.native_handle(), "OnDeviceOnline");
+    PasteBoardCommonUtils::SetThreadTaskName(thread, "OnDeviceOnline");
     thread.detach();
 }
 
@@ -54,7 +54,7 @@ void DmStateObserver::OnDeviceOffline(const DmDeviceInfo &deviceInfo)
         PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "device off:%{public}.6s", deviceInfo.networkId);
         offline_(deviceInfo);
     });
-    pthread_setname_np(thread.native_handle(), "OnDeviceOffline");
+    PasteBoardCommonUtils::SetThreadTaskName(thread, "OnDeviceOffline");
     thread.detach();
 }
 
@@ -67,7 +67,7 @@ void DmStateObserver::OnDeviceChanged(const DmDeviceInfo &deviceInfo)
             PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "device config changed:%{public}.6s", deviceInfo.networkId);
             online_(deviceInfo);
         });
-        pthread_setname_np(thread.native_handle(), "OnDeviceChanged");
+        PasteBoardCommonUtils::SetThreadTaskName(thread, "OnDeviceChanged");
         thread.detach();
     }
 }
@@ -81,7 +81,7 @@ void DmStateObserver::OnDeviceReady(const DmDeviceInfo &deviceInfo)
         PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "device onReady:%{public}.6s", deviceInfo.networkId);
         onReady_(deviceInfo);
     });
-    pthread_setname_np(thread.native_handle(), "OnDeviceReady");
+    PasteBoardCommonUtils::SetThreadTaskName(thread, "OnDeviceReady");
     thread.detach();
 }
 

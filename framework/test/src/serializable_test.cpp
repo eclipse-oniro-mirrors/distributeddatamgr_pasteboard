@@ -42,7 +42,7 @@ public:
     bool IsSame(Config &oldConfig, Config &newConfig);
     static bool IsSame(Config::Component &oldComp, Config::Component &newComp);
 
-    template <typename T>
+    template<typename T>
     static bool IsSame(std::vector<T> &olds, std::vector<T> &news)
     {
         if (olds.size() != news.size()) {
@@ -58,13 +58,13 @@ public:
     }
 };
 
-void SerializableTest::SetUpTestCase(void) { }
+void SerializableTest::SetUpTestCase(void) {}
 
-void SerializableTest::TearDownTestCase(void) { }
+void SerializableTest::TearDownTestCase(void) {}
 
-void SerializableTest::SetUp(void) { }
+void SerializableTest::SetUp(void) {}
 
-void SerializableTest::TearDown(void) { }
+void SerializableTest::TearDown(void) {}
 
 Serializable::json SerializableTest::ToJson(const std::string &str)
 {

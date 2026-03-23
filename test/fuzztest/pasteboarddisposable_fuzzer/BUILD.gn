@@ -45,6 +45,7 @@ ohos_fuzztest("PasteboardDisposableFuzzTest") {
 
   sources = [ "pasteboarddisposable_fuzzer.cpp" ]
   sources += [
+    "${pasteboard_framework_path}/common/pasteboard_common_utils.cpp",
     "${pasteboard_framework_path}/ffrt/ffrt_utils.cpp",
     "${pasteboard_framework_path}/permission/permission_utils.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_disposable_manager.cpp",

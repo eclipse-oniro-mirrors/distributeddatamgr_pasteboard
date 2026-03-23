@@ -133,16 +133,17 @@ void PasteboardWebController::CheckAppUriPermission(PasteData &pasteData)
     std::vector<bool> checkWriteResults;
     pid_t callingUid = IPCSkeleton::GetCallingUid();
     bool ancoFlag = (callingUid == ANCO_SERVICE_BROKER_UID);
-    PASTEBOARD_HILOGD(PASTEBOARD_MODULE_COMMON, "callingUid=%{public}d, ancoFlag=%{public}u", callingUid, ancoFlag);
-    int32_t uriCount = GetNeedCheckUris(pasteData, uris, indexs, ancoFlag);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "uri count=%{public}d", uriCount);
+    PASTEBOARD_HILOGD(PASTEBOARD_MODULE_COMMON, "ancoFlag=%{public}d", ancoFlag);
+    size_t uriCount = GetNeedCheckUris(pasteData, uris, indexs, ancoFlag);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "total uri count=%{public}zu", uriCount);
     if (uris.empty()) {
         return;
     }
     size_t offset = 0;
     size_t length = uris.size();
     size_t count = PasteData::URI_BATCH_SIZE;
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "loop for CheckUriAuthorization, uri count=%{public}zu", uris.size());
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "loop for CheckUriAuthorization, need check uri count=%{public}zu",
+        uris.size());
     while (length > offset) {
         if (length - offset < PasteData::URI_BATCH_SIZE) {
             count = length - offset;
@@ -186,10 +187,10 @@ void PasteboardWebController::SetUriPermission(
     record->SetUriPermission(PasteDataRecord::READ_PERMISSION);
 }
 
-int32_t PasteboardWebController::GetNeedCheckUris(PasteData &pasteData, std::vector<std::string> &uris,
+size_t PasteboardWebController::GetNeedCheckUris(PasteData &pasteData, std::vector<std::string> &uris,
     std::vector<size_t> &indexs, bool ancoFlag)
 {
-    int32_t uriCount = 0;
+    size_t uriCount = 0;
     bool isNeedPersistance = OHOS::system::GetBoolParameter("const.pasteboard.uri_persistable_permission", false);
     uint32_t flag = isNeedPersistance ? PasteDataRecord::READ_WRITE_PERMISSION : PasteDataRecord::READ_PERMISSION;
     for (size_t i = 0; i < pasteData.GetRecordCount(); i++) {

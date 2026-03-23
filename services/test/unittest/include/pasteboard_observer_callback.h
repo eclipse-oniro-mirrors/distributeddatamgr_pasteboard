@@ -40,6 +40,7 @@ public:
     };
     void OnPasteboardEvent(const PasteboardChangedEvent &event) override;
 };
+
 } // namespace MiscServices
 } // namespace OHOS
 #endif // PASTE_SERVICE_TEST_H

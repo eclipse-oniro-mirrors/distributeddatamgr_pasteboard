@@ -61,8 +61,6 @@ const std::string TEST_ENTITY_TEXT =
     "然风光和文化底蕴，感受人间天堂的独特魅力。";
 const std::string TEST_ENTITY_TEXT_CN_50 =
     "清晨,从杭州市中心出发，沿着湖滨路缓缓前行。湖滨路是杭州市中心通往西湖的主要街道之一，两旁绿树成荫。";
-const std::string TEST_ENTITY_TEXT_CN_50 =
-    "清晨,从杭州市中心出发，沿着湖滨路缓缓前行。湖滨路是杭州市中心通往西湖的主要街道之一，两旁绿树成荫。";
 const std::string TEST_ENTITY_TEXT_CN_10 =
     "清晨,从杭州市中心出";
 const std::string TEST_ENTITY_TEXT_CN_5 =
@@ -88,7 +86,7 @@ class MyTestPasteboardChangedObserver : public PasteboardObserverStub {
     {
         return;
     }
-    void OnPasteboardEvent(std::string bundleName, int32_t status)
+    void OnPasteboardEvent(const PasteboardChangedEvent &event)
     {
         return;
     }
@@ -507,7 +505,7 @@ HWTEST_F(PasteboardServiceCheckTest, IsConstraintEnabled001, TestSize.Level1)
     EXPECT_NE(tempPasteboard, nullptr);
 
     int32_t userId = 100;
-    tempPasteboard->IsConstraintEnable(userId);
+    tempPasteboard->IsConstraintEnabled(userId);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "IsConstraintEnabled001 end");
 }
 

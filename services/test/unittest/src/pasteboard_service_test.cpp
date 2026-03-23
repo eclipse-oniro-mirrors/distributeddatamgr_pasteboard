@@ -59,8 +59,6 @@ const std::string TEST_ENTITY_TEXT =
     "然风光和文化底蕴，感受人间天堂的独特魅力。";
 const std::string TEST_ENTITY_TEXT_CN_50 =
     "清晨,从杭州市中心出发，沿着湖滨路缓缓前行。湖滨路是杭州市中心通往西湖的主要街道之一，两旁绿树成荫。";
-const std::string TEST_ENTITY_TEXT_CN_50 =
-    "清晨,从杭州市中心出发，沿着湖滨路缓缓前行。湖滨路是杭州市中心通往西湖的主要街道之一，两旁绿树成荫。";
 const std::string TEST_ENTITY_TEXT_CN_10 =
     "清晨,从杭州市中心出";
 const std::string TEST_ENTITY_TEXT_CN_5 =
@@ -972,50 +970,6 @@ HWTEST_F(PasteboardServiceTest, GenerateDistributedUriTest006, TestSize.Level1)
 }
 
 /**
- * @tc.name: GenerateDistributedUriTest005
- * @tc.desc: test Func GenerateDistributedUri
- * @tc.type: FUNC
- */
-HWTEST_F(PasteboardServiceTest, GenerateDistributedUriTest005, TestSize.Level1)
-{
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GenerateDistributedUriTest005 start");
-    PasteData pasteData;
-    auto tempPasteboard = std::make_shared<PasteboardService>();
-    EXPECT_NE(tempPasteboard, nullptr);
-
-    pasteData.AddHtmlRecord("<div class='disable'>helloWorld</div>");
-    pasteData.AddTextRecord("testRecord");
-    pasteData.AddTextRecord(TEST_ENTITY_TEXT_CN_50);
-    pasteData.AddTextRecord("testRecord");
-    pasteData.AddHtmlRecord("<div class='disable'>helloWorld</div>");
-
-    tempPasteboard->GenerateDistributedUri(pasteData);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GenerateDistributedUriTest005 end");
-}
-
-/**
- * @tc.name: GenerateDistributedUriTest006
- * @tc.desc: test Func GenerateDistributedUri
- * @tc.type: FUNC
- */
-HWTEST_F(PasteboardServiceTest, GenerateDistributedUriTest006, TestSize.Level1)
-{
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GenerateDistributedUriTest006 start");
-    PasteData pasteData;
-    auto tempPasteboard = std::make_shared<PasteboardService>();
-    EXPECT_NE(tempPasteboard, nullptr);
-
-    pasteData.AddHtmlRecord("<div class='disable'>helloWorld</div>");
-    pasteData.AddTextRecord("testRecord");
-    pasteData.AddTextRecord(TEST_ENTITY_TEXT_CN_10);
-    pasteData.AddTextRecord("testRecord");
-    pasteData.AddHtmlRecord("<div class='disable'>helloWorld</div>");
-
-    tempPasteboard->GenerateDistributedUri(pasteData);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GenerateDistributedUriTest006 end");
-}
-
-/**
  * @tc.name: GenerateDistributedUriTest007
  * @tc.desc: test Func GenerateDistributedUri
  * @tc.type: FUNC
@@ -1029,12 +983,56 @@ HWTEST_F(PasteboardServiceTest, GenerateDistributedUriTest007, TestSize.Level1)
 
     pasteData.AddHtmlRecord("<div class='disable'>helloWorld</div>");
     pasteData.AddTextRecord("testRecord");
-    pasteData.AddTextRecord(TEST_ENTITY_TEXT_CN_5);
+    pasteData.AddTextRecord(TEST_ENTITY_TEXT_CN_50);
     pasteData.AddTextRecord("testRecord");
     pasteData.AddHtmlRecord("<div class='disable'>helloWorld</div>");
 
     tempPasteboard->GenerateDistributedUri(pasteData);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GenerateDistributedUriTest007 end");
+}
+
+/**
+ * @tc.name: GenerateDistributedUriTest008
+ * @tc.desc: test Func GenerateDistributedUri
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceTest, GenerateDistributedUriTest008, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GenerateDistributedUriTest008 start");
+    PasteData pasteData;
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+
+    pasteData.AddHtmlRecord("<div class='disable'>helloWorld</div>");
+    pasteData.AddTextRecord("testRecord");
+    pasteData.AddTextRecord(TEST_ENTITY_TEXT_CN_10);
+    pasteData.AddTextRecord("testRecord");
+    pasteData.AddHtmlRecord("<div class='disable'>helloWorld</div>");
+
+    tempPasteboard->GenerateDistributedUri(pasteData);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GenerateDistributedUriTest008 end");
+}
+
+/**
+ * @tc.name: GenerateDistributedUriTest009
+ * @tc.desc: test Func GenerateDistributedUri
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceTest, GenerateDistributedUriTest009, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GenerateDistributedUriTest009 start");
+    PasteData pasteData;
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+
+    pasteData.AddHtmlRecord("<div class='disable'>helloWorld</div>");
+    pasteData.AddTextRecord("testRecord");
+    pasteData.AddTextRecord(TEST_ENTITY_TEXT_CN_5);
+    pasteData.AddTextRecord("testRecord");
+    pasteData.AddHtmlRecord("<div class='disable'>helloWorld</div>");
+
+    tempPasteboard->GenerateDistributedUri(pasteData);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GenerateDistributedUriTest009 end");
 }
 
 /**
@@ -1419,9 +1417,9 @@ HWTEST_F(PasteboardServiceTest, clearInner001, TestSize.Level1)
 
     pasteData->AddTextRecord("hello");
     tempPasteboard->clips_.InsertOrAssign(userId, pasteData);
-    auto appInfo = GetAppInfo(IPCSkeleton::GetCallingTokenID());
+    auto appInfo = tempPasteboard->GetAppInfo(IPCSkeleton::GetCallingTokenID());
     tempPasteboard->ClearInner(userId, appInfo);
-    auto [hasData, data] = clips_.Find(userId);
+    auto [hasData, data] = tempPasteboard->clips_.Find(userId);
     EXPECT_EQ(hasData, false);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "clearInner001 end");
 }
@@ -1443,10 +1441,10 @@ HWTEST_F(PasteboardServiceTest, clearInner002, TestSize.Level1)
 
     pasteData->AddTextRecord("hello");
     tempPasteboard->clips_.InsertOrAssign(userId, pasteData);
-    auto appInfo = GetAppInfo(IPCSkeleton::GetCallingTokenID());
+    auto appInfo = tempPasteboard->GetAppInfo(IPCSkeleton::GetCallingTokenID());
     int32_t clearUserId = 101;
     tempPasteboard->ClearInner(clearUserId, appInfo);
-    auto [hasData, data] = clips_.Find(userId);
+    auto [hasData, data] = tempPasteboard->clips_.Find(userId);
     EXPECT_EQ(hasData, true);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "clearInner002 end");
 }
@@ -1689,6 +1687,32 @@ HWTEST_F(PasteboardServiceTest, HasRemoteUriTest004, TestSize.Level1)
     int32_t result = service->HasRemoteUri(pasteData);
     EXPECT_EQ(result, false);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "HasRemoteUriTest004 end");
+}
+
+/**
+ * @tc.name: IsValidCurrentEventTest001
+ * @tc.desc: test Func IsValidCurrentEvent
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceTest, IsValidCurrentEventTest001, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "IsValidCurrentEventTest001 start");
+    auto service = std::make_shared<PasteboardService>();
+    EXPECT_NE(service, nullptr);
+    
+    // Test case 1: When current event is expired (expiration < current time)
+    // Set expiration to a past time
+    service->currentEvent_.expiration = 0; // Far in the past
+    bool result = service->IsValidCurrentEvent();
+    EXPECT_EQ(result, false);
+    
+    // Test case 2: When current event is not expired (expiration > current time)
+    // Set expiration to a future time
+    service->currentEvent_.expiration = UINT64_MAX; // Far in the future
+    result = service->IsValidCurrentEvent();
+    EXPECT_EQ(result, true);
+    
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "IsValidCurrentEventTest001 end");
 }
 } // namespace MiscServices
 } // namespace OHOS

@@ -316,6 +316,12 @@ napi_value PasteboardNapi::JScreatePattern(napi_env env, napi_callback_info info
     napi_value jsEmailAddress = CreateNapiNumber(env, static_cast<uint32_t>(Pattern::EMAIL_ADDRESS));
     NAPI_CALL(env, napi_set_named_property(env, jsPattern, "EMAIL_ADDRESS", jsEmailAddress));
 
+    napi_value jsHttpLink = CreateNapiNumber(env, static_cast<uint32_t>(Pattern::HTTP_URL));
+    NAPI_CALL(env, napi_set_named_property(env, jsPattern, "HTTP_URL", jsHttpLink));
+
+    napi_value jsFlightNumber = CreateNapiNumber(env, static_cast<uint32_t>(Pattern::FLIGHT_NUMBER));
+    NAPI_CALL(env, napi_set_named_property(env, jsPattern, "FLIGHT_NUMBER", jsFlightNumber));
+
     return jsPattern;
 }
 

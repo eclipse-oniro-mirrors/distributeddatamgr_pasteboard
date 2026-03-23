@@ -14,9 +14,9 @@
  */
 
 #include "device/dev_profile.h"
-#include <pthread.h>
 #include <thread>
 
+#include "common/pasteboard_common_utils.h"
 #include "device/device_profile_proxy.h"
 #include "device/dm_adapter.h"
 #include "ffrt/ffrt_utils.h"
@@ -59,7 +59,7 @@ void DevProfile::PostDelayReleaseProxy()
                 proxy_ = nullptr;
             }
         });
-        pthread_setname_np(thread.native_handle(), "PostDelayReleas");
+        PasteBoardCommonUtils::SetThreadTaskName(thread, "PostDelayReleas");
         thread.detach();
     };
 

@@ -29,13 +29,13 @@ public:
     void TearDown();
 };
 
-void ClipPluginTest::SetUpTestCase(void) { }
+void ClipPluginTest::SetUpTestCase(void) {}
 
-void ClipPluginTest::TearDownTestCase(void) { }
+void ClipPluginTest::TearDownTestCase(void) {}
 
-void ClipPluginTest::SetUp(void) { }
+void ClipPluginTest::SetUp(void) {}
 
-void ClipPluginTest::TearDown(void) { }
+void ClipPluginTest::TearDown(void) {}
 
 class CustomClipPlugin : public ClipPlugin {
 public:
@@ -295,5 +295,20 @@ HWTEST_F(ClipPluginTest, GetMimeTypesTest, TestSize.Level0)
     ClipPlugin::GlobalEvent event;
     auto ret = clipPlugin->GetMimeTypes(mimeTypes, event);
     ASSERT_EQ(0, ret);
+}
+
+/**
+ * @tc.name: IsWiFiEnableTest
+ * @tc.desc: IsWiFiEnable.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(ClipPluginTest, IsWiFiEnableTest, TestSize.Level0)
+{
+    auto clipPlugin = std::make_shared<CustomClipPlugin>();
+    ASSERT_NE(clipPlugin, nullptr);
+    bool result = clipPlugin->IsWiFiEnable();
+    ASSERT_EQ(result, false);
 }
 } // namespace OHOS::MiscServices

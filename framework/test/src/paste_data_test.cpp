@@ -58,6 +58,8 @@ ClipFactory::ClipFactory()
  * @tc.name: AddRecord001
  * @tc.desc: PasteDataRecord AddRecord
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataTest, AddRecord001, TestSize.Level0)
 {
@@ -77,6 +79,8 @@ HWTEST_F(PasteDataTest, AddRecord001, TestSize.Level0)
  * @tc.name: AddRecord002
  * @tc.desc: PasteDataRecord AddRecord
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataTest, AddRecord002, TestSize.Level0)
 {
@@ -95,6 +99,8 @@ HWTEST_F(PasteDataTest, AddRecord002, TestSize.Level0)
  * @tc.name: AddRecord003
  * @tc.desc: PasteDataRecord AddRecord, add multi records and check the order of records of data.
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataTest, AddRecord003, TestSize.Level0)
 {
@@ -129,6 +135,8 @@ HWTEST_F(PasteDataTest, AddRecord003, TestSize.Level0)
  * @tc.name: AddRecord004
  * @tc.desc: PasteDataRecord AddHtmlRecord, add multi records and check the order of records of data.
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataTest, AddRecord004, TestSize.Level0)
 {
@@ -167,6 +175,8 @@ HWTEST_F(PasteDataTest, AddRecord004, TestSize.Level0)
  * @tc.name: AddRecord005
  * @tc.desc: PasteDataRecord AddTextRecord, add multi records and check the order of records of data.
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataTest, AddRecord005, TestSize.Level0)
 {
@@ -197,6 +207,8 @@ HWTEST_F(PasteDataTest, AddRecord005, TestSize.Level0)
  * @tc.name: AddRecord006
  * @tc.desc: PasteDataRecord AddUriRecord, add multi records and check the order of records of data.
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataTest, AddRecord006, TestSize.Level0)
 {
@@ -235,6 +247,8 @@ HWTEST_F(PasteDataTest, AddRecord006, TestSize.Level0)
  * @tc.name: Marshalling001
  * @tc.desc: PasteData Marshalling
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataTest, Marshalling001, TestSize.Level0)
 {
@@ -930,7 +944,7 @@ HWTEST_F(PasteDataTest, GetProperty001, TestSize.Level0)
 
 /**
  * @tc.name: SetProperty001
- * @tc.desc:
+ * @tc.desc: Set property
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author:
@@ -967,7 +981,7 @@ HWTEST_F(PasteDataTest, SetShareOption001, TestSize.Level0)
 
 /**
  * @tc.name: SetTokenId001
- * @tc.desc:
+ * @tc.desc: Set token id
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author:
@@ -1021,7 +1035,7 @@ HWTEST_F(PasteDataTest, SetDraggedDataFlag001, TestSize.Level0)
 
 /**
  * @tc.name: SetScreenStatus
- * @tc.desc:
+ * @tc.desc: Set screen status
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author:
@@ -1234,6 +1248,8 @@ HWTEST_F(PasteDataTest, SetDataIdTest001, TestSize.Level0)
  * @tc.name: GenerateDataType001
  * @tc.desc: Test GenerateDataType with empty PasteData
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataTest, GenerateDataType001, TestSize.Level0)
 {
@@ -1246,6 +1262,8 @@ HWTEST_F(PasteDataTest, GenerateDataType001, TestSize.Level0)
  * @tc.name: GenerateDataType002
  * @tc.desc: Test GenerateDataType with plain text record
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataTest, GenerateDataType002, TestSize.Level0)
 {
@@ -1259,6 +1277,8 @@ HWTEST_F(PasteDataTest, GenerateDataType002, TestSize.Level0)
  * @tc.name: GenerateDataType003
  * @tc.desc: Test GenerateDataType with html record
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataTest, GenerateDataType003, TestSize.Level0)
 {
@@ -1272,6 +1292,8 @@ HWTEST_F(PasteDataTest, GenerateDataType003, TestSize.Level0)
  * @tc.name: GenerateDataType004
  * @tc.desc: Test GenerateDataType with uri record
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataTest, GenerateDataType004, TestSize.Level0)
 {
@@ -1285,6 +1307,8 @@ HWTEST_F(PasteDataTest, GenerateDataType004, TestSize.Level0)
  * @tc.name: GenerateDataType005
  * @tc.desc: Test GenerateDataType with want record
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataTest, GenerateDataType005, TestSize.Level0)
 {
@@ -1299,6 +1323,8 @@ HWTEST_F(PasteDataTest, GenerateDataType005, TestSize.Level0)
  * @tc.name: GenerateDataType006
  * @tc.desc: Test GenerateDataType with pixel map record
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataTest, GenerateDataType006, TestSize.Level0)
 {
@@ -1314,6 +1340,8 @@ HWTEST_F(PasteDataTest, GenerateDataType006, TestSize.Level0)
  * @tc.name: GenerateDataType007
  * @tc.desc: Test GenerateDataType with multiple records
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataTest, GenerateDataType007, TestSize.Level0)
 {
@@ -1328,6 +1356,8 @@ HWTEST_F(PasteDataTest, GenerateDataType007, TestSize.Level0)
  * @tc.name: GenerateDataType008
  * @tc.desc: Test GenerateDataType with webview tag and html
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataTest, GenerateDataType008, TestSize.Level0)
 {
@@ -1343,6 +1373,8 @@ HWTEST_F(PasteDataTest, GenerateDataType008, TestSize.Level0)
  * @tc.name: GenerateDataType009
  * @tc.desc: Test GenerateDataType with unknown mime type
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataTest, GenerateDataType009, TestSize.Level0)
 {
@@ -1358,6 +1390,8 @@ HWTEST_F(PasteDataTest, GenerateDataType009, TestSize.Level0)
  * @tc.name: GenerateDataType010
  * @tc.desc: Test GenerateDataType with all supported types
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataTest, GenerateDataType010, TestSize.Level0)
 {
@@ -1378,6 +1412,8 @@ HWTEST_F(PasteDataTest, GenerateDataType010, TestSize.Level0)
  * @tc.name: GetReportDescriptionTest001
  * @tc.desc: GetReportDescription
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataTest, GetReportDescriptionTest001, TestSize.Level0)
 {
@@ -1393,6 +1429,8 @@ HWTEST_F(PasteDataTest, GetReportDescriptionTest001, TestSize.Level0)
  * @tc.name: GetReportDescriptionTest002
  * @tc.desc: GetReportDescription
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataTest, GetReportDescriptionTest002, TestSize.Level0)
 {
@@ -1405,6 +1443,8 @@ HWTEST_F(PasteDataTest, GetReportDescriptionTest002, TestSize.Level0)
  * @tc.name: GetReportDescriptionTest003
  * @tc.desc: GetReportDescription
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataTest, GetReportDescriptionTest003, TestSize.Level0)
 {
@@ -1420,6 +1460,8 @@ HWTEST_F(PasteDataTest, GetReportDescriptionTest003, TestSize.Level0)
  * @tc.name: GetPrimaryHtmlTest001
  * @tc.desc: GetPrimaryHtml
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataTest, GetPrimaryHtmlTest001, TestSize.Level0)
 {
@@ -1435,6 +1477,8 @@ HWTEST_F(PasteDataTest, GetPrimaryHtmlTest001, TestSize.Level0)
  * @tc.name: GetPrimaryHtmlTest002
  * @tc.desc: GetPrimaryHtml
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataTest, GetPrimaryHtmlTest002, TestSize.Level0)
 {
@@ -1459,6 +1503,8 @@ HWTEST_F(PasteDataTest, GetPrimaryHtmlTest002, TestSize.Level0)
  * @tc.name: GetPrimaryPixelMapTest001
  * @tc.desc: GetPrimaryPixelMap
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataTest, GetPrimaryPixelMapTest001, TestSize.Level0)
 {
@@ -1474,6 +1520,8 @@ HWTEST_F(PasteDataTest, GetPrimaryPixelMapTest001, TestSize.Level0)
  * @tc.name: GetPrimaryPixelMapTest002
  * @tc.desc: GetPrimaryPixelMap
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataTest, GetPrimaryPixelMapTest002, TestSize.Level0)
 {
@@ -1498,6 +1546,8 @@ HWTEST_F(PasteDataTest, GetPrimaryPixelMapTest002, TestSize.Level0)
  * @tc.name: GetPrimaryTextTest001
  * @tc.desc: GetPrimaryText
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataTest, GetPrimaryTextTest001, TestSize.Level0)
 {
@@ -1513,6 +1563,8 @@ HWTEST_F(PasteDataTest, GetPrimaryTextTest001, TestSize.Level0)
  * @tc.name: GetPrimaryTextTest002
  * @tc.desc: GetPrimaryText
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataTest, GetPrimaryTextTest002, TestSize.Level0)
 {
@@ -1534,6 +1586,8 @@ HWTEST_F(PasteDataTest, GetPrimaryTextTest002, TestSize.Level0)
  * @tc.name: GetPrimaryUriTest001
  * @tc.desc: GetPrimaryUri
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataTest, GetPrimaryUriTest001, TestSize.Level0)
 {
@@ -1549,6 +1603,8 @@ HWTEST_F(PasteDataTest, GetPrimaryUriTest001, TestSize.Level0)
  * @tc.name: GetPrimaryUriTest002
  * @tc.desc: GetPrimaryUri
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataTest, GetPrimaryUriTest002, TestSize.Level0)
 {
@@ -1574,6 +1630,8 @@ HWTEST_F(PasteDataTest, GetPrimaryUriTest002, TestSize.Level0)
  * @tc.name: IsValidShareOptionTest001
  * @tc.desc: IsValidShareOption
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataTest, IsValidShareOptionTest001, TestSize.Level0)
 {
@@ -1586,6 +1644,8 @@ HWTEST_F(PasteDataTest, IsValidShareOptionTest001, TestSize.Level0)
  * @tc.name: IsValidShareOptionTest002
  * @tc.desc: IsValidShareOption
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataTest, IsValidShareOptionTest002, TestSize.Level0)
 {
@@ -1598,6 +1658,8 @@ HWTEST_F(PasteDataTest, IsValidShareOptionTest002, TestSize.Level0)
  * @tc.name: IsValidShareOptionTest003
  * @tc.desc: IsValidShareOption
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataTest, IsValidShareOptionTest003, TestSize.Level0)
 {
@@ -1610,6 +1672,8 @@ HWTEST_F(PasteDataTest, IsValidShareOptionTest003, TestSize.Level0)
  * @tc.name: IsValidShareOptionTest004
  * @tc.desc: IsValidShareOption
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataTest, IsValidShareOptionTest004, TestSize.Level0)
 {
@@ -1622,6 +1686,8 @@ HWTEST_F(PasteDataTest, IsValidShareOptionTest004, TestSize.Level0)
  * @tc.name: IsValidShareOptionTest005
  * @tc.desc: IsValidShareOption
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataTest, IsValidShareOptionTest005, TestSize.Level0)
 {
@@ -1634,6 +1700,8 @@ HWTEST_F(PasteDataTest, IsValidShareOptionTest005, TestSize.Level0)
  * @tc.name: IsValidPasteIdTest001
  * @tc.desc: IsValidPasteId
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataTest, IsValidPasteIdTest001, TestSize.Level0)
 {
@@ -1646,6 +1714,8 @@ HWTEST_F(PasteDataTest, IsValidPasteIdTest001, TestSize.Level0)
  * @tc.name: IsValidPasteIdTest002
  * @tc.desc: IsValidPasteId
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataTest, IsValidPasteIdTest002, TestSize.Level0)
 {
@@ -1658,6 +1728,8 @@ HWTEST_F(PasteDataTest, IsValidPasteIdTest002, TestSize.Level0)
  * @tc.name: IsValidPasteIdTest003
  * @tc.desc: IsValidPasteId
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataTest, IsValidPasteIdTest003, TestSize.Level0)
 {
@@ -1670,6 +1742,8 @@ HWTEST_F(PasteDataTest, IsValidPasteIdTest003, TestSize.Level0)
  * @tc.name: IsValidPasteIdTest004
  * @tc.desc: IsValidPasteId
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataTest, IsValidPasteIdTest004, TestSize.Level0)
 {
@@ -1684,6 +1758,8 @@ HWTEST_F(PasteDataTest, IsValidPasteIdTest004, TestSize.Level0)
  * @tc.name: RemoveEmptyEntryTest001
  * @tc.desc: should remove empty entry if empty entry exist
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataTest, RemoveEmptyEntryTest001, TestSize.Level0)
 {
@@ -1712,6 +1788,8 @@ HWTEST_F(PasteDataTest, RemoveEmptyEntryTest001, TestSize.Level0)
  * @tc.name: GetOriginTokenIdTest001
  * @tc.desc: GetOriginTokenId
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataTest, GetOriginTokenIdTest001, TestSize.Level0)
 {
@@ -1725,6 +1803,8 @@ HWTEST_F(PasteDataTest, GetOriginTokenIdTest001, TestSize.Level0)
  * @tc.name: GetOriginTokenIdTest002
  * @tc.desc: GetOriginTokenId
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataTest, GetOriginTokenIdTest002, TestSize.Level0)
 {
@@ -1742,6 +1822,8 @@ HWTEST_F(PasteDataTest, GetOriginTokenIdTest002, TestSize.Level0)
  * @tc.name: SetTextSize001
  * @tc.desc: Test SetTextSize and GetTextSize functions
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataTest, SetTextSize001, TestSize.Level0)
 {
@@ -1755,6 +1837,8 @@ HWTEST_F(PasteDataTest, SetTextSize001, TestSize.Level0)
  * @tc.name: SetTextSize002
  * @tc.desc: Test SetTextSize and GetTextSize functions with zero size
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataTest, SetTextSize002, TestSize.Level0)
 {
@@ -1768,6 +1852,8 @@ HWTEST_F(PasteDataTest, SetTextSize002, TestSize.Level0)
  * @tc.name: SetTextSize003
  * @tc.desc: Test SetTextSize and GetTextSize functions with large size
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataTest, SetTextSize003, TestSize.Level0)
 {
@@ -1781,6 +1867,8 @@ HWTEST_F(PasteDataTest, SetTextSize003, TestSize.Level0)
  * @tc.name: HasUtdTypeTest001
  * @tc.desc: HasUtdType empty test
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataTest, HasUtdTypeTest001, TestSize.Level0)
 {
@@ -1796,6 +1884,8 @@ HWTEST_F(PasteDataTest, HasUtdTypeTest001, TestSize.Level0)
  * @tc.name: HasUtdTypeTest002
  * @tc.desc: HasUtdType empty test
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteDataTest, HasUtdTypeTest002, TestSize.Level0)
 {
