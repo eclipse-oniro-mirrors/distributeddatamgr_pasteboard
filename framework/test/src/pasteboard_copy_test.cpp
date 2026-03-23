@@ -64,6 +64,7 @@ UnifiedData PasteboardCopyTest::InitFileData()
  * @tc.desc: Test the path is a directory
  * @tc.type: FUNC
  * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardCopyTest, IsDirectoryTest, TestSize.Level0)
 {
@@ -79,6 +80,7 @@ HWTEST_F(PasteboardCopyTest, IsDirectoryTest, TestSize.Level0)
  * @tc.desc: Test the path is a file
  * @tc.type: FUNC
  * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardCopyTest, IsFileTest, TestSize.Level0)
 {
@@ -94,6 +96,7 @@ HWTEST_F(PasteboardCopyTest, IsFileTest, TestSize.Level0)
  * @tc.desc: Test progress notify
  * @tc.type: FUNC
  * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardCopyTest, OnProgressNotifyTest, TestSize.Level0)
 {
@@ -117,6 +120,7 @@ HWTEST_F(PasteboardCopyTest, OnProgressNotifyTest, TestSize.Level0)
  * @tc.desc: Test get real path
  * @tc.type: FUNC
  * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardCopyTest, GetRealPathTest, TestSize.Level0)
 {
@@ -148,6 +152,7 @@ HWTEST_F(PasteboardCopyTest, GetRealPathTest, TestSize.Level0)
  * @tc.desc: Test the uri is remote
  * @tc.type: FUNC
  * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardCopyTest, IsRemoteUriTest, TestSize.Level0)
 {
@@ -162,6 +167,7 @@ HWTEST_F(PasteboardCopyTest, IsRemoteUriTest, TestSize.Level0)
  * @tc.desc: Test check copy param
  * @tc.type: FUNC
  * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardCopyTest, CheckCopyParamTest, TestSize.Level0)
 {
@@ -197,6 +203,7 @@ HWTEST_F(PasteboardCopyTest, CheckCopyParamTest, TestSize.Level0)
  * @tc.desc: Test handle progress
  * @tc.type: FUNC
  * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardCopyTest, HandleProgressTest, TestSize.Level0)
 {
@@ -231,6 +238,7 @@ HWTEST_F(PasteboardCopyTest, HandleProgressTest, TestSize.Level0)
  * @tc.desc: Test init copy info
  * @tc.type: FUNC
  * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardCopyTest, InitCopyInfoTest001, TestSize.Level0)
 {
@@ -249,6 +257,7 @@ HWTEST_F(PasteboardCopyTest, InitCopyInfoTest001, TestSize.Level0)
  * @tc.desc: Test init copy info
  * @tc.type: FUNC
  * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardCopyTest, InitCopyInfoTest002, TestSize.Level0)
 {
@@ -272,6 +281,7 @@ HWTEST_F(PasteboardCopyTest, InitCopyInfoTest002, TestSize.Level0)
  * @tc.desc: Test copy file data
  * @tc.type: FUNC
  * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardCopyTest, CopyFileDataTest001, TestSize.Level0)
 {
@@ -290,6 +300,7 @@ HWTEST_F(PasteboardCopyTest, CopyFileDataTest001, TestSize.Level0)
  * @tc.desc: Test copy file data
  * @tc.type: FUNC
  * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardCopyTest, CopyFileDataTest002, TestSize.Level0)
 {
@@ -310,6 +321,7 @@ HWTEST_F(PasteboardCopyTest, CopyFileDataTest002, TestSize.Level0)
  * @tc.desc: Test copy file data
  * @tc.type: FUNC
  * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardCopyTest, CopyFileDataTest003, TestSize.Level0)
 {
@@ -327,6 +339,7 @@ HWTEST_F(PasteboardCopyTest, CopyFileDataTest003, TestSize.Level0)
  * @tc.desc: Test copy paste data
  * @tc.type: FUNC
  * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardCopyTest, CopyPasteDataTest001, TestSize.Level0)
 {
@@ -344,6 +357,7 @@ HWTEST_F(PasteboardCopyTest, CopyPasteDataTest001, TestSize.Level0)
  * @tc.desc: Test copy paste data
  * @tc.type: FUNC
  * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardCopyTest, CopyPasteDataTest002, TestSize.Level0)
 {
@@ -366,6 +380,7 @@ HWTEST_F(PasteboardCopyTest, CopyPasteDataTest002, TestSize.Level0)
  * @tc.desc: Test should keep record
  * @tc.type: FUNC
  * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardCopyTest, ShouldKeepRecordTest001, TestSize.Level0)
 {
@@ -382,6 +397,7 @@ HWTEST_F(PasteboardCopyTest, ShouldKeepRecordTest001, TestSize.Level0)
  * @tc.desc: 测试ProcessCallBack在totalSize为0的情况
  * @tc.type: FUNC
  * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardCopyTest, ProcessCallBackTest001, TestSize.Level0)
 {
@@ -413,6 +429,7 @@ HWTEST_F(PasteboardCopyTest, ProcessCallBackTest001, TestSize.Level0)
  * @tc.desc: 测试ProcessCallBack在正常情况下的处理
  * @tc.type: FUNC
  * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardCopyTest, ProcessCallBackTest002, TestSize.Level0)
 {
@@ -444,6 +461,7 @@ HWTEST_F(PasteboardCopyTest, ProcessCallBackTest002, TestSize.Level0)
  * @tc.desc: 测试ProcessCallBack在processSize大于totalSize的情况
  * @tc.type: FUNC
  * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardCopyTest, ProcessCallBackTest003, TestSize.Level0)
 {
@@ -475,6 +493,7 @@ HWTEST_F(PasteboardCopyTest, ProcessCallBackTest003, TestSize.Level0)
  * @tc.desc: 测试ProcessCallBack在processSize为0的情况
  * @tc.type: FUNC
  * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardCopyTest, ProcessCallBackTest004, TestSize.Level0)
 {

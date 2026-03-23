@@ -71,6 +71,8 @@ void PasteboardEntityClientTest::TearDown(void)
  * @tc.desc: Subscribe EntityObserver when entityType is invalid value, should return ERR_INVALID_VALUE.
  * hen EntityType is MAX, should return INVALID_PARAM_ERROR.
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardEntityClientTest, SubscribeEntityObserverTest001, TestSize.Level0)
 {
@@ -85,6 +87,8 @@ HWTEST_F(PasteboardEntityClientTest, SubscribeEntityObserverTest001, TestSize.Le
  * @tc.name: SubscribeEntityObserverTest002
  * @tc.desc: Subscribe EntityObserver when expectedDataLength exceeds limitation, should return INVALID_PARAM_ERROR.
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardEntityClientTest, SubscribeEntityObserverTest002, TestSize.Level0)
 {
@@ -99,6 +103,8 @@ HWTEST_F(PasteboardEntityClientTest, SubscribeEntityObserverTest002, TestSize.Le
  * @tc.name: SubscribeEntityObserverTest003
  * @tc.desc: Subscribe EntityObserver when observer is nullptr, should return INVALID_PARAM_ERROR.
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardEntityClientTest, SubscribeEntityObserverTest003, TestSize.Level0)
 {
@@ -113,6 +119,8 @@ HWTEST_F(PasteboardEntityClientTest, SubscribeEntityObserverTest003, TestSize.Le
  * @tc.name: SubscribeEntityObserverTest004
  * @tc.desc: Subscribe EntityObserver normally should return E_OK.
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardEntityClientTest, SubscribeEntityObserverTest004, TestSize.Level0)
 {
@@ -130,6 +138,8 @@ HWTEST_F(PasteboardEntityClientTest, SubscribeEntityObserverTest004, TestSize.Le
  * @tc.name: SubscribeEntityObserverTest005
  * @tc.desc: Subscribe EntityObserver normally should return E_OK.
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardEntityClientTest, SubscribeEntityObserverTest005, TestSize.Level0)
 {
@@ -154,6 +164,8 @@ HWTEST_F(PasteboardEntityClientTest, SubscribeEntityObserverTest005, TestSize.Le
  * @tc.name: SubscribeEntityObserverTest006
  * @tc.desc: Subscribe observer again will return E_OK.
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardEntityClientTest, SubscribeEntityObserverTest006, TestSize.Level0)
 {
@@ -174,6 +186,8 @@ HWTEST_F(PasteboardEntityClientTest, SubscribeEntityObserverTest006, TestSize.Le
  * @tc.name: SubscribeEntityObserverTest007
  * @tc.desc: Subscribe another observer will replace old one and return E_OK.
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardEntityClientTest, SubscribeEntityObserverTest007, TestSize.Level0)
 {
@@ -195,6 +209,8 @@ HWTEST_F(PasteboardEntityClientTest, SubscribeEntityObserverTest007, TestSize.Le
  * @tc.name: SubscribeEntityObserverTest008
  * @tc.desc: Subscribe observer again with different param will return E_OK.
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardEntityClientTest, SubscribeEntityObserverTest008, TestSize.Level0)
 {
@@ -218,6 +234,8 @@ HWTEST_F(PasteboardEntityClientTest, SubscribeEntityObserverTest008, TestSize.Le
  * @tc.name: SubscribeEntityObserverTest009
  * @tc.desc: Unsubscribe EntityObserver and copy plainText, will not exec callback.
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardEntityClientTest, SubscribeEntityObserverTest009, TestSize.Level0)
 {
@@ -243,6 +261,8 @@ HWTEST_F(PasteboardEntityClientTest, SubscribeEntityObserverTest009, TestSize.Le
  * @tc.name: SubscribeEntityObserverTest010
  * @tc.desc: Subscribe EntityObserver and copy plainText with ShareOption::InApp, will not exec callback.
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardEntityClientTest, SubscribeEntityObserverTest0010, TestSize.Level0)
 {
@@ -268,6 +288,8 @@ HWTEST_F(PasteboardEntityClientTest, SubscribeEntityObserverTest0010, TestSize.L
  * @tc.name: UnsubscribeEntityObserverTest001
  * @tc.desc: Subscribe EntityObserver when EntityType is MAX, should return INVALID_PARAM_ERROR.
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardEntityClientTest, UnsubscribeEntityObserverTest001, TestSize.Level0)
 {
@@ -282,6 +304,8 @@ HWTEST_F(PasteboardEntityClientTest, UnsubscribeEntityObserverTest001, TestSize.
  * @tc.name: UnsubscribeEntityObserverTest002
  * @tc.desc: Subscribe EntityObserver when expectedDataLength exceeds limitation, should return INVALID_PARAM_ERROR.
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardEntityClientTest, UnsubscribeEntityObserverTest002, TestSize.Level0)
 {
@@ -296,6 +320,8 @@ HWTEST_F(PasteboardEntityClientTest, UnsubscribeEntityObserverTest002, TestSize.
  * @tc.name: UnsubscribeEntityObserverTest003
  * @tc.desc: Subscribe EntityObserver when observer is nullptr, should return INVALID_PARAM_ERROR.
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardEntityClientTest, UnsubscribeEntityObserverTest003, TestSize.Level0)
 {
@@ -310,6 +336,8 @@ HWTEST_F(PasteboardEntityClientTest, UnsubscribeEntityObserverTest003, TestSize.
  * @tc.name: UnsubscribeEntityObserverTest004
  * @tc.desc: Subscribe EntityObserver normally should return E_OK.
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardEntityClientTest, UnsubscribeEntityObserverTest004, TestSize.Level0)
 {
@@ -324,6 +352,8 @@ HWTEST_F(PasteboardEntityClientTest, UnsubscribeEntityObserverTest004, TestSize.
  * @tc.name: UnsubscribeEntityObserverTest005
  * @tc.desc: Unsubscribe observer again will return E_OK.
  * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
  */
 HWTEST_F(PasteboardEntityClientTest, UnsubscribeEntityObserverTest005, TestSize.Level0)
 {
