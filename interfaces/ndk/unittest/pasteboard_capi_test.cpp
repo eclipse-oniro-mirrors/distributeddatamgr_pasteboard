@@ -471,7 +471,7 @@ HWTEST_F(PasteboardCapiTest, OH_Pasteboard_GetDataSource002, TestSize.Level1) {
     int res = OH_Pasteboard_GetDataSource(pasteboard, source, len);
 
     EXPECT_NE(res, ERR_OK);
-OH_Pasteboard_Destroy(pasteboard);
+    OH_Pasteboard_Destroy(pasteboard);
 }
 
 /**

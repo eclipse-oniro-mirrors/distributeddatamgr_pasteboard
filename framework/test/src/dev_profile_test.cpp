@@ -29,7 +29,7 @@ public:
     void SetUp();
     void TearDown();
     static inline std::shared_ptr<testing::NiceMock<DistributedHardware::DeviceManagerMock>> deviceManagerMock_ =
- 	        std::make_shared<testing::NiceMock<DistributedHardware::DeviceManagerMock>>();
+        std::make_shared<testing::NiceMock<DistributedHardware::DeviceManagerMock>>();
 };
 
 void DevProfileTest::SetUpTestCase(void)
