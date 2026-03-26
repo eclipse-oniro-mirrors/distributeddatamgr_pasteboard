@@ -355,7 +355,7 @@ HWTEST_F(PasteboardCapiTest, OH_Pasteboard_Unsubscribe002, TestSize.Level1)
  * @tc.require: AROOOH5R5G
  */
 HWTEST_F(PasteboardCapiTest, OH_Pasteboard_Unsubscribe003, TestSize.Level1)
-{    
+{
     OH_Pasteboard* pasteboard = OH_Pasteboard_Create();
     OH_PasteboardObserver* observer = OH_PasteboardObserver_Create();
     OH_PasteboardObserver_SetData(observer, nullptr, CallbackFunc, ContextFinalizeFunc);
