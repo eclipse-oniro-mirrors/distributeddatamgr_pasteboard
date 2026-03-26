@@ -155,8 +155,8 @@ HWTEST_F(HiViewAdapterTest, ReportStatisticEventTest001, TestSize.Level1)
 {
     std::vector<std::map<int, int>> timeVec = {};
     std::string stateStr = "testStr";
-    EXPECT_TRUE(timeVec.empty());
     HiViewAdapter::ReportStatisticEvent(timeVec, stateStr);
+    SUCCEED();
 }
 
 /**
@@ -167,8 +167,8 @@ HWTEST_F(HiViewAdapterTest, ReportStatisticEventTest001, TestSize.Level1)
 HWTEST_F(HiViewAdapterTest, ReportBehaviourTest001, TestSize.Level1)
 {
     std::map<std::string, int> beMap;
-    EXPECT_TRUE(beMap.empty());
     HiViewAdapter::ReportBehaviour(beMap, "");
+    SUCCEED();
 }
 
 /**
@@ -180,12 +180,12 @@ HWTEST_F(HiViewAdapterTest, ReportBehaviourTest002, TestSize.Level1)
 {
     std::map<std::string, int> beMap;
     beMap = {
-    {"Copy", 1},
-    {"Paste", 2},
-    {"Remove", 4}
+        {"Copy", 1},
+        {"Paste", 2},
+        {"Remove", 4}
     };
-    EXPECT_FALSE(beMap.empty());
     HiViewAdapter::ReportBehaviour(beMap, "test");
+    SUCCEED();
 }
 
 /**
@@ -196,8 +196,8 @@ HWTEST_F(HiViewAdapterTest, ReportBehaviourTest002, TestSize.Level1)
 HWTEST_F(HiViewAdapterTest, InvokePasteBoardBehaviourTest001, TestSize.Level1)
 {
     HiViewAdapter::copyPasteboardBehaviour_.clear();
-    EXPECT_TRUE(HiViewAdapter::copyPasteboardBehaviour_.empty());
     HiViewAdapter::InvokePasteBoardBehaviour();
+    SUCCEED();
 }
 
 /**
@@ -208,8 +208,8 @@ HWTEST_F(HiViewAdapterTest, InvokePasteBoardBehaviourTest001, TestSize.Level1)
 HWTEST_F(HiViewAdapterTest, InvokePasteBoardBehaviourTest002, TestSize.Level1)
 {
     HiViewAdapter::pastePasteboardBehaviour_.clear();
-    EXPECT_TRUE(HiViewAdapter::pastePasteboardBehaviour_.empty());
     HiViewAdapter::InvokePasteBoardBehaviour();
+    SUCCEED();
 }
 
 /**
@@ -220,6 +220,6 @@ HWTEST_F(HiViewAdapterTest, InvokePasteBoardBehaviourTest002, TestSize.Level1)
 HWTEST_F(HiViewAdapterTest, InvokePasteBoardBehaviourTest003, TestSize.Level1)
 {
     HiViewAdapter::remotePastePasteboardBehaviour_.clear();
-    EXPECT_TRUE(HiViewAdapter::remotePastePasteboardBehaviour_.empty());
     HiViewAdapter::InvokePasteBoardBehaviour();
+    SUCCEED();
 }

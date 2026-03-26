@@ -354,8 +354,8 @@ HWTEST_F(PasteboardCapiTest, OH_Pasteboard_Unsubscribe002, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: AROOOH5R5G
  */
-HWTEST_F(PasteboardCapiTest, OH_Pasteboard_Unsubscribe003, TestSize.Level1) {
-    
+HWTEST_F(PasteboardCapiTest, OH_Pasteboard_Unsubscribe003, TestSize.Level1)
+{    
     OH_Pasteboard* pasteboard = OH_Pasteboard_Create();
     OH_PasteboardObserver* observer = OH_PasteboardObserver_Create();
     OH_PasteboardObserver_SetData(observer, nullptr, CallbackFunc, ContextFinalizeFunc);
@@ -460,7 +460,8 @@ HWTEST_F(PasteboardCapiTest, OH_Pasteboard_GetDataSource001, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(PasteboardCapiTest, OH_Pasteboard_GetDataSource002, TestSize.Level1) {
+HWTEST_F(PasteboardCapiTest, OH_Pasteboard_GetDataSource002, TestSize.Level1)
+{
     OH_Pasteboard* pasteboard = OH_Pasteboard_Create();
     ASSERT_NE(pasteboard, nullptr);
 

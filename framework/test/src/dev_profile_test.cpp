@@ -263,11 +263,10 @@ HWTEST_F(DevProfileTest, UnSubscribeProfileEventTest003, TestSize.Level0)
         udid = "testUdid";
         return 0;
     });
-    std::string bundleName = "pasteboard_dm_adapter";
-    bool res = DMAdapter::GetInstance().Initialize();
+    std::string networkId = "pasteboard_dm_adapter";
+    DMAdapter::GetInstance().Initialize();
     DevProfile::GetInstance().proxy_ = nullptr;
-    std::string uuid = "PostDelayReleaseProxy001";
-    DevProfile::GetInstance().UnSubscribeProfileEvent(bundleName);
+    DevProfile::GetInstance().UnSubscribeProfileEvent(networkId);
     EXPECT_TRUE(DevProfile::GetInstance().subscribeUdidList_.empty());
 #else
     EXPECT_TRUE(true);
