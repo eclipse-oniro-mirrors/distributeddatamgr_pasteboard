@@ -660,5 +660,4 @@ HWTEST_F(DeviceProfileAdapterTest, DeinitDeviceProfileAdapter002, TestSize.Level
     EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::INVALID_PARAM_ERROR));
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "DeinitDeviceProfileAdapter002 end");
 }
-
 } // namespace OHOS::MiscServices
