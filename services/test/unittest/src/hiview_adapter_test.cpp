@@ -155,8 +155,7 @@ HWTEST_F(HiViewAdapterTest, ReportStatisticEventTest001, TestSize.Level1)
 {
     std::vector<std::map<int, int>> timeVec = {};
     std::string stateStr = "testStr";
-    HiViewAdapter::ReportStatisticEvent(timeVec, stateStr);
-    SUCCEED();
+    EXPECT_NO_FATAL_FAILURE(HiViewAdapter::ReportStatisticEvent(timeVec, stateStr));
 }
 
 /**
@@ -167,8 +166,7 @@ HWTEST_F(HiViewAdapterTest, ReportStatisticEventTest001, TestSize.Level1)
 HWTEST_F(HiViewAdapterTest, ReportBehaviourTest001, TestSize.Level1)
 {
     std::map<std::string, int> beMap;
-    HiViewAdapter::ReportBehaviour(beMap, "");
-    SUCCEED();
+    EXPECT_NO_FATAL_FAILURE(HiViewAdapter::ReportBehaviour(beMap, ""));
 }
 
 /**
@@ -184,8 +182,7 @@ HWTEST_F(HiViewAdapterTest, ReportBehaviourTest002, TestSize.Level1)
         {"Paste", 2},
         {"Remove", 4}
     };
-    HiViewAdapter::ReportBehaviour(beMap, "test");
-    SUCCEED();
+    EXPECT_NO_FATAL_FAILURE(HiViewAdapter::ReportBehaviour(beMap, "test"));
 }
 
 /**
@@ -196,8 +193,7 @@ HWTEST_F(HiViewAdapterTest, ReportBehaviourTest002, TestSize.Level1)
 HWTEST_F(HiViewAdapterTest, InvokePasteBoardBehaviourTest001, TestSize.Level1)
 {
     HiViewAdapter::copyPasteboardBehaviour_.clear();
-    HiViewAdapter::InvokePasteBoardBehaviour();
-    SUCCEED();
+    EXPECT_NO_FATAL_FAILURE(HiViewAdapter::InvokePasteBoardBehaviour());
 }
 
 /**
@@ -208,8 +204,7 @@ HWTEST_F(HiViewAdapterTest, InvokePasteBoardBehaviourTest001, TestSize.Level1)
 HWTEST_F(HiViewAdapterTest, InvokePasteBoardBehaviourTest002, TestSize.Level1)
 {
     HiViewAdapter::pastePasteboardBehaviour_.clear();
-    HiViewAdapter::InvokePasteBoardBehaviour();
-    SUCCEED();
+    EXPECT_NO_FATAL_FAILURE(HiViewAdapter::InvokePasteBoardBehaviour());
 }
 
 /**
@@ -220,6 +215,5 @@ HWTEST_F(HiViewAdapterTest, InvokePasteBoardBehaviourTest002, TestSize.Level1)
 HWTEST_F(HiViewAdapterTest, InvokePasteBoardBehaviourTest003, TestSize.Level1)
 {
     HiViewAdapter::remotePastePasteboardBehaviour_.clear();
-    HiViewAdapter::InvokePasteBoardBehaviour();
-    SUCCEED();
+    EXPECT_NO_FATAL_FAILURE(HiViewAdapter::InvokePasteBoardBehaviour());
 }
