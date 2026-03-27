@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -234,7 +234,7 @@ HWTEST_F(PasteboardCapiTest, OH_PasteboardObserver_SetData002, TestSize.Level1)
 
 /**
  * @tc.name: OH_Pasteboard_Create001
- * @tc.desc: OH_Pasteboard_Create test valid
+ * @tc.desc: OH_Pasteboard_Create test valid and invalid
  * @tc.type: FUNC
  * @tc.require: AROOOH5R5G
  */
@@ -244,6 +244,9 @@ HWTEST_F(PasteboardCapiTest, OH_Pasteboard_Create001, TestSize.Level1)
     EXPECT_NE(pasteboard, nullptr);
 
     OH_Pasteboard_Destroy(pasteboard);
+
+    OH_Pasteboard* pasteboard01 = nullptr;
+    OH_Pasteboard_Destroy(pasteboard01);
 }
 
 /**
@@ -345,6 +348,29 @@ HWTEST_F(PasteboardCapiTest, OH_Pasteboard_Unsubscribe002, TestSize.Level1)
     OH_PasteboardObserver_Destroy(observer);
 }
 
+ /**
+ * @tc.name: OH_Pasteboard_Unsubscribe003
+ * @tc.desc: OH_Pasteboard_Unsubscribe test invalid，unsubscribe without subscribe first
+ * @tc.type: FUNC
+ * @tc.require: AROOOH5R5G
+ */
+HWTEST_F(PasteboardCapiTest, OH_Pasteboard_Unsubscribe003, TestSize.Level1)
+{
+    OH_Pasteboard* pasteboard = OH_Pasteboard_Create();
+    OH_PasteboardObserver* observer = OH_PasteboardObserver_Create();
+    OH_PasteboardObserver_SetData(observer, nullptr, CallbackFunc, ContextFinalizeFunc);
+
+    int res = OH_Pasteboard_Unsubscribe(
+        pasteboard,
+        NOTIFY_LOCAL_DATA_CHANGE,
+        observer
+    );
+    EXPECT_EQ(res, ERR_OK);
+    
+    OH_Pasteboard_Destroy(pasteboard);
+    OH_PasteboardObserver_Destroy(observer);
+}
+
 /**
  * @tc.name: OH_Pasteboard_IsRemoteData001
  * @tc.desc: OH_Pasteboard_IsRemoteData test valid
@@ -358,6 +384,37 @@ HWTEST_F(PasteboardCapiTest, OH_Pasteboard_IsRemoteData001, TestSize.Level1)
     bool res = OH_Pasteboard_IsRemoteData(pasteboard);
     EXPECT_FALSE(res);
 
+    OH_Pasteboard_Destroy(pasteboard);
+}
+
+/**
+ * @tc.name: OH_Pasteboard_IsRemoteData002
+ * @tc.desc: OH_Pasteboard_IsRemoteData test valid
+ * @tc.type: FUNC
+ * @tc.require: AROOOH5R5G
+ */
+HWTEST_F(PasteboardCapiTest, OH_Pasteboard_IsRemoteData002, TestSize.Level1)
+{
+    OH_Pasteboard* pasteboard = OH_Pasteboard_Create();
+    OH_Pasteboard_ClearData(pasteboard);
+    bool res = OH_Pasteboard_IsRemoteData(pasteboard);
+    EXPECT_FALSE(res);
+
+    OH_UdmfData* setData = OH_UdmfData_Create();
+    OH_UdmfRecord* record = OH_UdmfRecord_Create();
+    OH_UdsPlainText* plainText = OH_UdsPlainText_Create();
+    char content[] = "hello world";
+    OH_UdsPlainText_SetContent(plainText, content);
+    OH_UdmfRecord_AddPlainText(record, plainText);
+    OH_UdmfData_AddRecord(setData, record);
+
+    OH_Pasteboard_SetData(pasteboard, setData);
+
+    res = OH_Pasteboard_IsRemoteData(pasteboard);
+    EXPECT_FALSE(res);
+    OH_UdsPlainText_Destroy(plainText);
+    OH_UdmfRecord_Destroy(record);
+    OH_UdmfData_Destroy(setData);
     OH_Pasteboard_Destroy(pasteboard);
 }
 
@@ -397,6 +454,27 @@ HWTEST_F(PasteboardCapiTest, OH_Pasteboard_GetDataSource001, TestSize.Level1)
     OH_Pasteboard_Destroy(pasteboard);
 }
 
+ /**
+ * @tc.name: OH_Pasteboard_GetDataSource002
+ * @tc.desc: OH_Pasteboard_GetDataSource test invalid
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PasteboardCapiTest, OH_Pasteboard_GetDataSource002, TestSize.Level1)
+{
+    OH_Pasteboard* pasteboard = OH_Pasteboard_Create();
+    ASSERT_NE(pasteboard, nullptr);
+
+    char source[100] = {0};
+    int len = 100;
+
+    OH_Pasteboard_ClearData(pasteboard);
+    int res = OH_Pasteboard_GetDataSource(pasteboard, source, len);
+
+    EXPECT_NE(res, ERR_OK);
+    OH_Pasteboard_Destroy(pasteboard);
+}
+
 /**
  * @tc.name: OH_Pasteboard_GetMimeTypes001
  * @tc.desc: OH_Pasteboard_GetMimeTypes test empty data
@@ -412,6 +490,10 @@ HWTEST_F(PasteboardCapiTest, OH_Pasteboard_GetMimeTypes001, TestSize.Level1)
     char** res = OH_Pasteboard_GetMimeTypes(pasteboard, &count);
     EXPECT_EQ(0, count);
     EXPECT_TRUE(res == nullptr);
+
+    OH_Pasteboard* pasteboard01 = nullptr;
+    char** ret = OH_Pasteboard_GetMimeTypes(pasteboard01, &count);
+    EXPECT_TRUE(ret == nullptr);
 }
 
 /**
@@ -2143,6 +2225,18 @@ HWTEST_F(PasteboardCapiTest, OH_Pasteboard_HasRemoteDataTest001, TestSize.Level2
 }
 
 /**
+ * @tc.name: OH_Pasteboard_IsRemoteDataTest001
+ * @tc.desc: OH_Pasteboard_IsRemoteDataTest001
+ * @tc.type: FUNC
+ * @tc.require: AROOOH5R5G
+ */
+HWTEST_F(PasteboardCapiTest, OH_Pasteboard_IsRemoteDataTest001, TestSize.Level2)
+{
+    bool ret = OH_Pasteboard_IsRemoteData(nullptr);
+    EXPECT_FALSE(ret);
+}
+
+/**
  * @tc.name: OH_Pasteboard_GetDataTest008
  * @tc.desc: OH_Pasteboard_GetDataTest008
  * @tc.type: FUNC
@@ -2158,6 +2252,26 @@ HWTEST_F(PasteboardCapiTest, OH_Pasteboard_GetDataTest008, TestSize.Level2)
 
     OH_UdmfData* res2 = OH_Pasteboard_GetData(nullptr, &status);
     EXPECT_EQ(res2, nullptr);
+}
+
+ /**
+ * @tc.name: OH_Pasteboard_GetDataTest009
+ * @tc.desc: OH_Pasteboard_GetDataTest009
+ * @tc.type: FUNC
+ * @tc.require: AROOOH5R5G
+ */
+HWTEST_F(PasteboardCapiTest, OH_Pasteboard_GetDataTest009, TestSize.Level2)
+{
+    OH_Pasteboard* pasteboard = OH_Pasteboard_Create();
+    int status = 0;
+    int* pStatus = &status;
+    OH_Pasteboard_ClearData(pasteboard);
+    OH_UdmfData* invalidData = OH_UdmfData_Create();
+    OH_Pasteboard_SetData(pasteboard, invalidData);
+    OH_Pasteboard_ClearData(pasteboard);
+    OH_UdmfData_Destroy(invalidData);
+    OH_UdmfData* res3 = OH_Pasteboard_GetData(pasteboard, pStatus);
+    OH_Pasteboard_Destroy(pasteboard);
 }
 
 static int g_asyncErrCode = 0;
@@ -2259,6 +2373,56 @@ HWTEST_F(PasteboardCapiTest, OH_Pasteboard_SyncDelayedDataAsyncTest003, TestSize
     OH_UdmfRecordProvider_Destroy(provider);
     OH_UdmfRecord_Destroy(record);
     OH_UdmfData_Destroy(setData);
+    OH_Pasteboard_Destroy(pasteboard);
+}
+
+/**
+ * @tc.name: OH_Pasteboard_GetDataWithProgress_DataNull_Mock
+ * @tc.desc: OH_Pasteboard_GetDataWithProgress test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PasteboardCapiTest, OH_Pasteboard_GetDataWithProgress_DataNull_Mock, TestSize.Level1)
+{
+    OH_Pasteboard* pasteboard = OH_Pasteboard_Create();
+    ASSERT_NE(pasteboard, nullptr);
+    
+    int32_t retClear = OH_Pasteboard_ClearData(pasteboard);
+    EXPECT_EQ(retClear, ERR_OK);
+
+    Pasteboard_GetDataParams* params = OH_Pasteboard_GetDataParams_Create();
+    ASSERT_NE(params, nullptr);
+    
+    const char* validUri = "/data/test.txt";
+    size_t uriLen = strlen(validUri);
+    OH_Pasteboard_GetDataParams_SetProgressIndicator(params, PASTEBOARD_NONE);
+    OH_Pasteboard_GetDataParams_SetDestUri(params, validUri, uriLen);
+    OH_Pasteboard_GetDataParams_SetFileConflictOptions(params, PASTEBOARD_SKIP);
+    OH_Pasteboard_GetDataParams_SetProgressListener(params, nullptr);
+
+    int status = -1;
+    int* pStatus = &status;
+
+    OH_UdmfData* getData = OH_Pasteboard_GetDataWithProgress(pasteboard, params, pStatus);
+
+    EXPECT_EQ(getData, nullptr);
+    EXPECT_EQ(status, ERR_PASTEBOARD_GET_DATA_FAILED);
+    OH_Pasteboard_Destroy(pasteboard);
+    OH_Pasteboard_GetDataParams_Destroy(params);
+}
+
+/**
+ * @tc.name: OH_Pasteboard_SetData_SetUdsdDataFailed
+ * @tc.desc: OH_Pasteboard_SetData test
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PasteboardCapiTest, OH_Pasteboard_SetData_SetUdsdDataFailed, TestSize.Level1) {
+    OH_Pasteboard* pasteboard = OH_Pasteboard_Create();
+    ASSERT_NE(pasteboard, nullptr);
+    OH_UdmfData* invalidData = nullptr;
+    int ret = OH_Pasteboard_SetData(pasteboard, invalidData);
+    EXPECT_EQ(ret, ERR_INVALID_PARAMETER);
     OH_Pasteboard_Destroy(pasteboard);
 }
 } // namespace Test

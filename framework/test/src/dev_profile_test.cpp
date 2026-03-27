@@ -14,9 +14,10 @@
  */
 
 #include <gtest/gtest.h>
-
+#include <gmock/gmock.h>
 #include "device/dev_profile.h"
 #include "device/dm_adapter.h"
+#include "device_manager_mock.h"
 #include "pasteboard_error.h"
 
 namespace OHOS::MiscServices {
@@ -27,13 +28,20 @@ public:
     static void TearDownTestCase(void);
     void SetUp();
     void TearDown();
+    static inline std::shared_ptr<testing::NiceMock<DistributedHardware::DeviceManagerMock>> deviceManagerMock_ =
+        std::make_shared<testing::NiceMock<DistributedHardware::DeviceManagerMock>>();
 };
 
-void DevProfileTest::SetUpTestCase(void) {}
+void DevProfileTest::SetUpTestCase(void)
+{
+    DistributedHardware::PasteDeviceManager::pasteDeviceManager = deviceManagerMock_;
+}
 
 void DevProfileTest::TearDownTestCase(void)
 {
     DevProfile::GetInstance().ClearDeviceProfileService();
+    DistributedHardware::PasteDeviceManager::pasteDeviceManager = nullptr;
+    deviceManagerMock_ = nullptr;
 }
 
 void DevProfileTest::SetUp(void) {}
@@ -240,9 +248,34 @@ HWTEST_F(DevProfileTest, UnSubscribeProfileEventTest002, TestSize.Level0)
 #endif
 }
 
+ /**
+ * @tc.name: UnSubscribeProfileEventTest003
+ * @tc.desc: proxy_ is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(DevProfileTest, UnSubscribeProfileEventTest003, TestSize.Level0)
+{
+#ifdef PB_DEVICE_INFO_MANAGER_ENABLE
+    EXPECT_CALL(*deviceManagerMock_, GetUdidByNetworkId(testing::_, testing::_, testing::_))
+        .WillRepeatedly([](auto, auto, std::string &udid) {
+        udid = "testUdid";
+        return 0;
+    });
+    std::string networkId = "pasteboard_dm_adapter";
+    DMAdapter::GetInstance().Initialize();
+    DevProfile::GetInstance().proxy_ = nullptr;
+    DevProfile::GetInstance().UnSubscribeProfileEvent(networkId);
+    EXPECT_TRUE(DevProfile::GetInstance().subscribeUdidList_.empty());
+#else
+    EXPECT_TRUE(true);
+#endif
+}
+
 /**
  * @tc.name: UnSubscribeAllProfileEvents001
- * @tc.desc: subscribeUdidList_ is empty
+ * @tc.desc: proxy_ is empty
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author:
@@ -251,14 +284,11 @@ HWTEST_F(DevProfileTest, UnSubscribeAllProfileEvents001, TestSize.Level0)
 {
 #ifdef PB_DEVICE_INFO_MANAGER_ENABLE
     DevProfile& dp = DevProfile::GetInstance();
-    dp.subscribeUdidList_.clear();
-    dp.UnSubscribeAllProfileEvents();
-
     dp.proxy_= nullptr;
-    dp.subscribeUdidList_.clear();
+    std::string uuid = "UnSubscribeAllProfileEvents001";
+    dp.subscribeUdidList_.emplace(uuid);
     dp.UnSubscribeAllProfileEvents();
-
-    EXPECT_TRUE(true);
+    EXPECT_TRUE(dp.subscribeUdidList_.empty());
 #else
     EXPECT_TRUE(true);
 #endif
@@ -276,5 +306,52 @@ HWTEST_F(DevProfileTest, Watch, TestSize.Level0)
     DevProfile::Observer observer;
     DevProfile::GetInstance().Watch(observer);
     EXPECT_FALSE(observer);
+}
+
+/**
+ * @tc.name: OnProfileUpdateTest001
+ * @tc.desc: OnProfileUpdate
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(DevProfileTest, OnProfileUpdateTest001, TestSize.Level0)
+{
+#ifdef PB_DEVICE_INFO_MANAGER_ENABLE
+    const std::string testUdid = "test_udid_001";
+    const bool testStatus = true;
+    bool isNotifyCalled = false;
+
+    DevProfile::Observer testObserver = [&isNotifyCalled, testStatus](bool isEnable) {
+        isNotifyCalled = true;
+        EXPECT_EQ(isEnable, testStatus);
+    };
+    DevProfile::GetInstance().Watch(testObserver);
+    DevProfile::OnProfileUpdate(testUdid, testStatus);
+    EXPECT_TRUE(isNotifyCalled);
+#else
+    EXPECT_TRUE(true);
+#endif
+}
+
+/**
+ * @tc.name: SendSubscribeInfosTest001
+ * @tc.desc: proxy_ is nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(DevProfileTest, SendSubscribeInfosTest001, TestSize.Level0)
+{
+#ifdef PB_DEVICE_INFO_MANAGER_ENABLE
+    bool res = DMAdapter::GetInstance().Initialize();
+    DevProfile::GetInstance().proxy_ = nullptr;
+    std::string uuid = "PostDelayReleaseProxy001";
+    DevProfile::GetInstance().subscribeUdidList_.emplace(uuid);
+    DevProfile::GetInstance().SendSubscribeInfos();
+    EXPECT_NE(DevProfile::GetInstance().proxy_, nullptr);
+#else
+    EXPECT_TRUE(true);
+#endif
 }
 } // namespace OHOS::MiscServices

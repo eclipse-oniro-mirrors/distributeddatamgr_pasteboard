@@ -440,6 +440,307 @@ HWTEST_F(PasteboardWebControllerTest, ExtractContent_008, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetWebviewPasteDataTest001
+ * @tc.desc: Test SetWebviewPasteData with record is valid.
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardWebControllerTest, SetWebviewPasteDataTest001, TestSize.Level1) {
+    auto webClipboardController = PasteboardWebController::GetInstance();
+    PasteData pasteData;
+    std::string bundleIndex = "test_bundle_set_001";
+    pasteData.SetTag(PasteData::WEBVIEW_PASTEDATA_TAG);
+    auto record1 = std::make_shared<PasteDataRecord>();
+    record1->SetFrom(100);
+    record1->SetRecordId(200);
+    record1->SetConvertUri("uri_set_test");
+    pasteData.AddRecord(record1);
+    webClipboardController.SetWebviewPasteData(pasteData, bundleIndex);
+    EXPECT_EQ(pasteData.GetRecordCount(), 1);
+}
+
+/**
+ * @tc.name: SetWebviewPasteDataTest002
+ * @tc.desc: Test SetWebviewPasteData with valid record and uri is IMG_LOCAL_URI
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardWebControllerTest, SetWebviewPasteDataTest002, TestSize.Level1) {
+    auto webClipboardController = PasteboardWebController::GetInstance();
+    PasteData pasteData;
+    std::string bundleIndex = "test_bundle_set_002";
+    pasteData.SetTag(PasteData::WEBVIEW_PASTEDATA_TAG);
+    auto validRecord = std::make_shared<PasteDataRecord>();
+    validRecord->SetConvertUri("file:///local/set_test_img.png");
+    validRecord->SetFrom(100);
+    validRecord->SetRecordId(200);
+    pasteData.AddRecord(validRecord);
+    webClipboardController.SetWebviewPasteData(pasteData, bundleIndex);
+    auto updatedUri = validRecord->GetUri();
+    EXPECT_NE(updatedUri, nullptr);
+}
+
+/**
+ * @tc.name: SetWebviewPasteDataTest003
+ * @tc.desc: Test SetWebviewPasteData with invalid uri string and uri is DOC_LOCAL_URI
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardWebControllerTest, SetWebviewPasteDataTest003, TestSize.Level1) {
+    auto webClipboardController = PasteboardWebController::GetInstance();
+    PasteData pasteData;
+    std::string bundleIndex = "test_bundle_set_003";
+    pasteData.SetTag(PasteData::WEBVIEW_PASTEDATA_TAG);
+    auto validRecord = std::make_shared<PasteDataRecord>();
+    validRecord->SetConvertUri("file:///docs/local/set_test_img.png");
+    validRecord->SetFrom(100);
+    validRecord->SetRecordId(200);
+    pasteData.AddRecord(validRecord);
+    webClipboardController.SetWebviewPasteData(pasteData, bundleIndex);
+    auto updatedUri = validRecord->GetUri();
+    EXPECT_NE(updatedUri, nullptr);
+}
+
+/**
+ * @tc.name: SetUriPermissionTest001
+ * @tc.desc: Test SetUriPermission with isRead=true && isNeedPersistance=true && isWrite=true
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardWebControllerTest, SetUriPermissionTest001, TestSize.Level1) {
+    auto webClipboardController = PasteboardWebController::GetInstance();
+    auto record = std::make_shared<PasteDataRecord>();
+    bool isRead = true;
+    bool isWrite = true;
+    bool isNeedPersistance = true;
+    webClipboardController.SetUriPermission(record, isRead, isWrite, isNeedPersistance);
+    EXPECT_EQ(record->GetUriPermission(), PasteDataRecord::READ_WRITE_PERMISSION);
+}
+
+/**
+ * @tc.name: SetUriPermissionTest002
+ * @tc.desc: Test SetUriPermission with isRead=true && isNeedPersistance=false && isWrite=true
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardWebControllerTest, SetUriPermissionTest002, TestSize.Level1) {
+    auto webClipboardController = PasteboardWebController::GetInstance();
+    auto record = std::make_shared<PasteDataRecord>();
+    bool isRead = true;
+    bool isWrite = true;
+    bool isNeedPersistance = false;
+    webClipboardController.SetUriPermission(record, isRead, isWrite, isNeedPersistance);
+    EXPECT_EQ(record->GetUriPermission(), PasteDataRecord::READ_PERMISSION);
+}
+
+/**
+ * @tc.name: RefreshUriTest001
+ * @tc.desc: Test RefreshUri with url == FILE_SCHEME_PREFIX
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardWebControllerTest, RefreshUriTest001, TestSize.Level1) {
+    auto webClipboardController = PasteboardWebController::GetInstance();
+    auto validRecord = std::make_shared<PasteDataRecord>();
+    validRecord->SetConvertUri("file://docs/local/set_test_img.png");
+    validRecord->SetFrom(100);
+    validRecord->SetRecordId(200);
+    std::string targetBundle = "test_bundle_refresh_001";
+    int32_t appIndex = 100;
+    webClipboardController.RefreshUri(validRecord, targetBundle, appIndex);
+    EXPECT_NE(validRecord->GetUri(), nullptr);
+}
+
+/**
+ * @tc.name: RemoveInvalidUriTest001
+ * @tc.desc: Test RemoveInvalidUri with entry SetValue Object
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardWebControllerTest, RemoveInvalidUriTest001, TestSize.Level1) {
+    auto webClipboardController = PasteboardWebController::GetInstance();
+    PasteDataEntry entry;
+    entry.SetMimeType(MIMETYPE_TEXT_URI);
+    entry.SetUtdId("file://docs/local/set_test_img.png");
+    entry.SetValue(std::make_shared<Object>());
+    webClipboardController.RemoveInvalidUri(entry);
+    auto obj = std::get<std::shared_ptr<OHOS::UDMF::Object>>(entry.GetValue());
+    EXPECT_NE(obj, nullptr);
+}
+
+/**
+ * @tc.name: RemoveInvalidUriTest002
+ * @tc.desc: Test RemoveInvalidUri OriginUri is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardWebControllerTest, RemoveInvalidUriTest002, TestSize.Level1) {
+    auto webClipboardController = PasteboardWebController::GetInstance();
+    PasteData pasteData;
+    pasteData.SetLocalPasteFlag(false);
+    std::shared_ptr<PasteDataRecord> record1 = std::make_shared<PasteDataRecord>();
+    record1->entries_.clear();
+    record1->uri_ = nullptr;
+    pasteData.AddRecord(record1);
+    webClipboardController.RemoveInvalidUri(pasteData);
+    EXPECT_EQ(pasteData.GetRecordCount(), 1);
+}
+
+/**
+ * @tc.name: RebuildWebviewPasteDataTest001
+ * @tc.desc: Test RebuildWebviewPasteData - justSplitHtml=true, call MergeExtraUris2Html
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardWebControllerTest, RebuildWebviewPasteDataTest001, TestSize.Level1) {
+    auto webClipboardController = PasteboardWebController::GetInstance();
+    PasteData pasteData;
+    pasteData.SetTag(PasteData::WEBVIEW_PASTEDATA_TAG);
+    auto record1 = std::make_shared<PasteDataRecord>();
+    record1->SetFrom(100);
+    pasteData.AddRecord(record1);
+    std::string targetBundle = "test_bundle";
+    int32_t appIndex = 100;
+    webClipboardController.RebuildWebviewPasteData(pasteData, targetBundle, appIndex);
+    EXPECT_EQ(record1->GetFrom(), 100);
+}
+
+/**
+ * @tc.name: RemoveInvalidImgSrcTest001
+ * @tc.desc: Test RemoveInvalidImgSrc
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardWebControllerTest, RemoveInvalidImgSrcTest001, TestSize.Level1) {
+    auto webClipboardController = PasteboardWebController::GetInstance();
+    std::vector<std::string> validImgSrcList = {
+        "img1.png",
+        "img2.jpg"
+    };
+    std::map<std::string, std::vector<uint8_t>> imgSrcMap;
+    imgSrcMap["img1.png"] = {0x00, 0x01, 0x02};
+    imgSrcMap["img3.gif"] = {0x03, 0x04, 0x05};
+    webClipboardController.RemoveInvalidImgSrc(validImgSrcList, imgSrcMap);
+    EXPECT_EQ(imgSrcMap.size(), 1);
+}
+
+/**
+ * @tc.name: SplitHtml2RecordsTest001
+ * @tc.desc: Test SplitHtml2Records with html is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardWebControllerTest, SplitHtml2RecordsTest001, TestSize.Level1) {
+    auto webClipboardController = PasteboardWebController::GetInstance();
+    uint32_t recordId = 1001;
+    std::string bundleIndex = "test_bundle_split_001";
+    int32_t userId = 100;
+    auto result = webClipboardController.SplitHtml2Records(nullptr, recordId, bundleIndex, userId);
+    EXPECT_TRUE(result.empty());
+}
+
+/**
+ * @tc.name: SplitHtml2RecordsTest002
+ * @tc.desc: Test SplitHtml2Records with html
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardWebControllerTest, SplitHtml2RecordsTest002, TestSize.Level1) {
+    auto webClipboardController = PasteboardWebController::GetInstance();
+    uint32_t recordId = 1002;
+    std::string bundleIndex = "test_bundle_split_002";
+    int32_t userId = 100;
+    auto html = std::make_shared<std::string>("<div>pure text without img label</div>");
+
+    auto result = webClipboardController.SplitHtml2Records(html, recordId, bundleIndex, userId);
+    EXPECT_TRUE(result.empty());
+}
+
+/**
+ * @tc.name: BuildPasteDataRecordsTest001
+ * @tc.desc: Test BuildPasteDataRecords with empty imgSrcMap
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardWebControllerTest, BuildPasteDataRecordsTest001, TestSize.Level1) {
+    auto webClipboardController = PasteboardWebController::GetInstance();
+    std::map<std::string, std::vector<uint8_t>> emptyImgSrcMap;
+    uint32_t recordId = 1001;
+    auto records = webClipboardController.BuildPasteDataRecords(emptyImgSrcMap, recordId);
+    EXPECT_TRUE(records.empty());
+}
+
+/**
+ * @tc.name: BuildPasteDataRecordsTest002
+ * @tc.desc: Test BuildPasteDataRecords with single element in imgSrcMap
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardWebControllerTest, BuildPasteDataRecordsTest002, TestSize.Level1) {
+    auto webClipboardController = PasteboardWebController::GetInstance();
+    std::map<std::string, std::vector<uint8_t>> singleImgSrcMap;
+    std::string testUri = "file://local/single_img.png";
+    std::vector<uint8_t> testData = {0x01, 0x02, 0x03};
+    singleImgSrcMap[testUri] = testData;
+    uint32_t recordId = 1002;
+    auto records = webClipboardController.BuildPasteDataRecords(singleImgSrcMap, recordId);
+    EXPECT_EQ(records.size(), 1);
+}
+
+/**
+ * @tc.name: RemoveAllRecordTest001
+ * @tc.desc: Test RemoveAllRecord
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardWebControllerTest, RemoveAllRecordTest001, TestSize.Level1) {
+    auto webClipboardController = PasteboardWebController::GetInstance();
+    auto pasteData = std::make_shared<PasteData>();
+    for (uint32_t i = 0; i < 3; i++) {
+        auto record = std::make_shared<PasteDataRecord>();
+        pasteData->AddRecord(record);
+    }
+    uint32_t originRecordCount = pasteData->GetRecordCount();
+    EXPECT_GT(originRecordCount, 0);
+    webClipboardController.RemoveAllRecord(pasteData);
+    EXPECT_EQ(pasteData->GetRecordCount(), 0);
+}
+
+/**
+ * @tc.name: UpdateHtmlRecordTest001
+ * @tc.desc: Test UpdateHtmlRecord - entry is nullptr (return directly)
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardWebControllerTest, UpdateHtmlRecordTest001, TestSize.Level1) {
+    auto webClipboardController = PasteboardWebController::GetInstance();
+    auto htmlRecord = std::make_shared<PasteDataRecord>();
+    htmlRecord->SetFrom(100);
+    auto htmlData = std::make_shared<std::string>("<div>test</div>");
+    webClipboardController.UpdateHtmlRecord(htmlRecord, htmlData);
+    EXPECT_EQ(htmlRecord->GetFrom(), 100);
+}
+
+/**
+ * @tc.name: ReplaceHtmlRecordContentByExtraUrisTest001
+ * @tc.desc: Test ReplaceHtmlRecordContentByExtraUris recordList is empty
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardWebControllerTest, ReplaceHtmlRecordContentByExtraUrisTest001, TestSize.Level1) {
+    auto webClipboardController = PasteboardWebController::GetInstance();
+    RecordList recordList;
+    webClipboardController.ReplaceHtmlRecordContentByExtraUris(recordList);
+    EXPECT_EQ(recordList.size(), 0);
+}
+
+/**
+ * @tc.name: ReplaceHtmlRecordContentByExtraUrisTest002
+ * @tc.desc: Test ReplaceHtmlRecordContentByExtraUris recordList is no empty
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardWebControllerTest, ReplaceHtmlRecordContentByExtraUrisTest002, TestSize.Level1) {
+    auto webClipboardController = PasteboardWebController::GetInstance();
+    RecordList recordList;
+    auto customData = std::make_shared<MineCustomData>();
+    std::string key = "image/jpg";
+    std::vector<uint8_t> val = {0x01, 0x02, 0x03, 0x04};
+    customData->AddItemData(key, val);
+    PasteDataRecord::Builder builder(MIMETYPE_TEXT_URI);
+    std::string uriStr = "file:///test.png";
+    auto uri = std::make_shared<OHOS::Uri>(uriStr);
+    builder.SetUri(uri);
+    builder.SetCustomData(customData);
+    auto uriRecord = builder.Build();
+    recordList.push_back(uriRecord);
+    webClipboardController.ReplaceHtmlRecordContentByExtraUris(recordList);
+    EXPECT_EQ(recordList.size(), 1);
+}
+
+/**
  * @tc.name: SplitWebviewPasteData_001.
  * @tc.desc: record->GetRecordId() == record->GetFrom(), continue loop.
  * @tc.type: FUNC.

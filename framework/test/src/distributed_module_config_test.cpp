@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,7 +19,9 @@
 #include "pasteboard_error.h"
 
 namespace OHOS::MiscServices {
+using namespace testing;
 using namespace testing::ext;
+
 class DistributedModuleConfigTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
@@ -109,5 +111,19 @@ HWTEST_F(DistributedModuleConfigTest, WatchTest, TestSize.Level0)
     config.Watch(observer);
     EXPECT_FALSE(observer);
     config.DeInit();
+}
+
+/**
+ * @tc.name: GetRemoteDeviceMaxVersionTest001
+ * @tc.desc: GetRemoteDeviceMaxVersion
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(DistributedModuleConfigTest, GetRemoteDeviceMaxVersionTest001, TestSize.Level0)
+{
+    DistributedModuleConfig config;
+    uint32_t maxVersion = config.GetRemoteDeviceMaxVersion();
+    EXPECT_GE(maxVersion, 0U);
 }
 } // namespace OHOS::MiscServices
