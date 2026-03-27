@@ -78,12 +78,14 @@ void DeviceProfileClient::SendSubscribeInfos()
 void DeviceProfileClient::ClearDeviceProfileService()
 {
     if (DeviceProfileClientInterfaceMock::GetMock() != nullptr) {
+        DeviceProfileClientInterfaceMock::mockFlag_ = true;
         DeviceProfileClientInterfaceMock::GetMock()->ClearDeviceProfileService();
     }
 }
 } // namespace DistributedDeviceProfile
 
 bool DeviceProfileClientInterfaceMock::mockFlag_ = false;
+
 class DeviceProfileAdapterTest : public testing::Test {
 public:
     static void SetUpTestCase()
@@ -601,6 +603,7 @@ HWTEST_F(DeviceProfileAdapterTest, ClearDeviceProfileService001, TestSize.Level1
         .Times(1);
 
     adapter_->ClearDeviceProfileService();
+    EXPECT_TRUE(DeviceProfileClientInterfaceMock::mockFlag_);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "ClearDeviceProfileService001 end");
 }
 
@@ -616,7 +619,46 @@ HWTEST_F(DeviceProfileAdapterTest, DeinitDeviceProfileAdapter001, TestSize.Level
         .Times(1);
 
     DeinitDeviceProfileAdapter();
+    EXPECT_TRUE(DeviceProfileClientInterfaceMock::mockFlag_);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "DeinitDeviceProfileAdapter001 end");
+}
+
+/**
+ * @tc.name: DeinitDeviceProfileAdapter002
+ * @tc.desc: test DeinitDeviceProfileAdapter g_onProfileUpdateCallback
+ * @tc.type: FUNC
+ */
+HWTEST_F(DeviceProfileAdapterTest, DeinitDeviceProfileAdapter002, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "DeinitDeviceProfileAdapter002 start");
+
+    sptr<IProfileChangeListener> listenerProxy = nullptr;
+    EXPECT_CALL(*mock_, SubscribeDeviceProfile)
+        .WillOnce([&](const SubscribeInfo &subscribeInfo) {
+            listenerProxy = iface_cast<IProfileChangeListener>(subscribeInfo.GetListener());
+            return DP_SUCCESS;
+        });
+
+    std::string udid = "DeinitDeviceProfileAdapter002";
+    int32_t ret = adapter_->SubscribeProfileEvent(udid);
+
+    EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
+    ASSERT_NE(listenerProxy, nullptr);
+
+    
+    EXPECT_CALL(*mock_, ClearDeviceProfileService())
+        .Times(1);
+    DeinitDeviceProfileAdapter();
+
+    EXPECT_TRUE(DeviceProfileClientInterfaceMock::mockFlag_);
+
+    CharacteristicProfile oldDeviceProfile;
+    CharacteristicProfile newDeviceProfile;
+    listenerProxy->OnCharacteristicProfileUpdate(oldDeviceProfile, newDeviceProfile);
+
+    ret = adapter_->SubscribeProfileEvent(udid);
+    EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::INVALID_PARAM_ERROR));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "DeinitDeviceProfileAdapter002 end");
 }
 
 } // namespace OHOS::MiscServices

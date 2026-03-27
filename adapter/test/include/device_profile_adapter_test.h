@@ -13,6 +13,9 @@
  * limitations under the License.
  */
 
+#ifndef OHOS_DEVICE_PROFILE_ADAPTER_TEST_H
+#define OHOS_DEVICE_PROFILE_ADAPTER_TEST_H
+
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 #include <thread>
@@ -61,3 +64,5 @@ private:
 };
 
 } // namespace OHOS
+
+#endif // OHOS_DEVICE_PROFILE_ADAPTER_TEST_H
