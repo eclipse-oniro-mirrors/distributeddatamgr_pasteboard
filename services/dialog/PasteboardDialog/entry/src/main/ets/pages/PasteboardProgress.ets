@@ -292,18 +292,30 @@ function buildProgress($$: Params) {
   })
 }
 
-@Component
+@ComponentV2
 struct PasteboardProgress {
-  @State winWidth: number = 0;
-  @State maxHeight: number = 0;
-  @State oneLineOverFlow: boolean = false;
+  @Local winWidth: number = 0;
+  @Local maxHeight: number = 0;
+  @Local oneLineOverFlow: boolean = false;
   private promptTextMarginRight: number = 17;
-  @Prop @Watch('currentPercentageChange') currentNum: number = 0;
-  @Prop @Watch('onPromptTextChange') promptText: Resource;
-  @State @Watch('onIdleWidthChanged') idleWidth: number = 100;
-  public closeCallback: Callback<boolean> = () => {
+  @Param currentNum: number = 0;
+  @Monitor('currentNum')
+  currentNumChange(){
+    this.currentPercentageChange()
+  }
+  @Param @Require promptText: Resource;
+  @Monitor('promptText')
+  PromptTextChange() {
+    this.onPromptTextChange()
+  }
+  @Local idleWidth: Number = 100;
+  @Monitor('idleWidth')
+  IdleWidthChanged(){
+    this.onIdleWidthChanged()
+  }
+  @Param closeCallback: Callback<boolean> = () =>{
   };
-  public updateConfiguration: Callback<void> = () => {
+  @Param updateConfiguration:Callback<void> = () =>{
   };
   private progressModifier: ProgressModifier = new ProgressModifier();
   private percentageTextModifier: TextModifier = new TextModifier();
