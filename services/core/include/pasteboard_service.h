@@ -16,6 +16,7 @@
 #ifndef PASTE_BOARD_SERVICE_H
 #define PASTE_BOARD_SERVICE_H
 
+#include <atomic>
 #include <system_ability_definition.h>
 
 #include "bundle_mgr_proxy.h"
@@ -175,7 +176,7 @@ public:
     virtual int32_t ShowProgress(const std::string &progressKey, const sptr<IRemoteObject> &observer) override;
     virtual int32_t RegisterClientDeathObserver(const sptr<IRemoteObject> &observer) override;
     virtual int32_t DetachPasteboard() override;
-    static int32_t currentUserId_;
+    static std::atomic<int32_t> currentUserId_;
     static ScreenEvent currentScreenStatus;
     size_t GetDataSize(PasteData &data) const;
     int Dump(int fd, const std::vector<std::u16string> &args) override;
@@ -538,9 +539,10 @@ private:
     int32_t uid_ = -1;
     std::atomic<int64_t> maxLocalCapacity_ = DEFAULT_LOCAL_CAPACITY * SIZE_K * SIZE_K;
     RemoteDataTaskManager taskMgr_;
-    pid_t setPasteDataUId_ = 0;
+    std::atomic<pid_t> setPasteDataUId_ = 0;
     static constexpr pid_t TEST_SERVER_UID = 3500;
     std::mutex eventMutex_;
+    mutable std::mutex currentEventMutex_;
     std::mutex entityRecognizeMutex_;
     SecurityLevel securityLevel_;
     class PasteboardDeathRecipient final : public IRemoteObject::DeathRecipient {
@@ -555,6 +557,8 @@ private:
     };
     int32_t AppExit(pid_t pid);
     void RemoveObserverByPid(int32_t userId, pid_t pid, ObserverMap &observerMap);
+    ClipPlugin::GlobalEvent GetCurrentEvent() const;
+    void SetCurrentEvent(ClipPlugin::GlobalEvent event);
     ConcurrentMap<pid_t, std::pair<sptr<IRemoteObject>, sptr<PasteboardDeathRecipient>>> clients_;
     static constexpr pid_t INVALID_UID = -1;
     static constexpr pid_t INVALID_PID = -1;

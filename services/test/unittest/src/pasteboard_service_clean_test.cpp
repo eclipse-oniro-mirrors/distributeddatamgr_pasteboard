@@ -223,7 +223,7 @@ HWTEST_F(PasteboardServiceCleanTest, ClearTest001, TestSize.Level1)
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
 
-    tempPasteboard->currentUserId_ = ACCOUNT_IDS_RANDOM;
+    tempPasteboard->currentUserId_.store(ACCOUNT_IDS_RANDOM);
     tempPasteboard->clips_.InsertOrAssign(ACCOUNT_IDS_RANDOM, std::make_shared<PasteData>());
     int32_t result = tempPasteboard->Clear();
     EXPECT_EQ(result, ERR_OK);

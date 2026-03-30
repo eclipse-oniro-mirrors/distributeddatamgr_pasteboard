@@ -285,7 +285,7 @@ HWTEST_F(PasteboardServiceRemoteTest, IsRemoteDataTest001, TestSize.Level1)
     auto service = std::make_shared<PasteboardService>();
     EXPECT_NE(service, nullptr);
 
-    service->currentUserId_ = ERROR_USERID;
+    service->currentUserId_.store(ERROR_USERID);
     bool funcResult;
     int32_t result = service->IsRemoteData(funcResult);
     EXPECT_EQ(result, ERR_OK);
@@ -303,7 +303,7 @@ HWTEST_F(PasteboardServiceRemoteTest, IsRemoteDataTest002, TestSize.Level1)
     auto service = std::make_shared<PasteboardService>();
     EXPECT_NE(service, nullptr);
 
-    service->currentUserId_ = INT32_MAX;
+    service->currentUserId_.store(INT32_MAX);
     bool funcResult;
     int32_t result = service->IsRemoteData(funcResult);
     EXPECT_EQ(result, ERR_OK);
@@ -321,7 +321,8 @@ HWTEST_F(PasteboardServiceRemoteTest, IsRemoteDataTest003, TestSize.Level1)
     auto service = std::make_shared<PasteboardService>();
     EXPECT_NE(service, nullptr);
 
-    int32_t userId = service->currentUserId_ = 0XF;
+    int32_t userId = 0XF;
+    service->currentUserId_.store(userId);
     std::shared_ptr<PasteData> pasteData = std::make_shared<PasteData>();
     EXPECT_NE(pasteData, nullptr);
 

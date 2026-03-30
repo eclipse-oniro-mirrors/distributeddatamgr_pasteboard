@@ -520,7 +520,7 @@ namespace MiscServices {
 HWTEST_F(PasteboardServiceMockTest, ClearTest002, TestSize.Level1)
 {
     PasteboardService service;
-    service.currentUserId_ = ERROR_USERID;
+    service.currentUserId_.store(ERROR_USERID);
     NiceMock<PasteboardServiceInterfaceMock> mock;
     EXPECT_CALL(mock, QueryActiveOsAccountIds(testing::_)).WillOnce(Return(INT_ONE));
     int32_t result = service.Clear();
@@ -539,7 +539,7 @@ HWTEST_F(PasteboardServiceMockTest, GetRecordValueByTypeTest001, TestSize.Level1
     uint32_t recordId = 0;
     PasteDataEntry value;
     value.SetUtdId(RANDOM_STRING);
-    service.currentUserId_ = ACCOUNT_IDS_RANDOM;
+    service.currentUserId_.store(ACCOUNT_IDS_RANDOM);
     auto data = std::make_shared<PasteData>();
     auto record = PasteDataRecord::NewPlainTextRecord(RANDOM_STRING);
     auto entry = std::make_shared<PasteDataEntry>();
@@ -573,7 +573,7 @@ HWTEST_F(PasteboardServiceMockTest, GetRecordValueByTypeTest002, TestSize.Level1
     uint32_t recordId = 0;
     PasteDataEntry value;
     value.SetUtdId(RANDOM_STRING);
-    service.currentUserId_ = ACCOUNT_IDS_RANDOM;
+    service.currentUserId_.store(ACCOUNT_IDS_RANDOM);
     auto data = std::make_shared<PasteData>();
     auto record = PasteDataRecord::NewPlainTextRecord(RANDOM_STRING);
     auto entry = std::make_shared<PasteDataEntry>();
@@ -607,7 +607,7 @@ HWTEST_F(PasteboardServiceMockTest, GetRecordValueByTypeTest003, TestSize.Level1
     uint32_t recordId = 0;
     PasteDataEntry value;
     value.SetUtdId(RANDOM_STRING);
-    service.currentUserId_ = ACCOUNT_IDS_RANDOM;
+    service.currentUserId_.store(ACCOUNT_IDS_RANDOM);
     auto data = std::make_shared<PasteData>();
     auto record = PasteDataRecord::NewPlainTextRecord(RANDOM_STRING);
     auto entry = std::make_shared<PasteDataEntry>();
@@ -740,7 +740,7 @@ HWTEST_F(PasteboardServiceMockTest, GetRecordValueByTypeTest009, TestSize.Level1
     uint32_t recordId = 0;
     int64_t rawDataSize = MIN_ASHMEM_DATA_SIZE + 1;
     std::vector<uint8_t> buffer;
-    service.currentUserId_ = ACCOUNT_IDS_RANDOM;
+    service.currentUserId_.store(ACCOUNT_IDS_RANDOM);
     int fd = open("/dev/zero", O_RDWR);
     std::vector<char> data(rawDataSize, 'a');
     auto pasteData = std::make_shared<PasteData>();
@@ -796,7 +796,7 @@ HWTEST_F(PasteboardServiceMockTest, GetRecordValueByTypeTest011, TestSize.Level1
 
     PasteDataEntry value;
     value.SetUtdId(RANDOM_STRING);
-    service.currentUserId_ = ACCOUNT_IDS_RANDOM;
+    service.currentUserId_.store(ACCOUNT_IDS_RANDOM);
     auto data = std::make_shared<PasteData>();
     auto record = PasteDataRecord::NewPlainTextRecord(RANDOM_STRING);
     auto entry = std::make_shared<PasteDataEntry>();
@@ -825,7 +825,7 @@ HWTEST_F(PasteboardServiceMockTest, GetRecordValueByTypeTest011, TestSize.Level1
 HWTEST_F(PasteboardServiceMockTest, ShowProgressTest001, TestSize.Level1)
 {
     PasteboardService service;
-    service.currentUserId_ = ERROR_USERID;
+    service.currentUserId_.store(ERROR_USERID);
     const std::string progressKey;
     sptr<IRemoteObject> observer;
     service.clips_.InsertOrAssign(ACCOUNT_IDS_RANDOM, std::make_shared<PasteData>());
@@ -843,7 +843,7 @@ HWTEST_F(PasteboardServiceMockTest, ShowProgressTest002, TestSize.Level1)
     PasteboardService service;
     const std::string progressKey;
     sptr<IRemoteObject> observer;
-    service.currentUserId_ = ACCOUNT_IDS_RANDOM;
+    service.currentUserId_.store(ACCOUNT_IDS_RANDOM);
     auto data = std::make_shared<PasteData>();
     g_accountIds = true;
     service.currentScreenStatus = ScreenEvent::ScreenUnlocked;
@@ -873,7 +873,7 @@ HWTEST_F(PasteboardServiceMockTest, ShowProgressTest003, TestSize.Level1)
     PasteboardService service;
     const std::string progressKey;
     sptr<IRemoteObject> observer;
-    service.currentUserId_ = ACCOUNT_IDS_RANDOM;
+    service.currentUserId_.store(ACCOUNT_IDS_RANDOM);
     auto data = std::make_shared<PasteData>();
     g_accountIds = true;
     service.currentScreenStatus = ScreenEvent::ScreenUnlocked;
@@ -931,7 +931,7 @@ HWTEST_F(PasteboardServiceMockTest, HasDataTypeTest003, TestSize.Level1)
     auto tempPasteboard = std::make_shared<PasteboardService>();
     ASSERT_NE(tempPasteboard, nullptr);
     tempPasteboard->currentScreenStatus = ScreenEvent::ScreenUnlocked;
-    tempPasteboard->currentUserId_ = 1;
+    tempPasteboard->currentUserId_.store(1);
     testing::NiceMock<PasteboardServiceInterfaceMock> mock;
     EXPECT_CALL(mock, IsOn()).WillOnce(testing::Return(true));
     bool funcResult;
@@ -949,7 +949,7 @@ HWTEST_F(PasteboardServiceMockTest, HasDataTypeTest004, TestSize.Level1)
     auto tempPasteboard = std::make_shared<PasteboardService>();
     ASSERT_NE(tempPasteboard, nullptr);
     tempPasteboard->currentScreenStatus = ScreenEvent::ScreenUnlocked;
-    tempPasteboard->currentUserId_ = 1;
+    tempPasteboard->currentUserId_.store(1);
     std::string PLUGIN_NAME_VAL = "distributed_clip";
     auto release = [&PLUGIN_NAME_VAL, this](ClipPlugin *plugin) {
         ClipPlugin::DestroyPlugin(PLUGIN_NAME_VAL, plugin);
@@ -1001,7 +1001,7 @@ HWTEST_F(PasteboardServiceMockTest, GetPasteDataTest002, TestSize.Level1)
     EXPECT_CALL(mock, GetTokenTypeFlag).WillOnce(Return(ATokenTypeEnum::TOKEN_HAP))
         .WillOnce(Return(ATokenTypeEnum::TOKEN_HAP));
     PasteboardService service;
-    service.setPasteDataUId_ = ERROR_USERID;
+    service.setPasteDataUId_.store(ERROR_USERID);
     int fd;
     int64_t size;
     std::vector<uint8_t> rawData;
@@ -1027,7 +1027,7 @@ HWTEST_F(PasteboardServiceMockTest, GetPasteDataTest003, TestSize.Level1)
         .WillOnce(Return(ATokenTypeEnum::TOKEN_HAP))
         .WillOnce(Return(ATokenTypeEnum::TOKEN_HAP));
     PasteboardService service;
-    service.setPasteDataUId_ = TEST_SERVER_UID;
+    service.setPasteDataUId_.store(TEST_SERVER_UID);
     int fd;
     int64_t size;
     std::vector<uint8_t> rawData;
@@ -1498,7 +1498,7 @@ HWTEST_F(PasteboardServiceMockTest, DumpDataTest001, TestSize.Level1)
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
     NiceMock<PasteboardServiceInterfaceMock> mock;
-    tempPasteboard->currentUserId_ = ERROR_USERID;
+    tempPasteboard->currentUserId_.store(ERROR_USERID);
     EXPECT_CALL(mock, QueryActiveOsAccountIds(testing::_)).WillRepeatedly(Return(INT_ONE));
     auto ret = tempPasteboard->DumpData();
     ASSERT_EQ(ret, "");
@@ -1517,7 +1517,7 @@ HWTEST_F(PasteboardServiceMockTest, DumpDataTest002, TestSize.Level1)
     EXPECT_NE(tempPasteboard, nullptr);
     std::string expectStr;
     expectStr.append("No copy data.").append("\n");
-    tempPasteboard->currentUserId_ = ACCOUNT_IDS_RANDOM;
+    tempPasteboard->currentUserId_.store(ACCOUNT_IDS_RANDOM);
     NiceMock<PasteboardServiceInterfaceMock> mock;
     EXPECT_CALL(mock, QueryActiveOsAccountIds(testing::_)).WillRepeatedly(Return(ERR_OK));
     auto ret = tempPasteboard->DumpData();
@@ -1537,7 +1537,7 @@ HWTEST_F(PasteboardServiceMockTest, DumpDataTest003, TestSize.Level1)
     EXPECT_NE(tempPasteboard, nullptr);
     std::string expectStr;
     expectStr.append("No copy data.").append("\n");
-    tempPasteboard->currentUserId_ = ACCOUNT_IDS_RANDOM;
+    tempPasteboard->currentUserId_.store(ACCOUNT_IDS_RANDOM);
     tempPasteboard->clips_.Insert(ACCOUNT_IDS_RANDOM, nullptr);
     NiceMock<PasteboardServiceInterfaceMock> mock;
     EXPECT_CALL(mock, QueryActiveOsAccountIds(testing::_)).WillRepeatedly(Return(ERR_OK));
@@ -1557,7 +1557,7 @@ HWTEST_F(PasteboardServiceMockTest, DumpDataTest004, TestSize.Level1)
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
     std::string expectStr;
-    tempPasteboard->currentUserId_ = ACCOUNT_IDS_RANDOM;
+    tempPasteboard->currentUserId_.store(ACCOUNT_IDS_RANDOM);
     auto pasteData = std::make_shared<PasteData>();
     EXPECT_NE(pasteData, nullptr);
     size_t recordCounts = 1;
@@ -1615,7 +1615,7 @@ HWTEST_F(PasteboardServiceMockTest, DumpDataTest005, TestSize.Level1)
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
     std::string expectStr;
-    tempPasteboard->currentUserId_ = ACCOUNT_IDS_RANDOM;
+    tempPasteboard->currentUserId_.store(ACCOUNT_IDS_RANDOM);
     auto pasteData = std::make_shared<PasteData>();
     EXPECT_NE(pasteData, nullptr);
     size_t recordCounts = 1;
@@ -1811,7 +1811,7 @@ HWTEST_F(PasteboardServiceMockTest, OnConfigChangeTest001, TestSize.Level1)
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
     g_accountIds = false;
-    tempPasteboard->currentUserId_ = 1;
+    tempPasteboard->currentUserId_.store(1);
     tempPasteboard->OnConfigChange(false);
     EXPECT_EQ(tempPasteboard->GetCurrentAccountId(), 1);
 }

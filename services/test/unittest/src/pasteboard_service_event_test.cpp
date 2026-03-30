@@ -1006,13 +1006,13 @@ HWTEST_F(PasteboardServiceEventTest, IncreaseChangeCountTest002, TestSize.Level1
     tempPasteboard->GetChangeCount(testCount);
     EXPECT_EQ(testCount, 0);
 
-    tempPasteboard->currentUserId_ = 10;
+    tempPasteboard->currentUserId_.store(10);
     auto userId = tempPasteboard->GetCurrentAccountId();
     tempPasteboard->IncreaseChangeCount(userId);
     tempPasteboard->GetChangeCount(testCount);
     EXPECT_EQ(testCount, 1);
 
-    tempPasteboard->currentUserId_ = 100;
+    tempPasteboard->currentUserId_.store(100);
     tempPasteboard->GetChangeCount(testCount);
     EXPECT_EQ(testCount, 0);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "IncreaseChangeCountTest002 end");
