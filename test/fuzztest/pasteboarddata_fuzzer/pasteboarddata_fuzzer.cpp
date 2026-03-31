@@ -33,7 +33,10 @@ void TestPasteData(const uint8_t *data, size_t size)
 
     OHOS::Parcel parcel;
     parcel.WriteUInt8Vector(buffer);
-    PasteData::Unmarshalling(parcel);
+    auto ptr = PasteData::Unmarshalling(parcel);
+    if (ptr != nullptr) {
+        delete ptr;
+    }
     PasteData pasteData2;
     pasteData2.Marshalling(parcel);
 }
