@@ -284,6 +284,7 @@ HWTEST_F(PasteboardServiceCleanTest, ClearInputMethodPidTest001, TestSize.Level1
  */
 HWTEST_F(PasteboardServiceCleanTest, ClearAgedDataTest001, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ClearAgedDataTest001 start");
     std::shared_ptr<PasteboardService> tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
     auto tokenId = IPCSkeleton::GetCallingTokenID();
@@ -301,6 +302,7 @@ HWTEST_F(PasteboardServiceCleanTest, ClearAgedDataTest001, TestSize.Level1)
     tempPasteboard->ClearAgedData(userId);
     result = tempPasteboard->clips_.Find(userId);
     EXPECT_FALSE(result.first);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ClearAgedDataTest001 end");
 }
 
 } // namespace MiscServices

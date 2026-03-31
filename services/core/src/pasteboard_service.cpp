@@ -2556,7 +2556,11 @@ int32_t PasteboardService::DetectPatterns(const std::vector<Pattern> &patternsTo
 std::pair<int32_t, ClipPlugin::GlobalEvent> PasteboardService::GetValidDistributeEvent(int32_t user)
 {
     Event evt;
-    auto plugin = GetClipPlugin();
+    std::shared_ptr<ClipPlugin> plugin = nullptr;
+    {
+        std::lock_guard<decltype(mutex)> lockGuard(mutex);
+        plugin = clipPlugin_;
+    }
     if (plugin == nullptr) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "plugin is null");
         return std::make_pair(static_cast<int32_t>(PasteboardError::PLUGIN_IS_NULL), evt);
@@ -2569,7 +2573,6 @@ std::pair<int32_t, ClipPlugin::GlobalEvent> PasteboardService::GetValidDistribut
         PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "plugin event is empty");
         return std::make_pair(static_cast<int32_t>(PasteboardError::PLUGIN_EVENT_EMPTY), evt);
     }
-
     evt = events[0];
     auto currentEvent = GetCurrentEvent();
     if (evt.deviceId == DMAdapter::GetInstance().GetLocalNetworkId() || evt.expiration < currentEvent.expiration) {
@@ -2593,7 +2596,6 @@ std::pair<int32_t, ClipPlugin::GlobalEvent> PasteboardService::GetValidDistribut
         PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "get same remote data");
         return std::make_pair(static_cast<int32_t>(PasteboardError::GET_SAME_REMOTE_DATA), evt);
     }
-
     uint64_t curTime =
         static_cast<uint64_t>(PasteBoardTime::GetBootTimeMs());
     ret = evt.status == ClipPlugin::EVT_NORMAL ? ret : static_cast<int32_t>(PasteboardError::INVALID_EVENT_STATUS);
