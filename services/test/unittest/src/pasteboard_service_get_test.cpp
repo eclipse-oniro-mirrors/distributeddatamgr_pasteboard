@@ -225,7 +225,7 @@ HWTEST_F(PasteboardServiceGetTest, GetMimeTypesTest002, TestSize.Level1)
     auto service = std::make_shared<PasteboardService>();
     EXPECT_NE(service, nullptr);
 
-    service->currentUserId_ = ERROR_USERID;
+    service->currentUserId_.store(ERROR_USERID);
     std::vector<std::string> funcResult;
     int32_t result = service->GetMimeTypes(funcResult);
     EXPECT_EQ(result, ERR_OK);
@@ -297,7 +297,7 @@ HWTEST_F(PasteboardServiceGetTest, GetDataSourceTest002, TestSize.Level1)
 
     std::string bundleName = "test_bundle_name";
     int32_t userId = 100;
-    tempPasteboard->currentUserId_ = userId;
+    tempPasteboard->currentUserId_.store(userId);
     PasteDataProperty props_;
     auto data = std::make_shared<PasteData>();
     data->props_.isRemote = false;
@@ -321,7 +321,7 @@ HWTEST_F(PasteboardServiceGetTest, GetRemoteDeviceNameTest001, TestSize.Level1)
     auto service = std::make_shared<PasteboardService>();
     EXPECT_NE(service, nullptr);
 
-    service->currentUserId_ = ERROR_USERID;
+    service->currentUserId_.store(ERROR_USERID);
     std::string deviceName;
     bool isRemote = false;
     int32_t result = service->GetRemoteDeviceName(deviceName, isRemote);
@@ -373,7 +373,7 @@ HWTEST_F(PasteboardServiceGetTest, GetCurrentAccountIdTest002, TestSize.Level1)
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
 
-    tempPasteboard->currentUserId_ = 1;
+    tempPasteboard->currentUserId_.store(1);
     int32_t result = tempPasteboard->GetCurrentAccountId();
     EXPECT_EQ(result, 1);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetCurrentAccountIdTest002 end");
@@ -390,7 +390,7 @@ HWTEST_F(PasteboardServiceGetTest, GetCurrentAccountIdTest003, TestSize.Level1)
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
 
-    tempPasteboard->currentUserId_ = ERROR_USERID;
+    tempPasteboard->currentUserId_.store(ERROR_USERID);
     int32_t result = tempPasteboard->GetCurrentAccountId();
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetCurrentAccountIdTest003 end");
 }
@@ -636,7 +636,7 @@ HWTEST_F(PasteboardServiceGetTest, GetLocalMimeTypesTest003, TestSize.Level1)
     EXPECT_NE(tempPasteboard, nullptr);
 
     auto userId = tempPasteboard->GetCurrentAccountId();
-    tempPasteboard->currentUserId_ = ACCOUNT_IDS_RANDOM;
+    tempPasteboard->currentUserId_.store(ACCOUNT_IDS_RANDOM);
     tempPasteboard->clips_.InsertOrAssign(ACCOUNT_IDS_RANDOM, std::make_shared<PasteData>());
 
     auto result = tempPasteboard->GetLocalMimeTypes();
@@ -688,7 +688,7 @@ HWTEST_F(PasteboardServiceGetTest, HasDataTypeTest002, TestSize.Level1)
     ASSERT_NE(tempPasteboard, nullptr);
 
     tempPasteboard->currentScreenStatus = ScreenEvent::ScreenUnlocked;
-    tempPasteboard->currentUserId_ = 1;
+    tempPasteboard->currentUserId_.store(1);
     tempPasteboard->clipPlugin_ = nullptr;
     bool funcResult;
     int32_t res = tempPasteboard->HasDataType(MIMETYPE_TEXT_PLAIN, funcResult);
@@ -748,7 +748,7 @@ HWTEST_F(PasteboardServiceGetTest, HasDataTypeTest005, TestSize.Level1)
     ASSERT_NE(tempPasteboard, nullptr);
 
     tempPasteboard->currentScreenStatus = ScreenEvent::Default;
-    tempPasteboard->currentUserId_ = 1;
+    tempPasteboard->currentUserId_.store(1);
     tempPasteboard->clipPlugin_ = nullptr;
     bool funcResult;
     int32_t res = tempPasteboard->HasDataType(MIMETYPE_TEXT_PLAIN, funcResult);
@@ -768,7 +768,7 @@ HWTEST_F(PasteboardServiceGetTest, HasDataTypeTest006, TestSize.Level1)
     ASSERT_NE(tempPasteboard, nullptr);
 
     tempPasteboard->currentScreenStatus = ScreenEvent::ScreenLocked;
-    tempPasteboard->currentUserId_ = 1;
+    tempPasteboard->currentUserId_.store(1);
     tempPasteboard->clipPlugin_ = nullptr;
     bool funcResult;
     int32_t res = tempPasteboard->HasDataType(MIMETYPE_TEXT_PLAIN, funcResult);
@@ -939,7 +939,7 @@ HWTEST_F(PasteboardServiceGetTest, HasLocalDataTypeTest004, TestSize.Level1)
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
 
-    tempPasteboard->currentUserId_ = ACCOUNT_IDS_RANDOM;
+    tempPasteboard->currentUserId_.store(ACCOUNT_IDS_RANDOM);
     std::shared_ptr<PasteData> pasteData = std::make_shared<PasteData>();
     pasteData->AddTextRecord("hello");
     tempPasteboard->clips_.InsertOrAssign(ACCOUNT_IDS_RANDOM, pasteData);
