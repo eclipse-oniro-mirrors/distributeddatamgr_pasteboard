@@ -59,12 +59,6 @@
         "visible": false,
         "type": "service"
       }
-    ],
-    "metadata": [
-      {
-        "name": "action.settings.search.path",
-        "value": "searchConfig/searchPage.json"
-      }
     ]
   }
 }
