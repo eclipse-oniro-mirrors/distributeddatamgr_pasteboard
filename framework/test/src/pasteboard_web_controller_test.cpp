@@ -871,8 +871,7 @@ HWTEST_F(PasteboardWebControllerTest, BuildPasteDataRecordsTest002, TestSize.Lev
     auto webClipboardController = PasteboardWebController::GetInstance();
     std::map<std::string, std::vector<uint8_t>> singleImgSrcMap;
     std::string testUri = "file://local/single_img.png";
-    std::vector<uint8_t> testData = {0x01, 0x02, 0x03
-};
+    std::vector<uint8_t> testData = {0x01, 0x02, 0x03};
     singleImgSrcMap[testUri] = testData;
     uint32_t recordId = 1002;
     auto records = webClipboardController.BuildPasteDataRecords(singleImgSrcMap, recordId);
@@ -941,8 +940,7 @@ HWTEST_F(PasteboardWebControllerTest, ReplaceHtmlRecordContentByExtraUrisTest002
     RecordList recordList;
     auto customData = std::make_shared<MineCustomData>();
     std::string key = "image/jpg";
-    std::vector<uint8_t> val = {0x01, 0x02, 0x03, 0x04
-};
+    std::vector<uint8_t> val = {0x01, 0x02, 0x03, 0x04};
     customData->AddItemData(key, val);
     PasteDataRecord::Builder builder(MIMETYPE_TEXT_URI);
     std::string uriStr = "file:///test.png";

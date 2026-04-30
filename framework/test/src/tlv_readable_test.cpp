@@ -458,8 +458,7 @@ HWTEST_F(TLVReadableTest, ReadValueStringTest002, TestSize.Level1)
 HWTEST_F(TLVReadableTest, ReadValueVectorUint8Test001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadValueVectorUint8Test001 start");
-    std::vector<uint8_t> expectedValue = {1, 2, 3, 4, 5
-};
+    std::vector<uint8_t> expectedValue = {1, 2, 3, 4, 5};
     std::vector<std::uint8_t> buffer(sizeof(TLVHead) + expectedValue.size());
     TLVHead *pHead = reinterpret_cast<TLVHead *>(buffer.data());
     pHead->tag = 1;
@@ -522,8 +521,7 @@ HWTEST_F(TLVReadableTest, ReadValueMonostateTest001, TestSize.Level1)
 HWTEST_F(TLVReadableTest, ReadValueRawMemTest001, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadValueRawMemTest001 start");
-    std::vector<uint8_t> expectedData = {10, 20, 30, 40
-};
+    std::vector<uint8_t> expectedData = {10, 20, 30, 40};
     std::vector<std::uint8_t> buffer(sizeof(TLVHead) + expectedData.size());
     TLVHead *pHead = reinterpret_cast<TLVHead *>(buffer.data());
     pHead->tag = 1;
