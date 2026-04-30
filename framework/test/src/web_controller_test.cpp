@@ -66,6 +66,7 @@ HWTEST_F(WebControllerTest, UpdateHtmlRecordTest_001, TestSize.Level1)
     ASSERT_EQ(htmlRecord, nullptr);
 
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "UpdateHtmlRecordTest_001 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "UpdateHtmlRecordTest_001 end");
 }
 
 /**
@@ -89,6 +90,7 @@ HWTEST_F(WebControllerTest, UpdateHtmlRecordTest_002, TestSize.Level1)
     ASSERT_EQ(htmlData, nullptr);
 
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "UpdateHtmlRecordTest_002 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "UpdateHtmlRecordTest_002 end");
 }
 
 /**
@@ -110,6 +112,7 @@ HWTEST_F(WebControllerTest, SplitWebviewPasteDataTest_001, TestSize.Level1)
     EXPECT_FALSE(result);
 
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitWebviewPasteDataTest_001 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitWebviewPasteDataTest_001 end");
 }
 
 /**
@@ -132,6 +135,7 @@ HWTEST_F(WebControllerTest, SplitWebviewPasteDataTest_002, TestSize.Level1)
     bool result = PasteboardWebController::GetInstance().SplitWebviewPasteData(pasteData, bundleIndex, userId);
     EXPECT_FALSE(result);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitWebviewPasteDataTest_002 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitWebviewPasteDataTest_002 end");
 }
 
 /**
@@ -154,6 +158,7 @@ HWTEST_F(WebControllerTest, SplitWebviewPasteDataTest_003, TestSize.Level1)
     bool result = PasteboardWebController::GetInstance().SplitWebviewPasteData(pasteData, bundleIndex, userId);
     EXPECT_FALSE(result);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitWebviewPasteDataTest_003 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitWebviewPasteDataTest_003 end");
 }
 
 /**
@@ -173,6 +178,7 @@ HWTEST_F(WebControllerTest, SplitWebviewPasteDataTest_004, TestSize.Level1)
     bool result = PasteboardWebController::GetInstance().SplitWebviewPasteData(pasteData, bundleIndex, userId);
     EXPECT_FALSE(result);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitWebviewPasteDataTest_004 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitWebviewPasteDataTest_004 end");
 }
 
 /**
@@ -192,6 +198,7 @@ HWTEST_F(WebControllerTest, SplitWebviewPasteDataTest_005, TestSize.Level1)
     bool result = PasteboardWebController::GetInstance().SplitWebviewPasteData(pasteData, bundleIndex, userId);
     EXPECT_FALSE(result);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitWebviewPasteDataTest_005 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitWebviewPasteDataTest_005 end");
 }
 
 /**
@@ -211,6 +218,7 @@ HWTEST_F(WebControllerTest, SplitWebviewPasteDataTest_006, TestSize.Level1)
     bool result = PasteboardWebController::GetInstance().SplitWebviewPasteData(pasteData, bundleIndex, userId);
     EXPECT_FALSE(result);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitWebviewPasteDataTest_006 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitWebviewPasteDataTest_006 end");
 }
 
 /**
@@ -231,6 +239,7 @@ HWTEST_F(WebControllerTest, SplitWebviewPasteDataTest_007, TestSize.Level1)
     EXPECT_FALSE(result);
     EXPECT_NE(pasteData.GetTag(), PasteData::WEBVIEW_PASTEDATA_TAG);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitWebviewPasteDataTest_007 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitWebviewPasteDataTest_007 end");
 }
 
 /**
@@ -259,6 +268,7 @@ HWTEST_F(WebControllerTest, SplitWebviewPasteDataTest_008, TestSize.Level1)
     EXPECT_FALSE(result);
 
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitWebviewPasteDataTest_008 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitWebviewPasteDataTest_008 end");
 }
 
 /**
@@ -295,6 +305,7 @@ HWTEST_F(WebControllerTest, SplitWebviewPasteDataTest_009, TestSize.Level1)
     EXPECT_FALSE(result);
 
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitWebviewPasteDataTest_009 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitWebviewPasteDataTest_009 end");
 }
 
 /**
@@ -332,6 +343,7 @@ HWTEST_F(WebControllerTest, SplitWebviewPasteDataTest_010, TestSize.Level1)
     EXPECT_NE(pasteData.GetTag(), PasteData::WEBVIEW_PASTEDATA_TAG);
 
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitWebviewPasteDataTest_010 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitWebviewPasteDataTest_010 end");
 }
 
 /**
@@ -356,6 +368,7 @@ HWTEST_F(WebControllerTest, SetWebviewPasteDataTest_001, TestSize.Level1)
     ASSERT_EQ(pasteData.GetTag(), PasteData::WEBVIEW_PASTEDATA_TAG);
 
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SetWebviewPasteDataTest_001 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SetWebviewPasteDataTest_001 end");
 }
 
 /**
@@ -379,6 +392,7 @@ HWTEST_F(WebControllerTest, SetWebviewPasteDataTest_002, TestSize.Level1)
     webClipboardController.SetWebviewPasteData(pasteData, bundleIndex);
 
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SetWebviewPasteDataTest_002 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SetWebviewPasteDataTest_002 end");
 }
 
 /**
@@ -402,6 +416,7 @@ HWTEST_F(WebControllerTest, SetWebviewPasteDataTest_003, TestSize.Level1)
     webClipboardController.SetWebviewPasteData(pasteData, bundleIndex);
 
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SetWebviewPasteDataTest_003 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SetWebviewPasteDataTest_003 end");
 }
 
 /**
@@ -428,6 +443,7 @@ HWTEST_F(WebControllerTest, SetWebviewPasteDataTest_004, TestSize.Level1)
     webClipboardController.SetWebviewPasteData(pasteData, bundleIndex);
 
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SetWebviewPasteDataTest_004 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SetWebviewPasteDataTest_004 end");
 }
 
 /**
@@ -457,6 +473,7 @@ HWTEST_F(WebControllerTest, SetWebviewPasteDataTest_005, TestSize.Level1)
     webClipboardController.SetWebviewPasteData(pasteData, bundleIndex);
 
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SetWebviewPasteDataTest_005 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SetWebviewPasteDataTest_005 end");
 }
 
 /**
@@ -486,6 +503,7 @@ HWTEST_F(WebControllerTest, SetWebviewPasteDataTest_006, TestSize.Level1)
     webClipboardController.SetWebviewPasteData(pasteData, bundleIndex);
 
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SetWebviewPasteDataTest_006 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SetWebviewPasteDataTest_006 end");
 }
 
 /**
@@ -776,6 +794,7 @@ HWTEST_F(WebControllerTest, DataRemoveInvalidUriCrossTest001, TestSize.Level1)
     }
     EXPECT_NE(actualUris, expectUris);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "DataRemoveInvalidUriCrossTest001 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "DataRemoveInvalidUriCrossTest001 end");
 }
 
 /**
@@ -811,6 +830,7 @@ HWTEST_F(WebControllerTest, DataRemoveInvalidUriCrossTest002, TestSize.Level1)
     }
     EXPECT_EQ(actualUris, expectUris);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "DataRemoveInvalidUriCrossTest002 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "DataRemoveInvalidUriCrossTest002 end");
 }
 
 /**
@@ -846,6 +866,7 @@ HWTEST_F(WebControllerTest, DataRemoveInvalidUriCrossTest003, TestSize.Level1)
     }
     EXPECT_EQ(actualUris, expectUris);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "DataRemoveInvalidUriCrossTest003 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "DataRemoveInvalidUriCrossTest003 end");
 }
 
 /**
@@ -881,6 +902,7 @@ HWTEST_F(WebControllerTest, DataRemoveInvalidUriCrossTest004, TestSize.Level1)
     }
     EXPECT_EQ(actualUris, expectUris);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "DataRemoveInvalidUriCrossTest004 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "DataRemoveInvalidUriCrossTest004 end");
 }
 
 /**
@@ -934,6 +956,7 @@ HWTEST_F(WebControllerTest, DataRemoveInvalidUriCrossTest005, TestSize.Level1)
     }
     EXPECT_NE(actualUris, expectUris);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "DataRemoveInvalidUriCrossTest005 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "DataRemoveInvalidUriCrossTest005 end");
 }
 
 
@@ -970,6 +993,7 @@ HWTEST_F(WebControllerTest, DataRemoveInvalidUriLocalTest001, TestSize.Level1)
     }
     EXPECT_EQ(actualUris, expectUris);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "DataRemoveInvalidUriLocalTest001 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "DataRemoveInvalidUriLocalTest001 end");
 }
 
 /**
@@ -1005,6 +1029,7 @@ HWTEST_F(WebControllerTest, DataRemoveInvalidUriLocalTest002, TestSize.Level1)
     }
     EXPECT_EQ(actualUris, expectUris);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "DataRemoveInvalidUriLocalTest002 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "DataRemoveInvalidUriLocalTest002 end");
 }
 
 /**
@@ -1040,6 +1065,7 @@ HWTEST_F(WebControllerTest, DataRemoveInvalidUriLocalTest003, TestSize.Level1)
     }
     EXPECT_EQ(actualUris, expectUris);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "DataRemoveInvalidUriLocalTest003 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "DataRemoveInvalidUriLocalTest003 end");
 }
 
 /**
@@ -1075,6 +1101,7 @@ HWTEST_F(WebControllerTest, DataRemoveInvalidUriLocalTest004, TestSize.Level1)
     }
     EXPECT_EQ(actualUris, expectUris);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "DataRemoveInvalidUriLocalTest004 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "DataRemoveInvalidUriLocalTest004 end");
 }
 
 /**
@@ -1128,6 +1155,7 @@ HWTEST_F(WebControllerTest, DataRemoveInvalidUriLocalTest005, TestSize.Level1)
     }
     EXPECT_EQ(actualUris, expectUris);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "DataRemoveInvalidUriLocalTest005 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "DataRemoveInvalidUriLocalTest005 end");
 }
 
 /**
@@ -1165,6 +1193,7 @@ HWTEST_F(WebControllerTest, EntryRemoveInvalidUriTest001, TestSize.Level1)
     ASSERT_NE(uri, nullptr);
     EXPECT_STREQ(uri->ToString().c_str(), "file://com.pasteboard.test/111.png");
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "EntryRemoveInvalidUriTest001 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "EntryRemoveInvalidUriTest001 end");
 }
 
 /**
@@ -1202,6 +1231,7 @@ HWTEST_F(WebControllerTest, EntryRemoveInvalidUriTest002, TestSize.Level1)
     ASSERT_NE(uri, nullptr);
     EXPECT_STREQ(uri->ToString().c_str(), "media://com.pasteboard.test/111.png");
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "EntryRemoveInvalidUriTest002 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "EntryRemoveInvalidUriTest002 end");
 }
 
 /**
@@ -1239,6 +1269,7 @@ HWTEST_F(WebControllerTest, EntryRemoveInvalidUriTest003, TestSize.Level1)
     ASSERT_NE(uri, nullptr);
     EXPECT_TRUE(uri->ToString().empty());
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "EntryRemoveInvalidUriTest003 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "EntryRemoveInvalidUriTest003 end");
 }
 
 /**
@@ -1281,6 +1312,7 @@ HWTEST_F(WebControllerTest, EntryRemoveInvalidUriTest004, TestSize.Level1)
     ASSERT_NE(uri, nullptr);
     EXPECT_TRUE(uri->ToString().empty());
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "EntryRemoveInvalidUriTest004 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "EntryRemoveInvalidUriTest004 end");
 }
 
 /**
@@ -1307,6 +1339,7 @@ HWTEST_F(WebControllerTest, MatchImgExtensionTest001, TestSize.Level1)
     EXPECT_FALSE(PasteboardImgExtractor::MatchImgExtension("file:///aaa/bbb/.png/ccc"));
     EXPECT_FALSE(PasteboardImgExtractor::MatchImgExtension("file:///aaa/bbb/1.png/ccc"));
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "MatchImgExtensionTest001 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "MatchImgExtensionTest001 end");
 }
 
 /**
@@ -1327,4 +1360,5 @@ HWTEST_F(WebControllerTest, MatchImgExtensionTest002, TestSize.Level1)
     EXPECT_TRUE(PasteboardImgExtractor::MatchImgExtension("file:///aaa/bbb/ccc.gif;version=1"));
     EXPECT_TRUE(PasteboardImgExtractor::MatchImgExtension("file:///aaa/bbb/ccc.gif;version=1?query=aaa"));
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "MatchImgExtensionTest002 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "MatchImgExtensionTest002 end");
 }

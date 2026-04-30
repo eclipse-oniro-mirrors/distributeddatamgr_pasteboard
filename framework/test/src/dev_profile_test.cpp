@@ -319,7 +319,6 @@ HWTEST_F(DevProfileTest, OnProfileUpdateTest001, TestSize.Level0)
     DevProfile::Observer testObserver = [&isNotifyCalled, testStatus](bool isEnable) {
         isNotifyCalled = true;
         EXPECT_EQ(isEnable, testStatus);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "OnProfileUpdateTest001 end");
     };
     DevProfile::GetInstance().Watch(testObserver);
     DevProfile::OnProfileUpdate(testUdid, testStatus);
@@ -327,6 +326,7 @@ HWTEST_F(DevProfileTest, OnProfileUpdateTest001, TestSize.Level0)
 #else
     EXPECT_TRUE(true);
 #endif
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "OnProfileUpdateTest001 end");
 }
 
 /**

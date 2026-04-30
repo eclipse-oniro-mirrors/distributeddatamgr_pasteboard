@@ -803,13 +803,13 @@ HWTEST_F(PasteboardWebControllerTest, RemoveInvalidImgSrcTest001, TestSize.Level
     std::vector<std::string> validImgSrcList = {
         "img1.png",
         "img2.jpg"
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RemoveInvalidImgSrcTest001 end");
     };
     std::map<std::string, std::vector<uint8_t>> imgSrcMap;
     imgSrcMap["img1.png"] = {0x00, 0x01, 0x02};
     imgSrcMap["img3.gif"] = {0x03, 0x04, 0x05};
     webClipboardController.RemoveInvalidImgSrc(validImgSrcList, imgSrcMap);
     EXPECT_EQ(imgSrcMap.size(), 1);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RemoveInvalidImgSrcTest001 end");
 }
 
 /**
@@ -872,12 +872,12 @@ HWTEST_F(PasteboardWebControllerTest, BuildPasteDataRecordsTest002, TestSize.Lev
     std::map<std::string, std::vector<uint8_t>> singleImgSrcMap;
     std::string testUri = "file://local/single_img.png";
     std::vector<uint8_t> testData = {0x01, 0x02, 0x03
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "BuildPasteDataRecordsTest002 end");
 };
     singleImgSrcMap[testUri] = testData;
     uint32_t recordId = 1002;
     auto records = webClipboardController.BuildPasteDataRecords(singleImgSrcMap, recordId);
     EXPECT_EQ(records.size(), 1);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "BuildPasteDataRecordsTest002 end");
 }
 
 /**
@@ -892,12 +892,12 @@ HWTEST_F(PasteboardWebControllerTest, RemoveAllRecordTest001, TestSize.Level1) {
     for (uint32_t i = 0; i < 3; i++) {
         auto record = std::make_shared<PasteDataRecord>();
         pasteData->AddRecord(record);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RemoveAllRecordTest001 end");
     }
     uint32_t originRecordCount = pasteData->GetRecordCount();
     EXPECT_GT(originRecordCount, 0);
     webClipboardController.RemoveAllRecord(pasteData);
     EXPECT_EQ(pasteData->GetRecordCount(), 0);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RemoveAllRecordTest001 end");
 }
 
 /**
@@ -942,7 +942,6 @@ HWTEST_F(PasteboardWebControllerTest, ReplaceHtmlRecordContentByExtraUrisTest002
     auto customData = std::make_shared<MineCustomData>();
     std::string key = "image/jpg";
     std::vector<uint8_t> val = {0x01, 0x02, 0x03, 0x04
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReplaceHtmlRecordContentByExtraUrisTest002 end");
 };
     customData->AddItemData(key, val);
     PasteDataRecord::Builder builder(MIMETYPE_TEXT_URI);
@@ -954,6 +953,7 @@ HWTEST_F(PasteboardWebControllerTest, ReplaceHtmlRecordContentByExtraUrisTest002
     recordList.push_back(uriRecord);
     webClipboardController.ReplaceHtmlRecordContentByExtraUris(recordList);
     EXPECT_EQ(recordList.size(), 1);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReplaceHtmlRecordContentByExtraUrisTest002 end");
 }
 
 /**

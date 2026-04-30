@@ -212,10 +212,10 @@ HWTEST_F(TLVWriteableTest, WriteVectorUint8Test001, TestSize.Level1)
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "WriteVectorUint8Test001 start");
     WriteOnlyBuffer buff(100);
     std::vector<uint8_t> value = {1, 2, 3, 4, 5
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "WriteVectorUint8Test001 end");
 };
     bool res = buff.Write(1, value);
     EXPECT_TRUE(res);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "WriteVectorUint8Test001 end");
 }
 
 /**
@@ -288,10 +288,10 @@ HWTEST_F(TLVWriteableTest, WriteVectorTemplateTest001, TestSize.Level1)
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "WriteVectorTemplateTest001 start");
     WriteOnlyBuffer buff(200);
     std::vector<int32_t> value = {1, 2, 3, 4, 5
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "WriteVectorTemplateTest001 end");
 };
     bool res = buff.Write(1, value);
     EXPECT_TRUE(res);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "WriteVectorTemplateTest001 end");
 }
 
 /**
@@ -335,11 +335,11 @@ HWTEST_F(TLVWriteableTest, WriteMapTest001, TestSize.Level1)
     WriteOnlyBuffer buff(200);
     std::map<std::string, std::vector<uint8_t>> value;
     value["key1"] = {1, 2, 3
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "WriteMapTest001 end");
 };
     value["key2"] = {4, 5, 6};
     bool res = buff.Write(1, value);
     EXPECT_TRUE(res);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "WriteMapTest001 end");
 }
 
 /**
