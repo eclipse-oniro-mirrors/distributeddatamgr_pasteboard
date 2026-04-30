@@ -131,8 +131,10 @@ HWTEST_F(DistributedModuleConfigTest, WatchTest, TestSize.Level0)
  */
 HWTEST_F(DistributedModuleConfigTest, GetRemoteDeviceMaxVersionTest001, TestSize.Level0)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "GetRemoteDeviceMaxVersionTest001 start");
     DistributedModuleConfig config;
     uint32_t maxVersion = config.GetRemoteDeviceMaxVersion();
     EXPECT_GE(maxVersion, 0U);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "GetRemoteDeviceMaxVersionTest001 end");
 }
 } // namespace OHOS::MiscServices

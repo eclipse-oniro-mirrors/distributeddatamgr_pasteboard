@@ -15,6 +15,7 @@
 
 #include <gtest/gtest.h>
 #include "tlv_readable.h"
+#include "pasteboard_hilog.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -44,12 +45,14 @@ void TLVReadableTest::TearDown(void) { }
  */
 HWTEST_F(TLVReadableTest, ReadValueTest001, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadValueTest001 start");
     std::vector<std::uint8_t> buffer;
     ReadOnlyBuffer buff(buffer);
     void *value = nullptr;
     TLVHead head;
     bool res = buff.ReadValue(value, head);
     EXPECT_TRUE(res);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadValueTest001 end");
 }
 
 /**
@@ -59,6 +62,7 @@ HWTEST_F(TLVReadableTest, ReadValueTest001, TestSize.Level1)
  */
 HWTEST_F(TLVReadableTest, ReadValueTest002, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadValueTest002 start");
     std::vector<std::uint8_t> buffer;
     ReadOnlyBuffer buff(buffer);
     TLVHead head;
@@ -66,6 +70,7 @@ HWTEST_F(TLVReadableTest, ReadValueTest002, TestSize.Level1)
     bool value = true;
     bool res = buff.ReadValue(value, head);
     EXPECT_FALSE(res);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadValueTest002 end");
 }
 
 /**
@@ -75,6 +80,7 @@ HWTEST_F(TLVReadableTest, ReadValueTest002, TestSize.Level1)
  */
 HWTEST_F(TLVReadableTest, ReadValueTest003, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadValueTest003 start");
     std::vector<std::uint8_t> buffer;
     ReadOnlyBuffer buff(buffer);
     TLVHead head;
@@ -82,6 +88,7 @@ HWTEST_F(TLVReadableTest, ReadValueTest003, TestSize.Level1)
     int32_t value = 10;
     bool res = buff.ReadValue(value, head);
     EXPECT_FALSE(res);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadValueTest003 end");
 }
 
 /**
@@ -91,11 +98,13 @@ HWTEST_F(TLVReadableTest, ReadValueTest003, TestSize.Level1)
  */
 HWTEST_F(TLVReadableTest, ReadHeadTest001, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadHeadTest001 start");
     std::vector<std::uint8_t> buffer;
     ReadOnlyBuffer buff(buffer);
     TLVHead head;
     bool res = buff.ReadHead(head);
     EXPECT_FALSE(res);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadHeadTest001 end");
 }
 
 /**
@@ -105,11 +114,13 @@ HWTEST_F(TLVReadableTest, ReadHeadTest001, TestSize.Level1)
  */
 HWTEST_F(TLVReadableTest, ReadHeadTest002, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadHeadTest002 start");
     std::vector<std::uint8_t> buffer(1);
     ReadOnlyBuffer buff(buffer);
     TLVHead head;
     bool res = buff.ReadHead(head);
     EXPECT_FALSE(res);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadHeadTest002 end");
 }
 
 /**
@@ -119,6 +130,7 @@ HWTEST_F(TLVReadableTest, ReadHeadTest002, TestSize.Level1)
  */
 HWTEST_F(TLVReadableTest, ReadHeadTest003, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadHeadTest003 start");
     std::vector<std::uint8_t> buffer(sizeof(TLVHead));
     TLVHead *pHead = reinterpret_cast<TLVHead *>(buffer.data());
     pHead->tag = 1;
@@ -129,6 +141,7 @@ HWTEST_F(TLVReadableTest, ReadHeadTest003, TestSize.Level1)
     EXPECT_TRUE(res);
     EXPECT_EQ(head.tag, 1);
     EXPECT_EQ(head.len, 10);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadHeadTest003 end");
 }
 
 /**
@@ -138,6 +151,7 @@ HWTEST_F(TLVReadableTest, ReadHeadTest003, TestSize.Level1)
  */
 HWTEST_F(TLVReadableTest, ReadHeadTest004, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadHeadTest004 start");
     std::vector<std::uint8_t> buffer(sizeof(TLVHead) + 100);
     TLVHead *pHead = reinterpret_cast<TLVHead *>(buffer.data());
     pHead->tag = 100;
@@ -148,6 +162,7 @@ HWTEST_F(TLVReadableTest, ReadHeadTest004, TestSize.Level1)
     EXPECT_TRUE(res);
     EXPECT_EQ(head.tag, 100);
     EXPECT_EQ(head.len, 50);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadHeadTest004 end");
 }
 
 /**
@@ -157,6 +172,7 @@ HWTEST_F(TLVReadableTest, ReadHeadTest004, TestSize.Level1)
  */
 HWTEST_F(TLVReadableTest, ReadHeadTest005, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadHeadTest005 start");
     std::vector<std::uint8_t> buffer(sizeof(TLVHead) * 3);
     TLVHead *pHead = reinterpret_cast<TLVHead *>(buffer.data());
     pHead->tag = 1;
@@ -178,6 +194,7 @@ HWTEST_F(TLVReadableTest, ReadHeadTest005, TestSize.Level1)
     bool res3 = buff.ReadHead(head3);
     EXPECT_TRUE(res3);
     EXPECT_EQ(head3.tag, 3);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadHeadTest005 end");
 }
 
 /**
@@ -187,6 +204,7 @@ HWTEST_F(TLVReadableTest, ReadHeadTest005, TestSize.Level1)
  */
 HWTEST_F(TLVReadableTest, ReadValueBoolTest001, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadValueBoolTest001 start");
     std::vector<std::uint8_t> buffer(sizeof(TLVHead) + sizeof(uint8_t));
     TLVHead *pHead = reinterpret_cast<TLVHead *>(buffer.data());
     pHead->tag = 1;
@@ -199,6 +217,7 @@ HWTEST_F(TLVReadableTest, ReadValueBoolTest001, TestSize.Level1)
     bool res = buff.ReadValue(value, head);
     EXPECT_TRUE(res);
     EXPECT_TRUE(value);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadValueBoolTest001 end");
 }
 
 /**
@@ -208,6 +227,7 @@ HWTEST_F(TLVReadableTest, ReadValueBoolTest001, TestSize.Level1)
  */
 HWTEST_F(TLVReadableTest, ReadValueBoolTest002, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadValueBoolTest002 start");
     std::vector<std::uint8_t> buffer(sizeof(TLVHead) + sizeof(uint8_t));
     TLVHead *pHead = reinterpret_cast<TLVHead *>(buffer.data());
     pHead->tag = 1;
@@ -219,6 +239,7 @@ HWTEST_F(TLVReadableTest, ReadValueBoolTest002, TestSize.Level1)
     bool value = false;
     bool res = buff.ReadValue(value, head);
     EXPECT_FALSE(res);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadValueBoolTest002 end");
 }
 
 /**
@@ -228,6 +249,7 @@ HWTEST_F(TLVReadableTest, ReadValueBoolTest002, TestSize.Level1)
  */
 HWTEST_F(TLVReadableTest, ReadValueBoolTest003, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadValueBoolTest003 start");
     std::vector<std::uint8_t> buffer(sizeof(TLVHead) + sizeof(uint8_t));
     TLVHead *pHead = reinterpret_cast<TLVHead *>(buffer.data());
     pHead->tag = 1;
@@ -240,6 +262,7 @@ HWTEST_F(TLVReadableTest, ReadValueBoolTest003, TestSize.Level1)
     bool res = buff.ReadValue(value, head);
     EXPECT_TRUE(res);
     EXPECT_FALSE(value);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadValueBoolTest003 end");
 }
 
 /**
@@ -249,6 +272,7 @@ HWTEST_F(TLVReadableTest, ReadValueBoolTest003, TestSize.Level1)
  */
 HWTEST_F(TLVReadableTest, ReadValueInt8Test001, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadValueInt8Test001 start");
     std::vector<std::uint8_t> buffer(sizeof(TLVHead) + sizeof(int8_t));
     TLVHead *pHead = reinterpret_cast<TLVHead *>(buffer.data());
     pHead->tag = 1;
@@ -262,6 +286,7 @@ HWTEST_F(TLVReadableTest, ReadValueInt8Test001, TestSize.Level1)
     bool res = buff.ReadValue(value, head);
     EXPECT_TRUE(res);
     EXPECT_EQ(value, expectedValue);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadValueInt8Test001 end");
 }
 
 /**
@@ -271,6 +296,7 @@ HWTEST_F(TLVReadableTest, ReadValueInt8Test001, TestSize.Level1)
  */
 HWTEST_F(TLVReadableTest, ReadValueInt16Test001, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadValueInt16Test001 start");
     std::vector<std::uint8_t> buffer(sizeof(TLVHead) + sizeof(int16_t));
     TLVHead *pHead = reinterpret_cast<TLVHead *>(buffer.data());
     pHead->tag = 1;
@@ -283,6 +309,7 @@ HWTEST_F(TLVReadableTest, ReadValueInt16Test001, TestSize.Level1)
     int16_t value = 0;
     bool res = buff.ReadValue(value, head);
     EXPECT_TRUE(res);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadValueInt16Test001 end");
 }
 
 /**
@@ -292,6 +319,7 @@ HWTEST_F(TLVReadableTest, ReadValueInt16Test001, TestSize.Level1)
  */
 HWTEST_F(TLVReadableTest, ReadValueInt32Test001, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadValueInt32Test001 start");
     std::vector<std::uint8_t> buffer(sizeof(TLVHead) + sizeof(int32_t));
     TLVHead *pHead = reinterpret_cast<TLVHead *>(buffer.data());
     pHead->tag = 1;
@@ -304,6 +332,7 @@ HWTEST_F(TLVReadableTest, ReadValueInt32Test001, TestSize.Level1)
     int32_t value = 0;
     bool res = buff.ReadValue(value, head);
     EXPECT_TRUE(res);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadValueInt32Test001 end");
 }
 
 /**
@@ -313,6 +342,7 @@ HWTEST_F(TLVReadableTest, ReadValueInt32Test001, TestSize.Level1)
  */
 HWTEST_F(TLVReadableTest, ReadValueInt64Test001, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadValueInt64Test001 start");
     std::vector<std::uint8_t> buffer(sizeof(TLVHead) + sizeof(int64_t));
     TLVHead *pHead = reinterpret_cast<TLVHead *>(buffer.data());
     pHead->tag = 1;
@@ -325,6 +355,7 @@ HWTEST_F(TLVReadableTest, ReadValueInt64Test001, TestSize.Level1)
     int64_t value = 0;
     bool res = buff.ReadValue(value, head);
     EXPECT_TRUE(res);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadValueInt64Test001 end");
 }
 
 /**
@@ -334,6 +365,7 @@ HWTEST_F(TLVReadableTest, ReadValueInt64Test001, TestSize.Level1)
  */
 HWTEST_F(TLVReadableTest, ReadValueDoubleTest001, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadValueDoubleTest001 start");
     std::vector<std::uint8_t> buffer(sizeof(TLVHead) + sizeof(double));
     TLVHead *pHead = reinterpret_cast<TLVHead *>(buffer.data());
     pHead->tag = 1;
@@ -346,6 +378,7 @@ HWTEST_F(TLVReadableTest, ReadValueDoubleTest001, TestSize.Level1)
     double value = 0.0;
     bool res = buff.ReadValue(value, head);
     EXPECT_TRUE(res);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadValueDoubleTest001 end");
 }
 
 /**
@@ -355,6 +388,7 @@ HWTEST_F(TLVReadableTest, ReadValueDoubleTest001, TestSize.Level1)
  */
 HWTEST_F(TLVReadableTest, ReadValueUint32Test001, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadValueUint32Test001 start");
     std::vector<std::uint8_t> buffer(sizeof(TLVHead) + sizeof(uint32_t));
     TLVHead *pHead = reinterpret_cast<TLVHead *>(buffer.data());
     pHead->tag = 1;
@@ -367,6 +401,7 @@ HWTEST_F(TLVReadableTest, ReadValueUint32Test001, TestSize.Level1)
     uint32_t value = 0;
     bool res = buff.ReadValue(value, head);
     EXPECT_TRUE(res);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadValueUint32Test001 end");
 }
 
 /**
@@ -376,6 +411,7 @@ HWTEST_F(TLVReadableTest, ReadValueUint32Test001, TestSize.Level1)
  */
 HWTEST_F(TLVReadableTest, ReadValueStringTest001, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadValueStringTest001 start");
     std::string expectedValue = "Hello World";
     std::vector<std::uint8_t> buffer(sizeof(TLVHead) + expectedValue.size());
     TLVHead *pHead = reinterpret_cast<TLVHead *>(buffer.data());
@@ -389,6 +425,7 @@ HWTEST_F(TLVReadableTest, ReadValueStringTest001, TestSize.Level1)
     bool res = buff.ReadValue(value, head);
     EXPECT_TRUE(res);
     EXPECT_EQ(value, expectedValue);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadValueStringTest001 end");
 }
 
 /**
@@ -398,6 +435,7 @@ HWTEST_F(TLVReadableTest, ReadValueStringTest001, TestSize.Level1)
  */
 HWTEST_F(TLVReadableTest, ReadValueStringTest002, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadValueStringTest002 start");
     std::vector<std::uint8_t> buffer(sizeof(TLVHead));
     TLVHead *pHead = reinterpret_cast<TLVHead *>(buffer.data());
     pHead->tag = 1;
@@ -409,6 +447,7 @@ HWTEST_F(TLVReadableTest, ReadValueStringTest002, TestSize.Level1)
     bool res = buff.ReadValue(value, head);
     EXPECT_TRUE(res);
     EXPECT_EQ(value, "");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadValueStringTest002 end");
 }
 
 /**
@@ -418,7 +457,10 @@ HWTEST_F(TLVReadableTest, ReadValueStringTest002, TestSize.Level1)
  */
 HWTEST_F(TLVReadableTest, ReadValueVectorUint8Test001, TestSize.Level1)
 {
-    std::vector<uint8_t> expectedValue = {1, 2, 3, 4, 5};
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadValueVectorUint8Test001 start");
+    std::vector<uint8_t> expectedValue = {1, 2, 3, 4, 5
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadValueVectorUint8Test001 end");
+};
     std::vector<std::uint8_t> buffer(sizeof(TLVHead) + expectedValue.size());
     TLVHead *pHead = reinterpret_cast<TLVHead *>(buffer.data());
     pHead->tag = 1;
@@ -440,6 +482,7 @@ HWTEST_F(TLVReadableTest, ReadValueVectorUint8Test001, TestSize.Level1)
  */
 HWTEST_F(TLVReadableTest, ReadValueVectorUint8Test002, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadValueVectorUint8Test002 start");
     std::vector<std::uint8_t> buffer(sizeof(TLVHead));
     TLVHead *pHead = reinterpret_cast<TLVHead *>(buffer.data());
     pHead->tag = 1;
@@ -451,6 +494,7 @@ HWTEST_F(TLVReadableTest, ReadValueVectorUint8Test002, TestSize.Level1)
     bool res = buff.ReadValue(value, head);
     EXPECT_TRUE(res);
     EXPECT_EQ(value.size(), 0);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadValueVectorUint8Test002 end");
 }
 
 /**
@@ -460,12 +504,14 @@ HWTEST_F(TLVReadableTest, ReadValueVectorUint8Test002, TestSize.Level1)
  */
 HWTEST_F(TLVReadableTest, ReadValueMonostateTest001, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadValueMonostateTest001 start");
     std::vector<std::uint8_t> buffer;
     ReadOnlyBuffer buff(buffer);
     TLVHead head;
     std::monostate value;
     bool res = buff.ReadValue(value, head);
     EXPECT_TRUE(res);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadValueMonostateTest001 end");
 }
 
 /**
@@ -475,7 +521,10 @@ HWTEST_F(TLVReadableTest, ReadValueMonostateTest001, TestSize.Level1)
  */
 HWTEST_F(TLVReadableTest, ReadValueRawMemTest001, TestSize.Level1)
 {
-    std::vector<uint8_t> expectedData = {10, 20, 30, 40};
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadValueRawMemTest001 start");
+    std::vector<uint8_t> expectedData = {10, 20, 30, 40
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadValueRawMemTest001 end");
+};
     std::vector<std::uint8_t> buffer(sizeof(TLVHead) + expectedData.size());
     TLVHead *pHead = reinterpret_cast<TLVHead *>(buffer.data());
     pHead->tag = 1;
@@ -497,6 +546,7 @@ HWTEST_F(TLVReadableTest, ReadValueRawMemTest001, TestSize.Level1)
  */
 HWTEST_F(TLVReadableTest, TLVBufferSkipTest001, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "TLVBufferSkipTest001 start");
     std::vector<std::uint8_t> buffer(100);
     ReadOnlyBuffer buff(buffer);
     bool res = buff.Skip(50);
@@ -505,6 +555,7 @@ HWTEST_F(TLVReadableTest, TLVBufferSkipTest001, TestSize.Level1)
     EXPECT_TRUE(res);
     res = buff.Skip(1);
     EXPECT_FALSE(res);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "TLVBufferSkipTest001 end");
 }
 
 /**
@@ -514,6 +565,7 @@ HWTEST_F(TLVReadableTest, TLVBufferSkipTest001, TestSize.Level1)
  */
 HWTEST_F(TLVReadableTest, TLVBufferIsEnoughTest001, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "TLVBufferIsEnoughTest001 start");
     std::vector<std::uint8_t> buffer(100);
     ReadOnlyBuffer buff(buffer);
     EXPECT_TRUE(buff.IsEnough());
@@ -521,6 +573,7 @@ HWTEST_F(TLVReadableTest, TLVBufferIsEnoughTest001, TestSize.Level1)
     EXPECT_TRUE(buff.IsEnough());
     buff.Skip(1);
     EXPECT_FALSE(buff.IsEnough());
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "TLVBufferIsEnoughTest001 end");
 }
 
 /**
@@ -530,6 +583,7 @@ HWTEST_F(TLVReadableTest, TLVBufferIsEnoughTest001, TestSize.Level1)
  */
 HWTEST_F(TLVReadableTest, TLVBufferHasExpectBufferTest001, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "TLVBufferHasExpectBufferTest001 start");
     std::vector<std::uint8_t> buffer(100);
     ReadOnlyBuffer buff(buffer);
     EXPECT_TRUE(buff.HasExpectBuffer(50));
@@ -538,6 +592,7 @@ HWTEST_F(TLVReadableTest, TLVBufferHasExpectBufferTest001, TestSize.Level1)
     buff.Skip(50);
     EXPECT_TRUE(buff.HasExpectBuffer(50));
     EXPECT_FALSE(buff.HasExpectBuffer(51));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "TLVBufferHasExpectBufferTest001 end");
 }
 
 /**
@@ -547,12 +602,14 @@ HWTEST_F(TLVReadableTest, TLVBufferHasExpectBufferTest001, TestSize.Level1)
  */
 HWTEST_F(TLVReadableTest, RecursiveGuardTest001, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RecursiveGuardTest001 start");
     RecursiveGuard guard1;
     EXPECT_TRUE(guard1.IsValid());
     RecursiveGuard guard2;
     EXPECT_TRUE(guard2.IsValid());
     RecursiveGuard guard3;
     EXPECT_TRUE(guard3.IsValid());
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RecursiveGuardTest001 end");
 }
 
 /**
@@ -562,6 +619,7 @@ HWTEST_F(TLVReadableTest, RecursiveGuardTest001, TestSize.Level1)
  */
 HWTEST_F(TLVReadableTest, ReadValueSharedPtrTest001, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadValueSharedPtrTest001 start");
     std::vector<std::uint8_t> buffer(sizeof(TLVHead));
     TLVHead *pHead = reinterpret_cast<TLVHead *>(buffer.data());
     pHead->tag = 1;
@@ -572,6 +630,7 @@ HWTEST_F(TLVReadableTest, ReadValueSharedPtrTest001, TestSize.Level1)
     std::shared_ptr<int32_t> value;
     bool res = buff.ReadValue(value, head);
     EXPECT_FALSE(res);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadValueSharedPtrTest001 end");
 }
 
 /**
@@ -581,6 +640,7 @@ HWTEST_F(TLVReadableTest, ReadValueSharedPtrTest001, TestSize.Level1)
  */
 HWTEST_F(TLVReadableTest, ReadHeadInvalidLenTest001, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadHeadInvalidLenTest001 start");
     std::vector<std::uint8_t> buffer(sizeof(TLVHead) + 1);
     TLVHead *pHead = reinterpret_cast<TLVHead *>(buffer.data());
     pHead->tag = 1;
@@ -591,4 +651,5 @@ HWTEST_F(TLVReadableTest, ReadHeadInvalidLenTest001, TestSize.Level1)
     int32_t value = 0;
     bool res = buff.ReadValue(value, head);
     EXPECT_FALSE(res);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadHeadInvalidLenTest001 end");
 }

@@ -15,6 +15,7 @@
 
 #include <gtest/gtest.h>
 #include "tlv_buffer.h"
+#include "pasteboard_hilog.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -51,8 +52,10 @@ void TLVBufferTest::TearDown(void) { }
  */
 HWTEST_F(TLVBufferTest, TLVBufferConstructorTest001, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "TLVBufferConstructorTest001 start");
     TLVBuffer buffer;
     EXPECT_FALSE(buffer.IsEnough());
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "TLVBufferConstructorTest001 end");
 }
 
 /**
@@ -62,9 +65,11 @@ HWTEST_F(TLVBufferTest, TLVBufferConstructorTest001, TestSize.Level1)
  */
 HWTEST_F(TLVBufferTest, TLVBufferConstructorTest002, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "TLVBufferConstructorTest002 start");
     TLVBuffer buffer(100);
     EXPECT_TRUE(buffer.IsEnough());
     EXPECT_TRUE(buffer.HasExpectBuffer(100));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "TLVBufferConstructorTest002 end");
 }
 
 /**
@@ -74,9 +79,11 @@ HWTEST_F(TLVBufferTest, TLVBufferConstructorTest002, TestSize.Level1)
  */
 HWTEST_F(TLVBufferTest, TLVBufferConstructorTest003, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "TLVBufferConstructorTest003 start");
     TLVBuffer buffer(0);
     EXPECT_FALSE(buffer.IsEnough());
     EXPECT_FALSE(buffer.HasExpectBuffer(1));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "TLVBufferConstructorTest003 end");
 }
 
 /**
@@ -86,10 +93,12 @@ HWTEST_F(TLVBufferTest, TLVBufferConstructorTest003, TestSize.Level1)
  */
 HWTEST_F(TLVBufferTest, TLVBufferSkipTest001, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "TLVBufferSkipTest001 start");
     TLVBuffer buffer(100);
     bool result = buffer.Skip(50);
     EXPECT_TRUE(result);
     EXPECT_TRUE(buffer.IsEnough());
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "TLVBufferSkipTest001 end");
 }
 
 /**
@@ -99,10 +108,12 @@ HWTEST_F(TLVBufferTest, TLVBufferSkipTest001, TestSize.Level1)
  */
 HWTEST_F(TLVBufferTest, TLVBufferSkipTest002, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "TLVBufferSkipTest002 start");
     TLVBuffer buffer(100);
     bool result = buffer.Skip(100);
     EXPECT_TRUE(result);
     EXPECT_FALSE(buffer.IsEnough());
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "TLVBufferSkipTest002 end");
 }
 
 /**
@@ -112,9 +123,11 @@ HWTEST_F(TLVBufferTest, TLVBufferSkipTest002, TestSize.Level1)
  */
 HWTEST_F(TLVBufferTest, TLVBufferSkipTest003, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "TLVBufferSkipTest003 start");
     TLVBuffer buffer(100);
     bool result = buffer.Skip(101);
     EXPECT_FALSE(result);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "TLVBufferSkipTest003 end");
 }
 
 /**
@@ -124,10 +137,12 @@ HWTEST_F(TLVBufferTest, TLVBufferSkipTest003, TestSize.Level1)
  */
 HWTEST_F(TLVBufferTest, TLVBufferSkipTest004, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "TLVBufferSkipTest004 start");
     TLVBuffer buffer(100);
     bool result = buffer.Skip(0);
     EXPECT_TRUE(result);
     EXPECT_TRUE(buffer.IsEnough());
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "TLVBufferSkipTest004 end");
 }
 
 /**
@@ -137,6 +152,7 @@ HWTEST_F(TLVBufferTest, TLVBufferSkipTest004, TestSize.Level1)
  */
 HWTEST_F(TLVBufferTest, TLVBufferSkipTest005, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "TLVBufferSkipTest005 start");
     TLVBuffer buffer(100);
     EXPECT_TRUE(buffer.Skip(30));
     EXPECT_TRUE(buffer.Skip(30));
@@ -144,6 +160,7 @@ HWTEST_F(TLVBufferTest, TLVBufferSkipTest005, TestSize.Level1)
     EXPECT_FALSE(buffer.Skip(11));
     EXPECT_TRUE(buffer.Skip(10));
     EXPECT_FALSE(buffer.IsEnough());
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "TLVBufferSkipTest005 end");
 }
 
 /**
@@ -153,9 +170,11 @@ HWTEST_F(TLVBufferTest, TLVBufferSkipTest005, TestSize.Level1)
  */
 HWTEST_F(TLVBufferTest, TLVBufferIsEnoughTest001, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "TLVBufferIsEnoughTest001 start");
     TLVBuffer buffer(100);
     buffer.Skip(99);
     EXPECT_TRUE(buffer.IsEnough());
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "TLVBufferIsEnoughTest001 end");
 }
 
 /**
@@ -165,9 +184,11 @@ HWTEST_F(TLVBufferTest, TLVBufferIsEnoughTest001, TestSize.Level1)
  */
 HWTEST_F(TLVBufferTest, TLVBufferIsEnoughTest002, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "TLVBufferIsEnoughTest002 start");
     TLVBuffer buffer(100);
     buffer.Skip(100);
     EXPECT_FALSE(buffer.IsEnough());
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "TLVBufferIsEnoughTest002 end");
 }
 
 /**
@@ -177,10 +198,12 @@ HWTEST_F(TLVBufferTest, TLVBufferIsEnoughTest002, TestSize.Level1)
  */
 HWTEST_F(TLVBufferTest, TLVBufferIsEnoughTest003, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "TLVBufferIsEnoughTest003 start");
     TestTLVBuffer buffer;
     buffer.SetTotal(100);
     buffer.SetCursor(101);
     EXPECT_FALSE(buffer.IsEnough());
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "TLVBufferIsEnoughTest003 end");
 }
 
 /**
@@ -190,9 +213,11 @@ HWTEST_F(TLVBufferTest, TLVBufferIsEnoughTest003, TestSize.Level1)
  */
 HWTEST_F(TLVBufferTest, TLVBufferHasExpectBufferTest001, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "TLVBufferHasExpectBufferTest001 start");
     TLVBuffer buffer(100);
     EXPECT_TRUE(buffer.HasExpectBuffer(50));
     EXPECT_TRUE(buffer.HasExpectBuffer(100));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "TLVBufferHasExpectBufferTest001 end");
 }
 
 /**
@@ -202,8 +227,10 @@ HWTEST_F(TLVBufferTest, TLVBufferHasExpectBufferTest001, TestSize.Level1)
  */
 HWTEST_F(TLVBufferTest, TLVBufferHasExpectBufferTest002, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "TLVBufferHasExpectBufferTest002 start");
     TLVBuffer buffer(100);
     EXPECT_FALSE(buffer.HasExpectBuffer(101));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "TLVBufferHasExpectBufferTest002 end");
 }
 
 /**
@@ -213,8 +240,10 @@ HWTEST_F(TLVBufferTest, TLVBufferHasExpectBufferTest002, TestSize.Level1)
  */
 HWTEST_F(TLVBufferTest, TLVBufferHasExpectBufferTest003, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "TLVBufferHasExpectBufferTest003 start");
     TLVBuffer buffer(100);
     EXPECT_TRUE(buffer.HasExpectBuffer(0));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "TLVBufferHasExpectBufferTest003 end");
 }
 
 /**
@@ -224,10 +253,12 @@ HWTEST_F(TLVBufferTest, TLVBufferHasExpectBufferTest003, TestSize.Level1)
  */
 HWTEST_F(TLVBufferTest, TLVBufferHasExpectBufferTest004, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "TLVBufferHasExpectBufferTest004 start");
     TLVBuffer buffer(100);
     buffer.Skip(50);
     EXPECT_TRUE(buffer.HasExpectBuffer(50));
     EXPECT_FALSE(buffer.HasExpectBuffer(51));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "TLVBufferHasExpectBufferTest004 end");
 }
 
 /**
@@ -237,9 +268,11 @@ HWTEST_F(TLVBufferTest, TLVBufferHasExpectBufferTest004, TestSize.Level1)
  */
 HWTEST_F(TLVBufferTest, TLVBufferHasExpectBufferTest005, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "TLVBufferHasExpectBufferTest005 start");
     TLVBuffer buffer(UINT32_MAX - 1);
     EXPECT_TRUE(buffer.HasExpectBuffer(UINT32_MAX - 1));
     EXPECT_FALSE(buffer.HasExpectBuffer(UINT32_MAX));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "TLVBufferHasExpectBufferTest005 end");
 }
 
 /**
@@ -249,5 +282,7 @@ HWTEST_F(TLVBufferTest, TLVBufferHasExpectBufferTest005, TestSize.Level1)
  */
 HWTEST_F(TLVBufferTest, TLVHeadStructTest001, TestSize.Level1)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "TLVHeadStructTest001 start");
     EXPECT_EQ(sizeof(TLVHead), sizeof(uint16_t) + sizeof(uint32_t));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "TLVHeadStructTest001 end");
 }
