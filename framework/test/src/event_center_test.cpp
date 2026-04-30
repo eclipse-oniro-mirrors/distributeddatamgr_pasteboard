@@ -246,8 +246,7 @@ HWTEST_F(EventCenterTest, OperatorDecrementTest, TestSize.Level2)
 HWTEST_F(EventCenterTest, AddHandlerTest01, TestSize.Level2)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "AddHandlerTest01 start");
-    auto validHandler = [](const Event &evt) {
-};
+    auto validHandler = [](const Event &evt) {};
     int32_t invalidEvtId = Event::EVT_INVALID;
     queue_.AddHandler(invalidEvtId, validHandler);
     EXPECT_TRUE(queue_.handlers_.empty());
@@ -282,8 +281,7 @@ HWTEST_F(EventCenterTest, AddHandlerTest03, TestSize.Level2)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "AddHandlerTest03 start");
     int32_t testEvtId = 1002;
-    auto firstHandler = [](const Event &evt) {
-};
+    auto firstHandler = [](const Event &evt) {};
     queue_.AddHandler(testEvtId, firstHandler);
     EXPECT_EQ(queue_.handlers_.size(), 1);
     EXPECT_NE(queue_.handlers_.find(testEvtId), queue_.handlers_.end());
