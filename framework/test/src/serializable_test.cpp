@@ -125,6 +125,7 @@ void SerializableTest::CreateConfig(Config &config, const std::string &prefix)
  */
 HWTEST_F(SerializableTest, SerializableTest001, TestSize.Level0)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SerializableTest001 start");
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_INNERKIT, "SerializableTest001 Start.");
     Config config;
     std::string jsonStr = "";
@@ -137,6 +138,7 @@ HWTEST_F(SerializableTest, SerializableTest001, TestSize.Level0)
     ret = config.Unmarshall(jsonStr);
     ASSERT_FALSE(ret);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_INNERKIT, "End.");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SerializableTest001 end");
 }
 
 /**
@@ -148,6 +150,7 @@ HWTEST_F(SerializableTest, SerializableTest001, TestSize.Level0)
  */
 HWTEST_F(SerializableTest, SerializableTest002, TestSize.Level0)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SerializableTest002 start");
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_INNERKIT, "SerializableTest002 Start.");
 
     std::vector<uint8_t> vec = { 1, 2, 3, 4, 5 };
@@ -187,6 +190,7 @@ HWTEST_F(SerializableTest, SerializableTest002, TestSize.Level0)
 
     cJSON_Delete(node);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_INNERKIT, "End.");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SerializableTest002 end");
 }
 
 /**
@@ -413,6 +417,7 @@ HWTEST_F(SerializableTest, SerializableTest009, TestSize.Level0)
  */
 HWTEST_F(SerializableTest, SerializableTest010, TestSize.Level0)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SerializableTest010 start");
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_INNERKIT, "SerializableTest010 Start.");
     Config config;
     CreateConfig(config);
@@ -436,6 +441,7 @@ HWTEST_F(SerializableTest, SerializableTest010, TestSize.Level0)
     ASSERT_EQ(IsSame(config, newConfig), true);
     cJSON_Delete(node);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_INNERKIT, "End.");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SerializableTest010 end");
 }
 
 /**

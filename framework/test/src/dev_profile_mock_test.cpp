@@ -396,7 +396,7 @@ PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "UnSubscribeProfileEventTest002 star
 #else
     EXPECT_TRUE(true);
 #endif
-PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "UnSubscribeProfileEventTest002 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "UnSubscribeProfileEventTest002 end");
 }
 } // namespace MiscServices
 } // namespace OHOS

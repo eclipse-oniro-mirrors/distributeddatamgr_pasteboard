@@ -79,7 +79,7 @@ HWTEST_F(WebControllerHtmlTest, SplitHtmlTest_002, TestSize.Level1)
     int32_t userId = 100;
     auto records = webClipboardController.SplitHtml2Records(html, 1, bundleIndex, userId);
     EXPECT_EQ(records.size(), 0);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitHtmlTest_002 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitHtmlTest_002 end");
 }
 
 /**
@@ -101,7 +101,7 @@ HWTEST_F(WebControllerHtmlTest, SplitHtmlTest_003, TestSize.Level1)
     int32_t userId = 100;
     auto records = webClipboardController.SplitHtml2Records(html, 1, bundleIndex, userId);
     EXPECT_TRUE(records.empty());
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitHtmlTest_003 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitHtmlTest_003 end");
 }
 
 /**
@@ -128,7 +128,7 @@ HWTEST_F(WebControllerHtmlTest, RebuildHtmlTest_004, TestSize.Level1)
 
     webClipboardController.MergeExtraUris2Html(*pasteData);
     EXPECT_EQ(pasteData->GetRecordCount(), 1);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_004 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_004 end");
 }
 
 /**
@@ -178,7 +178,7 @@ HWTEST_F(WebControllerHtmlTest, RebuildHtmlTest_005, TestSize.Level1)
     }
     EXPECT_EQ(newPasteData->GetRecordCount(), 1);
 
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_005 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_005 end");
 }
 
 /**
@@ -238,7 +238,7 @@ HWTEST_F(WebControllerHtmlTest, RebuildHtmlTest_006, TestSize.Level1)
     auto newHtmlStr = recordGet->GetHtmlTextV0();
     ASSERT_NE(newHtmlStr, nullptr);
     EXPECT_NE(newHtmlStr->c_str(), expectHtml);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_006 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_006 end");
 }
 
 /**
@@ -259,7 +259,7 @@ HWTEST_F(WebControllerHtmlTest, SplitHtmlTest_007, TestSize.Level1)
     int32_t userId = 100;
     auto records = webClipboardController.SplitHtml2Records(html, 1, bundleIndex, userId);
     EXPECT_EQ(records.size(), 0);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitHtmlTest_007 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitHtmlTest_007 end");
 }
 
 /**
@@ -279,7 +279,7 @@ HWTEST_F(WebControllerHtmlTest, RebuildHtmlTest_008, TestSize.Level1)
     auto pasteData = PasteboardClient::GetInstance()->CreateHtmlData(*html);
     EXPECT_EQ(pasteData->GetRecordCount(), 1);
 
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_008 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_008 end");
 }
 
 /**
@@ -328,7 +328,7 @@ HWTEST_F(WebControllerHtmlTest, RebuildHtmlTest_009, TestSize.Level1)
     }
     EXPECT_EQ(newPasteData->GetRecordCount(), 1);
 
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_009 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_009 end");
 }
 
 /**
@@ -386,7 +386,7 @@ HWTEST_F(WebControllerHtmlTest, RebuildHtmlTest_010, TestSize.Level1)
     auto newHtmlStr = recordGet->GetHtmlTextV0();
     ASSERT_NE(newHtmlStr, nullptr);
     EXPECT_NE(newHtmlStr->c_str(), expectHtml);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_010 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_010 end");
 }
 
 /**
@@ -428,7 +428,7 @@ HWTEST_F(WebControllerHtmlTest, SplitHtmlTest_012, TestSize.Level1)
     int32_t userId = 101;
     auto records = webClipboardController.SplitHtml2Records(html, 1, bundleIndex, userId);
     EXPECT_EQ(records.size(), 0);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitHtmlTest_012 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitHtmlTest_012 end");
 }
 
 /**
@@ -450,7 +450,7 @@ HWTEST_F(WebControllerHtmlTest, SplitHtmlTest_013, TestSize.Level1)
     int32_t userId = 101;
     auto records = webClipboardController.SplitHtml2Records(html, 1, bundleIndex, userId);
     EXPECT_TRUE(records.empty());
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitHtmlTest_013 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitHtmlTest_013 end");
 }
 
 /**
@@ -477,7 +477,7 @@ HWTEST_F(WebControllerHtmlTest, RebuildHtmlTest_014, TestSize.Level1)
 
     webClipboardController.MergeExtraUris2Html(*pasteData);
     EXPECT_EQ(pasteData->GetRecordCount(), 1);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_014 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_014 end");
 }
 
 /**
@@ -527,7 +527,7 @@ HWTEST_F(WebControllerHtmlTest, RebuildHtmlTest_015, TestSize.Level1)
     }
     EXPECT_EQ(newPasteData->GetRecordCount(), 1);
 
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_015 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_015 end");
 }
 
 /**
@@ -587,7 +587,7 @@ HWTEST_F(WebControllerHtmlTest, RebuildHtmlTest_016, TestSize.Level1)
     auto newHtmlStr = recordGet->GetHtmlTextV0();
     ASSERT_NE(newHtmlStr, nullptr);
     EXPECT_NE(newHtmlStr->c_str(), expectHtml);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_016 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_016 end");
 }
 
 /**
@@ -608,7 +608,7 @@ HWTEST_F(WebControllerHtmlTest, SplitHtmlTest_017, TestSize.Level1)
     int32_t userId = 101;
     auto records = webClipboardController.SplitHtml2Records(html, 1, bundleIndex, userId);
     EXPECT_EQ(records.size(), 0);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitHtmlTest_017 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitHtmlTest_017 end");
 }
 
 /**
@@ -628,7 +628,7 @@ HWTEST_F(WebControllerHtmlTest, RebuildHtmlTest_018, TestSize.Level1)
     auto pasteData = PasteboardClient::GetInstance()->CreateHtmlData(*html);
     EXPECT_EQ(pasteData->GetRecordCount(), 1);
 
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_018 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_018 end");
 }
 
 /**
@@ -677,7 +677,7 @@ HWTEST_F(WebControllerHtmlTest, RebuildHtmlTest_019, TestSize.Level1)
     }
     EXPECT_EQ(newPasteData->GetRecordCount(), 1);
 
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_019 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_019 end");
 }
 
 /**
@@ -735,7 +735,7 @@ HWTEST_F(WebControllerHtmlTest, RebuildHtmlTest_020, TestSize.Level1)
     auto newHtmlStr = recordGet->GetHtmlTextV0();
     ASSERT_NE(newHtmlStr, nullptr);
     EXPECT_NE(newHtmlStr->c_str(), expectHtml);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_020 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_020 end");
 }
 
 /**
@@ -777,7 +777,7 @@ HWTEST_F(WebControllerHtmlTest, SplitHtmlTest_022, TestSize.Level1)
     int32_t userId = 0;
     auto records = webClipboardController.SplitHtml2Records(html, 1, bundleIndex, userId);
     EXPECT_EQ(records.size(), 0);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitHtmlTest_022 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitHtmlTest_022 end");
 }
 
 /**
@@ -799,7 +799,7 @@ HWTEST_F(WebControllerHtmlTest, SplitHtmlTest_023, TestSize.Level1)
     int32_t userId = 0;
     auto records = webClipboardController.SplitHtml2Records(html, 1, bundleIndex, userId);
     EXPECT_TRUE(records.empty());
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitHtmlTest_023 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitHtmlTest_023 end");
 }
 
 /**
@@ -826,7 +826,7 @@ HWTEST_F(WebControllerHtmlTest, RebuildHtmlTest_024, TestSize.Level1)
 
     webClipboardController.MergeExtraUris2Html(*pasteData);
     EXPECT_EQ(pasteData->GetRecordCount(), 1);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_024 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_024 end");
 }
 
 /**
@@ -876,7 +876,7 @@ HWTEST_F(WebControllerHtmlTest, RebuildHtmlTest_025, TestSize.Level1)
     }
     EXPECT_EQ(newPasteData->GetRecordCount(), 1);
 
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_025 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_025 end");
 }
 
 /**
@@ -936,7 +936,7 @@ HWTEST_F(WebControllerHtmlTest, RebuildHtmlTest_026, TestSize.Level1)
     auto newHtmlStr = recordGet->GetHtmlTextV0();
     ASSERT_NE(newHtmlStr, nullptr);
     EXPECT_NE(newHtmlStr->c_str(), expectHtml);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_026 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_026 end");
 }
 
 /**
@@ -957,7 +957,7 @@ HWTEST_F(WebControllerHtmlTest, SplitHtmlTest_027, TestSize.Level1)
     int32_t userId = 0;
     auto records = webClipboardController.SplitHtml2Records(html, 1, bundleIndex, userId);
     EXPECT_EQ(records.size(), 0);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitHtmlTest_027 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitHtmlTest_027 end");
 }
 
 /**
@@ -977,7 +977,7 @@ HWTEST_F(WebControllerHtmlTest, RebuildHtmlTest_028, TestSize.Level1)
     auto pasteData = PasteboardClient::GetInstance()->CreateHtmlData(*html);
     EXPECT_EQ(pasteData->GetRecordCount(), 1);
 
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_028 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_028 end");
 }
 
 /**
@@ -1026,7 +1026,7 @@ HWTEST_F(WebControllerHtmlTest, RebuildHtmlTest_029, TestSize.Level1)
     }
     EXPECT_EQ(newPasteData->GetRecordCount(), 1);
 
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_029 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_029 end");
 }
 
 /**
@@ -1084,7 +1084,7 @@ HWTEST_F(WebControllerHtmlTest, RebuildHtmlTest_030, TestSize.Level1)
     auto newHtmlStr = recordGet->GetHtmlTextV0();
     ASSERT_NE(newHtmlStr, nullptr);
     EXPECT_NE(newHtmlStr->c_str(), expectHtml);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_030 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_030 end");
 }
 
 /**
@@ -1126,7 +1126,7 @@ HWTEST_F(WebControllerHtmlTest, SplitHtmlTest_032, TestSize.Level1)
     int32_t userId = 0;
     auto records = webClipboardController.SplitHtml2Records(html, 1, bundleIndex, userId);
     EXPECT_EQ(records.size(), 0);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitHtmlTest_032 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitHtmlTest_032 end");
 }
 
 /**
@@ -1148,7 +1148,7 @@ HWTEST_F(WebControllerHtmlTest, SplitHtmlTest_033, TestSize.Level1)
     int32_t userId = 0;
     auto records = webClipboardController.SplitHtml2Records(html, 1, bundleIndex, userId);
     EXPECT_TRUE(records.empty());
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitHtmlTest_033 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitHtmlTest_033 end");
 }
 
 /**
@@ -1175,7 +1175,7 @@ HWTEST_F(WebControllerHtmlTest, RebuildHtmlTest_034, TestSize.Level1)
 
     webClipboardController.MergeExtraUris2Html(*pasteData);
     EXPECT_EQ(pasteData->GetRecordCount(), 1);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_034 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_034 end");
 }
 
 /**
@@ -1225,7 +1225,7 @@ HWTEST_F(WebControllerHtmlTest, RebuildHtmlTest_035, TestSize.Level1)
     }
     EXPECT_EQ(newPasteData->GetRecordCount(), 1);
 
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_035 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_035 end");
 }
 
 /**
@@ -1285,7 +1285,7 @@ HWTEST_F(WebControllerHtmlTest, RebuildHtmlTest_036, TestSize.Level1)
     auto newHtmlStr = recordGet->GetHtmlTextV0();
     ASSERT_NE(newHtmlStr, nullptr);
     EXPECT_NE(newHtmlStr->c_str(), expectHtml);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_036 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_036 end");
 }
 
 /**
@@ -1306,7 +1306,7 @@ HWTEST_F(WebControllerHtmlTest, SplitHtmlTest_037, TestSize.Level1)
     int32_t userId = 0;
     auto records = webClipboardController.SplitHtml2Records(html, 1, bundleIndex, userId);
     EXPECT_EQ(records.size(), 0);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitHtmlTest_037 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitHtmlTest_037 end");
 }
 
 /**
@@ -1326,7 +1326,7 @@ HWTEST_F(WebControllerHtmlTest, RebuildHtmlTest_038, TestSize.Level1)
     auto pasteData = PasteboardClient::GetInstance()->CreateHtmlData(*html);
     EXPECT_EQ(pasteData->GetRecordCount(), 1);
 
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_038 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_038 end");
 }
 
 /**
@@ -1375,7 +1375,7 @@ HWTEST_F(WebControllerHtmlTest, RebuildHtmlTest_039, TestSize.Level1)
     }
     EXPECT_EQ(newPasteData->GetRecordCount(), 1);
 
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_039 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_039 end");
 }
 
 /**
@@ -1433,7 +1433,7 @@ HWTEST_F(WebControllerHtmlTest, RebuildHtmlTest_040, TestSize.Level1)
     auto newHtmlStr = recordGet->GetHtmlTextV0();
     ASSERT_NE(newHtmlStr, nullptr);
     EXPECT_NE(newHtmlStr->c_str(), expectHtml);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_040 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_040 end");
 }
 
 /**
@@ -1475,7 +1475,7 @@ HWTEST_F(WebControllerHtmlTest, SplitHtmlTest_042, TestSize.Level1)
     int32_t userId = 1;
     auto records = webClipboardController.SplitHtml2Records(html, 1, bundleIndex, userId);
     EXPECT_EQ(records.size(), 0);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitHtmlTest_042 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitHtmlTest_042 end");
 }
 
 /**
@@ -1497,7 +1497,7 @@ HWTEST_F(WebControllerHtmlTest, SplitHtmlTest_043, TestSize.Level1)
     int32_t userId = 1;
     auto records = webClipboardController.SplitHtml2Records(html, 1, bundleIndex, userId);
     EXPECT_TRUE(records.empty());
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitHtmlTest_043 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitHtmlTest_043 end");
 }
 
 /**
@@ -1524,7 +1524,7 @@ HWTEST_F(WebControllerHtmlTest, RebuildHtmlTest_044, TestSize.Level1)
 
     webClipboardController.MergeExtraUris2Html(*pasteData);
     EXPECT_EQ(pasteData->GetRecordCount(), 1);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_044 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_044 end");
 }
 
 /**
@@ -1574,5 +1574,5 @@ HWTEST_F(WebControllerHtmlTest, RebuildHtmlTest_045, TestSize.Level1)
     }
     EXPECT_EQ(newPasteData->GetRecordCount(), 1);
 
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_045 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildHtmlTest_045 end");
 }

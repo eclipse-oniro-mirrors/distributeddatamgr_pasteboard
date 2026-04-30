@@ -17,6 +17,7 @@
 #include <gtest/gtest.h>
 
 #include "eventcenter/event_center.h"
+#include "pasteboard_hilog.h"
 
 namespace OHOS::MiscServices {
 using namespace testing::ext;
@@ -92,6 +93,7 @@ protected:
  */
 HWTEST_F(EventCenterTest, TopLayerASyncEvent, TestSize.Level2)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "TopLayerASyncEvent start");
     auto test = [this]() {
         EventCenter::Defer defer;
         EventCenter::GetInstance().PostEvent(std::make_unique<TestBegin>());
@@ -100,6 +102,7 @@ HWTEST_F(EventCenterTest, TopLayerASyncEvent, TestSize.Level2)
     test();
     ASSERT_EQ(currEvent_, TEST_EVT_END);
     ASSERT_EQ(waitEvent_, TEST_EVT_UNKNOWN);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "TopLayerASyncEvent end");
 }
 
 /**
@@ -111,11 +114,13 @@ HWTEST_F(EventCenterTest, TopLayerASyncEvent, TestSize.Level2)
  */
 HWTEST_F(EventCenterTest, SubLayerASyncEvent, TestSize.Level2)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SubLayerASyncEvent start");
     EventCenter::Defer defer;
     EventCenter::GetInstance().PostEvent(std::make_unique<TestBegin>());
     waitEvent_ = TEST_EVT_BEGIN;
     ASSERT_EQ(currEvent_, TEST_EVT_UNKNOWN);
     ASSERT_EQ(waitEvent_, TEST_EVT_BEGIN);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SubLayerASyncEvent end");
 }
 
 /**
@@ -127,6 +132,7 @@ HWTEST_F(EventCenterTest, SubLayerASyncEvent, TestSize.Level2)
  */
 HWTEST_F(EventCenterTest, ASyncEventWithoutDefer, TestSize.Level2)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ASyncEventWithoutDefer start");
     EventCenter::Defer defer;
     waitEvent_ = TEST_EVT_BEGIN;
     auto test = [this]() {
@@ -135,6 +141,7 @@ HWTEST_F(EventCenterTest, ASyncEventWithoutDefer, TestSize.Level2)
     test();
     ASSERT_EQ(currEvent_, TEST_EVT_UNKNOWN);
     ASSERT_EQ(waitEvent_, TEST_EVT_BEGIN);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ASyncEventWithoutDefer end");
 }
 
 /**
@@ -146,10 +153,12 @@ HWTEST_F(EventCenterTest, ASyncEventWithoutDefer, TestSize.Level2)
  */
 HWTEST_F(EventCenterTest, ImmediatelyASyncEvent, TestSize.Level2)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ImmediatelyASyncEvent start");
     waitEvent_ = TEST_EVT_BEGIN;
     EventCenter::GetInstance().PostEvent(std::make_unique<TestBegin>());
     ASSERT_EQ(currEvent_, TEST_EVT_END);
     ASSERT_EQ(waitEvent_, TEST_EVT_UNKNOWN);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ImmediatelyASyncEvent end");
 }
 
 /**
@@ -161,8 +170,10 @@ HWTEST_F(EventCenterTest, ImmediatelyASyncEvent, TestSize.Level2)
  */
 HWTEST_F(EventCenterTest, PostEvent, TestSize.Level2)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "PostEvent start");
     int32_t result = EventCenter::GetInstance().PostEvent(nullptr);
     EXPECT_EQ(result, EventCenter::CODE_INVALID_ARGS);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "PostEvent end");
 }
 
 /**
@@ -174,10 +185,12 @@ HWTEST_F(EventCenterTest, PostEvent, TestSize.Level2)
  */
 HWTEST_F(EventCenterTest, SubscribeTest, TestSize.Level2)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SubscribeTest start");
     int32_t evtId = 1;
     std::function<void(const Event &)> observer = nullptr;
     bool result = EventCenter::GetInstance().Subscribe(evtId, observer);
     EXPECT_TRUE(result);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SubscribeTest end");
 }
 
 /**
@@ -189,9 +202,11 @@ HWTEST_F(EventCenterTest, SubscribeTest, TestSize.Level2)
  */
 HWTEST_F(EventCenterTest, UnsubscribeTest, TestSize.Level2)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "UnsubscribeTest start");
     int32_t evtId = 2;
     bool result = EventCenter::GetInstance().Unsubscribe(evtId);
     EXPECT_FALSE(result);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "UnsubscribeTest end");
 }
 
  /*
@@ -203,6 +218,7 @@ HWTEST_F(EventCenterTest, UnsubscribeTest, TestSize.Level2)
 */
 HWTEST_F(EventCenterTest, OperatorDecrementTest, TestSize.Level2)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "OperatorDecrementTest start");
     EventCenter::AsyncQueue queue;
     const int32_t TEST_EVENT_ID = 1001;
     queue.depth_= 1;
@@ -217,6 +233,7 @@ HWTEST_F(EventCenterTest, OperatorDecrementTest, TestSize.Level2)
     };
     --queue;
     EXPECT_TRUE(handlerCalled);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "OperatorDecrementTest end");
 }
 
 /*
@@ -228,10 +245,12 @@ HWTEST_F(EventCenterTest, OperatorDecrementTest, TestSize.Level2)
 */
 HWTEST_F(EventCenterTest, AddHandlerTest01, TestSize.Level2)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "AddHandlerTest01 start");
     auto validHandler = [](const Event &evt) {};
     int32_t invalidEvtId = Event::EVT_INVALID;
     queue_.AddHandler(invalidEvtId, validHandler);
     EXPECT_TRUE(queue_.handlers_.empty());
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "AddHandlerTest01 end");
 }
 
 /*
@@ -243,10 +262,12 @@ HWTEST_F(EventCenterTest, AddHandlerTest01, TestSize.Level2)
 */
 HWTEST_F(EventCenterTest, AddHandlerTest02, TestSize.Level2)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "AddHandlerTest02 start");
     int32_t validEvtId = 1001;
     std::function<void(const Event &)> nullHandler = nullptr;
     queue_.AddHandler(validEvtId, nullHandler);
     EXPECT_TRUE(queue_.handlers_.empty());
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "AddHandlerTest02 end");
 }
 
 /*
@@ -258,6 +279,7 @@ HWTEST_F(EventCenterTest, AddHandlerTest02, TestSize.Level2)
 */
 HWTEST_F(EventCenterTest, AddHandlerTest03, TestSize.Level2)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "AddHandlerTest03 start");
     int32_t testEvtId = 1002;
     auto firstHandler = [](const Event &evt) {};
     queue_.AddHandler(testEvtId, firstHandler);
@@ -266,6 +288,7 @@ HWTEST_F(EventCenterTest, AddHandlerTest03, TestSize.Level2)
     auto secondHandler = [](const Event &evt) {};
     queue_.AddHandler(testEvtId, secondHandler);
     EXPECT_EQ(queue_.handlers_.size(), 1);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "AddHandlerTest03 end");
 }
 
 /*
@@ -277,6 +300,7 @@ HWTEST_F(EventCenterTest, AddHandlerTest03, TestSize.Level2)
 */
 HWTEST_F(EventCenterTest, AddHandlerTest04, TestSize.Level2)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "AddHandlerTest04 start");
     int32_t testEvtId = 1003;
     bool isHandlerCalled = false;
     auto testHandler = [&isHandlerCalled](const Event &evt) {
@@ -285,5 +309,6 @@ HWTEST_F(EventCenterTest, AddHandlerTest04, TestSize.Level2)
     queue_.AddHandler(testEvtId, testHandler);
     EXPECT_EQ(queue_.handlers_.size(), 1);
     EXPECT_NE(queue_.handlers_.find(testEvtId), queue_.handlers_.end());
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "AddHandlerTest04 end");
 }
 } // namespace OHOS::MiscServices

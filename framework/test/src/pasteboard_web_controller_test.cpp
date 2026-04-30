@@ -623,6 +623,7 @@ HWTEST_F(PasteboardWebControllerTest, ExtractContent_008, TestSize.Level1)
  * @tc.type: FUNC
  */
 HWTEST_F(PasteboardWebControllerTest, SetWebviewPasteDataTest001, TestSize.Level1) {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SetWebviewPasteDataTest001 start");
     auto webClipboardController = PasteboardWebController::GetInstance();
     PasteData pasteData;
     std::string bundleIndex = "test_bundle_set_001";
@@ -634,6 +635,7 @@ HWTEST_F(PasteboardWebControllerTest, SetWebviewPasteDataTest001, TestSize.Level
     pasteData.AddRecord(record1);
     webClipboardController.SetWebviewPasteData(pasteData, bundleIndex);
     EXPECT_EQ(pasteData.GetRecordCount(), 1);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SetWebviewPasteDataTest001 end");
 }
 
 /**
@@ -642,6 +644,7 @@ HWTEST_F(PasteboardWebControllerTest, SetWebviewPasteDataTest001, TestSize.Level
  * @tc.type: FUNC
  */
 HWTEST_F(PasteboardWebControllerTest, SetWebviewPasteDataTest002, TestSize.Level1) {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SetWebviewPasteDataTest002 start");
     auto webClipboardController = PasteboardWebController::GetInstance();
     PasteData pasteData;
     std::string bundleIndex = "test_bundle_set_002";
@@ -654,6 +657,7 @@ HWTEST_F(PasteboardWebControllerTest, SetWebviewPasteDataTest002, TestSize.Level
     webClipboardController.SetWebviewPasteData(pasteData, bundleIndex);
     auto updatedUri = validRecord->GetUri();
     EXPECT_NE(updatedUri, nullptr);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SetWebviewPasteDataTest002 end");
 }
 
 /**
@@ -662,6 +666,7 @@ HWTEST_F(PasteboardWebControllerTest, SetWebviewPasteDataTest002, TestSize.Level
  * @tc.type: FUNC
  */
 HWTEST_F(PasteboardWebControllerTest, SetWebviewPasteDataTest003, TestSize.Level1) {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SetWebviewPasteDataTest003 start");
     auto webClipboardController = PasteboardWebController::GetInstance();
     PasteData pasteData;
     std::string bundleIndex = "test_bundle_set_003";
@@ -674,6 +679,7 @@ HWTEST_F(PasteboardWebControllerTest, SetWebviewPasteDataTest003, TestSize.Level
     webClipboardController.SetWebviewPasteData(pasteData, bundleIndex);
     auto updatedUri = validRecord->GetUri();
     EXPECT_NE(updatedUri, nullptr);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SetWebviewPasteDataTest003 end");
 }
 
 /**
@@ -682,6 +688,7 @@ HWTEST_F(PasteboardWebControllerTest, SetWebviewPasteDataTest003, TestSize.Level
  * @tc.type: FUNC
  */
 HWTEST_F(PasteboardWebControllerTest, SetUriPermissionTest001, TestSize.Level1) {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SetUriPermissionTest001 start");
     auto webClipboardController = PasteboardWebController::GetInstance();
     auto record = std::make_shared<PasteDataRecord>();
     bool isRead = true;
@@ -689,6 +696,7 @@ HWTEST_F(PasteboardWebControllerTest, SetUriPermissionTest001, TestSize.Level1) 
     bool isNeedPersistance = true;
     webClipboardController.SetUriPermission(record, isRead, isWrite, isNeedPersistance);
     EXPECT_EQ(record->GetUriPermission(), PasteDataRecord::READ_WRITE_PERMISSION);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SetUriPermissionTest001 end");
 }
 
 /**
@@ -697,6 +705,7 @@ HWTEST_F(PasteboardWebControllerTest, SetUriPermissionTest001, TestSize.Level1) 
  * @tc.type: FUNC
  */
 HWTEST_F(PasteboardWebControllerTest, SetUriPermissionTest002, TestSize.Level1) {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SetUriPermissionTest002 start");
     auto webClipboardController = PasteboardWebController::GetInstance();
     auto record = std::make_shared<PasteDataRecord>();
     bool isRead = true;
@@ -704,6 +713,7 @@ HWTEST_F(PasteboardWebControllerTest, SetUriPermissionTest002, TestSize.Level1) 
     bool isNeedPersistance = false;
     webClipboardController.SetUriPermission(record, isRead, isWrite, isNeedPersistance);
     EXPECT_EQ(record->GetUriPermission(), PasteDataRecord::READ_PERMISSION);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SetUriPermissionTest002 end");
 }
 
 /**
@@ -712,6 +722,7 @@ HWTEST_F(PasteboardWebControllerTest, SetUriPermissionTest002, TestSize.Level1) 
  * @tc.type: FUNC
  */
 HWTEST_F(PasteboardWebControllerTest, RefreshUriTest001, TestSize.Level1) {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RefreshUriTest001 start");
     auto webClipboardController = PasteboardWebController::GetInstance();
     auto validRecord = std::make_shared<PasteDataRecord>();
     validRecord->SetConvertUri("file://docs/local/set_test_img.png");
@@ -721,6 +732,7 @@ HWTEST_F(PasteboardWebControllerTest, RefreshUriTest001, TestSize.Level1) {
     int32_t appIndex = 100;
     webClipboardController.RefreshUri(validRecord, targetBundle, appIndex);
     EXPECT_NE(validRecord->GetUri(), nullptr);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RefreshUriTest001 end");
 }
 
 /**
@@ -729,6 +741,7 @@ HWTEST_F(PasteboardWebControllerTest, RefreshUriTest001, TestSize.Level1) {
  * @tc.type: FUNC
  */
 HWTEST_F(PasteboardWebControllerTest, RemoveInvalidUriTest001, TestSize.Level1) {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RemoveInvalidUriTest001 start");
     auto webClipboardController = PasteboardWebController::GetInstance();
     PasteDataEntry entry;
     entry.SetMimeType(MIMETYPE_TEXT_URI);
@@ -737,6 +750,7 @@ HWTEST_F(PasteboardWebControllerTest, RemoveInvalidUriTest001, TestSize.Level1) 
     webClipboardController.RemoveInvalidUri(entry);
     auto obj = std::get<std::shared_ptr<OHOS::UDMF::Object>>(entry.GetValue());
     EXPECT_NE(obj, nullptr);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RemoveInvalidUriTest001 end");
 }
 
 /**
@@ -745,6 +759,7 @@ HWTEST_F(PasteboardWebControllerTest, RemoveInvalidUriTest001, TestSize.Level1) 
  * @tc.type: FUNC
  */
 HWTEST_F(PasteboardWebControllerTest, RemoveInvalidUriTest002, TestSize.Level1) {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RemoveInvalidUriTest002 start");
     auto webClipboardController = PasteboardWebController::GetInstance();
     PasteData pasteData;
     pasteData.SetLocalPasteFlag(false);
@@ -754,6 +769,7 @@ HWTEST_F(PasteboardWebControllerTest, RemoveInvalidUriTest002, TestSize.Level1) 
     pasteData.AddRecord(record1);
     webClipboardController.RemoveInvalidUri(pasteData);
     EXPECT_EQ(pasteData.GetRecordCount(), 1);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RemoveInvalidUriTest002 end");
 }
 
 /**
@@ -762,6 +778,7 @@ HWTEST_F(PasteboardWebControllerTest, RemoveInvalidUriTest002, TestSize.Level1) 
  * @tc.type: FUNC
  */
 HWTEST_F(PasteboardWebControllerTest, RebuildWebviewPasteDataTest001, TestSize.Level1) {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildWebviewPasteDataTest001 start");
     auto webClipboardController = PasteboardWebController::GetInstance();
     PasteData pasteData;
     pasteData.SetTag(PasteData::WEBVIEW_PASTEDATA_TAG);
@@ -772,6 +789,7 @@ HWTEST_F(PasteboardWebControllerTest, RebuildWebviewPasteDataTest001, TestSize.L
     int32_t appIndex = 100;
     webClipboardController.RebuildWebviewPasteData(pasteData, targetBundle, appIndex);
     EXPECT_EQ(record1->GetFrom(), 100);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RebuildWebviewPasteDataTest001 end");
 }
 
 /**
@@ -780,6 +798,7 @@ HWTEST_F(PasteboardWebControllerTest, RebuildWebviewPasteDataTest001, TestSize.L
  * @tc.type: FUNC
  */
 HWTEST_F(PasteboardWebControllerTest, RemoveInvalidImgSrcTest001, TestSize.Level1) {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RemoveInvalidImgSrcTest001 start");
     auto webClipboardController = PasteboardWebController::GetInstance();
     std::vector<std::string> validImgSrcList = {
         "img1.png",
@@ -790,6 +809,7 @@ HWTEST_F(PasteboardWebControllerTest, RemoveInvalidImgSrcTest001, TestSize.Level
     imgSrcMap["img3.gif"] = {0x03, 0x04, 0x05};
     webClipboardController.RemoveInvalidImgSrc(validImgSrcList, imgSrcMap);
     EXPECT_EQ(imgSrcMap.size(), 1);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RemoveInvalidImgSrcTest001 end");
 }
 
 /**
@@ -798,12 +818,14 @@ HWTEST_F(PasteboardWebControllerTest, RemoveInvalidImgSrcTest001, TestSize.Level
  * @tc.type: FUNC
  */
 HWTEST_F(PasteboardWebControllerTest, SplitHtml2RecordsTest001, TestSize.Level1) {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitHtml2RecordsTest001 start");
     auto webClipboardController = PasteboardWebController::GetInstance();
     uint32_t recordId = 1001;
     std::string bundleIndex = "test_bundle_split_001";
     int32_t userId = 100;
     auto result = webClipboardController.SplitHtml2Records(nullptr, recordId, bundleIndex, userId);
     EXPECT_TRUE(result.empty());
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitHtml2RecordsTest001 end");
 }
 
 /**
@@ -812,6 +834,7 @@ HWTEST_F(PasteboardWebControllerTest, SplitHtml2RecordsTest001, TestSize.Level1)
  * @tc.type: FUNC
  */
 HWTEST_F(PasteboardWebControllerTest, SplitHtml2RecordsTest002, TestSize.Level1) {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitHtml2RecordsTest002 start");
     auto webClipboardController = PasteboardWebController::GetInstance();
     uint32_t recordId = 1002;
     std::string bundleIndex = "test_bundle_split_002";
@@ -820,6 +843,7 @@ HWTEST_F(PasteboardWebControllerTest, SplitHtml2RecordsTest002, TestSize.Level1)
 
     auto result = webClipboardController.SplitHtml2Records(html, recordId, bundleIndex, userId);
     EXPECT_TRUE(result.empty());
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SplitHtml2RecordsTest002 end");
 }
 
 /**
@@ -828,11 +852,13 @@ HWTEST_F(PasteboardWebControllerTest, SplitHtml2RecordsTest002, TestSize.Level1)
  * @tc.type: FUNC
  */
 HWTEST_F(PasteboardWebControllerTest, BuildPasteDataRecordsTest001, TestSize.Level1) {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "BuildPasteDataRecordsTest001 start");
     auto webClipboardController = PasteboardWebController::GetInstance();
     std::map<std::string, std::vector<uint8_t>> emptyImgSrcMap;
     uint32_t recordId = 1001;
     auto records = webClipboardController.BuildPasteDataRecords(emptyImgSrcMap, recordId);
     EXPECT_TRUE(records.empty());
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "BuildPasteDataRecordsTest001 end");
 }
 
 /**
@@ -841,6 +867,7 @@ HWTEST_F(PasteboardWebControllerTest, BuildPasteDataRecordsTest001, TestSize.Lev
  * @tc.type: FUNC
  */
 HWTEST_F(PasteboardWebControllerTest, BuildPasteDataRecordsTest002, TestSize.Level1) {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "BuildPasteDataRecordsTest002 start");
     auto webClipboardController = PasteboardWebController::GetInstance();
     std::map<std::string, std::vector<uint8_t>> singleImgSrcMap;
     std::string testUri = "file://local/single_img.png";
@@ -849,6 +876,7 @@ HWTEST_F(PasteboardWebControllerTest, BuildPasteDataRecordsTest002, TestSize.Lev
     uint32_t recordId = 1002;
     auto records = webClipboardController.BuildPasteDataRecords(singleImgSrcMap, recordId);
     EXPECT_EQ(records.size(), 1);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "BuildPasteDataRecordsTest002 end");
 }
 
 /**
@@ -857,6 +885,7 @@ HWTEST_F(PasteboardWebControllerTest, BuildPasteDataRecordsTest002, TestSize.Lev
  * @tc.type: FUNC
  */
 HWTEST_F(PasteboardWebControllerTest, RemoveAllRecordTest001, TestSize.Level1) {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RemoveAllRecordTest001 start");
     auto webClipboardController = PasteboardWebController::GetInstance();
     auto pasteData = std::make_shared<PasteData>();
     for (uint32_t i = 0; i < 3; i++) {
@@ -867,6 +896,7 @@ HWTEST_F(PasteboardWebControllerTest, RemoveAllRecordTest001, TestSize.Level1) {
     EXPECT_GT(originRecordCount, 0);
     webClipboardController.RemoveAllRecord(pasteData);
     EXPECT_EQ(pasteData->GetRecordCount(), 0);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RemoveAllRecordTest001 end");
 }
 
 /**
@@ -875,12 +905,14 @@ HWTEST_F(PasteboardWebControllerTest, RemoveAllRecordTest001, TestSize.Level1) {
  * @tc.type: FUNC
  */
 HWTEST_F(PasteboardWebControllerTest, UpdateHtmlRecordTest001, TestSize.Level1) {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "UpdateHtmlRecordTest001 start");
     auto webClipboardController = PasteboardWebController::GetInstance();
     auto htmlRecord = std::make_shared<PasteDataRecord>();
     htmlRecord->SetFrom(100);
     auto htmlData = std::make_shared<std::string>("<div>test</div>");
     webClipboardController.UpdateHtmlRecord(htmlRecord, htmlData);
     EXPECT_EQ(htmlRecord->GetFrom(), 100);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "UpdateHtmlRecordTest001 end");
 }
 
 /**
@@ -889,10 +921,12 @@ HWTEST_F(PasteboardWebControllerTest, UpdateHtmlRecordTest001, TestSize.Level1) 
  * @tc.type: FUNC
  */
 HWTEST_F(PasteboardWebControllerTest, ReplaceHtmlRecordContentByExtraUrisTest001, TestSize.Level1) {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReplaceHtmlRecordContentByExtraUrisTest001 start");
     auto webClipboardController = PasteboardWebController::GetInstance();
     RecordList recordList;
     webClipboardController.ReplaceHtmlRecordContentByExtraUris(recordList);
     EXPECT_EQ(recordList.size(), 0);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReplaceHtmlRecordContentByExtraUrisTest001 end");
 }
 
 /**
@@ -901,6 +935,7 @@ HWTEST_F(PasteboardWebControllerTest, ReplaceHtmlRecordContentByExtraUrisTest001
  * @tc.type: FUNC
  */
 HWTEST_F(PasteboardWebControllerTest, ReplaceHtmlRecordContentByExtraUrisTest002, TestSize.Level1) {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReplaceHtmlRecordContentByExtraUrisTest002 start");
     auto webClipboardController = PasteboardWebController::GetInstance();
     RecordList recordList;
     auto customData = std::make_shared<MineCustomData>();
@@ -916,6 +951,7 @@ HWTEST_F(PasteboardWebControllerTest, ReplaceHtmlRecordContentByExtraUrisTest002
     recordList.push_back(uriRecord);
     webClipboardController.ReplaceHtmlRecordContentByExtraUris(recordList);
     EXPECT_EQ(recordList.size(), 1);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReplaceHtmlRecordContentByExtraUrisTest002 end");
 }
 
 /**
