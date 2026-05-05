@@ -1,0 +1,69 @@
+# Copyright (c) 2026 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/test.gni")
+import("//foundation/distributeddatamgr/pasteboard/pasteboard.gni")
+
+module_output_path = "pasteboard/pasteboard"
+
+ohos_unittest("ExecuteCommandTest") {
+  module_out_path = module_output_path
+
+  sources = [
+    "parser_test.cpp",
+    "printer_test.cpp",
+    "error_handler_test.cpp",
+    "executor_test.cpp",
+    "integration_test.cpp",
+    "${pasteboard_root_path}/tools/ohos-pasteboard/src/error_handler.cpp",
+    "${pasteboard_root_path}/tools/ohos-pasteboard/src/executor.cpp",
+    "${pasteboard_root_path}/tools/ohos-pasteboard/src/parser.cpp",
+    "${pasteboard_root_path}/tools/ohos-pasteboard/src/printer.cpp",
+    "${pasteboard_root_path}/tools/ohos-pasteboard/src/clear_data_command.cpp",
+    "${pasteboard_root_path}/tools/ohos-pasteboard/src/get_data_command.cpp",
+    "${pasteboard_root_path}/tools/ohos-pasteboard/src/has_data_command.cpp",
+    "${pasteboard_root_path}/tools/ohos-pasteboard/src/has_data_type_command.cpp",
+    "${pasteboard_root_path}/tools/ohos-pasteboard/src/has_remote_data_command.cpp",
+    "${pasteboard_root_path}/tools/ohos-pasteboard/src/set_data_command.cpp",
+  ]
+
+  include_dirs = [
+    "${pasteboard_framework_path}/include",
+    "${pasteboard_innerkits_path}/include",
+    "${pasteboard_root_path}/tools/ohos-pasteboard/include",
+    "${pasteboard_service_path}/core/include",
+    "${pasteboard_service_path}/dfx/src",
+    "${pasteboard_service_path}/zidl/include",
+    "${pasteboard_tlv_path}",
+    "${pasteboard_utils_path}/native/include",
+  ]
+
+  deps = [
+    "${pasteboard_innerkits_path}:pasteboard_client",
+    "${pasteboard_innerkits_path}:pasteboard_data",
+  ]
+
+  external_deps = [
+    "ability_base:zuri",
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+    "json:nlohmann_json_static",
+    "udmf:udmf_client",
+  ]
+}
+
+group("unittest") {
+  testonly = true
+  deps = [ ":ExecuteCommandTest" ]
+}

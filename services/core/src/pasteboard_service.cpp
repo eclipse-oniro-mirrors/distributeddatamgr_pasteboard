@@ -2110,7 +2110,7 @@ int32_t PasteboardService::GrantUriPermission(std::map<uint32_t, std::vector<Uri
     auto result = GrantPermission(writeUris, permFlag, isRemoteData, targetBundleName, appIndex);
     ret = result == 0 ? ret : result;
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "leave, ret=%{public}d", ret);
-    return ret == 0 ? static_cast<int32_t>(PasteboardError::E_OK) : ret;
+    return static_cast<int32_t>(PasteboardError::E_OK);
 }
 
 std::map<uint32_t, std::vector<Uri>> PasteboardService::CheckUriPermission(PasteData &data,

@@ -1,0 +1,78 @@
+# Copyright (c) 2026 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("//build/ohos/cli/ohos_cli_executable.gni")
+import("//foundation/distributeddatamgr/pasteboard/pasteboard.gni")
+
+ohos_cli_executable("ohos-pasteboard") {
+  cli_config_file = "ohos-pasteboard.json"
+
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    integer_overflow = true
+    ubsan = true
+    boundary_sanitize = true
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+
+  sources = [
+    "src/clear_data_command.cpp",
+    "src/error_handler.cpp",
+    "src/executor.cpp",
+    "src/get_data_command.cpp",
+    "src/has_data_command.cpp",
+    "src/has_data_type_command.cpp",
+    "src/has_remote_data_command.cpp",
+    "src/main.cpp",
+    "src/parser.cpp",
+    "src/printer.cpp",
+    "src/set_data_command.cpp",
+  ]
+
+  include_dirs = [
+    "include",
+    "${pasteboard_innerkits_path}/include",
+    "${pasteboard_utils_path}/native/include",
+  ]
+
+  deps = [
+    "${pasteboard_innerkits_path}:pasteboard_client",
+    "${pasteboard_innerkits_path}:pasteboard_data",
+  ]
+
+  external_deps = [
+    "ability_base:zuri",
+    "cJSON:cjson",
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+    "udmf:udmf_client",
+  ]
+
+  cflags_cc = [
+    "-fvisibility=hidden",
+    "-O2",
+  ]
+
+  ldflags = [ "-Wl,--gc-sections" ]
+
+  if (is_standard_system && target_cpu == "arm") {
+    cflags_cc += [ "-DBINDER_IPC_32BIT" ]
+  }
+
+  subsystem_name = "distributeddatamgr"
+  part_name = "pasteboard"
+}
