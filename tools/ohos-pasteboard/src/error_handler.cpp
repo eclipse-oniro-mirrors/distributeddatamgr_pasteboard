@@ -35,7 +35,7 @@ static const std::map<int32_t, std::tuple<std::string, std::string, std::string>
         {
             "ERR_INVALID_PARAM",
             "Invalid parameter",
-            "Check if paste data is valid."
+            "Reduce the data size and try again."
         }
     },
     {
@@ -67,7 +67,7 @@ static const std::map<int32_t, std::tuple<std::string, std::string, std::string>
         {
             "ERR_SERIALIZATION",
             "Data serialization failed",
-            "Check if the data contains unsupported characters."
+            "Reduce the data size and try again."
         }
     },
     {
@@ -75,7 +75,7 @@ static const std::map<int32_t, std::tuple<std::string, std::string, std::string>
         {
             "ERR_DESERIALIZATION",
             "Data deserialization failed",
-            "Data format is corrupted."
+            "Reduce the data size and try again."
         }
     },
 };
@@ -94,7 +94,7 @@ static const std::map<int32_t, std::tuple<std::string, std::string, std::string>
         {
             "ERR_PERMISSION_DENIED",
             "Permission denied",
-            "Add ohos.permission.READ_PASTEBOARD in module.json5."
+            "Request permission ohos.permission.READ_PASTEBOARD"
         }
     },
     {
@@ -110,7 +110,7 @@ static const std::map<int32_t, std::tuple<std::string, std::string, std::string>
         {
             "ERR_NO_USER_DATA",
             "No paste data for current user",
-            "Switch to the correct user account."
+            "No paste data available. Use 'set-data' to add data."
         }
     },
     {
@@ -126,7 +126,7 @@ static const std::map<int32_t, std::tuple<std::string, std::string, std::string>
         {
             "ERR_SERIALIZATION",
             "Data serialization error",
-            "Failed to deserialize paste data."
+            "Failed to serialize paste data."
         }
     },
     {

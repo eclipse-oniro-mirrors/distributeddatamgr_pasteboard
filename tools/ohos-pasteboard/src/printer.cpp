@@ -23,7 +23,7 @@ std::string OutputPrinter::PrintSuccess(const json &data)
     result["type"] = "result";
     result["status"] = "success";
     result["data"] = data;
-    return result.dump(2);
+    return result.dump();
 }
 
 std::string OutputPrinter::PrintError(const std::string &errCode, const std::string &errMsg,
@@ -35,7 +35,7 @@ std::string OutputPrinter::PrintError(const std::string &errCode, const std::str
     result["errCode"] = errCode;
     result["errMsg"] = errMsg;
     result["suggestion"] = suggestion;
-    return result.dump(2);
+    return result.dump();
 }
 } // namespace Pasteboard
 } // namespace OHOS

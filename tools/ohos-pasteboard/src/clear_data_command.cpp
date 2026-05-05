@@ -35,8 +35,8 @@ std::string ClearDataCommand::GetUsage() const
 std::vector<std::string> ClearDataCommand::GetExamples() const
 {
     return {
-        "    # Clear system pasteboard content", // 清空系统剪贴板内容
-        "    ohos-pasteboard clear-data",
+        "# Clear system pasteboard data", // 清空系统剪贴板内容
+        "ohos-pasteboard clear-data",
     };
 }
 

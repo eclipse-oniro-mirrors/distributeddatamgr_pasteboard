@@ -40,16 +40,16 @@ std::vector<std::string> SetDataCommand::GetExamples() const
 {
     return {
         // 将纯文本类型数据Hello World写入系统剪贴板
-        "    # Write plain text 'Hello World' to system pasteboard",
-        "    ohos-pasteboard set-data --text \"Hello World\"",
+        "# Write plain text 'Hello World' to system pasteboard",
+        "ohos-pasteboard set-data --text \"Hello World\"",
         "",
         // 将HTML类型数据<html><p>Hello World</p></html>写入系统剪贴板
-        "    # Write HTML '<html><p>Hello World</p></html>' to system pasteboard",
-        "    ohos-pasteboard set-data --html \"<html><p>Hello</p></html>\"",
+        "# Write HTML '<html><p>Hello World</p></html>' to system pasteboard",
+        "ohos-pasteboard set-data --html \"<html><p>Hello</p></html>\"",
         "",
         // 将URI类型数据Hello World写入系统剪贴板
-        "    # Write URI data to system pasteboard",
-        "    ohos-pasteboard set-data --uri \"file:///path/to/file\""
+        "# Write URI data to system pasteboard",
+        "ohos-pasteboard set-data --uri \"file:///path/to/file\""
     };
 }
 

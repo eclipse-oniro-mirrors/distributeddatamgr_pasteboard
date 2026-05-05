@@ -36,8 +36,8 @@ std::string GetDataCommand::GetUsage() const
 std::vector<std::string> GetDataCommand::GetExamples() const
 {
     return {
-        "    # Read system pasteboard content", // 读取系统剪贴板内容
-        "    ohos-pasteboard get-data",
+        "# Read system pasteboard content", // 读取系统剪贴板内容
+        "ohos-pasteboard get-data",
     };
 }
 

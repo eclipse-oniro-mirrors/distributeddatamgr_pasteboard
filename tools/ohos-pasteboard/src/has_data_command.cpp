@@ -35,8 +35,8 @@ std::string HasDataCommand::GetUsage() const
 std::vector<std::string> HasDataCommand::GetExamples() const
 {
     return {
-        "    # Check if system pasteboard has content", // 判断系统剪贴板中是否有内容
-        "    ohos-pasteboard has-data",
+        "# Check if system pasteboard has content", // 判断系统剪贴板中是否有内容
+        "ohos-pasteboard has-data",
     };
 }
 

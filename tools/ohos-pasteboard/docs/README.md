@@ -1,345 +1,235 @@
 # ohos-pasteboard
 
-## Overview
+## 概述
 
-Pasteboard management CLI tool for OpenHarmony/HarmonyOS. This tool provides command-line interface for reading, writing, clearing and querying pasteboard data through the PasteboardClient API.
+剪贴板命令行工具，支持对剪贴板数据的读取、写入和查询操作。适用于设置或获取 HTML、URI 或纯文本数据。不适用于非文本数据类型的设置或获取、批量数据传输或实时监控场景。
 
-## Features
+## 功能列表
 
-- **Set pasteboard data**: Set HTML, URI or plain text content to pasteboard
-- **Get pasteboard data**: Retrieve pasteboard data in JSON format
-- **Clear pasteboard**: Clear all pasteboard data
-- **Check pasteboard status**: Query if pasteboard has data or specific MIME type
-- **Remote data check**: Check if pasteboard contains data from distributed devices
-- **Data source query**: Get the bundle name of the data source application
+- **设置剪贴板数据**：将 HTML、URI 或纯文本内容写入系统剪贴板
+- **获取剪贴板数据**：以 JSON 格式读取剪贴板内容
+- **清空剪贴板数据**：重置剪贴板状态
+- **检查剪贴板状态**：验证剪贴板是否有数据
+- **检查数据类型**：验证剪贴板是否包含指定 MIME 类型数据
+- **检查远端数据**：验证剪贴板是否包含远端设备数据
 
-## Dependencies
+## 依赖
 
-### System Capability
-- **Service**: PasteboardService (SA)
-- **Client API**: PasteboardClient (inner_kits)
-- **Component**: foundation/distributeddatamgr/pasteboard
+### 系统能力
 
-### Permissions
+- `PasteboardClient` - 系统剪贴板服务客户端
+- `PasteData` - 剪贴板数据结构
+- `PasteDataRecord` - 单条剪贴板记录
 
-| Permission | Required Commands | Description |
-|------------|------------------|-------------|
-| `ohos.permission.READ_PASTEBOARD` | `get-data` | Required for reading pasteboard data |
-| `ohos.permission.SECURE_PASTE` | `get-data` | Alternative permission for secure paste operations |
-| None | All other commands | No permission required for set, clear, has, and get-data-source operations |
+### 权限
 
-**Note**: `set-data` does not require explicit permission based on code analysis. However, system app identity may be checked in certain scenarios.
+| 权限 | 命令 | 说明 |
+|-----------|----------|-------------|
+| `ohos.permission.READ_PASTEBOARD` | get-data | 读取剪贴板内容所需权限 |
 
-## Basic Usage
+## 基本用法
 
 ```bash
 ohos-pasteboard <command> [options]
+ohos-pasteboard --help
+ohos-pasteboard <command> --help
 ```
 
-## Command List
+## 命令列表
 
-| Command | Description | Parameters | Permission | Prerequisites |
-|---------|-------------|------------|------------|---------------|
-| `set-data` | Set pasteboard data | --html, --uri, --text (at least one) | None | None |
-| `get-data` | Get pasteboard data in JSON | None | READ_PASTEBOARD or SECURE_PASTE | None |
-| `clear-data` | Clear pasteboard | None | None | None |
-| `has-data` | Check if pasteboard has data | None | None | None |
-| `has-data-type` | Check specific MIME type | --type (required), --timeout (optional) | None | None |
-| `has-remote-data` | Check for remote data | None | None | None |
-| `get-data-source` | Get data source bundle name | None | None | None |
-| `help` | Show help information | [command] (optional) | None | None |
+| 命令 | 说明 | 参数 | 权限 | 前置依赖 |
+|---------|-------------|------------|-------------|--------------|
+| set-data | 设置剪贴板数据，支持 HTML、URI 或纯文本内容 | `--text <string>`、`--html <string>`、`--uri <string>`（至少提供一个） | 无 | 无 |
+| get-data | 以 JSON 格式获取剪贴板数据 | 无 | `ohos.permission.READ_PASTEBOARD` | 无 |
+| clear-data | 清空剪贴板所有数据 | 无 | 无 | 无 |
+| has-data | 检查剪贴板是否有数据 | 无 | 无 | 无 |
+| has-data-type | 检查剪贴板是否包含指定 MIME 类型数据 | `--type <string>`（必填）、`--timeout <int>`（可选，范围 1-5000） | 无 | 无 |
+| has-remote-data | 检查剪贴板是否包含远端设备数据 | 无 | 无 | 无 |
 
-## Prerequisites Explanation
+**前置依赖说明**：
+- **无**：命令可直接执行，无需前置条件
 
-- **None**: The command can be executed directly without any prerequisites
-- **Data Required**: Pasteboard must contain data for the command to return meaningful results
+## 输出格式
 
-## Command Details
+所有命令将 JSON 输出到 stdout，结构如下：
 
-### 1. set-data
-
-Set pasteboard data with HTML, URI or plain text content.
-
-**Parameters**:
-- `--html <string>`: HTML content (optional)
-- `--uri <string>`: URI content (optional)
-- `--text <string>`: Plain text content (optional)
-
-**Rules**:
-- At least one parameter must be provided
-- The first parameter determines the primary MIME type:
-  - `--text` → `text/plain`
-  - `--html` → `text/html`
-  - `--uri` → `text/uri-list`
-- Multiple parameters can be combined, additional records will be added
-
-**Examples**:
-```bash
-# Set plain text only (primary type: text/plain)
-ohos-pasteboard set-data --text "Hello World"
-
-# Set HTML only (primary type: text/html)
-ohos-pasteboard set-data --html "<p>Hello World</p>"
-
-# Set URI only (primary type: text/uri-list)
-ohos-pasteboard set-data --uri "file:///path/to/file"
-
-# Set multiple types - first --html determines primary type
-ohos-pasteboard set-data --html "<p>Hello</p>" --text "Hello"
-
-# Set multiple types - first --text determines primary type
-ohos-pasteboard set-data --text "Hello" --uri "file:///path/to/file"
-```
-
-### 2. get-data
-
-Get pasteboard data in structured JSON format.
-
-**Parameters**: None
-
-**Permission Required**: 
-- `ohos.permission.READ_PASTEBOARD` OR
-- `ohos.permission.SECURE_PASTE`
-
-**Output Format**:
+### 成功响应
 ```json
 {
+  "type": "result",
   "status": "success",
   "data": {
+    // 命令特定数据
+  }
+}
+```
+
+### 失败响应
+```json
+{
+  "type": "result",
+  "status": "failed",
+  "errCode": "ERR_XXX",
+  "errMsg": "错误描述",
+  "suggestion": "建议的下一步操作"
+}
+```
+
+### 错误码
+
+| 错误码 | 说明 |
+|------------|-------------|
+| `ERR_ARG_MISSING` | 缺少必需参数 |
+| `ERR_ARG_INVALID` | 参数值无效 |
+| `ERR_ARG_OUT_OF_RANGE` | 参数值超出有效范围 |
+| `ERR_CMD_INVALID` | 未知命令 |
+| `ERR_INTERNAL_ERROR` | 内部系统错误 |
+| `ERR_PERMISSION_DENIED` | 权限不足 |
+| `ERR_PASTEBOARD_CLIENT_FAILED` | 剪贴板服务不可用 |
+
+## 示例
+
+### set-data
+
+```bash
+# 将纯文本数据写入剪贴板
+ohos-pasteboard set-data --text "Hello World"
+
+# 将 HTML 数据写入剪贴板
+ohos-pasteboard set-data --html "<html><p>Hello</p></html>"
+
+# 将 URI 数据写入剪贴板
+ohos-pasteboard set-data --uri "file:///path/to/file"
+
+# 同时设置多种数据类型（创建多记录剪贴板）
+ohos-pasteboard set-data --text "Hello" --html "<p>Hello</p>"
+```
+
+### get-data
+
+```bash
+# 读取剪贴板内容
+ohos-pasteboard get-data
+
+# 输出示例：
+{
+  "type": "result",
+  "status": "success",
+  "data": {
+    "recordCount": 1,
+    "mimeTypes": ["text/plain"],
     "records": [
       {
         "mimeType": "text/plain",
         "plainText": "Hello World"
       }
-    ],
-    "property": {
-      "bundleName": "com.example.app",
-      "timestamp": 1234567890,
-      "tag": "",
-      "isRemote": false
-    },
-    "recordCount": 1,
-    "mimeTypes": ["text/plain"]
-  },
-  "errCode": "",
-  "errMsg": ""
+    ]
+  }
 }
 ```
 
-**Examples**:
+### clear-data
+
 ```bash
-# Get pasteboard data (requires permission)
-ohos-pasteboard get-data
-```
-
-### 3. clear-data
-
-Clear all pasteboard data.
-
-**Parameters**: None
-
-**Examples**:
-```bash
-# Clear pasteboard
+# 清空剪贴板所有数据
 ohos-pasteboard clear-data
+
+# 输出示例：
+{
+  "type": "result",
+  "status": "success",
+  "data": {
+    "message": "Clear paste data successfully"
+  }
+}
 ```
 
-### 4. has-data
+### has-data
 
-Check if pasteboard contains any data.
+```bash
+# 检查剪贴板是否有内容
+ohos-pasteboard has-data
 
-**Parameters**: None
-
-**Output**:
-```json
+# 输出示例（有数据）：
 {
+  "type": "result",
   "status": "success",
   "data": {
     "hasData": true,
-    "message": "Pasteboard contains data"
-  },
-  "errCode": "",
-  "errMsg": ""
+    "message": "true"
+  }
 }
 ```
 
-**Examples**:
+### has-data-type
+
 ```bash
-# Check if pasteboard has data
-ohos-pasteboard has-data
-```
-
-### 5. has-data-type
-
-Check if pasteboard contains data of a specific MIME type.
-
-**Parameters**:
-- `--type <string>`: MIME type to check (required)
-  - Common types: `text/plain`, `text/html`, `text/uri-list`, `image/png`
-- `--timeout <int>`: Timeout in milliseconds (optional)
-  - Range: 1-5000
-  - Recommended: Use timeout for potentially slow operations
-
-**Examples**:
-```bash
-# Check for plain text data
+# 检查是否包含纯文本数据
 ohos-pasteboard has-data-type --type text/plain
 
-# Check for HTML data
+# 检查是否包含 HTML 数据
 ohos-pasteboard has-data-type --type text/html
 
-# Check for URI data
-ohos-pasteboard has-data-type --type text/uri-list
+# 检查是否包含 URI 数据
+ohos-pasteboard has-data-type --type text/uri
 
-# Check with timeout (3 seconds)
+# 指定超时时间（3000毫秒）
 ohos-pasteboard has-data-type --type text/html --timeout 3000
 
-# Check with minimum timeout
-ohos-pasteboard has-data-type --type text/plain --timeout 1
-```
-
-### 6. has-remote-data
-
-Check if pasteboard contains data from distributed devices.
-
-**Parameters**: None
-
-**Examples**:
-```bash
-# Check for remote data
-ohos-pasteboard has-remote-data
-```
-
-### 7. get-data-source
-
-Get the bundle name of the application that set the pasteboard data.
-
-**Parameters**: None
-
-**Examples**:
-```bash
-# Get data source application
-ohos-pasteboard get-data-source
-```
-
-### 8. help
-
-Show help information for the tool or specific command.
-
-**Parameters**:
-- `[command]`: Optional command name for detailed help
-
-**Examples**:
-```bash
-# Show general help
-ohos-pasteboard help
-ohos-pasteboard --help
-
-# Show help for specific command
-ohos-pasteboard help set-data
-ohos-pasteboard set-data --help
-
-# Show help for get command
-ohos-pasteboard help get-data
-
-# Show help for has-data-type command
-ohos-pasteboard help has-data-type
-```
-
-## Error Handling
-
-The tool follows a standardized error response format:
-
-```json
+# 输出示例：
 {
-  "status": "error",
-  "data": "",
-  "errCode": "ERR_XXX",
-  "errMsg": "Detailed error description",
-  "suggestion": "Suggested next operation"
+  "type": "result",
+  "status": "success",
+  "data": {
+    "hasType": true,
+    "type": "text/plain",
+    "message": "true"
+  }
 }
 ```
 
-**Common Error Codes**:
+### has-remote-data
 
-| Error Code | Description |
-|------------|-------------|
-| `ERR_ARG_MISSING` | Missing required parameter |
-| `ERR_ARG_INVALID` | Invalid parameter value |
-| `ERR_ARG_OUT_OF_RANGE` | Parameter value out of valid range |
-| `ERR_PERMISSION_DENIED` | Permission not granted |
-| `ERR_INTERNAL_ERROR` | Internal system error |
-| `ERR_GET_DATA_FAILED` | Failed to get pasteboard data |
-| `ERR_SET_DATA_FAILED` | Failed to set pasteboard data |
-| `ERR_GET_SOURCE_FAILED` | Failed to get data source |
-
-## Output Format
-
-**stdout**: Single-line JSON response
-**stderr**: Debug and error logs
-
-The tool ensures clean output separation:
-- Business data is output to stdout in JSON format
-- Debug information and errors are output to stderr
-
-## Installation Path
-
-The CLI tool is installed at:
-```
-/system/bin/ohos-pasteboard
-```
-
-## Typical Usage Scenarios
-
-### Scenario 1: Basic Pasteboard Operations
 ```bash
-# Set text
-ohos-pasteboard set-data --text "Test message"
+# 检查剪贴板数据是否来自远端设备
+ohos-pasteboard has-remote-data
 
-# Verify content
+# 输出示例（本地数据）：
+{
+  "type": "result",
+  "status": "success",
+  "data": {
+    "hasRemoteData": false,
+    "message": "false"
+  }
+}
+```
+
+## 典型工作流
+
+```bash
+# 1. 检查剪贴板状态
 ohos-pasteboard has-data
+
+# 2. 设置新数据
+ohos-pasteboard set-data --text "测试内容"
+
+# 3. 验证数据已设置
+ohos-pasteboard has-data-type --type text/plain
+
+# 4. 获取数据
 ohos-pasteboard get-data
 
-# Clear
+# 5. 完成后清空
 ohos-pasteboard clear-data
 ```
 
-### Scenario 2: Multi-Type Data
-```bash
-# Set HTML with text backup
-ohos-pasteboard set-data --html "<h1>Title</h1>" --text "Title"
+## 安装
 
-# Check types
-ohos-pasteboard has-data-type --type text/html
-ohos-pasteboard has-data-type --type text/plain
-```
+CLI 工具安装于 OpenHarmony 设备的 `/system/bin/cli_tool/executable/ohos-pasteboard`。
 
-### Scenario 3: Distributed Pasteboard
-```bash
-# Check for remote data
-ohos-pasteboard has-remote-data
+## 构建配置
 
-# Get source if remote
-ohos-pasteboard get-data-source
-```
-
-### Scenario 4: Type-Specific Query with Timeout
-```bash
-# Check for image data with timeout
-ohos-pasteboard has-data-type --type image/png --timeout 2000
-```
-
-## Technical Notes
-
-1. **Primary MIME Type**: The first parameter in `set-data` determines the primary record type
-2. **Timeout Usage**: Use timeout parameter when checking types that may require remote data fetch
-3. **Permission Configuration**: Add permissions in module.json5 for `get-data` command
-4. **JSON Output**: All outputs are in standard JSON format for easy parsing
-5. **No Interactive Input**: All operations are non-interactive and complete immediately
-
-## Limitations
-
-- Maximum 512 records per pasteboard operation (system limit)
-- Timeout range: 1-5000 milliseconds
-- Not suitable for real-time pasteboard monitoring
-- Not suitable for bulk data transfer operations
+- **构建目标**：`ohos-pasteboard`
+- **子系统**：`distributeddatamgr`
+- **部件**：`pasteboard`

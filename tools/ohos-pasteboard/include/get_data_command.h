@@ -23,7 +23,7 @@ namespace Pasteboard {
 class GetDataCommand : public Command {
 public:
     std::string GetName() const override { return "get-data"; }
-    std::string GetDescription() const override { return "Get pasteboard data (JSON format)"; }
+    std::string GetDescription() const override { return "Get pasteboard data"; }
     std::string GetUsage() const override;
     std::vector<std::string> GetExamples() const override;
     std::vector<std::tuple<std::string, std::string, std::string>> GetParameters() const override;

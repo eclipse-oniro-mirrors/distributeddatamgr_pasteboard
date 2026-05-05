@@ -275,7 +275,8 @@ HWTEST_F(IntegrationTest, AllCommands_ComprehensiveCheck, TestSize.Level3)
 
 HWTEST_F(IntegrationTest, MixedParams_SetTextHtmlUri_GetData, TestSize.Level3)
 {
-    std::vector<std::string> setArgs = {"set-data", "--text", "plain-text", "--html", "<p>html</p>", "--uri", "file:///test"};
+    std::vector<std::string> setArgs = {"set-data", "--text", "plain-text", "--html", "<p>html</p>", "--uri",
+        "file:///test"};
     std::string setResult = ExecuteCommand(setArgs);
     json setParsed = json::parse(setResult);
     

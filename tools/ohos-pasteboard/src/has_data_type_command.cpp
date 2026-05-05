@@ -35,20 +35,20 @@ std::vector<std::string> HasDataTypeCommand::GetExamples() const
 {
     return {
         // 检查剪贴板内容中是否有纯文本类型的数据
-        "    # Check if pasteboard contains plain text data",
-        "    ohos-pasteboard has-data-type --type text/plain",
+        "# Check if pasteboard contains plain text data",
+        "ohos-pasteboard has-data-type --type text/plain",
         "",
         // 检查剪贴板内容中是否有HTML类型的数据
-        "    # Check if pasteboard contains HTML data",
-        "    ohos-pasteboard has-data-type --type text/html",
+        "# Check if pasteboard contains HTML data",
+        "ohos-pasteboard has-data-type --type text/html",
         "",
         // 检查剪贴板内容中是否有URI类型的数据
-        "    # Check if pasteboard contains URI data",
-        "    ohos-pasteboard has-data-type --type text/uri",
+        "# Check if pasteboard contains URI data",
+        "ohos-pasteboard has-data-type --type text/uri",
         "",
         // 检查剪贴板内容中是否有纯文本类型的数据，超时时间为3000毫秒
-        "    # Check if pasteboard contains plain text data with timeout of 3000ms",
-        "    ohos-pasteboard has-data-type --type text/html --timeout 3000",
+        "# Check if pasteboard contains plain text data with timeout of 3000ms",
+        "ohos-pasteboard has-data-type --type text/html --timeout 3000",
     };
 }
 
@@ -64,6 +64,9 @@ std::vector<std::tuple<std::string, std::string, std::string>> HasDataTypeComman
 
 std::string HasDataTypeCommand::Execute(const std::vector<std::string> &args)
 {
+    constexpr uint32_t TIMEOUT_MIN = 1;
+    constexpr uint32_t TIMEOUT_MAX = 5000;
+
     std::string type = ParamParser::FindParam(args, "--type");
     if (type.empty()) {
         // 参数缺失：必须提供数据类型参数。请输入有效的数据类型。例如查询剪贴板中是否有纯文本数据类型：'--type text/plain'
@@ -77,11 +80,11 @@ std::string HasDataTypeCommand::Execute(const std::vector<std::string> &args)
     bool hasTimeout = !timeoutStr.empty();
     if (hasTimeout) {
         timeout = static_cast<uint32_t>(std::stoul(timeoutStr));
-        if (timeout < 1 || timeout > 5000) {
-            // 时时间XXX无效：超时时间必须在1-5000范围内。超时时间必须在1-5000范围内（单位：毫秒）。例如超时时间100ms：'--timeout 100'
+        if (timeout < TIMEOUT_MIN || timeout > TIMEOUT_MAX) {
+            // 超时时间XXX无效：超时时间必须在1-5000范围内。超时时间必须在1-5000范围内（单位：毫秒）。例如超时时间100ms：'--timeout 100'
             return OutputPrinter::PrintError("ERR_ARG_OUT_OF_RANGE",
-            "Timeout value " + timeoutStr + " invalid: Timeout must be in range 1-5000",
-            "Timeout must be in range 1-5000 (milliseconds). Example: '--timeout 100'");
+                "Timeout value " + timeoutStr + " invalid: Timeout must be in range 1-5000",
+                "Timeout must be in range 1-5000 (milliseconds). Example: '--timeout 100'");
         }
     }
 

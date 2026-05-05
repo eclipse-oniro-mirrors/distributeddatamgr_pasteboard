@@ -35,8 +35,8 @@ std::string HasRemoteDataCommand::GetUsage() const
 std::vector<std::string> HasRemoteDataCommand::GetExamples() const
 {
     return {
-        "    # Check if pasteboard data is from remote device", // 判断剪贴板中的数据是否是远端设备数据
-        "    ohos-pasteboard has-remote-data",
+        "# Check if pasteboard data is from remote device", // 判断剪贴板中的数据是否是远端设备数据
+        "ohos-pasteboard has-remote-data",
     };
 }
 

@@ -16,7 +16,7 @@ import("//build/ohos/cli/ohos_cli_executable.gni")
 import("//foundation/distributeddatamgr/pasteboard/pasteboard.gni")
 
 ohos_cli_executable("ohos-pasteboard") {
-  cli_config_file = "config.json"
+  cli_config_file = "ohos-pasteboard.json"
 
   branch_protector_ret = "pac_ret"
   sanitize = {

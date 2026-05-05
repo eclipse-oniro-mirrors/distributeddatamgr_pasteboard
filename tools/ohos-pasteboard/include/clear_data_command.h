@@ -23,7 +23,7 @@ namespace Pasteboard {
 class ClearDataCommand : public Command {
 public:
     std::string GetName() const override { return "clear-data"; }
-    std::string GetDescription() const override { return "Clear all pasteboard data"; }
+    std::string GetDescription() const override { return "Clear pasteboard data"; }
     std::string GetUsage() const override;
     std::vector<std::string> GetExamples() const override;
     std::vector<std::tuple<std::string, std::string, std::string>> GetParameters() const override;

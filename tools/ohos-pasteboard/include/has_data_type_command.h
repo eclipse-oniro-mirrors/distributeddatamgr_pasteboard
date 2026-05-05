@@ -23,7 +23,7 @@ namespace Pasteboard {
 class HasDataTypeCommand : public Command {
 public:
     std::string GetName() const override { return "has-data-type"; }
-    std::string GetDescription() const override { return "Check if pasteboard has specific MIME type data"; }
+    std::string GetDescription() const override { return "Check if pasteboard has specific type data"; }
     std::string GetUsage() const override;
     std::vector<std::string> GetExamples() const override;
     std::vector<std::tuple<std::string, std::string, std::string>> GetParameters() const override;

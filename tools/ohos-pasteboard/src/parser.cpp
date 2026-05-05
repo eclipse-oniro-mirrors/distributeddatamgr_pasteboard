@@ -49,14 +49,12 @@ SpecialParser::SetDataResult SpecialParser::ParseSetData(const std::vector<std::
     bool hasText = ParamParser::HasParam(args, "--text");
     bool hasHtml = ParamParser::HasParam(args, "--html");
     bool hasUri = ParamParser::HasParam(args, "--uri");
-
     if (!hasText && !hasHtml && !hasUri) {
         result.errMsg = "Missing required parameter: At least one of --text, --html, --uri";
         return result;
     }
 
     std::vector<std::pair<size_t, std::string>> positions;
-
     for (size_t i = 0; i < args.size(); i++) {
         if (args[i] == "--text" && i + 1 < args.size() && !args[i + 1].empty()) {
             positions.push_back({i, "text"});
@@ -68,7 +66,6 @@ SpecialParser::SetDataResult SpecialParser::ParseSetData(const std::vector<std::
     }
 
     std::sort(positions.begin(), positions.end());
-
     for (const auto& [pos, type] : positions) {
         std::string value = args[pos + 1];
         result.orderedParams.push_back({type, value});
@@ -85,6 +82,10 @@ SpecialParser::SetDataResult SpecialParser::ParseSetData(const std::vector<std::
 
 SpecialParser::HasDataTypeResult SpecialParser::ParseHasDataType(const std::vector<std::string>& args)
 {
+    constexpr uint64_t TIMEOUT_MIN_MS = 1;
+    constexpr uint64_t TIMEOUT_MAX_MS = 5000;
+    constexpr uint64_t NUM_10 = 10;
+
     HasDataTypeResult result;
     result.success = false;
     result.hasTimeout = false;
@@ -96,7 +97,6 @@ SpecialParser::HasDataTypeResult SpecialParser::ParseHasDataType(const std::vect
     }
 
     result.type = ParamParser::FindParam(args, "--type");
-
     if (result.type.empty()) {
         result.errMsg = "Missing required parameter: --type";
         return result;
@@ -119,9 +119,9 @@ SpecialParser::HasDataTypeResult SpecialParser::ParseHasDataType(const std::vect
 
         uint64_t timeoutValue = 0;
         for (char c : timeoutStr) {
-            timeoutValue = timeoutValue * 10 + (c - '0');
+            timeoutValue = timeoutValue * NUM_10 + (c - '0');
         }
-        if (timeoutValue < 1 || timeoutValue > 5000) {
+        if (timeoutValue < TIMEOUT_MIN_MS || timeoutValue > TIMEOUT_MAX_MS) {
             result.errMsg = "Timeout value " + timeoutStr + " is out of range (1-5000)";
             return result;
         }
