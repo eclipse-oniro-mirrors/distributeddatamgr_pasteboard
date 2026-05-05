@@ -47,6 +47,7 @@ group("unittest") {
       "${pasteboard_root_path}/interfaces/ndk/unittest:unittest",
       "${pasteboard_root_path}/services/test:unittest",
       "${pasteboard_root_path}/utils/test:unittest",
+      "${pasteboard_root_path}/tools/ohos-pasteboard/tests:unittest"
     ]
   }
 }

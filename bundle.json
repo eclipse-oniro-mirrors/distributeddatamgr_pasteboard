@@ -34,7 +34,6 @@
           "access_token",
           "app_file_service",
           "bundle_framework",
-  
           "cJSON",
           "c_utils",
           "common_event_service",
@@ -86,8 +85,9 @@
                 "//foundation/distributeddatamgr/pasteboard/interfaces/cj:cj_pasteboard_ffi",
                 "//foundation/distributeddatamgr/pasteboard/interfaces/kits:pasteboard_napi",
                 "//foundation/distributeddatamgr/pasteboard/services/dialog:pasteboard_dialog_hap",
-                "//foundation/distributeddatamgr/pasteboard/interfaces/taihe:pasteboard_taihe"
-            ],
+                "//foundation/distributeddatamgr/pasteboard/interfaces/taihe:pasteboard_taihe",
+                "//foundation/distributeddatamgr/pasteboard/tools/ohos-pasteboard:ohos-pasteboard"
+	    ],
             "service_group": [
                 "//foundation/distributeddatamgr/pasteboard/etc/init:pasteboardservice.cfg",
                 "//foundation/distributeddatamgr/pasteboard/profile:distributeddatamgr_pasteboard_sa_profiles",
