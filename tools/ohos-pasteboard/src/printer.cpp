@@ -37,5 +37,10 @@ std::string OutputPrinter::PrintError(const std::string &errCode, const std::str
     result["suggestion"] = suggestion;
     return result.dump();
 }
+
+void OutputPrinter::PrintHelp(const std::string &helpText)
+{
+    std::cout << helpText << std::endl;
+}
 } // namespace Pasteboard
 } // namespace OHOS

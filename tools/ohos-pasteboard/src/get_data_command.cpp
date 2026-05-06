@@ -86,7 +86,7 @@ std::string GetDataCommand::Execute(const std::vector<std::string> &args)
 
     json mimeTypesArray = json::array();
     auto mimeTypes = pasteData.GetMimeTypes();
-    for (const auto& mimeType : mimeTypes) {
+    for (const auto &mimeType : mimeTypes) {
         mimeTypesArray.push_back(mimeType);
     }
 

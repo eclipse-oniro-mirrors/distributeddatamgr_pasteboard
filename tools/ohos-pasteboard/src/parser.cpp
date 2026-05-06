@@ -18,30 +18,27 @@
 namespace OHOS {
 namespace Pasteboard {
 
-std::string ParamParser::FindParam(const std::vector<std::string>& args, const std::string& name)
+std::string ParamParser::FindParam(const std::vector<std::string> &args, const std::string &name)
 {
     for (size_t i = 0; i < args.size(); i++) {
         if (args[i] == name && i + 1 < args.size()) {
             return args[i + 1];
         }
-        if (args[i].find(name + "=") == 0) {
-            return args[i].substr(name.length() + 1);
-        }
     }
     return "";
 }
 
-bool ParamParser::HasParam(const std::vector<std::string>& args, const std::string& name)
+bool ParamParser::HasParam(const std::vector<std::string> &args, const std::string &name)
 {
-    for (const auto& arg : args) {
-        if (arg == name || arg.find(name + "=") == 0) {
+    for (const auto &arg : args) {
+        if (arg == name) {
             return true;
         }
     }
     return false;
 }
 
-SpecialParser::SetDataResult SpecialParser::ParseSetData(const std::vector<std::string>& args)
+SpecialParser::SetDataResult SpecialParser::ParseSetData(const std::vector<std::string> &args)
 {
     SetDataResult result;
     result.success = false;
@@ -80,16 +77,10 @@ SpecialParser::SetDataResult SpecialParser::ParseSetData(const std::vector<std::
     return result;
 }
 
-SpecialParser::HasDataTypeResult SpecialParser::ParseHasDataType(const std::vector<std::string>& args)
+SpecialParser::HasDataTypeResult SpecialParser::ParseHasDataType(const std::vector<std::string> &args)
 {
-    constexpr uint64_t TIMEOUT_MIN_MS = 1;
-    constexpr uint64_t TIMEOUT_MAX_MS = 5000;
-    constexpr uint64_t NUM_10 = 10;
-
     HasDataTypeResult result;
     result.success = false;
-    result.hasTimeout = false;
-    result.timeout = 0;
 
     if (args.empty()) {
         result.errMsg = "Missing required parameter: --type";
@@ -100,32 +91,6 @@ SpecialParser::HasDataTypeResult SpecialParser::ParseHasDataType(const std::vect
     if (result.type.empty()) {
         result.errMsg = "Missing required parameter: --type";
         return result;
-    }
-
-    std::string timeoutStr = ParamParser::FindParam(args, "--timeout");
-    if (!timeoutStr.empty()) {
-        result.hasTimeout = true;
-        bool valid = true;
-        for (char c : timeoutStr) {
-            if (c < '0' || c > '9') {
-                valid = false;
-                break;
-            }
-        }
-        if (!valid) {
-            result.errMsg = "Invalid timeout value: " + timeoutStr;
-            return result;
-        }
-
-        uint64_t timeoutValue = 0;
-        for (char c : timeoutStr) {
-            timeoutValue = timeoutValue * NUM_10 + (c - '0');
-        }
-        if (timeoutValue < TIMEOUT_MIN_MS || timeoutValue > TIMEOUT_MAX_MS) {
-            result.errMsg = "Timeout value " + timeoutStr + " is out of range (1-5000)";
-            return result;
-        }
-        result.timeout = static_cast<uint32_t>(timeoutValue);
     }
 
     result.success = true;
