@@ -58,11 +58,6 @@
 | 检查纯文本 | `ohos-pasteboard has-data-type --type text/plain` | 检查纯文本类型 | 无 | 无 | 成功：`{type:"result",status:"success",data:{hasType:boolean,type:"text/plain"}}` |
 | 检查 HTML | `ohos-pasteboard has-data-type --type text/html` | 检查 HTML 类型 | 无 | 无 | 成功，包含 HTML 检查结果 |
 | 检查 URI | `ohos-pasteboard has-data-type --type text/uri` | 检查 URI 类型 | 无 | 无 | 成功，包含 URI 检查结果 |
-| 带超时 | `ohos-pasteboard has-data-type --type text/plain --timeout 1000` | 1000毫秒超时检查 | 无 | 无 | 成功：包含 timeout 字段 |
-| 最小超时（1ms） | `ohos-pasteboard has-data-type --type text/plain --timeout 1` | 最小超时值 | 无 | 无 | 成功 |
-| 最大超时（5000ms） | `ohos-pasteboard has-data-type --type text/plain --timeout 5000` | 最大超时值 | 无 | 无 | 成功 |
-| 无效超时（0） | `ohos-pasteboard has-data-type --type text/plain --timeout 0` | 超时值低于范围 | 无 | 无 | 失败：`ERR_ARG_OUT_OF_RANGE` |
-| 超范围（6000） | `ohos-pasteboard has-data-type --type text/plain --timeout 6000` | 超时值高于范围 | 无 | 无 | 失败：`ERR_ARG_OUT_OF_RANGE` |
 | 缺少类型 | `ohos-pasteboard has-data-type` | 必填参数缺失 | 无 | 无 | 失败：`ERR_ARG_MISSING` |
 | 类型不匹配 | `ohos-pasteboard set-data --text "test"`; `ohos-pasteboard has-data-type --type image/png` | 类型不存在 | 无 | set-data | 成功：`hasType:false` |
 | 清空后检查 | `ohos-pasteboard clear-data`; `ohos-pasteboard has-data-type --type text/plain` | 清空后检查类型 | 无 | clear-data | 成功：`hasType:false` |
@@ -78,10 +73,10 @@
 
 | 测试用例 | 命令示例 | 说明 | 权限 | 前置依赖 | 预期结果 |
 |-----------|-----------------|-------------|------------|------------|-----------------|
-| 全局帮助 | `ohos-pasteboard --help` | 显示全局帮助 | 无 | 无 | 帮助输出到 stderr，stdout 为空 |
-| 空参数 | `ohos-pasteboard` | 无参数调用 | 无 | 无 | 帮助输出到 stderr，stdout 为空 |
-| 命令帮助 | `ohos-pasteboard set-data --help` | 显示 set-data 帮助 | 无 | 无 | 帮助输出到 stderr，stdout 为空 |
-| has-data-type 帮助 | `ohos-pasteboard has-data-type --help` | 显示 has-data-type 帮助 | 无 | 无 | 帮助输出到 stderr，stdout 为空 |
+| 全局帮助 | `ohos-pasteboard --help` | 显示全局帮助 | 无 | 无 | 帮助输出到 stdout，stdout 为空 |
+| 空参数 | `ohos-pasteboard` | 无参数调用 | 无 | 无 | 帮助输出到 stdout，stdout 为空 |
+| 命令帮助 | `ohos-pasteboard set-data --help` | 显示 set-data 帮助 | 无 | 无 | 帮助输出到 stdout，stdout 为空 |
+| has-data-type 帮助 | `ohos-pasteboard has-data-type --help` | 显示 has-data-type 帮助 | 无 | 无 | 帮助输出到 stdout，stdout 为空 |
 
 ### 错误场景
 
@@ -138,20 +133,7 @@ ohos-pasteboard has-data-type --type text/uri
 ohos-pasteboard get-data
 ```
 
-### 工作流 3：超时测试
-
-```bash
-# 1. 设置数据
-ohos-pasteboard set-data --text "timeout-test"
-
-# 2. 带超时检查
-ohos-pasteboard has-data-type --type text/plain --timeout 1000
-
-# 3. 检查不匹配类型并带超时
-ohos-pasteboard has-data-type --type image/jpeg --timeout 500
-```
-
-### 工作流 4：混合参数
+### 工作流 3：混合参数
 
 ```bash
 # 1. 同时设置三种类型
@@ -166,7 +148,7 @@ ohos-pasteboard has-data-type --type text/uri
 ohos-pasteboard get-data
 ```
 
-### 工作流 5：顺序操作
+### 工作流 4：顺序操作
 
 ```bash
 # 1. 设置并获取文本
@@ -187,18 +169,6 @@ ohos-pasteboard has-data
 ```
 
 ## 参数验证测试
-
-### 超时范围验证
-
-| 超时值 | 有效？ | 范围 | 测试结果 |
-|---------------|--------|-------|-------------|
-| 0 | ❌ 否 | 1-5000 | `ERR_ARG_OUT_OF_RANGE` |
-| 1 | ✅ 是 | 最小值 | 成功 |
-| 100 | ✅ 是 | 范围内 | 成功 |
-| 1000 | ✅ 是 | 范围内 | 成功 |
-| 3000 | ✅ 是 | 范围内 | 成功 |
-| 5000 | ✅ 是 | 最大值 | 成功 |
-| 6000 | ❌ 否 | 超过最大值 | `ERR_ARG_OUT_OF_RANGE` |
 
 ### MIME 类型值
 

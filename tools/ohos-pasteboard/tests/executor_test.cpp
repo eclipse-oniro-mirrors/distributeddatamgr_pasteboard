@@ -51,7 +51,7 @@ HWTEST_F(ExecutorTest, ExecuteCommand_CommandHelp_Success, TestSize.Level1)
     std::vector<std::string> args = {"set-data", "--help"};
     std::string result = ExecuteCommand(args);
     
-    // help输出到stderr，返回空字符串
+    // help输出到stdout，返回空字符串
     EXPECT_TRUE(result.empty());
 }
 
@@ -60,19 +60,8 @@ HWTEST_F(ExecutorTest, ExecuteCommand_HasDataType_NoMimeType_Error, TestSize.Lev
     std::vector<std::string> args = {"has-data-type", "--help"};
     std::string result = ExecuteCommand(args);
     
-    // help输出到stderr，返回空字符串
+    // help输出到stdout，返回空字符串
     EXPECT_TRUE(result.empty());
-}
-
-HWTEST_F(ExecutorTest, ExecuteCommand_HasDataType_InvalidTimeout_Error, TestSize.Level1)
-{
-    std::vector<std::string> args = {"has-data-type", "--type", "text/plain", "--timeout", "0"};
-    std::string result = ExecuteCommand(args);
-    
-    json parsed = json::parse(result);
-    EXPECT_EQ(parsed["type"], "result");
-    EXPECT_EQ(parsed["status"], "failed");
-    EXPECT_FALSE(parsed.contains("data"));
 }
 
 HWTEST_F(ExecutorTest, AllCommands_Registered, TestSize.Level2)
@@ -83,8 +72,8 @@ HWTEST_F(ExecutorTest, AllCommands_Registered, TestSize.Level2)
     };
     
     RegisterAllCommands();
-    auto& registry = CommandRegistry::Instance();
-    for (const auto& cmd : commands) {
+    auto &registry = CommandRegistry::Instance();
+    for (const auto &cmd : commands) {
         auto command = registry.GetCommand(cmd);
         EXPECT_TRUE(command != nullptr) << "Command " << cmd << " not registered";
     }
@@ -95,7 +84,7 @@ HWTEST_F(ExecutorTest, HelpCommand_AllFieldsPresent, TestSize.Level2)
     std::vector<std::string> args = {"set-data", "--help"};
     std::string result = ExecuteCommand(args);
     
-    // help输出到stderr，返回空字符串
+    // help输出到stdout，返回空字符串
     EXPECT_TRUE(result.empty());
 }
 
@@ -104,6 +93,6 @@ HWTEST_F(ExecutorTest, GlobalHelp_CommandsListComplete, TestSize.Level2)
     std::vector<std::string> args = {"--help"};
     std::string result = ExecuteCommand(args);
     
-    // help输出到stderr，返回空字符串
+    // help输出到stdout，返回空字符串
     EXPECT_TRUE(result.empty());
 }

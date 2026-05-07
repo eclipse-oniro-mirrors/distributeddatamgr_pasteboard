@@ -102,64 +102,19 @@ HWTEST_F(ParserTest, ParseSetData_DuplicateParams_Success, TestSize.Level1)
     EXPECT_EQ(result.orderedParams.size(), 2);
 }
 
-HWTEST_F(ParserTest, ParseHasDataType_NoTimeout_Success, TestSize.Level1)
+HWTEST_F(ParserTest, ParseHasDataType_Success, TestSize.Level1)
 {
     std::vector<std::string> args = {"--type", "text/plain"};
     auto result = SpecialParser::ParseHasDataType(args);
-    
-    EXPECT_TRUE(result.success);
-    EXPECT_FALSE(result.hasTimeout);
-    EXPECT_EQ(result.type, "text/plain");
-}
 
-HWTEST_F(ParserTest, ParseHasDataType_WithTimeout_Success, TestSize.Level1)
-{
-    std::vector<std::string> args = {"--type", "text/plain", "--timeout", "1000"};
-    auto result = SpecialParser::ParseHasDataType(args);
-    
     EXPECT_TRUE(result.success);
-    EXPECT_TRUE(result.hasTimeout);
-    EXPECT_EQ(result.timeout, 1000);
+    EXPECT_EQ(result.type, "text/plain");
 }
 
 HWTEST_F(ParserTest, ParseHasDataType_MissingMimeType_Error, TestSize.Level1)
 {
     std::vector<std::string> args = {};
     auto result = SpecialParser::ParseHasDataType(args);
-    
+
     EXPECT_FALSE(result.success);
-}
-
-HWTEST_F(ParserTest, ParseHasDataType_InvalidTimeout_Error, TestSize.Level1)
-{
-    std::vector<std::string> args = {"--type", "text/plain", "--timeout", "0"};
-    auto result = SpecialParser::ParseHasDataType(args);
-    
-    EXPECT_FALSE(result.success);
-}
-
-HWTEST_F(ParserTest, ParseHasDataType_OutOfRangeTimeout_Error, TestSize.Level1)
-{
-    std::vector<std::string> args = {"--type", "text/plain", "--timeout", "6000"};
-    auto result = SpecialParser::ParseHasDataType(args);
-    
-    EXPECT_FALSE(result.success);
-}
-
-HWTEST_F(ParserTest, ParseHasDataType_MinTimeout_1_Success, TestSize.Level1)
-{
-    std::vector<std::string> args = {"--type", "text/plain", "--timeout", "1"};
-    auto result = SpecialParser::ParseHasDataType(args);
-    
-    EXPECT_TRUE(result.success);
-    EXPECT_EQ(result.timeout, 1);
-}
-
-HWTEST_F(ParserTest, ParseHasDataType_MaxTimeout_5000_Success, TestSize.Level1)
-{
-    std::vector<std::string> args = {"--type", "text/plain", "--timeout", "5000"};
-    auto result = SpecialParser::ParseHasDataType(args);
-    
-    EXPECT_TRUE(result.success);
-    EXPECT_EQ(result.timeout, 5000);
 }

@@ -186,12 +186,6 @@
             "type": "string",
             "description": "Type to check (e.g., text/plain, text/html, text/uri)",
             "enum": ["text/plain", "text/html", "text/uri"]
-          },
-          "timeout": {
-            "type": "integer",
-            "description": "Timeout in milliseconds for the check operation",
-            "minimum": 1,
-            "maximum": 5000
           }
         },
         "required": ["type"]
@@ -211,8 +205,7 @@
             "type": "object",
             "properties": {
               "hasType": {"type": "boolean"},
-              "type": {"type": "string"},
-              "timeout": {"type": "integer"}
+              "type": {"type": "string"}
             }
           },
           "errCode": {"type": "string"},

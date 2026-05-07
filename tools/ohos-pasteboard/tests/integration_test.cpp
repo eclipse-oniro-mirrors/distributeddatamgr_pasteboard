@@ -161,25 +161,6 @@ HWTEST_F(IntegrationTest, MimeTypeCheck_SetText_HasDataType_MatchAndMismatch, Te
     }
 }
 
-HWTEST_F(IntegrationTest, Timeout_HasDataType_WithTimeout, TestSize.Level3)
-{
-    std::vector<std::string> setArgs = {"set-data", "--text", "timeout-test"};
-    std::string setResult = ExecuteCommand(setArgs);
-    json setParsed = json::parse(setResult);
-    
-    if (setParsed["status"] == "success") {
-        std::vector<std::string> hasTimeoutArgs1 = {"has-data-type", "--type", "text/plain", "--timeout", "1000"};
-        std::string hasTimeoutResult1 = ExecuteCommand(hasTimeoutArgs1);
-        json parsedTimeout1 = json::parse(hasTimeoutResult1);
-        EXPECT_TRUE(parsedTimeout1["status"] == "success" || parsedTimeout1["status"] == "failed");
-        
-        std::vector<std::string> hasTimeoutArgs2 = {"has-data-type", "--type", "image/jpeg", "--timeout", "500"};
-        std::string hasTimeoutResult2 = ExecuteCommand(hasTimeoutArgs2);
-        json parsedTimeout2 = json::parse(hasTimeoutResult2);
-        EXPECT_TRUE(parsedTimeout2["status"] == "success" || parsedTimeout2["status"] == "failed");
-    }
-}
-
 HWTEST_F(IntegrationTest, SequentialOperations_MultipleSetGet, TestSize.Level3)
 {
     std::vector<std::string> set1Args = {"set-data", "--text", "seq-test-1"};
@@ -231,8 +212,8 @@ HWTEST_F(IntegrationTest, AllCommands_ComprehensiveCheck, TestSize.Level3)
         "has-data", "has-data-type", "has-remote-data"
     };
     
-    // Verify commands work via ExecuteCommand (help returns empty string as output goes to stderr)
-    for (const auto& cmd : commands) {
+    // Verify commands work via ExecuteCommand (help returns empty string as output goes to stdout)
+    for (const auto &cmd : commands) {
         std::vector<std::string> helpArgs = {cmd, "--help"};
         std::string helpResult = ExecuteCommand(helpArgs);
         EXPECT_TRUE(helpResult.empty()) << "Command " << cmd << " help should return empty string";

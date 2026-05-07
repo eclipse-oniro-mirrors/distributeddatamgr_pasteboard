@@ -63,16 +63,11 @@ std::vector<std::string> CommandRegistry::GetAllCommandNames()
     return names;
 }
 
-static void PrintHelpToStderr(const std::string &helpText)
-{
-    std::cerr << helpText << std::endl;
-}
-
 static std::string BuildGlobalHelp()
 {
     constexpr uint32_t COMMAND_NAME_MAX_LEN = 20;
 
-    auto& registry = CommandRegistry::Instance();
+    auto &registry = CommandRegistry::Instance();
     auto cmdNames = registry.GetAllCommandNames();
 
     std::ostringstream oss;
@@ -87,7 +82,7 @@ static std::string BuildGlobalHelp()
     oss << "  --help\tDisplay this help message" << std::endl << std::endl;
 
     oss << "SubCommands:" << std::endl;
-    for (const auto& name : cmdNames) {
+    for (const auto &name : cmdNames) {
         auto cmd = registry.GetCommand(name);
         if (cmd) {
             oss << "  " << std::left << std::setw(COMMAND_NAME_MAX_LEN) << name << cmd->GetDescription() << std::endl;
@@ -132,7 +127,7 @@ static std::string BuildCommandHelp(std::shared_ptr<Command> cmd)
     auto examples = cmd->GetExamples();
     if (!examples.empty()) {
         oss << "Examples:\n";
-        for (const auto& example : examples) {
+        for (const auto &example : examples) {
             oss << "  " << example << "\n";
         }
     }
@@ -144,12 +139,12 @@ std::string ExecuteCommand(const std::vector<std::string> &args)
     RegisterAllCommands();
 
     if (args.empty()) {
-        PrintHelpToStderr(BuildGlobalHelp());
+        OutputPrinter::PrintHelp(BuildGlobalHelp());
         return "";
     }
 
     if (args[0] == "--help") {
-        PrintHelpToStderr(BuildGlobalHelp());
+        OutputPrinter::PrintHelp(BuildGlobalHelp());
         return "";
     }
 
@@ -165,7 +160,7 @@ std::string ExecuteCommand(const std::vector<std::string> &args)
 
     for (const auto &arg : cmdArgs) {
         if (arg == "--help") {
-            PrintHelpToStderr(BuildCommandHelp(cmd));
+            OutputPrinter::PrintHelp(BuildCommandHelp(cmd));
             return "";
         }
     }
@@ -175,15 +170,13 @@ std::string ExecuteCommand(const std::vector<std::string> &args)
 
 void RegisterAllCommands()
 {
-    auto& registry = CommandRegistry::Instance();
-    if (!registry.GetCommand("set-data")) {
-        registry.Register(std::make_shared<SetDataCommand>());
-        registry.Register(std::make_shared<GetDataCommand>());
-        registry.Register(std::make_shared<ClearDataCommand>());
-        registry.Register(std::make_shared<HasDataCommand>());
-        registry.Register(std::make_shared<HasDataTypeCommand>());
-        registry.Register(std::make_shared<HasRemoteDataCommand>());
-    }
+    auto &registry = CommandRegistry::Instance();
+    registry.Register(std::make_shared<SetDataCommand>());
+    registry.Register(std::make_shared<GetDataCommand>());
+    registry.Register(std::make_shared<ClearDataCommand>());
+    registry.Register(std::make_shared<HasDataCommand>());
+    registry.Register(std::make_shared<HasDataTypeCommand>());
+    registry.Register(std::make_shared<HasRemoteDataCommand>());
 }
 } // namespace Pasteboard
 } // namespace OHOS

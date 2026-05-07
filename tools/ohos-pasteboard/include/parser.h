@@ -39,8 +39,6 @@ public:
         bool success;
         std::string errMsg;
         std::string type;
-        bool hasTimeout;
-        uint32_t timeout;
     };
 
     static SetDataResult ParseSetData(const std::vector<std::string> &args);

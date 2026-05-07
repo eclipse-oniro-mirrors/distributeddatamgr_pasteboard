@@ -17,6 +17,7 @@
 #define OHOS_PASTEBOARD_PRINTER_H
 
 #include <string>
+#include <iostream>
 #include <nlohmann/json.hpp>
 
 namespace OHOS {
@@ -27,6 +28,7 @@ class OutputPrinter {
 public:
     static std::string PrintSuccess(const json &data);
     static std::string PrintError(const std::string &errCode, const std::string &errMsg, const std::string &suggestion);
+    static void PrintHelp(const std::string &helpText);
 };
 } // namespace Pasteboard
 } // namespace OHOS
