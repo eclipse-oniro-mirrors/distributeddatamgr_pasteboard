@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -75,6 +75,22 @@ FFI_EXPORT void FfiOHOSSystemPasteboardClearData(int64_t id);
 FFI_EXPORT RetDataBool FfiOHOSSystemPasteboardIsRemoteData(int64_t id);
 FFI_EXPORT RetDataBool FfiOHOSSystemPasteboardHasDataType(int64_t id, const char *mimeType);
 FFI_EXPORT RetDataCString FfiOHOSSystemPasteboardGetDataSource(int64_t id);
+
+constexpr int8_t STRING_VALUE_TYPE = 0;
+constexpr int8_t PIXELMAP_VALUE_TYPE = 1;
+constexpr int8_t ARRAYBUF_VALUE_TYPE = 2;
+
+typedef struct {
+    int8_t valueType;
+    char *mimeType;
+    void *value;
+    int64_t size;
+} CPasteDataEntry;
+
+typedef struct {
+    CPasteDataEntry *head;
+    int64_t size;
+} CArrPasteDataEntry;
 }
 
 #endif
