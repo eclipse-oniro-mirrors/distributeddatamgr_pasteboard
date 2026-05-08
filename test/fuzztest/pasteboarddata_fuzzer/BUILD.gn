@@ -52,6 +52,7 @@ ohos_fuzztest("PasteboardDataFuzzTest") {
   ]
 
   external_deps = [
+    "ability_base:want",
     "ability_base:zuri",
     "c_utils:utils",
     "hilog:libhilog",

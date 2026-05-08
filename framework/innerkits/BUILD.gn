@@ -93,6 +93,7 @@ ohos_shared_library("pasteboard_data") {
   deps = [ "${pasteboard_service_path}:pasteboard_client_idl" ]
 
   external_deps = [
+    "ability_base:want",
     "ability_base:zuri",
     "ability_runtime:ability_manager",
     "ability_runtime:uri_permission_mgr",
@@ -164,6 +165,7 @@ ohos_shared_library("pasteboard_client") {
   ]
 
   external_deps = [
+    "ability_base:want",
     "ability_base:zuri",
     "ability_runtime:ability_manager",
     "ability_runtime:uri_permission_mgr",

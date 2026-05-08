@@ -216,6 +216,7 @@ ohos_source_set("pasteboard_stub_proxy") {
   sources += [ "zidl/src/pasteboard_observer_proxy.cpp" ]
   deps = [ ":pasteboard_service_interface" ]
   external_deps = [
+    "ability_base:want",
     "c_utils:utils",
     "hilog:libhilog",
     "image_framework:image",
@@ -280,6 +281,7 @@ ohos_source_set("pasteboard_service_idl") {
 
   deps = [ ":pasteboard_service_interface" ]
   external_deps = [
+    "ability_base:want",
     "c_utils:utils",
     "hilog:libhilog",
     "image_framework:image",

@@ -436,6 +436,7 @@ ohos_unittest("PasteboardPatternTest") {
   ]
   configs = [ ":module_private_config" ]
   external_deps = [
+    "ability_base:want",
     "c_utils:utils",
     "ffrt:libffrt",
     "googletest:gtest_main",
@@ -471,6 +472,7 @@ ohos_unittest("PasteboardDelayStubTest") {
     "${pasteboard_service_path}:pasteboard_service",
   ]
   external_deps = [
+    "ability_base:want",
     "c_utils:utils",
     "ffrt:libffrt",
     "googletest:gmock_main",
@@ -500,6 +502,7 @@ ohos_unittest("PasteboardDelayProxyTest") {
     "${pasteboard_service_path}:pasteboard_service",
   ]
   external_deps = [
+    "ability_base:want",
     "c_utils:utils",
     "ffrt:libffrt",
     "googletest:gmock_main",
@@ -522,6 +525,7 @@ ohos_unittest("PasteboardEntryGetterStubTest") {
   configs = [ ":module_private_config" ]
   cflags = [ "-fno-access-control" ]
   external_deps = [
+    "ability_base:want",
     "c_utils:utils",
     "ffrt:libffrt",
     "googletest:gmock",
@@ -550,6 +554,7 @@ ohos_unittest("PasteboardEntryGetterProxyTest") {
   configs = [ ":module_private_config" ]
   cflags = [ "-fno-access-control" ]
   external_deps = [
+    "ability_base:want",
     "c_utils:utils",
     "ffrt:libffrt",
     "googletest:gmock",
@@ -617,6 +622,7 @@ ohos_unittest("PasteboardDisposableManagerTest") {
   ]
 
   external_deps = [
+    "ability_base:want",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -2041,6 +2047,7 @@ ohos_unittest("EntityRecognitionObserverStubTest") {
     "${pasteboard_service_path}:pasteboard_service",
   ]
   external_deps = [
+    "ability_base:want",
     "c_utils:utils",
     "ffrt:libffrt",
     "googletest:gtest_main",
@@ -2067,12 +2074,14 @@ ohos_unittest("HiViewAdapterTest") {
     "${pasteboard_service_path}:pasteboard_service",
   ]
   external_deps = [
+    "ability_base:want",
     "c_utils:utils",
     "ffrt:libffrt",
     "googletest:gtest_main",
     "hisysevent:libhisysevent",
     "hilog:libhilog",
     "image_framework:image",
+    "image_framework:image_native",
     "init:libbegetutil",
     "udmf:udmf_client",
   ]
