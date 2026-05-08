@@ -102,6 +102,7 @@ ohos_shared_library("pasteboard_data") {
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
     "hilog:libhilog",
+    "image_framework:image",
     "image_framework:image_native",
     "ipc:ipc_single",
     "libxml2:libxml2",

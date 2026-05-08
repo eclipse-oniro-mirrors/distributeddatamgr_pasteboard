@@ -41,6 +41,7 @@ common_external_deps = [
   "c_utils:utils",
   "ffrt:libffrt",
   "hilog:libhilog",
+  "image_framework:image",
   "ipc:ipc_single",
   "os_account:os_account_innerkits",
   "udmf:libudmf",

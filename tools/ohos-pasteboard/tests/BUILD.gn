@@ -57,6 +57,7 @@ ohos_unittest("ExecuteCommandTest") {
     "ability_base:zuri",
     "c_utils:utils",
     "hilog:libhilog",
+    "image_framework:image",
     "ipc:ipc_single",
     "json:nlohmann_json_static",
     "udmf:udmf_client",
