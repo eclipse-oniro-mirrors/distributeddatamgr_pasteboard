@@ -117,7 +117,7 @@ private:
         }
         auto *tlvHead = reinterpret_cast<TLVHead *>(data_.data() + cursor_);
         tlvHead->tag = HostToNet(type);
-        tlvHead->len = HostToNet((uint32_t)sizeof(value));
+        tlvHead->len = HostToNet(static_cast<uint32_t>(sizeof(value)));
         auto valueBuff = HostToNet(value);
         auto ret = memcpy_s(tlvHead->value, total_ - cursor_ - sizeof(TLVHead), &valueBuff, sizeof(value));
         if (ret != EOK) {

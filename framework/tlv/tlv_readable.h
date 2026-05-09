@@ -102,13 +102,13 @@ public:
     bool ReadValue(std::map<std::string, std::vector<uint8_t>> &value, const TLVHead &head);
     bool ReadValue(Details &value, const TLVHead &head);
 
-    template<typename _InTp>
+    template<typename _OutTp>
     bool ReadVariant(
-        uint32_t step, uint32_t index, _InTp &input, const TLVHead &head);
+        uint32_t step, uint32_t index, _OutTp &output, const TLVHead &head);
 
-    template<typename _InTp, typename _First, typename... _Rest>
+    template<typename _OutTp, typename _First, typename... _Rest>
     bool ReadVariant(
-        uint32_t step, uint32_t index, _InTp &input, const TLVHead &head);
+        uint32_t step, uint32_t index, _OutTp &value, const TLVHead &head);
 
     template<typename... _Types>
     bool ReadValue(std::variant<_Types...> &value, const TLVHead &head);
