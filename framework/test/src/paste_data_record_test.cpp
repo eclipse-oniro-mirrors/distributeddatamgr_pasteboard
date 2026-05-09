@@ -521,12 +521,12 @@ HWTEST_F(PasteDataRecordTest, GetHtmlTextV0Test002, TestSize.Level0)
 HWTEST_F(PasteDataRecordTest, GetHtmlTextV0Test003, TestSize.Level0)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "GetHtmlTextV0Test003 start");
-    std::string html = nullptr;
+    std::string html = "";
     std::shared_ptr<PasteDataRecord> record = PasteDataRecord::NewHtmlRecord(html);
     ASSERT_NE(record, nullptr);
 
     auto htmlText = record->GetHtmlTextV0();
-    EXPECT_EQ(htmlText, nullptr);
+    EXPECT_NE(htmlText, nullptr);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "GetHtmlTextV0Test003 end");
 }
 
@@ -614,12 +614,12 @@ HWTEST_F(PasteDataRecordTest, GetPlainTextV0Test002, TestSize.Level0)
 HWTEST_F(PasteDataRecordTest, GetPlainTextV0Test003, TestSize.Level0)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "GetPlainTextV0Test003 start");
-    std::string text = nullptr;
+    std::string text = "";
     std::shared_ptr<PasteDataRecord> record = PasteDataRecord::NewPlainTextRecord(text);
     ASSERT_NE(record, nullptr);
 
     auto plainText = record->GetPlainTextV0();
-    EXPECT_EQ(plainText, nullptr);
+    EXPECT_NE(plainText, nullptr);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "GetPlainTextV0Test003 end");
 }
 
