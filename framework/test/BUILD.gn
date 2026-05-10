@@ -146,7 +146,6 @@ ohos_unittest("PasteboardDevProfileTest") {
   module_out_path = module_output_path
 
   sources = [
-    "mock/device_manager_mock.cpp",
     "mock/ffrt_utils_mock.cpp",
     "${pasteboard_framework_path}/clip/clip_plugin.cpp",
     "${pasteboard_framework_path}/clip/default_clip.cpp",
