@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Huawei Device Co., Ltd.
+ * Copyright (C) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,12 +17,23 @@
 #define PASTEBOARD_WINDOW_MANAGER_H
 
 #include <cstdint>
+#include <vector>
+
+#ifdef SCENE_BOARD_ENABLE
+#include "window_manager_lite.h"
+#else
+#include "window_manager.h"
+#endif // SCENE_BOARD_ENABLE
 
 namespace OHOS {
 namespace MiscServices {
 class WindowManager {
 public:
     static int32_t GetFocusWindowId();
+    static int32_t GetFocusWindowId(int32_t userId);
+    static void GetFocusWindowInfo(int32_t userId, Rosen::FocusChangeInfo &info);
+    static Rosen::WMError GetVisibilityWindowInfo(
+        int32_t userId, std::vector<sptr<Rosen::WindowVisibilityInfo>> &infos);
 };
 } // namespace MiscServices
 } // namespace OHOS

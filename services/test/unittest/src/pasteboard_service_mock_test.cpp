@@ -2739,7 +2739,7 @@ HWTEST_F(PasteboardServiceMockTest, IsNeedThaw002, TestSize.Level1)
     EXPECT_NE(tempPasteboard, nullptr);
     testing::NiceMock<PasteboardServiceInterfaceMock> mock;
     EXPECT_CALL(mock, GetInstance).WillOnce(testing::Return(nullptr));
-    bool result = tempPasteboard->IsNeedThaw(PasteboardEventStatus::PASTEBOARD_WRITE);
+    bool result = tempPasteboard->IsNeedThaw(ACCOUNT_IDS_RANDOM, PasteboardEventStatus::PASTEBOARD_WRITE);
     EXPECT_FALSE(result);
 }
 
@@ -2757,7 +2757,7 @@ HWTEST_F(PasteboardServiceMockTest, IsNeedThaw003, TestSize.Level1)
     testing::NiceMock<PasteboardServiceInterfaceMock> mock;
     EXPECT_CALL(mock, GetInstance).WillOnce(testing::Return(instance_));
     EXPECT_CALL(mock, GetDefaultInputMethod).WillOnce(testing::Return(INT32_NEGATIVE_NUMBER));
-    bool result = tempPasteboard->IsNeedThaw(PasteboardEventStatus::PASTEBOARD_WRITE);
+    bool result = tempPasteboard->IsNeedThaw(ACCOUNT_IDS_RANDOM, PasteboardEventStatus::PASTEBOARD_WRITE);
     EXPECT_FALSE(result);
 }
 
@@ -2775,7 +2775,7 @@ HWTEST_F(PasteboardServiceMockTest, IsNeedThaw004, TestSize.Level1)
     testing::NiceMock<PasteboardServiceInterfaceMock> mock;
     EXPECT_CALL(mock, GetInstance).WillOnce(testing::Return(instance_));
     EXPECT_CALL(mock, GetDefaultInputMethod).WillOnce(testing::Return(0));
-    bool result = tempPasteboard->IsNeedThaw(PasteboardEventStatus::PASTEBOARD_WRITE);
+    bool result = tempPasteboard->IsNeedThaw(ACCOUNT_IDS_RANDOM, PasteboardEventStatus::PASTEBOARD_WRITE);
     EXPECT_FALSE(result);
 }
 
@@ -2793,7 +2793,7 @@ HWTEST_F(PasteboardServiceMockTest, IsNeedThaw005, TestSize.Level1)
     testing::NiceMock<PasteboardServiceInterfaceMock> mock;
     EXPECT_CALL(mock, GetInstance).WillOnce(testing::Return(instance_));
     EXPECT_CALL(mock, GetDefaultInputMethod).WillOnce(testing::Return(0));
-    bool result = tempPasteboard->IsNeedThaw(PasteboardEventStatus::PASTEBOARD_WRITE);
+    bool result = tempPasteboard->IsNeedThaw(ACCOUNT_IDS_RANDOM, PasteboardEventStatus::PASTEBOARD_WRITE);
     EXPECT_TRUE(result);
 }
 
@@ -2810,15 +2810,16 @@ HWTEST_F(PasteboardServiceMockTest, GrantUriPermissionTest001, TestSize.Level1)
     EXPECT_CALL(mock, GetBoolParameter(_, _)).WillRepeatedly(testing::Return(true));
 
     std::vector<Uri> grantUris;
-    std::string targetBundleName = "com.example.app";
-    int32_t appIndex = 1;
+    uint32_t targetTokenId = 1;
+    int32_t targetUserId = 100;
+    uint32_t srcTokenId = 2;
     std::string uriStr = URI_STRING;
     auto uri = OHOS::Uri(uriStr);
     grantUris.push_back(uri);
     std::map<uint32_t, std::vector<Uri>> uriMap;
     uriMap.insert(std::make_pair(PasteDataRecord::READ_PERMISSION, grantUris));
 
-    auto result = tempPasteboard->GrantUriPermission(uriMap, targetBundleName, false, appIndex);
+    auto result = tempPasteboard->GrantUriPermission(uriMap, targetTokenId, targetUserId, srcTokenId, false);
     EXPECT_NE(result, static_cast<int32_t>(PasteboardError::E_OK));
 }
 
@@ -2835,15 +2836,16 @@ HWTEST_F(PasteboardServiceMockTest, GrantUriPermissionTest002, TestSize.Level1)
     EXPECT_CALL(mock, GetBoolParameter(_, _)).WillRepeatedly(testing::Return(false));
 
     std::vector<Uri> grantUris;
-    std::string targetBundleName = "com.example.app";
-    int32_t appIndex = 1;
+    uint32_t targetTokenId = 1;
+    int32_t targetUserId = 100;
+    uint32_t srcTokenId = 2;
     std::string uriStr = URI_STRING;
     auto uri = OHOS::Uri(uriStr);
     grantUris.push_back(uri);
     std::map<uint32_t, std::vector<Uri>> uriMap;
     uriMap.insert(std::make_pair(PasteDataRecord::READ_PERMISSION, grantUris));
 
-    auto result = tempPasteboard->GrantUriPermission(uriMap, targetBundleName, false, appIndex);
+    auto result = tempPasteboard->GrantUriPermission(uriMap, targetTokenId, targetUserId, srcTokenId, false);
     EXPECT_NE(result, static_cast<int32_t>(PasteboardError::E_OK));
 }
 
@@ -2860,15 +2862,16 @@ HWTEST_F(PasteboardServiceMockTest, GrantUriPermissionTest003, TestSize.Level1)
     EXPECT_CALL(mock, GetBoolParameter(_, _)).WillRepeatedly(testing::Return(true));
 
     std::vector<Uri> grantUris;
-    std::string targetBundleName = "com.example.app";
-    int32_t appIndex = 1;
+    uint32_t targetTokenId = 1;
+    int32_t targetUserId = 100;
+    uint32_t srcTokenId = 2;
     std::string uriStr = URI_STRING;
     auto uri = OHOS::Uri(uriStr);
     grantUris.push_back(uri);
     std::map<uint32_t, std::vector<Uri>> uriMap;
     uriMap.insert(std::make_pair(PasteDataRecord::READ_PERMISSION, grantUris));
 
-    auto result = tempPasteboard->GrantUriPermission(uriMap, targetBundleName, true, appIndex);
+    auto result = tempPasteboard->GrantUriPermission(uriMap, targetTokenId, targetUserId, srcTokenId, true);
     EXPECT_NE(result, static_cast<int32_t>(PasteboardError::E_OK));
 }
 
@@ -2885,15 +2888,16 @@ HWTEST_F(PasteboardServiceMockTest, GrantUriPermissionTest004, TestSize.Level1)
     EXPECT_CALL(mock, GetBoolParameter(_, _)).WillRepeatedly(testing::Return(false));
 
     std::vector<Uri> grantUris;
-    std::string targetBundleName = "com.example.app";
-    int32_t appIndex = 1;
+    uint32_t targetTokenId = 1;
+    int32_t targetUserId = 100;
+    uint32_t srcTokenId = 2;
     std::string uriStr = URI_STRING;
     auto uri = OHOS::Uri(uriStr);
     grantUris.push_back(uri);
     std::map<uint32_t, std::vector<Uri>> uriMap;
     uriMap.insert(std::make_pair(PasteDataRecord::READ_PERMISSION, grantUris));
 
-    auto result = tempPasteboard->GrantUriPermission(uriMap, targetBundleName, true, appIndex);
+    auto result = tempPasteboard->GrantUriPermission(uriMap, targetTokenId, targetUserId, srcTokenId, true);
     EXPECT_NE(result, static_cast<int32_t>(PasteboardError::E_OK));
 }
 

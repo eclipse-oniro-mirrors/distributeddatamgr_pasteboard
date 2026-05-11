@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Huawei Device Co., Ltd.
+ * Copyright (C) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,12 +24,32 @@
 namespace OHOS::MiscServices {
 int32_t WindowManager::GetFocusWindowId()
 {
+    return GetFocusWindowId(-1);
+}
+
+int32_t WindowManager::GetFocusWindowId(int32_t userId)
+{
     Rosen::FocusChangeInfo info;
-#ifdef SCENE_BOARD_ENABLE
-    Rosen::WindowManagerLite::GetInstance().GetFocusWindowInfo(info);
-#else
-    Rosen::WindowManager::GetInstance().GetFocusWindowInfo(info);
-#endif
+    GetFocusWindowInfo(userId, info);
     return info.windowId_;
+}
+
+void WindowManager::GetFocusWindowInfo(int32_t userId, Rosen::FocusChangeInfo &info)
+{
+#ifdef SCENE_BOARD_ENABLE
+    Rosen::WindowManagerLite::GetInstance(userId).GetFocusWindowInfo(info);
+#else
+    Rosen::WindowManager::GetInstance(userId).GetFocusWindowInfo(info);
+#endif
+}
+
+Rosen::WMError WindowManager::GetVisibilityWindowInfo(
+    int32_t userId, std::vector<sptr<Rosen::WindowVisibilityInfo>> &infos)
+{
+#ifdef SCENE_BOARD_ENABLE
+    return Rosen::WindowManagerLite::GetInstance(userId).GetVisibilityWindowInfo(infos);
+#else
+    return Rosen::WindowManager::GetInstance(userId).GetVisibilityWindowInfo(infos);
+#endif
 }
 } // namespace OHOS::MiscServices
