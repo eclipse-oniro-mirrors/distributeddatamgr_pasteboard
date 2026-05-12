@@ -79,13 +79,29 @@ ohos-pasteboard <command> --help
 
 | 错误码 | 说明 |
 |------------|-------------|
-| `ERR_ARG_MISSING` | 缺少必需参数 |
 | `ERR_ARG_INVALID` | 参数值无效 |
-| `ERR_ARG_OUT_OF_RANGE` | 参数值超出有效范围 |
+| `ERR_ARG_MISSING` | 缺少必需参数 |
 | `ERR_CMD_INVALID` | 未知命令 |
+| `ERR_CROSS_BORDER` | 屏幕状态不匹配 |
+| `ERR_DATA_EXPIRED` | 剪贴板数据已过期 |
+| `ERR_DATA_INVALID` | 数据格式无效 |
+| `ERR_DATA_SIZE` | 数据大小超限 |
+| `ERR_DESERIALIZATION` | 数据反序列化失败 |
+| `ERR_GET_DATA_FAILED` | 获取数据失败 |
+| `ERR_GET_REMOTE` | 获取远端数据失败 |
 | `ERR_INTERNAL_ERROR` | 内部系统错误 |
+| `ERR_INVALID_PARAM` | 参数无效 |
+| `ERR_INVALID_USER` | 用户 ID 无效 |
+| `ERR_NO_DATA` | 剪贴板无数据 |
+| `ERR_NO_USER_DATA` | 当前用户无剪贴板数据 |
 | `ERR_PERMISSION_DENIED` | 权限不足 |
-| `ERR_PASTEBOARD_CLIENT_FAILED` | 剪贴板服务不可用 |
+| `ERR_REMOTE_EXCEPTION` | 远端设备异常 |
+| `ERR_REMOTE_TASK` | 远端任务失败 |
+| `ERR_SERIALIZATION` | 数据序列化失败 |
+| `ERR_SERVICE_UNAVAILABLE` | 剪贴板服务不可用 |
+| `ERR_SET_DATA_FAILED` | 设置数据失败 |
+| `ERR_TASK_PROCESSING` | 任务正在处理中 |
+| `ERR_TIMEOUT` | 操作超时 |
 
 ## 示例
 
@@ -138,9 +154,7 @@ ohos-pasteboard clear-data
 {
   "type": "result",
   "status": "success",
-  "data": {
-    "message": "Clear paste data successfully"
-  }
+  "data": {}
 }
 ```
 
@@ -155,8 +169,7 @@ ohos-pasteboard has-data
   "type": "result",
   "status": "success",
   "data": {
-    "hasData": true,
-    "message": "true"
+    "hasData": true
   }
 }
 ```
@@ -179,8 +192,7 @@ ohos-pasteboard has-data-type --type text/uri
   "status": "success",
   "data": {
     "hasType": true,
-    "type": "text/plain",
-    "message": "true"
+    "type": "text/plain"
   }
 }
 ```
@@ -196,8 +208,7 @@ ohos-pasteboard has-remote-data
   "type": "result",
   "status": "success",
   "data": {
-    "hasRemoteData": false,
-    "message": "false"
+    "hasRemoteData": false
   }
 }
 ```
