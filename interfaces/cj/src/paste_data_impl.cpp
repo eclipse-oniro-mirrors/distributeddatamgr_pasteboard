@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,8 +14,12 @@
  */
 #include "paste_data_impl.h"
 #include "pasteboard_hilog.h"
+#include "pixel_map_impl.h"
+#include "system_pasteboard_impl.h"
 
 using namespace OHOS::MiscServices;
+using namespace OHOS::FFI;
+using OHOS::Media::PixelMapImpl;
 
 namespace OHOS {
 namespace MiscServicesCj {
@@ -89,6 +93,34 @@ void PasteDataImpl::CreatePixelMapData(std::string mimeType, const CJValueType &
 }
 
 void PasteDataImpl::CreateWantData(std::string mimeType, CJValueType value) {}
+
+int32_t CreateCjMultiTypePasteDataObject(
+    const std::map<std::string, std::shared_ptr<MiscServices::EntryValue>> &typeValueMap,
+    const std::string &primaryMimeType,
+    int64_t &outId)
+{
+    PASTEBOARD_HILOGD(PASTEBOARD_MODULE_SERVICE, "CreateCjMultiTypePasteDataObject enter, primaryMimeType=%{public}s",
+        primaryMimeType.c_str());
+
+    auto pasteData = PasteboardClient::GetInstance()->CreateMultiTypeData(
+        std::make_shared<std::map<std::string, std::shared_ptr<EntryValue>>>(typeValueMap), primaryMimeType);
+    if (pasteData == nullptr) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE,
+            "CreateCjMultiTypePasteDataObject: PasteboardClient::CreateMultiTypeData returned null");
+        return ERR_INVALID_INSTANCE_CODE;
+    }
+    auto pasteDataImpl = FFI::FFIData::Create<PasteDataImpl>(pasteData);
+    if (pasteDataImpl == nullptr) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE,
+            "CreateCjMultiTypePasteDataObject: FFIData::Create returned null");
+        return ERR_INVALID_INSTANCE_CODE;
+    }
+    PASTEBOARD_HILOGD(PASTEBOARD_MODULE_SERVICE,
+        "CreateCjMultiTypePasteDataObject success, id=%{public}" PRId64 ", primaryMimeType=%{public}s",
+        pasteDataImpl->GetID(), primaryMimeType.c_str());
+    outId = pasteDataImpl->GetID();
+    return SUCCESS_CODE;
+}
 
 } // namespace MiscServicesCj
 }

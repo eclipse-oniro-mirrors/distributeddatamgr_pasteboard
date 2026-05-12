@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,6 +17,15 @@
 #include "pasteboard_hilog.h"
 #include "pasteboard_log.h"
 #include "system_pasteboard_impl.h"
+
+#ifndef CJ_EXPORT
+#ifndef __WINDOWS__
+#define CJ_EXPORT __attribute__((visibility("default")))
+#else
+#define CJ_EXPORT __declspec(dllexport)
+
+#endif
+#endif
 
 using namespace OHOS::FFI;
 using namespace OHOS::Media;
@@ -970,6 +979,133 @@ RetDataCString FfiOHOSSystemPasteboardGetDataSource(int64_t id)
     ret.code = SUCCESS_CODE;
     LOGI("[PasteData] FfiOHOSSystemPasteboardGetDataSource success");
 
+    return ret;
+}
+
+static std::shared_ptr<EntryValue> CreateEntryValue(const CPasteDataEntry &entry)
+{
+    constexpr int64_t MAX_BUFFER_SIZE = 100 * 1024 * 1024; // 100MB
+
+    switch (entry.valueType) {
+        case STRING_VALUE_TYPE: {
+            if (entry.value == nullptr) {
+                LOGE("[PasteData] CreateEntryValue: string value is null");
+                return nullptr;
+            }
+            char *strPtr = static_cast<char *>(entry.value);
+            return std::make_shared<EntryValue>(std::string(strPtr));
+        }
+        case PIXELMAP_VALUE_TYPE: {
+            if (entry.value == nullptr) {
+                LOGE("[PasteData] CreateEntryValue: pixelMap value is null");
+                return nullptr;
+            }
+            int64_t pixelMapId = *static_cast<int64_t *>(entry.value);
+            auto pixelMapImpl = FFIData::GetData<PixelMapImpl>(pixelMapId);
+            if (pixelMapImpl == nullptr) {
+                LOGE("[PasteData] CreateEntryValue: FFIData::GetData failed, pixelMapId=%{public}" PRId64, pixelMapId);
+                return nullptr;
+            }
+            return std::make_shared<EntryValue>(pixelMapImpl->GetRealPixelMap());
+        }
+        case ARRAYBUF_VALUE_TYPE: {
+            if (entry.value == nullptr || entry.size < 0 || entry.size > MAX_BUFFER_SIZE) {
+                LOGE("[PasteData] CreateEntryValue: invalid arrayBuf, size=%{public}" PRId64, entry.size);
+                return nullptr;
+            }
+            uint8_t *bufPtr = static_cast<uint8_t *>(entry.value);
+            std::vector<uint8_t> arrayBuf(bufPtr, bufPtr + entry.size);
+            return std::make_shared<EntryValue>(std::move(arrayBuf));
+        }
+        default:
+            LOGE("[PasteData] CreateEntryValue: unknown valueType=%{public}d", entry.valueType);
+            return nullptr;
+    }
+}
+
+static bool ValidateEntriesAndMimeTypes(const CArrPasteDataEntry *entries)
+{
+    if (entries == nullptr) {
+        LOGE("[PasteData] ValidateEntriesAndMimeTypes: entries is null");
+        return false;
+    }
+
+    constexpr int64_t MAX_ENTRY_NUM = 512;
+    if (entries->size <= 0 || entries->head == nullptr || entries->size > MAX_ENTRY_NUM) {
+        LOGE("[PasteData] ValidateEntriesAndMimeTypes: invalid entries, size=%{public}" PRId64, entries->size);
+        return false;
+    }
+
+    constexpr int32_t MIMETYPE_MAX_SIZE = 1024;
+    for (int64_t i = 0; i < entries->size; i++) {
+        CPasteDataEntry entry = entries->head[i];
+        if (entry.mimeType == nullptr) {
+            LOGE("[PasteData] ValidateEntriesAndMimeTypes: mimeType is null, index=%{public}" PRId64, i);
+            return false;
+        }
+        std::string mimeTypeStr(entry.mimeType);
+        if (mimeTypeStr.empty() || mimeTypeStr.size() > MIMETYPE_MAX_SIZE) {
+            LOGE("[PasteData] ValidateEntriesAndMimeTypes: invalid mimeType, index=%{public}" PRId64
+                ", mimeType=%{public}s",
+                i, entry.mimeType);
+            return false;
+        }
+    }
+    return true;
+}
+
+static bool BuildTypeValueMap(const CArrPasteDataEntry &entries,
+    std::map<std::string, std::shared_ptr<EntryValue>> &typeValueMap,
+    std::string &primaryMimeType)
+{
+    for (int64_t i = 0; i < entries.size; i++) {
+        CPasteDataEntry entry = entries.head[i];
+        std::string mimeType(entry.mimeType);
+
+        if (primaryMimeType.empty()) {
+            primaryMimeType = mimeType;
+        }
+
+        auto entryValue = CreateEntryValue(entry);
+        if (entryValue == nullptr) {
+            LOGE("[PasteData] BuildTypeValueMap: CreateEntryValue failed, index=%{public}" PRId64
+                ", valueType=%{public}d",
+                i, entry.valueType);
+            return false;
+        }
+
+        typeValueMap.emplace(mimeType, entryValue);
+    }
+    return true;
+}
+
+CJ_EXPORT RetDataI64 FfiOHOSCreateMultiTypePasteData(const CArrPasteDataEntry *entries)
+{
+    RetDataI64 ret = { .code = ERR_INVALID_INSTANCE_CODE, .data = 0 };
+
+    if (!ValidateEntriesAndMimeTypes(entries)) {
+        ret.code = PASTEBOARD_INVALID_PARAMETERS;
+        return ret;
+    }
+
+    LOGD("[PasteData] FfiOHOSCreateMultiTypePasteData enter, entries.size=%{public}" PRId64, entries->size);
+
+    std::map<std::string, std::shared_ptr<EntryValue>> typeValueMap;
+    std::string primaryMimeType;
+
+    if (!BuildTypeValueMap(*entries, typeValueMap, primaryMimeType)) {
+        ret.code = ERR_INVALID_INSTANCE_CODE;
+        return ret;
+    }
+
+    int32_t errCode = CreateCjMultiTypePasteDataObject(typeValueMap, primaryMimeType, ret.data);
+    if (errCode != SUCCESS_CODE) {
+        LOGE("[PasteData] FfiOHOSCreateMultiTypePasteData failed: errCode=%{public}d", errCode);
+        ret.code = errCode;
+        return ret;
+    }
+    ret.code = SUCCESS_CODE;
+    LOGD("[PasteData] FfiOHOSCreateMultiTypePasteData success, id=%{public}" PRId64, ret.data);
     return ret;
 }
 }
