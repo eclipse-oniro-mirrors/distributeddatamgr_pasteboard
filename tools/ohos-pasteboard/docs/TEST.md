@@ -40,14 +40,14 @@
 
 | 测试用例 | 命令示例 | 说明 | 权限 | 前置依赖 | 预期结果 |
 |-----------|-----------------|-------------|------------|------------|-----------------|
-| 清空数据 | `ohos-pasteboard clear-data` | 清空剪贴板所有数据 | 无 | 无 | 成功：`{type:"result",status:"success",data:{message:"Clear paste data successfully"}}` |
+| 清空数据 | `ohos-pasteboard clear-data` | 清空剪贴板所有数据 | 无 | 无 | 成功：`{type:"result",status:"success",data:{}}` |
 | 设置后清空 | `ohos-pasteboard set-data --text "test"`; `ohos-pasteboard clear-data` | 设置数据后清空 | 无 | set-data | 成功 |
 
 ### has-data
 
 | 测试用例 | 命令示例 | 说明 | 权限 | 前置依赖 | 预期结果 |
 |-----------|-----------------|-------------|------------|------------|-----------------|
-| 检查状态 | `ohos-pasteboard has-data` | 检查剪贴板是否有内容 | 无 | 无 | 成功：`{type:"result",status:"success",data:{hasData:boolean,message:"true/false"}}` |
+| 检查状态 | `ohos-pasteboard has-data` | 检查剪贴板是否有内容 | 无 | 无 | 成功：`{type:"result",status:"success",data:{hasData:boolean}}` |
 | 设置后检查 | `ohos-pasteboard set-data --text "test"`; `ohos-pasteboard has-data` | 设置后检查 | 无 | set-data | 成功：`hasData:true` |
 | 清空后检查 | `ohos-pasteboard clear-data`; `ohos-pasteboard has-data` | 清空后检查 | 无 | clear-data | 成功：`hasData:false` |
 
@@ -66,17 +66,17 @@
 
 | 测试用例 | 命令示例 | 说明 | 权限 | 前置依赖 | 预期结果 |
 |-----------|-----------------|-------------|------------|------------|-----------------|
-| 检查远端数据 | `ohos-pasteboard has-remote-data` | 检查数据是否来自远端设备 | 无 | 无 | 成功：`{type:"result",status:"success",data:{hasRemoteData:boolean,message:"true/false"}}` |
+| 检查远端数据 | `ohos-pasteboard has-remote-data` | 检查数据是否来自远端设备 | 无 | 无 | 成功：`{type:"result",status:"success",data:{hasRemoteData:boolean}}` |
 | 本地数据检查 | `ohos-pasteboard set-data --text "test"`; `ohos-pasteboard has-remote-data` | 设置本地数据后检查 | 无 | set-data | 成功：`hasRemoteData:false` |
 
 ### 帮助命令
 
 | 测试用例 | 命令示例 | 说明 | 权限 | 前置依赖 | 预期结果 |
 |-----------|-----------------|-------------|------------|------------|-----------------|
-| 全局帮助 | `ohos-pasteboard --help` | 显示全局帮助 | 无 | 无 | 帮助输出到 stdout，stdout 为空 |
-| 空参数 | `ohos-pasteboard` | 无参数调用 | 无 | 无 | 帮助输出到 stdout，stdout 为空 |
-| 命令帮助 | `ohos-pasteboard set-data --help` | 显示 set-data 帮助 | 无 | 无 | 帮助输出到 stdout，stdout 为空 |
-| has-data-type 帮助 | `ohos-pasteboard has-data-type --help` | 显示 has-data-type 帮助 | 无 | 无 | 帮助输出到 stdout，stdout 为空 |
+| 全局帮助 | `ohos-pasteboard --help` | 显示全局帮助 | 无 | 无 | 帮助文本输出到 stdout（非 JSON 格式） |
+| 空参数 | `ohos-pasteboard` | 无参数调用 | 无 | 无 | 帮助文本输出到 stdout（非 JSON 格式） |
+| 命令帮助 | `ohos-pasteboard set-data --help` | 显示 set-data 帮助 | 无 | 无 | 帮助文本输出到 stdout（非 JSON 格式） |
+| has-data-type 帮助 | `ohos-pasteboard has-data-type --help` | 显示 has-data-type 帮助 | 无 | 无 | 帮助文本输出到 stdout（非 JSON 格式） |
 
 ### 错误场景
 
@@ -182,7 +182,7 @@ ohos-pasteboard has-data
 
 ## JSON 输出验证
 
-所有测试用例验证 JSON 输出结构：
+命令执行结果输出 JSON 结构：
 
 ```json
 // 成功格式
@@ -207,7 +207,8 @@ ohos-pasteboard has-data
 - `status` 为 `"success"` 或 `"failed"`（不是 `"error"`）
 - 失败响应不包含 `data` 字段
 - 失败响应必须包含 `errCode`、`errMsg`、`suggestion`
-- 所有输出使用 2 空格缩进
+- 所有 JSON 输出不使用缩进（紧凑格式）
+- 帮助命令输出为纯文本格式，非 JSON 结构
 
 ## 测试执行
 

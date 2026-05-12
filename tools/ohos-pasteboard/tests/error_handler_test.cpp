@@ -125,7 +125,7 @@ HWTEST_F(ErrorHandlerTest, HandleGetPasteDataError_RemoteException, TestSize.Lev
     std::string result = ErrorHandler::HandleGetPasteDataError(
         static_cast<int32_t>(PasteboardError::REMOTE_EXCEPTION));
     
-    EXPECT_TRUE(result.find("ERR_REMOTE") != std::string::npos);
+    EXPECT_TRUE(result.find("ERR_REMOTE_EXCEPTION") != std::string::npos);
 }
 
 HWTEST_F(ErrorHandlerTest, HandleGetPasteDataError_CrossBorder, TestSize.Level1)

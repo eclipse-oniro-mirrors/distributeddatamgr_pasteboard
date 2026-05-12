@@ -148,7 +148,7 @@ static const std::map<int32_t, std::tuple<std::string, std::string, std::string>
     {
         static_cast<int32_t>(PasteboardError::REMOTE_EXCEPTION),
         {
-            "ERR_REMOTE",
+            "ERR_REMOTE_EXCEPTION",
             "Remote device exception",
             "Failed to get data from remote device."
         }
