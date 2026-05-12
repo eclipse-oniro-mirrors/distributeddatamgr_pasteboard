@@ -134,6 +134,8 @@ public:
     void SetPasteId(const std::string &pasteId);
     std::string GetPasteId() const;
     std::string GetDeviceId() const;
+    int32_t GetUserId() const;
+    void SetUserId(int32_t userId);
 
     static void ShareOptionToString(ShareOption shareOption, std::string &out);
     static std::string CreatePasteId(const std::string &name, uint32_t sequence);

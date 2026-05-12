@@ -922,5 +922,15 @@ size_t PasteData::GetTextSize() const
 { // LCOV_EXCL_START
     return textSize_;
 } // LCOV_EXCL_STOP
+
+int32_t PasteData::GetUserId() const
+{ // LCOV_EXCL_START
+    return userId_;
+} // LCOV_EXCL_STOP
+
+void PasteData::SetUserId(int32_t userId)
+{ // LCOV_EXCL_START
+    userId_ = userId;
+} // LCOV_EXCL_STOP
 } // namespace MiscServices
 } // namespace OHOS

@@ -2443,7 +2443,7 @@ int32_t PasteboardService::SaveData(PasteData &pasteData, int64_t dataSize,
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "userId invalid.");
         return static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR);
     }
-    pasteData.userId_ = appInfo.userId;
+    pasteData.SetUserId(appInfo.userId);
     pasteData.deviceId_ = DMAdapter::GetInstance().GetLocalNetworkId();
     SetPasteDataInfo(pasteData, appInfo);
     auto authority = std::make_pair(appInfo.bundleName, appInfo.appIndex);
@@ -4259,7 +4259,7 @@ bool PasteboardService::SetCurrentData()
             std::unique_lock<std::shared_mutex> write(pasteDataMutex_);
             std::string bundleIndex = PasteBoardCommon::GetDirByAuthority(currentData.GetOriginAuthority());
             PasteboardWebController::GetInstance().SplitWebviewPasteData(
-                currentData, bundleIndex, currentData.userId_);
+                currentData, bundleIndex, currentData.GetUserId());
             PasteboardWebController::GetInstance().SetWebviewPasteData(currentData, bundleIndex);
             PasteboardWebController::GetInstance().CheckAppUriPermission(currentData);
         }
@@ -4382,7 +4382,7 @@ int32_t PasteboardService::ProcessDistributedDelayHtml(PasteData &data, PasteDat
     {
         std::unique_lock<std::shared_mutex> write(pasteDataMutex_);
         std::string bundleIndex = PasteBoardCommon::GetDirByAuthority(data.GetOriginAuthority());
-        if (PasteboardWebController::GetInstance().SplitWebviewPasteData(data, bundleIndex, data.userId_)) {
+        if (PasteboardWebController::GetInstance().SplitWebviewPasteData(data, bundleIndex, data.GetUserId())) {
             PasteboardWebController::GetInstance().SetWebviewPasteData(data, bundleIndex);
             PasteboardWebController::GetInstance().CheckAppUriPermission(data);
         }
@@ -4398,7 +4398,7 @@ int32_t PasteboardService::ProcessDistributedDelayHtml(PasteData &data, PasteDat
     tmp.SetOriginAuthority(data.GetOriginAuthority());
     tmp.SetTokenId(data.GetTokenId());
     std::string bundleIndex = PasteBoardCommon::GetDirByAuthority(data.GetOriginAuthority());
-    if (PasteboardWebController::GetInstance().SplitWebviewPasteData(tmp, bundleIndex, data.userId_)) {
+    if (PasteboardWebController::GetInstance().SplitWebviewPasteData(tmp, bundleIndex, data.GetUserId())) {
         PasteboardWebController::GetInstance().SetWebviewPasteData(tmp, bundleIndex);
         PasteboardWebController::GetInstance().CheckAppUriPermission(tmp);
         GenerateDistributedUri(tmp);
@@ -4729,7 +4729,7 @@ void PasteboardService::GenerateDistributedUri(PasteData &data)
 {
     std::vector<std::string> uris;
     std::vector<size_t> indexes;
-    auto userId = data.userId_;
+    auto userId = data.GetUserId();
     PASTEBOARD_CHECK_AND_RETURN_LOGE(userId != ERROR_USERID, PASTEBOARD_MODULE_SERVICE, "invalid userId");
     std::unique_lock<std::shared_mutex> write(pasteDataMutex_);
     for (size_t i = 0; i < data.GetRecordCount(); i++) {
@@ -5115,7 +5115,7 @@ void PasteboardService::ClearPasteDataUriOnUninstall(std::shared_ptr<PasteData> 
 
         std::lock_guard<decltype(mutex)> lockGuard(mutex);
         PASTEBOARD_CHECK_AND_RETURN_LOGE(clipPlugin_ != nullptr, PASTEBOARD_MODULE_SERVICE, "clipPlugin is null");
-        clipPlugin_->Clear(pasteData->userId_);
+        clipPlugin_->Clear(pasteData->GetUserId());
     });
     PasteBoardCommonUtils::SetThreadTaskName(thread, "ClearUriUninsta");
     thread.detach();
