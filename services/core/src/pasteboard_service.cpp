@@ -947,7 +947,8 @@ int32_t PasteboardService::GetRecordValueByType(uint32_t dataId, uint32_t record
             PASTEBOARD_MODULE_SERVICE, "uri invalid");
         std::map<uint32_t, std::vector<Uri>> grantUris = CheckUriPermission(
             *data, std::make_pair(appInfo.bundleName, appInfo.appIndex));
-        return GrantUriPermission(grantUris, appInfo.tokenId, appInfo.userId, data->GetTokenId(), isRemoteData);
+        return GrantUriPermission(
+            grantUris, appInfo.tokenId, appInfo.userId, data->GetTokenId(), isRemoteData);
     }
     return static_cast<int32_t>(PasteboardError::E_OK);
 }
@@ -1513,7 +1514,8 @@ int32_t PasteboardService::CheckAndGrantRemoteUri(PasteData &data, const AppInfo
         }
     }
     ClearP2PEstablishTaskInfo();
-    return GrantUriPermission(grantUris, appInfo.tokenId, appInfo.userId, data.GetTokenId(), isRemoteData);
+    return GrantUriPermission(
+        grantUris, appInfo.tokenId, appInfo.userId, data.GetTokenId(), isRemoteData);
 }
 
 bool PasteboardService::RemoteDataTaskManager::IsRemoteDataPasting(const Event &event)
@@ -4570,7 +4572,8 @@ int32_t PasteboardService::ProcessRemoteDelayUri(const std::string &deviceId, co
         data, std::make_pair(appInfo.bundleName, appInfo.appIndex));
     if (!grantUris.empty()) {
         EstablishP2PLink(deviceId, data.GetPasteId());
-        int32_t ret = GrantUriPermission(grantUris, appInfo.tokenId, appInfo.userId, data.GetTokenId(), data.IsRemote());
+        int32_t ret = GrantUriPermission(
+            grantUris, appInfo.tokenId, appInfo.userId, data.GetTokenId(), data.IsRemote());
         PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(ret == static_cast<int32_t>(PasteboardError::E_OK), ret,
             PASTEBOARD_MODULE_SERVICE, "grant remote uri failed, uri=%{private}s, ret=%{public}d",
             distributedUri.c_str(), ret);
@@ -4644,7 +4647,8 @@ int32_t PasteboardService::ProcessRemoteDelayHtmlInner(const std::string &remote
         data, std::make_pair(appInfo.bundleName, appInfo.appIndex));
     if (!grantUris.empty()) {
         EstablishP2PLink(remoteDeviceId, data.GetPasteId());
-        int32_t ret = GrantUriPermission(grantUris, appInfo.tokenId, appInfo.userId, data.GetTokenId(), data.IsRemote());
+        int32_t ret = GrantUriPermission(
+            grantUris, appInfo.tokenId, appInfo.userId, data.GetTokenId(), data.IsRemote());
         PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(ret == static_cast<int32_t>(PasteboardError::E_OK), ret,
             PASTEBOARD_MODULE_SERVICE, "grant to %{public}s failed, ret=%{public}d", appInfo.bundleName.c_str(), ret);
     }
@@ -4962,64 +4966,99 @@ void PasteBoardCommonEventSubscriber::OnReceiveEventInner(const EventFwk::Common
     auto want = data.GetWant();
     std::string action = want.GetAction();
     int32_t eventState = data.GetCode();
+
     if (action == EventFwk::CommonEventSupport::COMMON_EVENT_USER_SWITCHED) {
-        std::lock_guard<std::mutex> lock(mutex_);
-        if (pasteboardService_ != nullptr) {
-            auto context = pasteboardService_->ResolveEventUser(data);
-            if (!context.isValid) {
-                PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "user switched userId invalid.");
-                return;
-            }
-            PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "user id switched: %{public}d", context.userId);
-            pasteboardService_->ChangeStoreStatus(context.userId);
-            pasteboardService_->switch_.DeInit();
-            pasteboardService_->switch_.Init(context.userId);
-            PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetSwitch end, userId=%{public}d", context.userId);
-        }
+        HandleUserSwitched(data);
     } else if (action == EventFwk::CommonEventSupport::COMMON_EVENT_USER_STOPPING) {
-        std::lock_guard<std::mutex> lock(mutex_);
-        if (pasteboardService_ != nullptr) {
-            auto context = pasteboardService_->ResolveEventUser(data);
-            if (!context.isValid) {
-                PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "user stopping userId invalid.");
-                return;
-            }
-            PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "user id is stopping: %{public}d", context.userId);
-            pasteboardService_->ClearByEventUser(context.userId);
-        }
+        HandleUserStopping(data);
     } else if (action == EventFwk::CommonEventSupport::COMMON_EVENT_SCREEN_LOCKED) {
-        std::lock_guard<std::mutex> lock(mutex_);
-        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "screen is locked");
-        PasteboardService::currentScreenStatus = ScreenEvent::ScreenLocked;
+        HandleScreenLocked();
     } else if (action == EventFwk::CommonEventSupport::COMMON_EVENT_SCREEN_UNLOCKED) {
-        std::lock_guard<std::mutex> lock(mutex_);
-        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "screen is unlocked");
-        PasteboardService::currentScreenStatus = ScreenEvent::ScreenUnlocked;
+        HandleScreenUnlocked();
     } else if (action == EventFwk::CommonEventSupport::COMMON_EVENT_PACKAGE_REMOVED) {
-        auto tokenId = want.GetIntParam("accessTokenId", -1);
-        if (pasteboardService_ != nullptr) {
-            auto context = pasteboardService_->ResolvePackageRemovedUser(want);
-            if (!context.isValid) {
-                PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "package removed userId invalid.");
-                return;
-            }
-            pasteboardService_->ClearUriOnUninstall(context.userId, tokenId);
-        }
+        HandlePackageRemoved(want);
     } else if (action == EventFwk::CommonEventSupport::COMMON_EVENT_WIFI_POWER_STATE && eventState == WIFI_DISABLED) {
-        if (pasteboardService_ != nullptr) {
-            auto foregroundUserIds = pasteboardService_->GetForegroundUserIds();
-            if (foregroundUserIds.empty()) {
-                PASTEBOARD_HILOGW(PASTEBOARD_MODULE_SERVICE, "wifi disabled, no foreground users.");
-                return;
-            }
-            for (auto userId : foregroundUserIds) {
-                if (userId == ERROR_USERID) {
-                    PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "wifi event foreground userId invalid.");
-                    continue;
-                }
-                pasteboardService_->HandleWifiOffAndClearDistributedEvent(userId);
-            }
+        HandleWifiDisabled();
+    }
+}
+
+void PasteBoardCommonEventSubscriber::HandleUserSwitched(const EventFwk::CommonEventData &data)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (pasteboardService_ == nullptr) {
+        return;
+    }
+    auto context = pasteboardService_->ResolveEventUser(data);
+    if (!context.isValid) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "user switched userId invalid.");
+        return;
+    }
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "user id switched: %{public}d", context.userId);
+    pasteboardService_->ChangeStoreStatus(context.userId);
+    pasteboardService_->switch_.DeInit();
+    pasteboardService_->switch_.Init(context.userId);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetSwitch end, userId=%{public}d", context.userId);
+}
+
+void PasteBoardCommonEventSubscriber::HandleUserStopping(const EventFwk::CommonEventData &data)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (pasteboardService_ == nullptr) {
+        return;
+    }
+    auto context = pasteboardService_->ResolveEventUser(data);
+    if (!context.isValid) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "user stopping userId invalid.");
+        return;
+    }
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "user id is stopping: %{public}d", context.userId);
+    pasteboardService_->ClearByEventUser(context.userId);
+}
+
+void PasteBoardCommonEventSubscriber::HandleScreenLocked()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "screen is locked");
+    PasteboardService::currentScreenStatus = ScreenEvent::ScreenLocked;
+}
+
+void PasteBoardCommonEventSubscriber::HandleScreenUnlocked()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "screen is unlocked");
+    PasteboardService::currentScreenStatus = ScreenEvent::ScreenUnlocked;
+}
+
+void PasteBoardCommonEventSubscriber::HandlePackageRemoved(const AAFwk::Want &want)
+{
+    auto tokenId = want.GetIntParam("accessTokenId", -1);
+    if (pasteboardService_ == nullptr) {
+        return;
+    }
+    auto context = pasteboardService_->ResolvePackageRemovedUser(want);
+    if (!context.isValid) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "package removed userId invalid.");
+        return;
+    }
+    pasteboardService_->ClearUriOnUninstall(context.userId, tokenId);
+}
+
+void PasteBoardCommonEventSubscriber::HandleWifiDisabled()
+{
+    if (pasteboardService_ == nullptr) {
+        return;
+    }
+    auto foregroundUserIds = pasteboardService_->GetForegroundUserIds();
+    if (foregroundUserIds.empty()) {
+        PASTEBOARD_HILOGW(PASTEBOARD_MODULE_SERVICE, "wifi disabled, no foreground users.");
+        return;
+    }
+    for (auto userId : foregroundUserIds) {
+        if (userId == ERROR_USERID) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "wifi event foreground userId invalid.");
+            continue;
         }
+        pasteboardService_->HandleWifiOffAndClearDistributedEvent(userId);
     }
 }
 
