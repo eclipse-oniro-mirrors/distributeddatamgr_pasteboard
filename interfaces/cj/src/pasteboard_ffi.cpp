@@ -1094,7 +1094,7 @@ CJ_EXPORT RetDataI64 FfiOHOSCreateMultiTypePasteData(const CArrPasteDataEntry *e
     std::string primaryMimeType;
 
     if (!BuildTypeValueMap(*entries, typeValueMap, primaryMimeType)) {
-        ret.code = ERR_INVALID_INSTANCE_CODE;
+        ret.code = PASTEBOARD_INVALID_PARAMETERS;
         return ret;
     }
 
