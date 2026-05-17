@@ -1,0 +1,831 @@
+diff --git a/services/BUILD.gn b/services/BUILD.gn
+index e269d064..a62db695 100644
+--- a/services/BUILD.gn
++++ b/services/BUILD.gn
+@@ -89,6 +89,7 @@ ohos_shared_library("pasteboard_service") {
+     "core/src/pasteboard_disposable_manager.cpp",
+     "core/src/pasteboard_pattern.cpp",
+     "core/src/pasteboard_service.cpp",
++    "core/src/pasteboard_user_context.cpp",
+     "core/src/pasteboard_window_manager.cpp",
+     "dfx/src/behaviour/pasteboard_behaviour_reporter_impl.cpp",
+     "dfx/src/calculate_time_consuming.cpp",
+diff --git a/services/core/include/pasteboard_service.h b/services/core/include/pasteboard_service.h
+index a07eb7c3..38af5869 100644
+--- a/services/core/include/pasteboard_service.h
++++ b/services/core/include/pasteboard_service.h
+@@ -35,6 +35,7 @@
+ #include "pasteboard_event_common.h"
+ #include "pasteboard_service_stub.h"
+ #include "pasteboard_switch.h"
++#include "pasteboard_user_context.h"
+ #include "privacy_kit.h"
+ #include "security_level.h"
+ #include "system_ability.h"
+@@ -188,7 +189,10 @@ public:
+     void PreSyncRemotePasteboardData();
+     PastedSwitch switch_;
+     static int32_t GetCurrentAccountId();
++    int32_t ResolveMainDisplayUserId();
++    void ClearByResolvedUser(int32_t userId);
+     void ClearUriOnUninstall(int32_t tokenId);
++    void ClearUriOnUninstall(int32_t userId, int32_t tokenId);
+     void ClearUriOnUninstall(std::shared_ptr<PasteData> pasteData);
+     void CleanDistributedData(int32_t user);
+     void HandleWifiOffAndClearDistributedEvent(int32_t userId);
+@@ -300,7 +304,9 @@ private:
+     void InitScreenStatus();
+     static ScreenEvent GetCurrentScreenStatus();
+     std::string DumpHistory() const;
++    std::string DumpHistory(int32_t userId) const;
+     std::string DumpData();
++    std::string DumpData(int32_t userId);
+     void ThawInputMethod(pid_t imePid);
+     bool IsNeedThaw(PasteboardEventStatus status);
+     int32_t ExtractEntity(const std::string &entity, std::string &location);
+@@ -552,15 +558,17 @@ private:
+     SecurityLevel securityLevel_;
+     class PasteboardDeathRecipient final : public IRemoteObject::DeathRecipient {
+     public:
+-        PasteboardDeathRecipient(PasteboardService &service, pid_t pid);
++        PasteboardDeathRecipient(PasteboardService &service, pid_t pid, int32_t userId);
+         virtual ~PasteboardDeathRecipient() = default;
+         void OnRemoteDied(const wptr<IRemoteObject> &remote) override;
+ 
+     private:
+         PasteboardService &service_;
+         pid_t pid_;
++        int32_t userId_ = ERROR_USERID;
+     };
+     int32_t AppExit(pid_t pid);
++    int32_t AppExit(pid_t pid, int32_t userId);
+     void RemoveObserverByPid(int32_t userId, pid_t pid, ObserverMap &observerMap);
+     ClipPlugin::GlobalEvent GetCurrentEvent() const;
+     void SetCurrentEvent(ClipPlugin::GlobalEvent event);
+diff --git a/services/core/include/pasteboard_user_context.h b/services/core/include/pasteboard_user_context.h
+new file mode 100644
+index 00000000..437ea98e
+--- /dev/null
++++ b/services/core/include/pasteboard_user_context.h
+@@ -0,0 +1,70 @@
++/*
++ * Copyright (c) 2026 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#ifndef PASTEBOARD_USER_CONTEXT_H
++#define PASTEBOARD_USER_CONTEXT_H
++
++#include <cstdint>
++#include <string>
++#include <vector>
++
++#include "common_event_data.h"
++#include "os_account_manager.h"
++#include "want.h"
++
++namespace OHOS {
++namespace MiscServices {
++#ifndef PASTE_BOARD_SERVICE_H
++constexpr int32_t ERROR_USERID = -1;
++#endif
++constexpr uint64_t MAIN_DISPLAY_ID = 0;
++constexpr const char *USER_SWITCH_OLD_ID = "oldId";
++constexpr const char *PACKAGE_REMOVED_USER_ID = "userId";
++
++enum class UserContextSource : int32_t {
++    CALLER = 0,
++    MAIN_DISPLAY,
++    FOREGROUND,
++    USER_SWITCHED_NEW,
++    USER_SWITCHED_OLD,
++    USER_STOPPING,
++    PACKAGE_REMOVED,
++};
++
++struct UserContext {
++    int32_t userId = ERROR_USERID;
++    int32_t uid = -1;
++    uint32_t tokenId = 0;
++    uint64_t displayId = MAIN_DISPLAY_ID;
++    UserContextSource source = UserContextSource::CALLER;
++    bool isValid = false;
++};
++
++class UserContextResolver {
++public:
++    UserContext ResolveCallingUser() const;
++    UserContext ResolveMainDisplayUser() const;
++    std::vector<UserContext> ResolveForegroundUsers() const;
++    UserContext ResolveUserSwitchedNewUser(const EventFwk::CommonEventData &data) const;
++    UserContext ResolveUserSwitchedOldUser(const AAFwk::Want &want) const;
++    UserContext ResolveStoppingUser(const EventFwk::CommonEventData &data) const;
++    UserContext ResolvePackageRemovedUser(const AAFwk::Want &want) const;
++
++private:
++    UserContext MakeEventContext(int32_t userId, UserContextSource source) const;
++};
++} // namespace MiscServices
++} // namespace OHOS
++#endif // PASTEBOARD_USER_CONTEXT_H
+diff --git a/services/core/src/pasteboard_service.cpp b/services/core/src/pasteboard_service.cpp
+index 20e53589..70bbcde8 100644
+--- a/services/core/src/pasteboard_service.cpp
++++ b/services/core/src/pasteboard_service.cpp
+@@ -155,7 +155,7 @@ int32_t PasteboardService::Init()
+ {
+     if (!Publish(this)) {
+         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "OnStart register to system ability manager failed.");
+-        auto userId = GetCurrentAccountId();
++        auto userId = ResolveMainDisplayUserId();
+         Reporter::GetInstance().PasteboardFault().Report({ userId, "ERR_INVALID_OPTION" });
+         return static_cast<int32_t>(PasteboardError::INVALID_OPTION_ERROR);
+     }
+@@ -211,7 +211,10 @@ void PasteboardService::OnStart()
+         return;
+     }
+     auto callback = [this]() {
+-        switch_.Init(GetCurrentAccountId());
++        auto userId = ResolveMainDisplayUserId();
++        if (userId != ERROR_USERID) {
++            switch_.Init(userId);
++        }
+     };
+     if (serviceHandler_ != nullptr) {
+         serviceHandler_->PostTask(callback);
+@@ -1082,7 +1085,9 @@ AppInfo PasteboardService::GetAppInfo(uint32_t tokenId)
+     AppInfo info;
+     info.tokenId = tokenId;
+     info.tokenType = AccessTokenKit::GetTokenTypeFlag(tokenId);
+-    info.userId = GetCurrentAccountId();
++    UserContextResolver resolver;
++    auto context = resolver.ResolveCallingUser();
++    info.userId = context.isValid ? context.userId : ERROR_USERID;
+     switch (info.tokenType) {
+         case ATokenTypeEnum::TOKEN_HAP: {
+             HapTokenInfo hapInfo;
+@@ -1093,7 +1098,6 @@ AppInfo PasteboardService::GetAppInfo(uint32_t tokenId)
+             }
+             info.bundleName = hapInfo.bundleName;
+             info.appIndex = hapInfo.instIndex;
+-            info.userId = hapInfo.userID;
+             break;
+         }
+         case ATokenTypeEnum::TOKEN_NATIVE:
+@@ -2999,18 +3003,29 @@ void PasteboardService::RemovePasteData(const AppInfo &appInfo)
+ 
+ int32_t PasteboardService::GetCurrentAccountId()
+ {
+-    auto currentUserId = currentUserId_.load();
+-    if (currentUserId != ERROR_USERID) {
+-        return currentUserId;
+-    }
+-    std::vector<int32_t> accountIds;
+-    auto ret = AccountSA::OsAccountManager::QueryActiveOsAccountIds(accountIds);
+-    if (ret != ERR_OK || accountIds.empty()) {
+-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "query active user failed errCode=%{public}d", ret);
+-        return ERROR_USERID;
++    UserContextResolver resolver;
++    auto context = resolver.ResolveCallingUser();
++    return context.isValid ? context.userId : ERROR_USERID;
++}
++
++int32_t PasteboardService::ResolveMainDisplayUserId()
++{
++    UserContextResolver resolver;
++    auto context = resolver.ResolveMainDisplayUser();
++    return context.isValid ? context.userId : ERROR_USERID;
++}
++
++void PasteboardService::ClearByResolvedUser(int32_t userId)
++{
++    if (userId == ERROR_USERID) {
++        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "clear resolved user failed, userId invalid");
++        return;
+     }
+-    currentUserId_.store(accountIds.front());
+-    return accountIds.front();
++    AppInfo appInfo;
++    appInfo.userId = userId;
++    appInfo.bundleName = PASTEBOARD_SERVICE_NAME;
++    appInfo.tokenType = ATokenTypeEnum::TOKEN_NATIVE;
++    ClearInner(userId, appInfo);
+ }
+ 
+ ScreenEvent PasteboardService::GetCurrentScreenStatus()
+@@ -3544,10 +3559,26 @@ std::string PasteboardService::GetTime()
+ }
+ 
+ std::string PasteboardService::DumpHistory() const
++{
++    UserContextResolver resolver;
++    auto contexts = resolver.ResolveForegroundUsers();
++    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(!contexts.empty(), "Access history fail! no foreground user.",
++        PASTEBOARD_MODULE_SERVICE, "no foreground user");
++    std::string result;
++    for (const auto &context : contexts) {
++        if (!context.isValid) {
++            continue;
++        }
++        result += "UserId: " + std::to_string(context.userId) + "\n";
++        result += DumpHistory(context.userId);
++    }
++    return result;
++}
++
++std::string PasteboardService::DumpHistory(int32_t userId) const
+ {
+     std::string result;
+     std::lock_guard<decltype(historyMutex_)> lg(historyMutex_);
+-    auto userId = GetCurrentAccountId();
+     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(userId != ERROR_USERID, "Access history fail! invalid userId.",
+         PASTEBOARD_MODULE_SERVICE, "invalid userId");
+     if (!dataHistory_.empty()) {
+@@ -3568,9 +3599,27 @@ std::string PasteboardService::DumpHistory() const
+ 
+ std::string PasteboardService::DumpData()
+ {
+-    auto userId = GetCurrentAccountId();
++    UserContextResolver resolver;
++    auto contexts = resolver.ResolveForegroundUsers();
++    if (contexts.empty()) {
++        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "query foreground users failed.");
++        return "";
++    }
++    std::string result;
++    for (const auto &context : contexts) {
++        if (!context.isValid) {
++            continue;
++        }
++        result += "UserId: " + std::to_string(context.userId) + "\n";
++        result += DumpData(context.userId);
++    }
++    return result;
++}
++
++std::string PasteboardService::DumpData(int32_t userId)
++{
+     if (userId == ERROR_USERID) {
+-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "query active user failed.");
++        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "query foreground user failed.");
+         return "";
+     }
+     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_SERVICE, "id = %{public}d", userId);
+@@ -4752,7 +4801,8 @@ void PasteboardService::OnConfigChangeInner(bool isOn)
+     std::lock_guard<decltype(mutex)> lockGuard(mutex);
+     if (!isOn) {
+         PASTEBOARD_CHECK_AND_RETURN_LOGE(clipPlugin_ != nullptr, PASTEBOARD_MODULE_SERVICE, "clipPlugin is null");
+-        int32_t userId = GetCurrentAccountId();
++        int32_t userId = ResolveMainDisplayUserId();
++        PASTEBOARD_CHECK_AND_RETURN_LOGE(userId != ERROR_USERID, PASTEBOARD_MODULE_SERVICE, "main display user invalid");
+         clipPlugin_->Close(userId);
+         clipPlugin_ = nullptr;
+         return;
+@@ -4850,21 +4900,29 @@ void PasteBoardCommonEventSubscriber::OnReceiveEventInner(const EventFwk::Common
+     std::string action = want.GetAction();
+     int32_t eventState = data.GetCode();
+     int32_t userId = data.GetCode();
++    UserContextResolver resolver;
+     if (action == EventFwk::CommonEventSupport::COMMON_EVENT_USER_SWITCHED) {
+         std::lock_guard<std::mutex> lock(mutex_);
+-        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "user id switched: %{public}d", userId);
+-        if (pasteboardService_ != nullptr) {
+-            pasteboardService_->ChangeStoreStatus(userId);
+-            auto accountId = pasteboardService_->GetCurrentAccountId();
++        auto newContext = resolver.ResolveUserSwitchedNewUser(data);
++        auto oldContext = resolver.ResolveUserSwitchedOldUser(want);
++        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "user id switched: new=%{public}d, old=%{public}d",
++            newContext.userId, oldContext.userId);
++        if (pasteboardService_ != nullptr && newContext.isValid) {
++            pasteboardService_->ChangeStoreStatus(newContext.userId);
++            if (oldContext.isValid) {
++                pasteboardService_->ClearByResolvedUser(oldContext.userId);
++            }
+             pasteboardService_->switch_.DeInit();
+-            pasteboardService_->switch_.Init(accountId);
+-            PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetSwitch end");
++            pasteboardService_->switch_.Init(newContext.userId);
++            PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetSwitch end, newUser=%{public}d, oldUser=%{public}d",
++                newContext.userId, oldContext.userId);
+         }
+     } else if (action == EventFwk::CommonEventSupport::COMMON_EVENT_USER_STOPPING) {
+         std::lock_guard<std::mutex> lock(mutex_);
+         PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "user id is stopping: %{public}d", userId);
+-        if (pasteboardService_ != nullptr) {
+-            pasteboardService_->Clear();
++        auto stoppingContext = resolver.ResolveStoppingUser(data);
++        if (pasteboardService_ != nullptr && stoppingContext.isValid) {
++            pasteboardService_->ClearByResolvedUser(stoppingContext.userId);
+         }
+     } else if (action == EventFwk::CommonEventSupport::COMMON_EVENT_SCREEN_LOCKED) {
+         std::lock_guard<std::mutex> lock(mutex_);
+@@ -4876,8 +4934,9 @@ void PasteBoardCommonEventSubscriber::OnReceiveEventInner(const EventFwk::Common
+         PasteboardService::currentScreenStatus = ScreenEvent::ScreenUnlocked;
+     } else if (action == EventFwk::CommonEventSupport::COMMON_EVENT_PACKAGE_REMOVED) {
+         auto tokenId = want.GetIntParam("accessTokenId", -1);
+-        if (pasteboardService_ != nullptr) {
+-            pasteboardService_->ClearUriOnUninstall(tokenId);
++        auto removedContext = resolver.ResolvePackageRemovedUser(want);
++        if (pasteboardService_ != nullptr && removedContext.isValid) {
++            pasteboardService_->ClearUriOnUninstall(removedContext.userId, tokenId);
+         }
+     } else if (action == EventFwk::CommonEventSupport::COMMON_EVENT_WIFI_POWER_STATE && eventState == WIFI_DISABLED) {
+         pasteboardService_->HandleWifiOffAndClearDistributedEvent(userId);
+@@ -4886,8 +4945,19 @@ void PasteBoardCommonEventSubscriber::OnReceiveEventInner(const EventFwk::Common
+ 
+ void PasteboardService::ClearUriOnUninstall(int32_t tokenId)
+ {
+-    PASTEBOARD_CHECK_AND_RETURN_LOGE(tokenId >= 0, PASTEBOARD_MODULE_SERVICE, "tokenId is invalids");
+-    auto userId = GetCurrentAccountId();
++    UserContextResolver resolver;
++    auto context = resolver.ResolveCallingUser();
++    if (!context.isValid) {
++        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "clear uri uninstall failed, caller user invalid");
++        return;
++    }
++    ClearUriOnUninstall(context.userId, tokenId);
++}
++
++void PasteboardService::ClearUriOnUninstall(int32_t userId, int32_t tokenId)
++{
++    PASTEBOARD_CHECK_AND_RETURN_LOGE(tokenId >= 0, PASTEBOARD_MODULE_SERVICE, "tokenId is invalid");
++    PASTEBOARD_CHECK_AND_RETURN_LOGE(userId != ERROR_USERID, PASTEBOARD_MODULE_SERVICE, "userId is invalid");
+     clips_.ComputeIfPresent(userId, [this, tokenId, userId](auto, auto &pasteData) {
+         if (pasteData == nullptr) {
+             return true;
+@@ -4895,7 +4965,7 @@ void PasteboardService::ClearUriOnUninstall(int32_t tokenId)
+         if (pasteData->GetTokenId() != static_cast<uint32_t>(tokenId)) {
+             return true;
+         }
+-        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "clear uri, tokenId=%{public}d", tokenId);
++        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "clear uri, tokenId=%{public}d, userId=%{public}d", tokenId, userId);
+         ClearUriOnUninstall(pasteData);
+         delayGetters_.ComputeIfPresent(userId, [](auto, auto &delayGetter) {
+             if (delayGetter.first != nullptr && delayGetter.second != nullptr) {
+@@ -5040,8 +5110,15 @@ void PasteboardService::RemoveObserverByPid(int32_t userId, pid_t pid, ObserverM
+ 
+ int32_t PasteboardService::AppExit(pid_t pid)
+ {
+-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "pid %{public}d exit.", pid);
+     int32_t userId = GetCurrentAccountId();
++    return AppExit(pid, userId);
++}
++
++int32_t PasteboardService::AppExit(pid_t pid, int32_t userId)
++{
++    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "pid %{public}d exit, userId %{public}d.", pid, userId);
++    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(userId != ERROR_USERID,
++        static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR), PASTEBOARD_MODULE_SERVICE, "invalid userId");
+     RemoveObserverByPid(userId, pid, observerLocalChangedMap_);
+     RemoveObserverByPid(userId, pid, observerRemoteChangedMap_);
+     RemoveObserverByPid(COMMON_USERID, pid, observerEventMap_);
+@@ -5054,7 +5131,7 @@ int32_t PasteboardService::AppExit(pid_t pid)
+         p2pMap_.EraseIf([pid, &networkIds, this](auto &networkId, auto &pidMap) {
+             pidMap.EraseIf([pid, this](const auto &key, const auto &value) {
+                 if (value.callPid == pid) {
+-                    PasteStart(key);
++                    PasteStart(networkId);
+                     return true;
+                 }
+                 return false;
+@@ -5084,19 +5161,23 @@ int32_t PasteboardService::AppExit(pid_t pid)
+ void PasteboardService::PasteboardDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
+ {
+     (void)remote;
+-    service_.AppExit(pid_);
++    service_.AppExit(pid_, userId_);
+ }
+ 
+ PasteboardService::PasteboardDeathRecipient::PasteboardDeathRecipient(
+-    PasteboardService &service, pid_t pid) : service_(service), pid_(pid)
++    PasteboardService &service, pid_t pid, int32_t userId) : service_(service), pid_(pid), userId_(userId)
+ {
+-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "Construct Pasteboard Client Death Recipient, pid: %{public}d", pid);
++    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE,
++        "Construct Pasteboard Client Death Recipient, pid: %{public}d, userId: %{public}d", pid, userId);
+ }
+ 
+ int32_t PasteboardService::RegisterClientDeathObserver(const sptr<IRemoteObject> &observer)
+ {
+     pid_t pid = IPCSkeleton::GetCallingPid();
+-    sptr<PasteboardDeathRecipient> deathRecipient = sptr<PasteboardDeathRecipient>::MakeSptr(*this, pid);
++    int32_t userId = GetCurrentAccountId();
++    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(userId != ERROR_USERID,
++        static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR), PASTEBOARD_MODULE_SERVICE, "invalid userId");
++    sptr<PasteboardDeathRecipient> deathRecipient = sptr<PasteboardDeathRecipient>::MakeSptr(*this, pid, userId);
+     observer->AddDeathRecipient(deathRecipient);
+     clients_.InsertOrAssign(pid, std::make_pair(observer, deathRecipient));
+     return ERR_OK;
+diff --git a/services/core/src/pasteboard_user_context.cpp b/services/core/src/pasteboard_user_context.cpp
+new file mode 100644
+index 00000000..ed18316c
+--- /dev/null
++++ b/services/core/src/pasteboard_user_context.cpp
+@@ -0,0 +1,129 @@
++/*
++ * Copyright (c) 2026 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#include "pasteboard_user_context.h"
++
++#include <cstdlib>
++#include <inttypes.h>
++
++#include "ipc_skeleton.h"
++#include "pasteboard_hilog.h"
++
++namespace OHOS {
++namespace MiscServices {
++namespace {
++bool IsValidUserId(int32_t userId)
++{
++    return userId != ERROR_USERID;
++}
++} // namespace
++
++UserContext UserContextResolver::ResolveCallingUser() const
++{
++    UserContext context;
++    context.source = UserContextSource::CALLER;
++    context.uid = IPCSkeleton::GetCallingUid();
++    int32_t userId = ERROR_USERID;
++    auto ret = AccountSA::OsAccountManager::GetOsAccountLocalIdFromUid(context.uid, userId);
++    if (ret != ERR_OK || !IsValidUserId(userId)) {
++        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE,
++            "resolve calling user failed, uid=%{public}d, ret=%{public}d", context.uid, ret);
++        return context;
++    }
++    context.userId = userId;
++    context.isValid = true;
++    return context;
++}
++
++UserContext UserContextResolver::ResolveMainDisplayUser() const
++{
++    UserContext context;
++    context.source = UserContextSource::MAIN_DISPLAY;
++    context.displayId = MAIN_DISPLAY_ID;
++    int32_t userId = ERROR_USERID;
++    auto ret = AccountSA::OsAccountManager::GetForegroundOsAccountLocalId(MAIN_DISPLAY_ID, userId);
++    if (ret != ERR_OK || !IsValidUserId(userId)) {
++        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE,
++            "resolve main display user failed, displayId=%{public}" PRIu64 ", ret=%{public}d",
++            MAIN_DISPLAY_ID, ret);
++        return context;
++    }
++    context.userId = userId;
++    context.isValid = true;
++    return context;
++}
++
++std::vector<UserContext> UserContextResolver::ResolveForegroundUsers() const
++{
++    std::vector<AccountSA::ForegroundOsAccount> accounts;
++    auto ret = AccountSA::OsAccountManager::GetForegroundOsAccounts(accounts);
++    if (ret != ERR_OK) {
++        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "resolve foreground users failed, ret=%{public}d", ret);
++        return {};
++    }
++    std::vector<UserContext> contexts;
++    for (const auto &account : accounts) {
++        UserContext context;
++        context.source = UserContextSource::FOREGROUND;
++        context.userId = account.localId;
++        context.displayId = account.displayId;
++        context.isValid = IsValidUserId(context.userId);
++        if (context.isValid) {
++            contexts.emplace_back(context);
++        }
++    }
++    return contexts;
++}
++
++UserContext UserContextResolver::ResolveUserSwitchedNewUser(const EventFwk::CommonEventData &data) const
++{
++    return MakeEventContext(data.GetCode(), UserContextSource::USER_SWITCHED_NEW);
++}
++
++UserContext UserContextResolver::ResolveUserSwitchedOldUser(const AAFwk::Want &want) const
++{
++    std::string oldId = want.GetStringParam(USER_SWITCH_OLD_ID);
++    if (oldId.empty()) {
++        return MakeEventContext(ERROR_USERID, UserContextSource::USER_SWITCHED_OLD);
++    }
++    char *end = nullptr;
++    long value = std::strtol(oldId.c_str(), &end, 10);
++    if (end == oldId.c_str() || *end != '\0') {
++        return MakeEventContext(ERROR_USERID, UserContextSource::USER_SWITCHED_OLD);
++    }
++    return MakeEventContext(static_cast<int32_t>(value), UserContextSource::USER_SWITCHED_OLD);
++}
++
++UserContext UserContextResolver::ResolveStoppingUser(const EventFwk::CommonEventData &data) const
++{
++    return MakeEventContext(data.GetCode(), UserContextSource::USER_STOPPING);
++}
++
++UserContext UserContextResolver::ResolvePackageRemovedUser(const AAFwk::Want &want) const
++{
++    return MakeEventContext(want.GetIntParam(PACKAGE_REMOVED_USER_ID, ERROR_USERID),
++        UserContextSource::PACKAGE_REMOVED);
++}
++
++UserContext UserContextResolver::MakeEventContext(int32_t userId, UserContextSource source) const
++{
++    UserContext context;
++    context.source = source;
++    context.userId = userId;
++    context.isValid = IsValidUserId(userId);
++    return context;
++}
++} // namespace MiscServices
++} // namespace OHOS
+diff --git a/services/test/BUILD.gn b/services/test/BUILD.gn
+index 5d57eb60..c86865af 100644
+--- a/services/test/BUILD.gn
++++ b/services/test/BUILD.gn
+@@ -97,6 +97,7 @@ ohos_unittest("PasteServInterfaceTest") {
+     "${pasteboard_service_path}/core/src/pasteboard_disposable_manager.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_pattern.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_service.cpp",
++    "${pasteboard_service_path}/core/src/pasteboard_user_context.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_window_manager.cpp",
+     "${pasteboard_service_path}/dfx/src/behaviour/pasteboard_behaviour_reporter_impl.cpp",
+     "${pasteboard_service_path}/dfx/src/calculate_time_consuming.cpp",
+@@ -231,6 +232,7 @@ ohos_unittest("PasteServInterfaceMockTest") {
+     "${pasteboard_service_path}/core/src/pasteboard_dialog.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_pattern.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_service.cpp",
++    "${pasteboard_service_path}/core/src/pasteboard_user_context.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_window_manager.cpp",
+     "${pasteboard_service_path}/dfx/src/behaviour/pasteboard_behaviour_reporter_impl.cpp",
+     "${pasteboard_service_path}/dfx/src/calculate_time_consuming.cpp",
+@@ -1379,6 +1381,7 @@ ohos_unittest("PasteServEventTest") {
+     "${pasteboard_service_path}/core/src/pasteboard_disposable_manager.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_pattern.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_service.cpp",
++    "${pasteboard_service_path}/core/src/pasteboard_user_context.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_window_manager.cpp",
+     "${pasteboard_service_path}/dfx/src/behaviour/pasteboard_behaviour_reporter_impl.cpp",
+     "${pasteboard_service_path}/dfx/src/calculate_time_consuming.cpp",
+@@ -1512,6 +1515,7 @@ ohos_unittest("PasteServGetTest") {
+     "${pasteboard_service_path}/core/src/pasteboard_disposable_manager.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_pattern.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_service.cpp",
++    "${pasteboard_service_path}/core/src/pasteboard_user_context.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_window_manager.cpp",
+     "${pasteboard_service_path}/dfx/src/behaviour/pasteboard_behaviour_reporter_impl.cpp",
+     "${pasteboard_service_path}/dfx/src/calculate_time_consuming.cpp",
+@@ -1645,6 +1649,7 @@ ohos_unittest("PasteServCheckTest") {
+     "${pasteboard_service_path}/core/src/pasteboard_disposable_manager.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_pattern.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_service.cpp",
++    "${pasteboard_service_path}/core/src/pasteboard_user_context.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_window_manager.cpp",
+     "${pasteboard_service_path}/dfx/src/behaviour/pasteboard_behaviour_reporter_impl.cpp",
+     "${pasteboard_service_path}/dfx/src/calculate_time_consuming.cpp",
+@@ -1778,6 +1783,7 @@ ohos_unittest("PasteServCleanTest") {
+     "${pasteboard_service_path}/core/src/pasteboard_disposable_manager.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_pattern.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_service.cpp",
++    "${pasteboard_service_path}/core/src/pasteboard_user_context.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_window_manager.cpp",
+     "${pasteboard_service_path}/dfx/src/behaviour/pasteboard_behaviour_reporter_impl.cpp",
+     "${pasteboard_service_path}/dfx/src/calculate_time_consuming.cpp",
+@@ -1912,6 +1918,7 @@ ohos_unittest("PasteServRemoteTest") {
+     "${pasteboard_service_path}/core/src/pasteboard_disposable_manager.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_pattern.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_service.cpp",
++    "${pasteboard_service_path}/core/src/pasteboard_user_context.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_window_manager.cpp",
+     "${pasteboard_service_path}/dfx/src/behaviour/pasteboard_behaviour_reporter_impl.cpp",
+     "${pasteboard_service_path}/dfx/src/calculate_time_consuming.cpp",
+diff --git a/services/test/unittest/src/pasteboard_service_mock_test.cpp b/services/test/unittest/src/pasteboard_service_mock_test.cpp
+index c35445c3..f69566f1 100644
+--- a/services/test/unittest/src/pasteboard_service_mock_test.cpp
++++ b/services/test/unittest/src/pasteboard_service_mock_test.cpp
+@@ -29,6 +29,7 @@
+ #include "pasteboard_error.h"
+ #include "pasteboard_hilog.h"
+ #include "pasteboard_service.h"
++#include "pasteboard_user_context.h"
+ #include "remote_file_share.h"
+ #include "eventcenter/pasteboard_event.h"
+ 
+@@ -120,6 +121,9 @@ public:
+     virtual ~PasteboardServiceInterface(){};
+ 
+     virtual OHOS::ErrCode QueryActiveOsAccountIds(std::vector<int32_t> &ids);
++    virtual OHOS::ErrCode GetOsAccountLocalIdFromUid(const int uid, int &id) = 0;
++    virtual OHOS::ErrCode GetForegroundOsAccountLocalId(uint64_t displayId, int32_t &userId) = 0;
++    virtual OHOS::ErrCode GetForegroundOsAccounts(std::vector<AccountSA::ForegroundOsAccount> &accounts) = 0;
+     virtual bool Decode(const std::vector<std::uint8_t> &buffer) = 0;
+     virtual bool Encode(std::vector<uint8_t> &buffer) const = 0;
+     virtual pid_t GetCallingUid() = 0;
+@@ -156,6 +160,9 @@ public:
+     ~PasteboardServiceInterfaceMock() override;
+ 
+     MOCK_METHOD1(QueryActiveOsAccountIds, OHOS::ErrCode(std::vector<int32_t> &ids));
++    MOCK_METHOD2(GetOsAccountLocalIdFromUid, OHOS::ErrCode(const int uid, int &id));
++    MOCK_METHOD2(GetForegroundOsAccountLocalId, OHOS::ErrCode(uint64_t displayId, int32_t &userId));
++    MOCK_METHOD1(GetForegroundOsAccounts, OHOS::ErrCode(std::vector<AccountSA::ForegroundOsAccount> &accounts));
+     MOCK_METHOD1(Decode, bool(const std::vector<std::uint8_t> &buffer));
+     MOCK_CONST_METHOD1(Encode, bool(std::vector<uint8_t> &buffer));
+     MOCK_METHOD0(GetCallingUid, pid_t());
+@@ -493,6 +500,33 @@ OHOS::ErrCode OsAccountManager::QueryActiveOsAccountIds(std::vector<int32_t> &id
+     }
+     return interface->QueryActiveOsAccountIds(ids);
+ }
++
++OHOS::ErrCode OsAccountManager::GetOsAccountLocalIdFromUid(const int uid, int &id)
++{
++    PasteboardServiceInterface *interface = GetPasteboardServiceInterface();
++    if (interface == nullptr) {
++        return -1;
++    }
++    return interface->GetOsAccountLocalIdFromUid(uid, id);
++}
++
++OHOS::ErrCode OsAccountManager::GetForegroundOsAccountLocalId(uint64_t displayId, int32_t &userId)
++{
++    PasteboardServiceInterface *interface = GetPasteboardServiceInterface();
++    if (interface == nullptr) {
++        return -1;
++    }
++    return interface->GetForegroundOsAccountLocalId(displayId, userId);
++}
++
++OHOS::ErrCode OsAccountManager::GetForegroundOsAccounts(std::vector<ForegroundOsAccount> &accounts)
++{
++    PasteboardServiceInterface *interface = GetPasteboardServiceInterface();
++    if (interface == nullptr) {
++        return -1;
++    }
++    return interface->GetForegroundOsAccounts(accounts);
++}
+ }
+ 
+ class PasteboardServiceMockTest : public testing::Test {
+@@ -1820,6 +1854,141 @@ HWTEST_F(PasteboardServiceMockTest, OnConfigChangeTest001, TestSize.Level1)
+     EXPECT_EQ(tempPasteboard->GetCurrentAccountId(), 1);
+ }
+ 
++/**
++ * @tc.name: UserContextResolverResolveCallingUser001
++ * @tc.desc: test UserContextResolver ResolveCallingUser success
++ * @tc.type: FUNC
++ */
++HWTEST_F(PasteboardServiceMockTest, UserContextResolverResolveCallingUser001, TestSize.Level1)
++{
++    NiceMock<PasteboardServiceInterfaceMock> mock;
++    constexpr int32_t uid = 20010001;
++    constexpr int32_t userId = 101;
++    EXPECT_CALL(mock, GetCallingUid()).WillOnce(Return(uid));
++    EXPECT_CALL(mock, GetOsAccountLocalIdFromUid(uid, testing::_))
++        .WillOnce([](const int, int &id) {
++            id = userId;
++            return ERR_OK;
++        });
++
++    UserContextResolver resolver;
++    auto context = resolver.ResolveCallingUser();
++    EXPECT_TRUE(context.isValid);
++    EXPECT_EQ(context.userId, userId);
++    EXPECT_EQ(context.uid, uid);
++}
++
++/**
++ * @tc.name: UserContextResolverResolveCallingUserFail001
++ * @tc.desc: test UserContextResolver ResolveCallingUser failure
++ * @tc.type: FUNC
++ */
++HWTEST_F(PasteboardServiceMockTest, UserContextResolverResolveCallingUserFail001, TestSize.Level1)
++{
++    NiceMock<PasteboardServiceInterfaceMock> mock;
++    EXPECT_CALL(mock, GetCallingUid()).WillOnce(Return(-1));
++    EXPECT_CALL(mock, GetOsAccountLocalIdFromUid(-1, testing::_)).WillOnce(Return(-1));
++
++    UserContextResolver resolver;
++    auto context = resolver.ResolveCallingUser();
++    EXPECT_FALSE(context.isValid);
++    EXPECT_EQ(context.userId, ERROR_USERID);
++}
++
++/**
++ * @tc.name: UserContextResolverResolveMainDisplayUser001
++ * @tc.desc: test UserContextResolver ResolveMainDisplayUser success
++ * @tc.type: FUNC
++ */
++HWTEST_F(PasteboardServiceMockTest, UserContextResolverResolveMainDisplayUser001, TestSize.Level1)
++{
++    NiceMock<PasteboardServiceInterfaceMock> mock;
++    constexpr int32_t userId = 10;
++    EXPECT_CALL(mock, GetForegroundOsAccountLocalId(0, testing::_))
++        .WillOnce([](uint64_t, int32_t &id) {
++            id = userId;
++            return ERR_OK;
++        });
++
++    UserContextResolver resolver;
++    auto context = resolver.ResolveMainDisplayUser();
++    EXPECT_TRUE(context.isValid);
++    EXPECT_EQ(context.userId, userId);
++EXPECT_EQ(context.displayId, 0);
++}
++
++/**
++ * @tc.name: GetCurrentAccountIdUseCallingUid001
++ * @tc.desc: test GetCurrentAccountId uses calling uid instead of QueryActiveOsAccountIds
++ * @tc.type: FUNC
++ */
++HWTEST_F(PasteboardServiceMockTest, GetCurrentAccountIdUseCallingUid001, TestSize.Level1)
++{
++    PasteboardService service;
++    NiceMock<PasteboardServiceInterfaceMock> mock;
++    constexpr int32_t uid = 20020001;
++    constexpr int32_t userId = 102;
++    EXPECT_CALL(mock, GetCallingUid()).WillOnce(Return(uid));
++    EXPECT_CALL(mock, GetOsAccountLocalIdFromUid(uid, testing::_))
++        .WillOnce([](const int, int &id) {
++            id = userId;
++            return ERR_OK;
++        });
++    EXPECT_CALL(mock, QueryActiveOsAccountIds(testing::_)).Times(0);
++
++    EXPECT_EQ(service.GetCurrentAccountId(), userId);
++}
++
++/**
++ * @tc.name: GetAppInfoUsesCallingUserForHap001
++ * @tc.desc: test GetAppInfo uses calling user for HAP tokens
++ * @tc.type: FUNC
++ */
++HWTEST_F(PasteboardServiceMockTest, GetAppInfoUsesCallingUserForHap001, TestSize.Level1)
++{
++    PasteboardService service;
++    NiceMock<PasteboardServiceInterfaceMock> mock;
++    constexpr uint32_t tokenId = 12345;
++    constexpr int32_t uid = 20010001;
++    constexpr int32_t callerUserId = 101;
++    EXPECT_CALL(mock, GetTokenTypeFlag(tokenId)).WillOnce(Return(ATokenTypeEnum::TOKEN_HAP));
++    EXPECT_CALL(mock, GetCallingUid()).WillOnce(Return(uid));
++    EXPECT_CALL(mock, GetOsAccountLocalIdFromUid(uid, testing::_))
++        .WillOnce([](const int, int &id) {
++            id = callerUserId;
++            return ERR_OK;
++        });
++
++    auto info = service.GetAppInfo(tokenId);
++    EXPECT_EQ(info.userId, callerUserId);
++}
++
++/**
++ * @tc.name: DumpDataForegroundUsers001
++ * @tc.desc: test DumpData returns data for all foreground users
++ * @tc.type: FUNC
++ */
++HWTEST_F(PasteboardServiceMockTest, DumpDataForegroundUsers001, TestSize.Level1)
++{
++    PasteboardService service;
++    NiceMock<PasteboardServiceInterfaceMock> mock;
++    EXPECT_CALL(mock, GetForegroundOsAccounts(testing::_))
++        .WillOnce([](std::vector<AccountSA::ForegroundOsAccount> &accounts) {
++            AccountSA::ForegroundOsAccount main;
++            main.localId = 10;
++            main.displayId = 0;
++            AccountSA::ForegroundOsAccount passenger;
++            passenger.localId = 101;
++            passenger.displayId = 1;
++            accounts = { main, passenger };
++            return ERR_OK;
++        });
++
++    auto output = service.DumpData();
++    EXPECT_NE(output.find("UserId: 10"), std::string::npos);
++    EXPECT_NE(output.find("UserId: 101"), std::string::npos);
++}
++
+ /**
+  * @tc.name: OnConfigChangeTest003
+  * @tc.desc: test Func OnConfigChange

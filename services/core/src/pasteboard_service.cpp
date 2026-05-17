@@ -5024,7 +5024,7 @@ int32_t PasteboardService::AppExit(pid_t pid, int32_t userId)
     {
         std::lock_guard<std::mutex> tmpMutex(p2pMapMutex_);
         p2pMap_.EraseIf([pid, &networkIds, this](auto &networkId, auto &pidMap) {
-            pidMap.EraseIf([pid, this](const auto &key, const auto &value) {
+            pidMap.EraseIf([pid, this, networkId](const auto &key, const auto &value) {
                 if (value.callPid == pid) {
                     PasteStart(networkId);
                     return true;
