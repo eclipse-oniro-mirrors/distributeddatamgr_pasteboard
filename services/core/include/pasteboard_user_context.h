@@ -26,9 +26,7 @@
 
 namespace OHOS {
 namespace MiscServices {
-#ifndef PASTE_BOARD_SERVICE_H
 constexpr int32_t ERROR_USERID = -1;
-#endif
 constexpr uint64_t MAIN_DISPLAY_ID = 0;
 constexpr const char *USER_SWITCH_OLD_ID = "oldId";
 constexpr const char *PACKAGE_REMOVED_USER_ID = "userId";
