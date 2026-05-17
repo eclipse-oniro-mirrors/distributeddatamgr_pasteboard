@@ -3966,7 +3966,7 @@ bool PasteboardService::IsDisallowDistributed()
 
 bool PasteboardService::IsNeedLink(PasteData &data)
 {
-    for (const auto record : data.AllRecords()) {
+    for (const auto &record : data.AllRecords()) {
         if (record == nullptr) {
             continue;
         }
