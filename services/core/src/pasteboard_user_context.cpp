@@ -18,8 +18,11 @@
 #include <cstdlib>
 #include <inttypes.h>
 
+#include "accesstoken_kit.h"
 #include "ipc_skeleton.h"
 #include "pasteboard_hilog.h"
+
+using namespace OHOS::Security::AccessToken;
 
 namespace OHOS {
 namespace MiscServices {
@@ -47,6 +50,28 @@ UserContext UserContextResolver::ResolveCallingUser() const
     context.isValid = true;
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ResolveCallingUser success: uid=%{public}d, userId=%{public}d",
         context.uid, context.userId);
+    return context;
+}
+
+UserContext UserContextResolver::ResolveCaller(uint32_t tokenId, pid_t pid, pid_t uid) const
+{
+    (void)pid;
+    (void)uid;
+    if (AccessTokenKit::GetTokenTypeFlag(tokenId) != ATokenTypeEnum::TOKEN_HAP) {
+        return {};
+    }
+
+    HapTokenInfo hapInfo;
+    if (AccessTokenKit::GetHapTokenInfo(tokenId, hapInfo) != 0) {
+        return {};
+    }
+
+    UserContext context;
+    context.userId = hapInfo.userID;
+    context.accountId = hapInfo.userID;
+    context.tokenId = tokenId;
+    context.source = UserContextSource::CALLER;
+    context.isValid = true;
     return context;
 }
 
@@ -129,6 +154,41 @@ UserContext UserContextResolver::ResolvePackageRemovedUser(const AAFwk::Want &wa
 {
     return MakeEventContext(want.GetIntParam(PACKAGE_REMOVED_USER_ID, ERROR_USERID),
         UserContextSource::PACKAGE_REMOVED);
+}
+
+UserContext UserContextResolver::ResolveEventUser(const EventFwk::CommonEventData &data) const
+{
+    return MakeEventContext(data.GetCode(), UserContextSource::EVENT);
+}
+
+UserContext UserContextResolver::ResolveInteractionUser(int32_t userId) const
+{
+    UserContext context;
+    context.userId = userId;
+    context.source = UserContextSource::INTERACTION;
+    context.isValid = userId != ERROR_USERID;
+    return context;
+}
+
+std::vector<int32_t> UserContextResolver::GetForegroundUserIds() const
+{
+    std::vector<int32_t> accountIds;
+    auto ret = AccountSA::OsAccountManager::QueryActiveOsAccountIds(accountIds);
+    if (ret != ERR_OK || accountIds.empty()) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "query active user failed errCode=%{public}d", ret);
+        return {};
+    }
+    return accountIds;
+}
+
+bool IsMainScreenUser(int32_t userId)
+{
+    return userId == MAIN_SCREEN_USER_ID;
+}
+
+bool IsMainDisplayUser(int32_t userId)
+{
+    return IsMainScreenUser(userId);
 }
 
 UserContext UserContextResolver::MakeEventContext(int32_t userId, UserContextSource source) const

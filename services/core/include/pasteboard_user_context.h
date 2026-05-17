@@ -30,6 +30,7 @@ constexpr int32_t ERROR_USERID = -1;
 constexpr uint64_t MAIN_DISPLAY_ID = 0;
 constexpr const char *USER_SWITCH_OLD_ID = "oldId";
 constexpr const char *PACKAGE_REMOVED_USER_ID = "userId";
+constexpr int32_t MAIN_SCREEN_USER_ID = 10;
 
 enum class UserContextSource : int32_t {
     CALLER = 0,
@@ -39,10 +40,13 @@ enum class UserContextSource : int32_t {
     USER_SWITCHED_OLD,
     USER_STOPPING,
     PACKAGE_REMOVED,
+    EVENT,
+    INTERACTION,
 };
 
 struct UserContext {
     int32_t userId = ERROR_USERID;
+    int32_t accountId = -1;
     int32_t uid = -1;
     uint32_t tokenId = 0;
     uint64_t displayId = MAIN_DISPLAY_ID;
@@ -52,17 +56,26 @@ struct UserContext {
 
 class UserContextResolver {
 public:
-    UserContext ResolveCallingUser() const;
-    UserContext ResolveMainDisplayUser() const;
-    std::vector<UserContext> ResolveForegroundUsers() const;
-    UserContext ResolveUserSwitchedNewUser(const EventFwk::CommonEventData &data) const;
-    UserContext ResolveUserSwitchedOldUser(const AAFwk::Want &want) const;
-    UserContext ResolveStoppingUser(const EventFwk::CommonEventData &data) const;
-    UserContext ResolvePackageRemovedUser(const AAFwk::Want &want) const;
+    virtual ~UserContextResolver() = default;
+
+    virtual UserContext ResolveCallingUser() const;
+    virtual UserContext ResolveCaller(uint32_t tokenId, pid_t pid, pid_t uid) const;
+    virtual UserContext ResolveEventUser(const EventFwk::CommonEventData &data) const;
+    virtual UserContext ResolveMainDisplayUser() const;
+    virtual std::vector<UserContext> ResolveForegroundUsers() const;
+    virtual UserContext ResolveUserSwitchedNewUser(const EventFwk::CommonEventData &data) const;
+    virtual UserContext ResolveUserSwitchedOldUser(const AAFwk::Want &want) const;
+    virtual UserContext ResolveStoppingUser(const EventFwk::CommonEventData &data) const;
+    virtual UserContext ResolvePackageRemovedUser(const AAFwk::Want &want) const;
+    virtual UserContext ResolveInteractionUser(int32_t userId) const;
+    virtual std::vector<int32_t> GetForegroundUserIds() const;
 
 private:
     UserContext MakeEventContext(int32_t userId, UserContextSource source) const;
 };
+
+bool IsMainScreenUser(int32_t userId);
+bool IsMainDisplayUser(int32_t userId);
 } // namespace MiscServices
 } // namespace OHOS
 #endif // PASTEBOARD_USER_CONTEXT_H

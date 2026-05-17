@@ -3599,17 +3599,16 @@ std::string PasteboardService::GetTime()
 
 std::string PasteboardService::DumpHistory() const
 {
-    UserContextResolver resolver;
-    auto contexts = resolver.ResolveForegroundUsers();
-    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(!contexts.empty(), "Access history fail! no foreground user.",
+    auto foregroundUsers = GetForegroundUserIds();
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(!foregroundUsers.empty(), "Access history fail! no foreground user.",
         PASTEBOARD_MODULE_SERVICE, "no foreground user");
     std::string result;
-    for (const auto &context : contexts) {
-        if (!context.isValid) {
+    for (const auto userId : foregroundUsers) {
+        if (userId == ERROR_USERID) {
             continue;
         }
-        result += "UserId: " + std::to_string(context.userId) + "\n";
-        result += DumpHistory(context.userId);
+        result += "UserId: " + std::to_string(userId) + "\n";
+        result += DumpHistory(userId);
     }
     return result;
 }
@@ -3638,19 +3637,18 @@ std::string PasteboardService::DumpHistory(int32_t userId) const
 
 std::string PasteboardService::DumpData()
 {
-    UserContextResolver resolver;
-    auto contexts = resolver.ResolveForegroundUsers();
-    if (contexts.empty()) {
+    auto foregroundUsers = GetForegroundUserIds();
+    if (foregroundUsers.empty()) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "query foreground users failed.");
         return "";
     }
     std::string result;
-    for (const auto &context : contexts) {
-        if (!context.isValid) {
+    for (const auto userId : foregroundUsers) {
+        if (userId == ERROR_USERID) {
             continue;
         }
-        result += "UserId: " + std::to_string(context.userId) + "\n";
-        result += DumpData(context.userId);
+        result += "UserId: " + std::to_string(userId) + "\n";
+        result += DumpData(userId);
     }
     return result;
 }
@@ -4956,29 +4954,30 @@ void PasteBoardCommonEventSubscriber::OnReceiveEventInner(const EventFwk::Common
     std::string action = want.GetAction();
     int32_t eventState = data.GetCode();
     int32_t userId = data.GetCode();
-    UserContextResolver resolver;
     if (action == EventFwk::CommonEventSupport::COMMON_EVENT_USER_SWITCHED) {
         std::lock_guard<std::mutex> lock(mutex_);
-        auto newContext = resolver.ResolveUserSwitchedNewUser(data);
-        auto oldContext = resolver.ResolveUserSwitchedOldUser(want);
-        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "user id switched: new=%{public}d, old=%{public}d",
-            newContext.userId, oldContext.userId);
-        if (pasteboardService_ != nullptr && newContext.isValid) {
-            pasteboardService_->ChangeStoreStatus(newContext.userId);
-            if (oldContext.isValid) {
-                pasteboardService_->ClearByResolvedUser(oldContext.userId);
+        if (pasteboardService_ != nullptr) {
+            auto context = pasteboardService_->ResolveEventUser(data);
+            if (!context.isValid) {
+                PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "user switched userId invalid.");
+                return;
             }
+            PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "user id switched: %{public}d", context.userId);
+            pasteboardService_->ChangeStoreStatus(context.userId);
             pasteboardService_->switch_.DeInit();
-            pasteboardService_->switch_.Init(newContext.userId);
-            PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetSwitch end, newUser=%{public}d, oldUser=%{public}d",
-                newContext.userId, oldContext.userId);
+            pasteboardService_->switch_.Init(context.userId);
+            PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetSwitch end, userId=%{public}d", context.userId);
         }
     } else if (action == EventFwk::CommonEventSupport::COMMON_EVENT_USER_STOPPING) {
         std::lock_guard<std::mutex> lock(mutex_);
-        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "user id is stopping: %{public}d", userId);
-        auto stoppingContext = resolver.ResolveStoppingUser(data);
-        if (pasteboardService_ != nullptr && stoppingContext.isValid) {
-            pasteboardService_->ClearByResolvedUser(stoppingContext.userId);
+        if (pasteboardService_ != nullptr) {
+            auto context = pasteboardService_->ResolveEventUser(data);
+            if (!context.isValid) {
+                PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "user stopping userId invalid.");
+                return;
+            }
+            PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "user id is stopping: %{public}d", context.userId);
+            pasteboardService_->ClearByEventUser(context.userId);
         }
     } else if (action == EventFwk::CommonEventSupport::COMMON_EVENT_SCREEN_LOCKED) {
         std::lock_guard<std::mutex> lock(mutex_);
@@ -4990,9 +4989,13 @@ void PasteBoardCommonEventSubscriber::OnReceiveEventInner(const EventFwk::Common
         PasteboardService::currentScreenStatus = ScreenEvent::ScreenUnlocked;
     } else if (action == EventFwk::CommonEventSupport::COMMON_EVENT_PACKAGE_REMOVED) {
         auto tokenId = want.GetIntParam("accessTokenId", -1);
-        auto removedContext = resolver.ResolvePackageRemovedUser(want);
-        if (pasteboardService_ != nullptr && removedContext.isValid) {
-            pasteboardService_->ClearUriOnUninstall(removedContext.userId, tokenId);
+        if (pasteboardService_ != nullptr) {
+            auto context = pasteboardService_->ResolvePackageRemovedUser(want);
+            if (!context.isValid) {
+                PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "package removed userId invalid.");
+                return;
+            }
+            pasteboardService_->ClearUriOnUninstall(context.userId, tokenId);
         }
     } else if (action == EventFwk::CommonEventSupport::COMMON_EVENT_WIFI_POWER_STATE && eventState == WIFI_DISABLED) {
         pasteboardService_->HandleWifiOffAndClearDistributedEvent(userId);
@@ -5002,8 +5005,7 @@ void PasteBoardCommonEventSubscriber::OnReceiveEventInner(const EventFwk::Common
 void PasteboardService::ClearUriOnUninstall(int32_t tokenId)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ClearUriOnUninstall: tokenId=%{public}d", tokenId);
-    UserContextResolver resolver;
-    auto context = resolver.ResolveCallingUser();
+    auto context = ResolveCallerContext(IPCSkeleton::GetCallingTokenID());
     if (!context.isValid) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "clear uri uninstall failed, caller user invalid");
         return;
