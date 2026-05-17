@@ -1111,7 +1111,8 @@ AppInfo PasteboardService::GetAppInfo(uint32_t tokenId)
     AppInfo info;
     info.tokenId = tokenId;
     info.tokenType = AccessTokenKit::GetTokenTypeFlag(tokenId);
-    auto context = userContextResolver_->ResolveCaller(tokenId, IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid());
+    UserContextResolver resolver;
+    auto context = resolver.ResolveCallingUser();
     info.userId = context.isValid ? context.userId : ERROR_USERID;
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE,
         "GetAppInfo: resolved userId=%{public}d from calling user, isValid=%{public}d",
@@ -1458,8 +1459,9 @@ int32_t PasteboardService::CheckAndGrantRemoteUri(PasteData &data, const AppInfo
 
 bool PasteboardService::RemoteDataTaskManager::IsRemoteDataPasting(const Event &event)
 {
+    auto key = event.deviceId + std::to_string(event.seqId);
     std::lock_guard<std::mutex> lock(mutex_);
-    auto it = dataTasks_.find(event.id_);
+    auto it = dataTasks_.find(key);
     if (it == dataTasks_.end() || it->second == nullptr) {
         return false;
     }
@@ -2955,7 +2957,8 @@ void PasteboardService::RemovePasteData(const AppInfo &appInfo)
 
 int32_t PasteboardService::GetCurrentAccountId()
 {
-    auto context = userContextResolver_->ResolveCallingUser();
+    UserContextResolver resolver;
+    auto context = resolver.ResolveCallingUser();
     int32_t userId = context.isValid ? context.userId : ERROR_USERID;
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetCurrentAccountId: return userId=%{public}d, isValid=%{public}d",
         userId, context.isValid);
@@ -3472,7 +3475,7 @@ bool PasteboardService::IsNeedThaw(int32_t userId, PasteboardEventStatus status)
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "userId invalid.");
         return false;
     }
-    std::shared_ptr<Property> property;
+    std::shared_ptr<OHOS::MiscServices::Property> property;
     int32_t ret = GetDefaultInputMethod(userId, property);
     if (ret != ErrorCode::NO_ERROR || property == nullptr) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "default input method is nullptr!");
@@ -3492,7 +3495,7 @@ bool PasteboardService::IsCurrentImeByPid(int32_t userId, pid_t callPid) const
     return isImePid;
 }
 
-int32_t PasteboardService::GetDefaultInputMethod(int32_t userId, std::shared_ptr<Property> &property) const
+int32_t PasteboardService::GetDefaultInputMethod(int32_t userId, std::shared_ptr<OHOS::MiscServices::Property> &property) const
 {
     auto imc = InputMethodController::GetInstance();
     if (imc == nullptr) {
@@ -4006,7 +4009,7 @@ FocusedAppInfo PasteboardService::GetFocusedAppInfo(int32_t userId) const
                 appInfo.top = windowInfo->rect_.posY_;
                 appInfo.width = windowInfo->rect_.width_;
                 appInfo.height = windowInfo->rect_.height_;
-                appInfo.abilityToken = windowInfo->abilityToken_;
+                appInfo.abilityToken = info.abilityToken_;
                 break;
             }
         }

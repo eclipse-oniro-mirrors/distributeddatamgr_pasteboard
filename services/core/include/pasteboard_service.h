@@ -42,6 +42,7 @@
 
 namespace OHOS {
 namespace MiscServices {
+struct Property;
 constexpr int32_t RESULT_OK = 0;
 constexpr int64_t SIZE_K = 1024;
 constexpr int64_t MIN_LOCAL_CAPACITY = 1; // 1M
@@ -322,7 +323,7 @@ private:
     bool IsNeedThaw(PasteboardEventStatus status);
     bool IsNeedThaw(int32_t userId, PasteboardEventStatus status);
     bool IsCurrentImeByPid(int32_t userId, pid_t callPid) const;
-    int32_t GetDefaultInputMethod(int32_t userId, std::shared_ptr<Property> &property) const;
+    int32_t GetDefaultInputMethod(int32_t userId, std::shared_ptr<OHOS::MiscServices::Property> &property) const;
     int32_t ExtractEntity(const std::string &entity, std::string &location);
     int32_t GetAllEntryPlainText(uint32_t dataId, uint32_t recordId,
         std::vector<std::shared_ptr<PasteDataEntry>> &entries, std::string &primaryText);
@@ -385,9 +386,9 @@ private:
         PasteData &data, const std::pair<std::string, int32_t> &targetBundleAppIndex);
     void RemoveInvalidRemoteUri(std::vector<Uri> &grantUris);
     int32_t GrantPermission(const std::vector<Uri> &grantUris, uint32_t permFlag, bool isRemoteData,
-        uint32_t targetTokenId, int32_t targetUserId, uint32_t srcTokenId);
+        const std::string &targetBundleName, int32_t appIndex);
     int32_t GrantUriPermission(std::map<uint32_t, std::vector<Uri>> &grantUris,
-        uint32_t targetTokenId, int32_t targetUserId, uint32_t srcTokenId, bool isRemoteData);
+        const std::string &targetBundleName, bool isRemoteData, int32_t appIndex);
     void GenerateDistributedUri(PasteData &data);
     bool IsBundleOwnUriPermission(const std::string &bundleName, Uri &uri);
     std::string GetAppLabel(uint32_t tokenId);
@@ -496,7 +497,7 @@ private:
     ConcurrentMap<int32_t, std::pair<sptr<IPasteboardEntryGetter>, sptr<EntryGetterDeathRecipient>>> entryGetters_;
     ConcurrentMap<int32_t, std::pair<sptr<IPasteboardDelayGetter>, sptr<DelayGetterDeathRecipient>>> delayGetters_;
     ConcurrentMap<int32_t, uint64_t> copyTime_;
-    std::set<std::pair<int32_t, uint32_t>> readTokens_;
+    std::set<std::pair<std::string, int32_t>> readBundles_;
     std::shared_ptr<PasteBoardCommonEventSubscriber> commonEventSubscriber_ = nullptr;
     std::shared_ptr<PasteBoardAccountStateSubscriber> accountStateSubscriber_ = nullptr;
     std::shared_ptr<UserContextResolver> userContextResolver_ = std::make_shared<UserContextResolver>();
