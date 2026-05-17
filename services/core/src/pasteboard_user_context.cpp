@@ -15,81 +15,115 @@
 
 #include "pasteboard_user_context.h"
 
-#include "accesstoken_kit.h"
-#include "errors.h"
-#include "os_account_manager.h"
+#include <cstdlib>
+#include <inttypes.h>
+
+#include "ipc_skeleton.h"
 #include "pasteboard_hilog.h"
 
-namespace OHOS::MiscServices {
-using namespace OHOS::Security::AccessToken;
-
-UserContext UserContextResolver::ResolveCaller(uint32_t tokenId, pid_t pid, pid_t uid) const
+namespace OHOS {
+namespace MiscServices {
+namespace {
+bool IsValidUserId(int32_t userId)
 {
-    (void)pid;
-    (void)uid;
-    if (AccessTokenKit::GetTokenTypeFlag(tokenId) != ATokenTypeEnum::TOKEN_HAP) {
-        return {};
-    }
+    return userId != ERROR_USERID;
+}
+} // namespace
 
-    HapTokenInfo hapInfo;
-    if (AccessTokenKit::GetHapTokenInfo(tokenId, hapInfo) != 0) {
-        return {};
-    }
-
+UserContext UserContextResolver::ResolveCallingUser() const
+{
     UserContext context;
-    context.userId = hapInfo.userID;
-    context.accountId = hapInfo.userID;
-    context.tokenId = tokenId;
     context.source = UserContextSource::CALLER;
+    context.uid = IPCSkeleton::GetCallingUid();
+    int32_t userId = ERROR_USERID;
+    auto ret = AccountSA::OsAccountManager::GetOsAccountLocalIdFromUid(context.uid, userId);
+    if (ret != ERR_OK || !IsValidUserId(userId)) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE,
+            "resolve calling user failed, uid=%{public}d, ret=%{public}d", context.uid, ret);
+        return context;
+    }
+    context.userId = userId;
     context.isValid = true;
     return context;
 }
 
-UserContext UserContextResolver::ResolveEventUser(const EventFwk::CommonEventData &data) const
+UserContext UserContextResolver::ResolveMainDisplayUser() const
 {
     UserContext context;
-    context.userId = data.GetCode();
-    context.source = UserContextSource::EVENT;
-    context.isValid = context.userId != -1;
+    context.source = UserContextSource::MAIN_DISPLAY;
+    context.displayId = MAIN_DISPLAY_ID;
+    int32_t userId = ERROR_USERID;
+    auto ret = AccountSA::OsAccountManager::GetForegroundOsAccountLocalId(MAIN_DISPLAY_ID, userId);
+    if (ret != ERR_OK || !IsValidUserId(userId)) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE,
+            "resolve main display user failed, displayId=%{public}" PRIu64 ", ret=%{public}d",
+            MAIN_DISPLAY_ID, ret);
+        return context;
+    }
+    context.userId = userId;
+    context.isValid = true;
     return context;
+}
+
+std::vector<UserContext> UserContextResolver::ResolveForegroundUsers() const
+{
+    std::vector<AccountSA::ForegroundOsAccount> accounts;
+    auto ret = AccountSA::OsAccountManager::GetForegroundOsAccounts(accounts);
+    if (ret != ERR_OK) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "resolve foreground users failed, ret=%{public}d", ret);
+        return {};
+    }
+    std::vector<UserContext> contexts;
+    for (const auto &account : accounts) {
+        UserContext context;
+        context.source = UserContextSource::FOREGROUND;
+        context.userId = account.localId;
+        context.displayId = account.displayId;
+        context.isValid = IsValidUserId(context.userId);
+        if (context.isValid) {
+            contexts.emplace_back(context);
+        }
+    }
+    return contexts;
+}
+
+UserContext UserContextResolver::ResolveUserSwitchedNewUser(const EventFwk::CommonEventData &data) const
+{
+    return MakeEventContext(data.GetCode(), UserContextSource::USER_SWITCHED_NEW);
+}
+
+UserContext UserContextResolver::ResolveUserSwitchedOldUser(const AAFwk::Want &want) const
+{
+    std::string oldId = want.GetStringParam(USER_SWITCH_OLD_ID);
+    if (oldId.empty()) {
+        return MakeEventContext(ERROR_USERID, UserContextSource::USER_SWITCHED_OLD);
+    }
+    char *end = nullptr;
+    long value = std::strtol(oldId.c_str(), &end, 10);
+    if (end == oldId.c_str() || *end != '\0') {
+        return MakeEventContext(ERROR_USERID, UserContextSource::USER_SWITCHED_OLD);
+    }
+    return MakeEventContext(static_cast<int32_t>(value), UserContextSource::USER_SWITCHED_OLD);
+}
+
+UserContext UserContextResolver::ResolveStoppingUser(const EventFwk::CommonEventData &data) const
+{
+    return MakeEventContext(data.GetCode(), UserContextSource::USER_STOPPING);
 }
 
 UserContext UserContextResolver::ResolvePackageRemovedUser(const AAFwk::Want &want) const
 {
-    UserContext context;
-    context.userId = want.GetIntParam("userId", -1);
-    context.source = UserContextSource::PACKAGE_REMOVED;
-    context.isValid = context.userId != -1;
-    return context;
+    return MakeEventContext(want.GetIntParam(PACKAGE_REMOVED_USER_ID, ERROR_USERID),
+        UserContextSource::PACKAGE_REMOVED);
 }
 
-UserContext UserContextResolver::ResolveInteractionUser(int32_t userId) const
+UserContext UserContextResolver::MakeEventContext(int32_t userId, UserContextSource source) const
 {
     UserContext context;
+    context.source = source;
     context.userId = userId;
-    context.source = UserContextSource::INTERACTION;
-    context.isValid = context.userId != -1;
+    context.isValid = IsValidUserId(userId);
     return context;
 }
-
-std::vector<int32_t> UserContextResolver::GetForegroundUserIds() const
-{
-    std::vector<int32_t> accountIds;
-    auto ret = AccountSA::OsAccountManager::QueryActiveOsAccountIds(accountIds);
-    if (ret != ERR_OK || accountIds.empty()) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "query active user failed errCode=%{public}d", ret);
-        return {};
-    }
-    return accountIds;
-}
-
-bool IsMainScreenUser(int32_t userId)
-{
-    return userId == MAIN_SCREEN_USER_ID;
-}
-
-bool IsMainDisplayUser(int32_t userId)
-{
-    return IsMainScreenUser(userId);
-}
-} // namespace OHOS::MiscServices
+} // namespace MiscServices
+} // namespace OHOS
