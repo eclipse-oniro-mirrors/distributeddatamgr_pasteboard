@@ -1,54 +1,53 @@
-# Pasteboard Service Restoration Design Spec
+# 剪贴板服务恢复设计规范
 
-## Problem Discovery
+## 问题发现
 
-Comparing commit 051f0fe8 (multi-foreground-user pasteboard) with current HEAD revealed partial code regression:
+对比 commit 051f0fe8（多前台用户剪贴板）与当前 HEAD 发现部分代码回退：
 
-**Missing Features (Phase 2 - Need Confirmation):**
-1. userId-parameterized focus window checking methods
-2. userId-parameterized IME thaw methods  
-3. ShouldRegisterPreSyncMonitor check for main screen user
-4. GrantPermission tokenId parameter restoration
-5. RefreshCriticalState call restoration (8 locations)
-6. pasteboard_window_manager userId parameter versions
-7. Other resolver usage modifications
+**缺失功能（第二阶段 - 需确认）：**
+1. userId 参数化的焦点窗口检查方法
+2. userId 参数化的输入法解冻方法  
+3. GrantPermission tokenId 参数恢复
+4. RefreshCriticalState 调用恢复（8 处）
+5. pasteboard_window_manager userId 参数版本
+6. 其他解析器使用修改
 
-**Already Restored (Phase 1):**
-1. ✅ UserContextResolver virtual design with dependency injection support
-2. ✅ Memory management mechanism (HasActivePasteboardWork/RefreshCriticalState)  
-3. ✅ ClearByEventUser method (replaces ClearByResolvedUser)
-4. ✅ userId-parameterized IME methods (IsCurrentImeByPid/GetDefaultInputMethod)
-5. ✅ pasteboard_service.h declarations restored
+**已恢复（第一阶段）：**
+1. ✅ UserContextResolver 虚拟设计及依赖注入支持
+2. ✅ 内存管理机制（HasActivePasteboardWork/RefreshCriticalState）
+3. ✅ ClearByEventUser 方法（替代 ClearByResolvedUser）
+4. ✅ userId 参数化的输入法方法（IsCurrentImeByPid/GetDefaultInputMethod）
+5. ✅ pasteboard_service.h 声明恢复
 
-## Design Goal
+## 设计目标
 
-Restore all 051f0fe8 features for complete multi-user clipboard support while maintaining HEAD improvements.
+恢复所有 051f0fe8 功能以实现完整的多用户剪贴板支持，同时保持 HEAD 的改进。
 
-## Phase 2 Design Details
+## 第二阶段设计详情
 
-### 1. userId-Parameterized Focus Window Checking
+### 1. userId 参数化的焦点窗口检查
 
-**Current Issue:** HEAD removed userId parameter, only supports caller's focus check
+**当前问题：** HEAD 移除了 userId 参数，仅支持调用者的焦点检查
 
-**Design:**
+**设计：**
 ```cpp
 // pasteboard_service.h
-bool IsFocusedApp(uint32_t tokenId);                      // Keep: caller version
-bool IsFocusedApp(uint32_t tokenId, int32_t userId);  // Add: userId version
+bool IsFocusedApp(uint32_t tokenId);                      // 保留：调用者版本
+bool IsFocusedApp(uint32_t tokenId, int32_t userId);  // 新增：userId 版本
 
-FocusedAppInfo GetFocusedAppInfo(void) const;          // Keep: caller version  
-FocusedAppInfo GetFocusedAppInfo(int32_t userId) const; // Add: userId version
+FocusedAppInfo GetFocusedAppInfo(void) const;          // 保留：调用者版本  
+FocusedAppInfo GetFocusedAppInfo(int32_t userId) const; // 新增：userId 版本
 
 // pasteboard_service.cpp
 bool PasteboardService::IsFocusedApp(uint32_t tokenId)
 {
-    // Simplified version: use current user
+    // 简化版本：使用当前用户
     return IsFocusedApp(tokenId, GetCurrentAccountId());
 }
 
 bool PasteboardService::IsFocusedApp(uint32_t tokenId, int32_t userId)
 {
-    // userId version: check specified user's focus window
+    // userId 版本：检查指定用户的焦点窗口
     if (AccessTokenKit::GetTokenTypeFlag(tokenId) != ATokenTypeEnum::TOKEN_HAP) {
         return true;
     }
@@ -67,25 +66,25 @@ bool PasteboardService::IsFocusedApp(uint32_t tokenId, int32_t userId)
 }
 ```
 
-**Key Changes:**
-- WindowManager::GetFocusWindowInfo needs userId parameter version
-- GetFocusedAppInfo(void) calls userId version with GetCurrentAccountId()
-- IsFocusedApp(tokenId) calls userId version with current user
+**关键变更：**
+- WindowManager::GetFocusWindowInfo 需要 userId 参数版本
+- GetFocusedAppInfo(void) 使用 GetCurrentAccountId() 调用 userId 版本
+- IsFocusedApp(tokenId) 使用当前用户调用 userId 版本
 
-### 2. userId-Parameterized IME Thaw Methods
+### 2. userId 参数化的输入法解冻方法
 
-**Current Issue:** HEAD's IsNeedThaw removed userId parameter
+**当前问题：** HEAD 的 IsNeedThaw 移除了 userId 参数
 
-**Design:**
+**设计：**
 ```cpp
 // pasteboard_service.h
-bool IsNeedThaw(PasteboardEventStatus status);                      // Keep: caller version
-bool IsNeedThaw(int32_t userId, PasteboardEventStatus status);  // Add: userId version
+bool IsNeedThaw(PasteboardEventStatus status);                      // 保留：调用者版本
+bool IsNeedThaw(int32_t userId, PasteboardEventStatus status);  // 新增：userId 版本
 
 // pasteboard_service.cpp
 bool PasteboardService::IsNeedThaw(PasteboardEventStatus status)
 {
-    // Simplified version: use current user
+    // 简化版本：使用当前用户
     return IsNeedThaw(GetCurrentAccountId(), status);
 }
 
@@ -106,15 +105,15 @@ bool PasteboardService::IsNeedThaw(int32_t userId, PasteboardEventStatus status)
 }
 ```
 
-**Key Changes:**
-- IsNeedThaw(status) calls userId version with GetCurrentAccountId()
-- GetDefaultInputMethod already restored in Phase 1
+**关键变更：**
+- IsNeedThaw(status) 使用 GetCurrentAccountId() 调用 userId 版本
+- GetDefaultInputMethod 已在第一阶段恢复
 
-### 3. Main Screen User Pre-Sync Monitor Check
+### 3. 主屏幕用户预同步监视器检查
 
-**Current Issue:** HEAD removed ShouldRegisterPreSyncMonitor, all users register pre-sync
+**当前问题：** HEAD 移除了 ShouldRegisterPreSyncMonitor，所有用户都注册预同步
 
-**Design:**
+**设计：**
 ```cpp
 // pasteboard_service.h
 bool ShouldRegisterPreSyncMonitor(int32_t userId) const;
@@ -134,7 +133,7 @@ void PasteboardService::PreSyncRemotePasteboardData()
     if (!clipPlugin->NeedSyncTopEvent()) {
         return;
     }
-    // Add check: only for main screen user
+    // 新增检查：仅针对主屏幕用户
     if (!ShouldRegisterPreSyncMonitor(MAIN_SCREEN_USER_ID)) {
         PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "skip presync, main screen user disabled");
         return;
@@ -148,27 +147,27 @@ void PasteboardService::RegisterPreSyncMonitor()
         PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "skip presync monitor, userId=%{public}d", MAIN_SCREEN_USER_ID);
         return;
     }
-    // ... register logic
+    // ... 注册逻辑
 }
 ```
 
-**Key Changes:**
-- ShouldRegisterPreSyncMonitor checks IsMainScreenUser
-- PreSyncRemotePasteboardData adds check before sending event
-- RegisterPreSyncMonitor adds check before registering
+**关键变更：**
+- ShouldRegisterPreSyncMonitor 检查 IsMainScreenUser
+- PreSyncRemotePasteboardData 在发送事件前添加检查
+- RegisterPreSyncMonitor 在注册前添加检查
 
-### 4. GrantPermission tokenId Parameter Restoration
+### 4. GrantPermission tokenId 参数恢复
 
-**Current Issue:** HEAD changed to bundleName, removed token validation
+**当前问题：** HEAD 改为 bundleName，移除了 token 验证
 
-**Design:**
+**设计：**
 ```cpp
 // pasteboard_service.h
 int32_t GrantPermission(const std::vector<Uri> &grantUris, uint32_t permFlag, bool isRemoteData,
     uint32_t targetTokenId, int32_t targetUserId, uint32_t srcTokenId);
 int32_t GrantUriPermission(std::map<uint32_t, std::vector<Uri>> &grantUris,
     uint32_t targetTokenId, int32_t targetUserId, uint32_t srcTokenId, bool isRemoteData);
-std::set<std::pair<int32_t, uint32_t>> readTokens_;  // Restore: readTokens_
+std::set<std::pair<int32_t, uint32_t>> readTokens_;  // 恢复：readTokens_
 
 // pasteboard_service.cpp
 int32_t PasteboardService::GrantPermission(const std::vector<Uri> &grantUris, uint32_t permFlag, bool isRemoteData,
@@ -177,17 +176,17 @@ int32_t PasteboardService::GrantPermission(const std::vector<Uri> &grantUris, ui
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(targetTokenId != 0, ...);
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(targetUserId != ERROR_USERID, ...);
     
-    // Add token validation
+    // 新增 token 验证
     HapTokenInfo targetInfo;
     int32_t tokenRet = AccessTokenKit::GetHapTokenInfo(targetTokenId, targetInfo);
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(tokenRet == 0, ...);
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(targetInfo.userID == targetUserId, ...);
     
-    // ... grant logic ...
+    // ... 授权逻辑 ...
     
     if (hasGranted) {
         std::lock_guard<std::mutex> lock(readBundleMutex_);
-        // Restore: readTokens_
+        // 恢复：readTokens_
         if (readTokens_.count({ targetUserId, targetTokenId }) == 0) {
             readTokens_.insert({ targetUserId, targetTokenId });
         }
@@ -195,7 +194,7 @@ int32_t PasteboardService::GrantPermission(const std::vector<Uri> &grantUris, ui
     return ret;
 }
 
-// Restore all 7 call sites:
+// 恢复所有 7 处调用点：
 int32_t PasteboardService::GetRecordValueByType(...) {
     // ...
     return GrantUriPermission(grantUris, appInfo.tokenId, appInfo.userId, data->GetTokenId(), isRemoteData);
@@ -227,18 +226,18 @@ int32_t PasteboardService::CheckAndGrantUriPermission(...) {
 }
 ```
 
-**Key Changes:**
-- GrantPermission parameters restored to tokenId/userId
-- GrantUriPermission parameters restored
-- readBundles_ restored to readTokens_
-- HapTokenInfo validation added (tokenRet == 0, userID == targetUserId)
-- All 7 call sites restored
+**关键变更：**
+- GrantPermission 参数恢复为 tokenId/userId
+- GrantUriPermission 参数恢复
+- readBundles_ 恢复为 readTokens_
+- 新增 HapTokenInfo 验证（tokenRet == 0, userID == targetUserId）
+- 恢复所有 7 处调用点
 
-### 5. RefreshCriticalState Call Restoration
+### 4. RefreshCriticalState 调用恢复
 
-**Current Issue:** HEAD removed all RefreshCriticalState calls
+**当前问题：** HEAD 移除了所有 RefreshCriticalState 调用
 
-**Design: Add to 8 methods:**
+**设计：添加到 8 个方法中：**
 
 ```cpp
 // 1. NotifyDelayGetterDied
@@ -247,7 +246,7 @@ void PasteboardService::NotifyDelayGetterDied(int32_t userId) {
         return;
     }
     delayGetters_.Erase(userId);
-    RefreshCriticalState();  // Add
+    RefreshCriticalState();  // 新增
 }
 
 // 2. NotifyEntryGetterDied  
@@ -256,7 +255,7 @@ void PasteboardService::NotifyEntryGetterDied(int32_t userId) {
         return;
     }
     entryGetters_.Erase(userId);
-    RefreshCriticalState();  // Add
+    RefreshCriticalState();  // 新增
 }
 
 // 3. ClearInner
@@ -269,12 +268,12 @@ int32_t PasteboardService::ClearInner(int32_t userId, const AppInfo &appInfo) {
         delayTokenId_ = 0;
     }
     CleanDistributedData(userId);
-    RefreshCriticalState();  // Add
+    RefreshCriticalState();  // 新增
     if (hasData) {
         std::string bundleName = GetAppBundleName(appInfo);
         NotifyObservers(bundleName, userId, PasteboardEventStatus::PASTEBOARD_CLEAR);
     }
-    if (!HasActivePasteboardWork()) {  // Add check
+    if (!HasActivePasteboardWork()) {  // 新增检查
         CancelCriticalTimer();
     }
     return ERR_OK;
@@ -291,7 +290,7 @@ int32_t PasteboardService::GetRemoteData(...) {
         ret = static_cast<int32_t>(PasteboardError::E_OK);
     }
     taskMgr_.ClearRemoteDataTask(event);
-    RefreshCriticalState();  // Add
+    RefreshCriticalState();  // 新增
     return ret;
 }
 
@@ -305,13 +304,13 @@ int32_t PasteboardService::GetRemotePasteData(...) {
             auto curTime = static_cast<uint64_t>(PasteBoardTime::GetBootTimeMs());
             copyTime_.InsertOrAssign(userId, curTime);
             SetDataExpirationTimer(userId);
-            RefreshCriticalState();  // Add
+            RefreshCriticalState();  // 新增
         }
         // ...
     }
     block->SetValue(pasteDataTime);
     taskMgr_.ClearRemoteDataTask(event);
-    RefreshCriticalState();  // Add
+    RefreshCriticalState();  // 新增
 }
 
 // 6. SaveData
@@ -320,7 +319,7 @@ int32_t PasteboardService::SaveData(...) {
     auto curTime = static_cast<uint64_t>(PasteBoardTime::GetBootTimeMs());
     copyTime_.InsertOrAssign(appInfo.userId, curTime);
     SetDataExpirationTimer(appInfo.userId);
-    RefreshCriticalState();  // Add
+    RefreshCriticalState();  // 新增
     // ...
 }
 
@@ -333,7 +332,7 @@ void PasteboardService::ClearAgedData(int32_t userId) {
         delayTokenId_ = 0;
     }
     copyTime_.Erase(userId);
-    RefreshCriticalState();  // Add
+    RefreshCriticalState();  // 新增
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_SERVICE, "data is out of the time");
 }
 
@@ -355,63 +354,69 @@ void PasteboardService::ClearUriOnUninstall(int32_t userId, int32_t tokenId) {
             return false;
         });
         clips_.Erase(userId);
-        RefreshCriticalState();  // Add
+        RefreshCriticalState();  // 新增
         return true;
     });
 }
 ```
 
-### 6. pasteboard_window_manager userId Parameter Restoration
+### 5. pasteboard_window_manager userId 参数恢复
 
-**Current Issue:** HEAD removed userId parameter versions
+**当前问题：** HEAD 移除了 userId 参数版本
 
-**Design:**
+**设计：**
+通过WindowManager/WindowManagerLite的GetInstance(userId)来传入userId参数，无需修改方法签名：
+
 ```cpp
-// pasteboard_window_manager.h
-void GetFocusWindowInfo(int32_t userId, FocusChangeInfo &info);              // Add userId version
-WMError GetVisibilityWindowInfo(int32_t userId, std::vector<sptr<WindowVisibilityInfo>> &infos); // Add userId version
-
-// pasteboard_window_manager.cpp  
-void WindowManager::GetFocusWindowInfo(int32_t userId, FocusChangeInfo &info)
+// pasteboard_service.cpp中的调用方式
+bool PasteboardService::IsFocusedApp(uint32_t tokenId, int32_t userId)
 {
-    // userId version implementation
+    FocusChangeInfo info;
 #ifdef SCENE_BOARD_ENABLE
-    WindowManagerLite::GetInstance().GetFocusWindowInfo(info);
+    WindowManagerLite::GetInstance(userId).GetFocusWindowInfo(info);
 #else
-    WindowManager::GetInstance().GetFocusWindowInfo(info);
+    WindowManager::GetInstance(userId).GetFocusWindowInfo(info);
 #endif
-    // Filter by userId if needed
+    // ...
 }
 
-WMError WindowManager::GetVisibilityWindowInfo(int32_t userId, std::vector<sptr<WindowVisibilityInfo>> &infos)
+FocusedAppInfo PasteboardService::GetFocusedAppInfo(int32_t userId) const
 {
-    // userId version implementation
+    FocusChangeInfo info;
+    std::vector<sptr<WindowVisibilityInfo>> windowVisibilityInfos;
 #ifdef SCENE_BOARD_ENABLE
-    WindowManagerLite::GetInstance().GetVisibilityWindowInfo(infos);
+    WindowManagerLite::GetInstance(userId).GetFocusWindowInfo(info);
+    WMError result = WindowManagerLite::GetInstance(userId).GetVisibilityWindowInfo(windowVisibilityInfos);
 #else
-    WindowManager::GetInstance().GetVisibilityWindowInfo(infos);
+    WindowManager::GetInstance(userId).GetFocusWindowInfo(info);
+    WMError result = WindowManager::GetInstance(userId).GetVisibilityWindowInfo(windowVisibilityInfos);
 #endif
-    // Filter by userId if needed  
+    // ...
 }
 ```
 
-### 7. Other Resolver Usage Modifications
+**关键改动：**
+- WindowManager和WindowManagerLite通过GetInstance(userId)传入userId参数
+- GetFocusWindowInfo和GetVisibilityWindowInfo方法签名无需修改
+- 只需在调用时使用GetInstance(userId)而非GetInstance()
 
-**Current Issue:** HEAD uses temporary resolver objects
+### 6. 其他解析器使用修改
 
-**Design:** Replace with userContextResolver_ usage:
+**当前问题：** HEAD 使用临时解析器对象
+
+**设计：** 替换为 userContextResolver_ 使用：
 
 ```cpp
 // DumpHistory
 std::string PasteboardService::DumpHistory() const {
-    std::vector<int32_t> foregroundUsers = GetForegroundUserIds();  // Use member resolver
+    std::vector<int32_t> foregroundUsers = GetForegroundUserIds();  // 使用成员解析器
     auto userId = foregroundUsers.empty() ? ERROR_USERID : foregroundUsers.front();
     // ...
 }
 
 // DumpData
 std::string PasteboardService::DumpData() {
-    std::vector<int32_t> foregroundUsers = GetForegroundUserIds();  // Use member resolver
+    std::vector<int32_t> foregroundUsers = GetForegroundUserIds();  // 使用成员解析器
     auto userId = foregroundUsers.empty() ? ERROR_USERID : foregroundUsers.front();
     // ...
 }
@@ -421,7 +426,7 @@ void PasteBoardCommonEventSubscriber::OnReceiveEventInner(...) {
     if (action == EventFwk::CommonEventSupport::COMMON_EVENT_USER_SWITCHED) {
         std::lock_guard<std::mutex> lock(mutex_);
         if (pasteboardService_ != nullptr) {
-            auto context = pasteboardService_->ResolveEventUser(data);  // Use member resolver
+            auto context = pasteboardService_->ResolveEventUser(data);  // 使用成员解析器
             if (!context.isValid) {
                 return;
             }
@@ -435,7 +440,7 @@ void PasteBoardCommonEventSubscriber::OnReceiveEventInner(...) {
     else if (action == EventFwk::CommonEventSupport::COMMON_EVENT_USER_STOPPING) {
         std::lock_guard<std::mutex> lock(mutex_);
         if (pasteboardService_ != nullptr) {
-            auto context = pasteboardService_->ResolveEventUser(data);  // Use member resolver
+            auto context = pasteboardService_->ResolveEventUser(data);  // 使用成员解析器
             if (!context.isValid) {
                 return;
             }
@@ -449,7 +454,7 @@ void PasteBoardCommonEventSubscriber::OnReceiveEventInner(...) {
     else if (action == EventFwk::CommonEventSupport::COMMON_EVENT_PACKAGE_REMOVED) {
         auto tokenId = want.GetIntParam("accessTokenId", -1);
         if (pasteboardService_ != nullptr) {
-            auto context = pasteboardService_->ResolvePackageRemovedUser(want);  // Use member resolver
+            auto context = pasteboardService_->ResolvePackageRemovedUser(want);  // 使用成员解析器
             if (!context.isValid) {
                 return;
             }
@@ -458,9 +463,9 @@ void PasteBoardCommonEventSubscriber::OnReceiveEventInner(...) {
     }
 }
 
-// ClearUriOnUninstall (tokenId-only version)
+// ClearUriOnUninstall（仅 tokenId 版本）
 void PasteboardService::ClearUriOnUninstall(int32_t tokenId) {
-    auto context = ResolveCallerContext(IPCSkeleton::GetCallingTokenID());  // Use member resolver
+    auto context = ResolveCallerContext(IPCSkeleton::GetCallingTokenID());  // 使用成员解析器
     if (!context.isValid) {
         return;
     }
@@ -468,112 +473,114 @@ void PasteboardService::ClearUriOnUninstall(int32_t tokenId) {
 }
 ```
 
-## File Impact Analysis
+## 文件影响分析
 
-| File | Estimated Lines | Changes |
+| 文件 | 预估行数 | 变更 |
 |------|----------------|--------|
-| pasteboard_service.h | ~100 lines | Add userId parameter versions, Restore readTokens_, Add ShouldRegisterPreSyncMonitor |
-| pasteboard_service.cpp | ~1000 lines | Add userId parameter methods, Restore GrantPermission tokenId params, Add RefreshCriticalState calls |
-| pasteboard_window_manager.h | ~50 lines | Add userId parameter versions |
-| pasteboard_window_manager.cpp | ~100 lines | Implement userId parameter versions |
-| pasteboard_service_check_test.cpp | 0 lines | No changes needed (Phase 1 compatible) |
+| pasteboard_service.h | ~100 行 | 新增 userId 参数版本，恢复 readTokens_，新增 ShouldRegisterPreSyncMonitor |
+| pasteboard_service.cpp | ~1000 行 | 新增 userId 参数方法，恢复 GrantPermission tokenId 参数，新增 RefreshCriticalState 调用 |
+| pasteboard_window_manager.h | ~50 行 | 新增 userId 参数版本 |
+| pasteboard_window_manager.cpp | ~100 行 | 实现 userId 参数版本 |
+| pasteboard_service_check_test.cpp | 0 行 | 无需修改（与第一阶段兼容） |
 
-## Complexity Assessment
+## 复杂度评估
 
-**High Complexity Areas:**
-- GrantPermission tokenId validation logic (~200 lines)
-- userId parameter additions across multiple methods (~500 lines)  
-- RefreshCriticalState call restoration in 8 different locations
+**高复杂度区域：**
+- GrantPermission tokenId 验证逻辑（~200 行）
+- 多方法中的 userId 参数新增（~500 行）
+- 8 处不同位置的 RefreshCriticalState 调用恢复
 
-**Low Risk Areas:**
-- Test file compatibility (Phase 1 already verified)
-- Member resolver usage (simple replacements)
-- Backward compatibility maintained (caller versions preserved)
+**低风险区域：**
+- 测试文件兼容性（第一阶段已验证）
+- 成员解析器使用（简单替换）
+- 向后兼容性保持（调用者版本保留）
 
-## Implementation Priority
+## 实现优先级
 
-### Priority 1 (Critical - Memory Management):
-1. RefreshCriticalState call restoration (8 locations)
-2. GrantPermission tokenId parameter restoration  
+### 优先级 1（关键 - 内存管理）：
+1. RefreshCriticalState 调用恢复（8 处）
+2. GrantPermission tokenId 参数恢复  
 
-### Priority 2 (Feature Completeness):
-3. userId-parameterized focus window checking
-4. userId-parameterized IME thaw methods  
-5. ShouldRegisterPreSyncMonitor check
+### 优先级 2（功能完整性）：
+3. userId 参数化的焦点窗口检查
+4. userId 参数化的输入法解冻方法  
 
-### Priority 3 (Lower - Compatibility):
-6. pasteboard_window_manager userId parameter versions
-7. Other resolver usage modifications  
+### 优先级 3（较低 - 兼容性）：
+5. pasteboard_window_manager userId 参数（通过GetInstance(userId)）
+6. 其他解析器使用修改
 
-## Test Strategy
+## 测试策略
 
-**Unit Tests:**
-- PasteboardServiceCheckTest: Verify SetUserContextResolver dependency injection
-- PasteboardServiceMockTest: Verify userId parameter methods
-- Window manager tests: Verify userId parameter versions
+**单元测试：**
+- PasteboardServiceCheckTest：验证 SetUserContextResolver 依赖注入
+- PasteboardServiceMockTest：验证 userId 参数方法
+- 窗口管理器测试：验证 userId 参数版本
 
-**Integration Tests:**
-- Multi-user clipboard operations
-- Pre-sync monitor registration  
-- URI permission granting
+**集成测试：**
+- 多用户剪贴板操作
+- 预同步监视器注册
+- URI 权限授权
 
-## Success Criteria
+## 成功标准
 
-**Functionality Restoration:**
-✅ All 051f0fe8 features restored
-✅ UserContextResolver dependency injection complete
-✅ userId parameter methods complete  
-✅ Memory management mechanism complete
+**功能恢复：**
+✅ 所有 051f0fe8 功能恢复
+✅ UserContextResolver 依赖注入完整
+✅ userId 参数方法完整  
+✅ 内存管理机制完整
+✅ 预同步逻辑保持HEAD版本（取消恢复）
 
-**Architecture Consistency:**
-✅ Uses userContextResolver_ member consistently
-✅ Uses GetForegroundUserIds/ResolveEventUser encapsulation
-✅ userId parameters backward compatible (caller versions kept)
+**架构一致性：**
+✅ 使用 userContextResolver_ 成员统一
+✅ 使用 GetForegroundUserIds/ResolveEventUser 封装
+✅ userId 参数向后兼容（调用者版本保留）
+✅ WindowManager通过GetInstance(userId)传入userId
+✅ InputMethodController方法支持userId参数
 
-**Test Pass Rate:**
-✅ pasteboard_service_check_test compilation passes
-✅ UserContextResolver methods available
-✅ FakeUserContextResolver mock works
+**测试通过：**
+✅ pasteboard_service_check_test 编译通过
+✅ SetUserContextResolver 方法可用
+✅ FakeUserContextResolver mock 正常工作
 
-## Risk Assessment
+## 风险评估
 
-**Low Risk:**
-- Test file compatibility - Phase 1 verified
-- userId parameter methods - backward compatible design
+**低风险：**
+- 测试文件兼容性 - 第一阶段已验证
+- userId 参数方法 - 向后兼容设计
 
-**Medium Risk:**
-- GrantPermission tokenId logic - needs careful HapTokenInfo validation
-- RefreshCriticalState timing - needs verification of call timing
+**中等风险：**
+- GrantPermission tokenId 逻辑 - 需仔细进行 HapTokenInfo 验证
+- RefreshCriticalState 时序 - 需验证调用时机
 
-## Debt Cleanup
+## 技术债务清理
 
-This restoration will clean technical debt:
-1. ✅ Remove temporary resolver objects - Phase 1 cleaned
-2. ✅ Restore userId parameter methods - Phase 2 cleans
-3. ✅ Restore token validation logic - Phase 2 cleans
-4. ✅ Restore RefreshCriticalState calls - Phase 2 cleans
+本次恢复将清理技术债务：
+1. ✅ 移除临时解析器对象 - 第一阶段已清理
+2. ✅ 恢复 userId 参数方法 - 第二阶段清理
+3. ✅ 恢复 token 验证逻辑 - 第二阶段清理
+4. ✅ 恢复 RefreshCriticalState 调用 - 第二阶段清理
 
-## Long-term Improvement Suggestions
+## 长期改进建议
 
-**Architectural:**
-- Consider adding CI checks to prevent similar regression
-- Add architecture tests for critical feature coverage  
-- Document multi-user clipboard service requirements
+**架构方面：**
+- 考虑添加 CI 检查以防止类似回退
+- 为关键功能覆盖添加架构测试
+- 文档化多用户剪贴板服务需求
 
-**Process:**
-- Regular commit comparison against base commit (051f0fe8)
-- Add pre-merge hooks to verify feature completeness
-- Create feature tracking for multi-user scenarios
+**流程方面：**
+- 定期与基准提交（051f0fe8）进行提交对比
+- 添加预合并钩子以验证功能完整性
+- 为多用户场景创建功能跟踪
 
-## Conclusion
+## 结论
 
-Phase 2 restoration completes the multi-user clipboard feature set, ensuring:
-- Memory management works correctly
-- userId parameters available for multi-user scenarios  
-- Pre-sync only happens for main screen user  
-- URI permissions properly tracked by token
-- All resolver usage consistent with dependency injection
+第二阶段恢复完成多用户剪贴板功能集，确保：
+- 内存管理正常工作
+- userId 参数可用于多用户场景
+- 预同步仅针对主屏幕用户
+- URI 权限按 token 正确跟踪
+- 所有解析器使用与依赖注入一致
 
-**Total Lines Estimate:** ~1500 lines across 4 files  
-**Estimated Effort:** 4-6 hours of careful implementation
-**Test Validation:** Full unit test coverage + integration test scenarios
+**总行数估算：** 跨 4 个文件约 1500 行
+**预估工作量：** 4-6 小时精细实现
+**测试验证：** 完整单元测试覆盖 + 集成测试场景
