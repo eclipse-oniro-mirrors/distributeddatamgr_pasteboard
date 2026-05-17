@@ -1105,14 +1105,18 @@ bool PasteboardService::IsDataAged()
     return false;
 }
 
-AppInfo PasteboardService::GetAppInfo(uint32_t tokenId)
+AppInfo PasteboardService::GetAppInfo(uint32_t tokenId) const
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetAppInfo: tokenId=%{public}u", tokenId);
     AppInfo info;
     info.tokenId = tokenId;
     info.tokenType = AccessTokenKit::GetTokenTypeFlag(tokenId);
-    UserContextResolver resolver;
-    auto context = resolver.ResolveCallingUser();
+    if (userContextResolver_ == nullptr) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "resolver is null.");
+        info.userId = ERROR_USERID;
+        return info;
+    }
+    auto context = userContextResolver_->ResolveCaller(tokenId, IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid());
     info.userId = context.isValid ? context.userId : ERROR_USERID;
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE,
         "GetAppInfo: resolved userId=%{public}d from calling user, isValid=%{public}d",
@@ -2955,10 +2959,13 @@ void PasteboardService::RemovePasteData(const AppInfo &appInfo)
     });
 }
 
-int32_t PasteboardService::GetCurrentAccountId()
+int32_t PasteboardService::GetCurrentAccountId() const
 {
-    UserContextResolver resolver;
-    auto context = resolver.ResolveCallingUser();
+    if (userContextResolver_ == nullptr) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "resolver is null.");
+        return ERROR_USERID;
+    }
+    auto context = userContextResolver_->ResolveCallingUser();
     int32_t userId = context.isValid ? context.userId : ERROR_USERID;
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetCurrentAccountId: return userId=%{public}d, isValid=%{public}d",
         userId, context.isValid);
@@ -4008,12 +4015,12 @@ FocusedAppInfo PasteboardService::GetFocusedAppInfo(int32_t userId) const
                 appInfo.left = windowInfo->rect_.posX_;
                 appInfo.top = windowInfo->rect_.posY_;
                 appInfo.width = windowInfo->rect_.width_;
-                appInfo.height = windowInfo->rect_.height_;
-                appInfo.abilityToken = info.abilityToken_;
+                appInfo.height = windowInfo->rect_.height_;               
                 break;
             }
         }
     }
+    appInfo.abilityToken = info.abilityToken_;
     return appInfo;
 }
 
