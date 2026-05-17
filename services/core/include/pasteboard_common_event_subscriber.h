@@ -34,6 +34,12 @@ public:
 
 private:
     void OnReceiveEventInner(const EventFwk::CommonEventData &data);
+    void HandleUserSwitched(const EventFwk::CommonEventData &data);
+    void HandleUserStopping(const EventFwk::CommonEventData &data);
+    void HandleScreenLocked();
+    void HandleScreenUnlocked();
+    void HandlePackageRemoved(const EventFwk::Want &want);
+    void HandleWifiDisabled(int32_t userId);
     std::mutex mutex_;
     sptr<PasteboardService> pasteboardService_ = nullptr;
 };

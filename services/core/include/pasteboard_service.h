@@ -434,6 +434,8 @@ private:
     bool VerifyPermission(uint32_t tokenId);
     int32_t IsDataValid(PasteData &pasteData, uint32_t tokenId);
     AppInfo GetAppInfo(uint32_t tokenId) const;
+    void FillHapAppInfo(uint32_t tokenId, AppInfo &info) const;
+    void FillNativeAppInfo(uint32_t tokenId, AppInfo &info) const;
     static std::string GetAppBundleName(const AppInfo &appInfo);
     static void SetLocalPasteFlag(bool isCrossPaste, uint32_t tokenId, PasteData &pasteData);
     void RecognizePasteData(PasteData &pasteData);
