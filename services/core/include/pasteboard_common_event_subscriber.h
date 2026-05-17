@@ -19,7 +19,6 @@
 #include "common_event_subscriber.h"
 #include "common_event_support.h"
 #include "ipasteboard_service.h"
-#include "want.h"
 
 namespace OHOS::MiscServices {
 class PasteboardService;
@@ -35,12 +34,6 @@ public:
 
 private:
     void OnReceiveEventInner(const EventFwk::CommonEventData &data);
-    void HandleUserSwitched(const EventFwk::CommonEventData &data);
-    void HandleUserStopping(const EventFwk::CommonEventData &data);
-    void HandleScreenLocked();
-    void HandleScreenUnlocked();
-    void HandlePackageRemoved(const AAFwk::Want &want);
-    void HandleWifiDisabled();
     std::mutex mutex_;
     sptr<PasteboardService> pasteboardService_ = nullptr;
 };

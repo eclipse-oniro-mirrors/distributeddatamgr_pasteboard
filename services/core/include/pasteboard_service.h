@@ -320,7 +320,6 @@ private:
     bool IsNeedThaw(PasteboardEventStatus status);
     bool IsNeedThaw(int32_t userId, PasteboardEventStatus status);
     bool IsCurrentImeByPid(int32_t userId, pid_t callPid) const;
-    int32_t GetDefaultInputMethod(int32_t userId, std::shared_ptr<OHOS::MiscServices::Property> &property) const;
     int32_t ExtractEntity(const std::string &entity, std::string &location);
     int32_t GetAllEntryPlainText(uint32_t dataId, uint32_t recordId,
         std::vector<std::shared_ptr<PasteDataEntry>> &entries, std::string &primaryText);

@@ -3473,8 +3473,13 @@ bool PasteboardService::IsNeedThaw(int32_t userId, PasteboardEventStatus status)
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "userId invalid.");
         return false;
     }
-    std::shared_ptr<OHOS::MiscServices::Property> property;
-    int32_t ret = GetDefaultInputMethod(userId, property);
+    auto imc = InputMethodController::GetInstance();
+    if (imc == nullptr) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "InputMethodController is nullptr!");
+        return false;
+    }
+    std::shared_ptr<Property> property;
+    int32_t ret = imc->GetDefaultInputMethod(property, userId);
     if (ret != ErrorCode::NO_ERROR || property == nullptr) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "default input method is nullptr!");
         return false;
@@ -3489,18 +3494,8 @@ bool PasteboardService::IsCurrentImeByPid(int32_t userId, pid_t callPid) const
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "InputMethodController is nullptr!");
         return false;
     }
-    auto isImePid = imc->IsCurrentImeByPid(callPid);
+    auto isImePid = imc->IsCurrentImeByPid(callPid, userId);
     return isImePid;
-}
-
-int32_t PasteboardService::GetDefaultInputMethod(int32_t userId, std::shared_ptr<OHOS::MiscServices::Property> &property) const
-{
-    auto imc = InputMethodController::GetInstance();
-    if (imc == nullptr) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "InputMethodController is nullptr!");
-        return -1;
-    }
-    return imc->GetDefaultInputMethod(property);
 }
 
 void PasteboardService::NotifyObservers(std::string bundleName, int32_t userId, PasteboardEventStatus status)
@@ -3990,12 +3985,13 @@ FocusedAppInfo PasteboardService::GetFocusedAppInfo(int32_t userId) const
     }
     FocusChangeInfo info;
     std::vector<sptr<WindowVisibilityInfo>> windowVisibilityInfos;
+    WMError result = WMError::WM_OK;
 #ifdef SCENE_BOARD_ENABLE
     WindowManagerLite::GetInstance(userId).GetFocusWindowInfo(info);
-    WMError result = WindowManagerLite::GetInstance(userId).GetVisibilityWindowInfo(windowVisibilityInfos);
+    result = WindowManagerLite::GetInstance(userId).GetVisibilityWindowInfo(windowVisibilityInfos);
 #else
     WindowManager::GetInstance(userId).GetFocusWindowInfo(info);
-    WMError result = WindowManager::GetInstance(userId).GetVisibilityWindowInfo(windowVisibilityInfos);
+    result = WindowManager::GetInstance(userId).GetVisibilityWindowInfo(windowVisibilityInfos);
 #endif
     if (result == WMError::WM_OK) {
         for (const auto& windowInfo : windowVisibilityInfos) {
