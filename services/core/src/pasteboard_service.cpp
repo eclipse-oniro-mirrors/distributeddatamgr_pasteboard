@@ -3702,15 +3702,24 @@ std::string PasteboardService::DumpData(int32_t userId)
 
 bool PasteboardService::IsFocusedApp(uint32_t tokenId)
 {
+    return IsFocusedApp(tokenId, GetCurrentAccountId());
+}
+
+bool PasteboardService::IsFocusedApp(uint32_t tokenId, int32_t userId)
+{
     if (AccessTokenKit::GetTokenTypeFlag(tokenId) != ATokenTypeEnum::TOKEN_HAP) {
         PASTEBOARD_HILOGD(PASTEBOARD_MODULE_SERVICE, "caller is not application");
         return true;
     }
+    if (userId == ERROR_USERID) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "userId invalid.");
+        return false;
+    }
     FocusChangeInfo info;
 #ifdef SCENE_BOARD_ENABLE
-    WindowManagerLite::GetInstance().GetFocusWindowInfo(info);
+    WindowManagerLite::GetInstance(userId).GetFocusWindowInfo(info);
 #else
-    WindowManager::GetInstance().GetFocusWindowInfo(info);
+    WindowManager::GetInstance(userId).GetFocusWindowInfo(info);
 #endif
     auto callPid = IPCSkeleton::GetCallingPid();
     if (callPid == info.pid_) {
@@ -3970,16 +3979,24 @@ void PasteboardService::UnRegisterPreSyncMonitor()
 
 FocusedAppInfo PasteboardService::GetFocusedAppInfo(void) const
 {
+    return GetFocusedAppInfo(GetCurrentAccountId());
+}
+
+FocusedAppInfo PasteboardService::GetFocusedAppInfo(int32_t userId) const
+{
     FocusedAppInfo appInfo = { 0 };
+    if (userId == ERROR_USERID) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "userId invalid.");
+        return appInfo;
+    }
     FocusChangeInfo info;
     std::vector<sptr<WindowVisibilityInfo>> windowVisibilityInfos;
-    WMError result = WMError::WM_OK;
 #ifdef SCENE_BOARD_ENABLE
-    WindowManagerLite::GetInstance().GetFocusWindowInfo(info);
-    result = WindowManagerLite::GetInstance().GetVisibilityWindowInfo(windowVisibilityInfos);
+    WindowManagerLite::GetInstance(userId).GetFocusWindowInfo(info);
+    WMError result = WindowManagerLite::GetInstance(userId).GetVisibilityWindowInfo(windowVisibilityInfos);
 #else
-    WindowManager::GetInstance().GetFocusWindowInfo(info);
-    result = WindowManager::GetInstance().GetVisibilityWindowInfo(windowVisibilityInfos);
+    WindowManager::GetInstance(userId).GetFocusWindowInfo(info);
+    WMError result = WindowManager::GetInstance(userId).GetVisibilityWindowInfo(windowVisibilityInfos);
 #endif
     if (result == WMError::WM_OK) {
         for (const auto& windowInfo : windowVisibilityInfos) {
@@ -3991,11 +4008,11 @@ FocusedAppInfo PasteboardService::GetFocusedAppInfo(void) const
                 appInfo.top = windowInfo->rect_.posY_;
                 appInfo.width = windowInfo->rect_.width_;
                 appInfo.height = windowInfo->rect_.height_;
+                appInfo.abilityToken = windowInfo->abilityToken_;
                 break;
             }
         }
     }
-    appInfo.abilityToken = info.abilityToken_;
     return appInfo;
 }
 

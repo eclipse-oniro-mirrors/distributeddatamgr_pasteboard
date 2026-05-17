@@ -186,10 +186,19 @@ public:
     void CloseDistributedStore(int32_t user, bool isNeedClear);
     void ChangeStoreStatus(int32_t userId);
     void PreSyncRemotePasteboardData();
+    bool ShouldRegisterPreSyncMonitor(int32_t userId) const;
+    bool HasActivePasteboardWork();
+    void RefreshCriticalState();
     PastedSwitch switch_;
     static int32_t GetCurrentAccountId();
+    void SetUserContextResolver(std::shared_ptr<UserContextResolver> resolver);
+    UserContext ResolveCallerContext(uint32_t tokenId) const;
+    UserContext ResolveEventUser(const EventFwk::CommonEventData &data) const;
+    UserContext ResolvePackageRemovedUser(const AAFwk::Want &want) const;
+    std::vector<int32_t> GetForegroundUserIds() const;
     int32_t ResolveMainDisplayUserId();
     void ClearByResolvedUser(int32_t userId);
+    int32_t ClearByEventUser(int32_t userId);
     void ClearUriOnUninstall(int32_t tokenId);
     void ClearUriOnUninstall(int32_t userId, int32_t tokenId);
     void ClearUriOnUninstall(std::shared_ptr<PasteData> pasteData);
@@ -229,6 +238,7 @@ private:
     std::atomic<int32_t> agedTime_ = ONE_HOUR_MINUTES * MINUTES_TO_MILLISECONDS; // 1 hour
     bool SetPasteboardHistory(HistoryInfo &info);
     bool IsFocusedApp(uint32_t tokenId);
+    bool IsFocusedApp(uint32_t tokenId, int32_t userId);
     void InitBundles(Loader &loader);
     void SetInputMethodPid(int32_t userId, pid_t callPid);
     void ClearInputMethodPidByPid(int32_t userId, pid_t callPid);
@@ -236,6 +246,7 @@ private:
     int32_t ClearInner(int32_t userId, const AppInfo &appInfo);
     bool IsSystemAppByFullTokenID(uint64_t tokenId);
     FocusedAppInfo GetFocusedAppInfo(void) const;
+    FocusedAppInfo GetFocusedAppInfo(int32_t userId) const;
     int32_t GetDataTokenId(PasteData &pasteData);
     class DelayGetterDeathRecipient final : public IRemoteObject::DeathRecipient {
     public:
@@ -269,6 +280,7 @@ private:
         using DataTask = std::pair<std::shared_ptr<PasteboardService::RemoteDataTaskManager::TaskContext>, bool>;
         DataTask GetRemoteDataTask(const Event &event);
         bool IsRemoteDataPasting(const Event &event);
+        bool HasRunningTask();
         void Notify(const Event &event, std::shared_ptr<PasteDateTime> data);
         void ClearRemoteDataTask(const Event &event);
         std::shared_ptr<PasteDateTime> WaitRemoteData(const Event &event);
@@ -308,6 +320,9 @@ private:
     std::string DumpData(int32_t userId);
     void ThawInputMethod(pid_t imePid);
     bool IsNeedThaw(PasteboardEventStatus status);
+    bool IsNeedThaw(int32_t userId, PasteboardEventStatus status);
+    bool IsCurrentImeByPid(int32_t userId, pid_t callPid) const;
+    int32_t GetDefaultInputMethod(int32_t userId, std::shared_ptr<Property> &property) const;
     int32_t ExtractEntity(const std::string &entity, std::string &location);
     int32_t GetAllEntryPlainText(uint32_t dataId, uint32_t recordId,
         std::vector<std::shared_ptr<PasteDataEntry>> &entries, std::string &primaryText);
@@ -370,9 +385,9 @@ private:
         PasteData &data, const std::pair<std::string, int32_t> &targetBundleAppIndex);
     void RemoveInvalidRemoteUri(std::vector<Uri> &grantUris);
     int32_t GrantPermission(const std::vector<Uri> &grantUris, uint32_t permFlag, bool isRemoteData,
-        const std::string &targetBundleName, int32_t appIndex);
+        uint32_t targetTokenId, int32_t targetUserId, uint32_t srcTokenId);
     int32_t GrantUriPermission(std::map<uint32_t, std::vector<Uri>> &grantUris,
-        const std::string &targetBundleName, bool isRemoteData, int32_t appIndex);
+        uint32_t targetTokenId, int32_t targetUserId, uint32_t srcTokenId, bool isRemoteData);
     void GenerateDistributedUri(PasteData &data);
     bool IsBundleOwnUriPermission(const std::string &bundleName, Uri &uri);
     std::string GetAppLabel(uint32_t tokenId);
@@ -481,9 +496,10 @@ private:
     ConcurrentMap<int32_t, std::pair<sptr<IPasteboardEntryGetter>, sptr<EntryGetterDeathRecipient>>> entryGetters_;
     ConcurrentMap<int32_t, std::pair<sptr<IPasteboardDelayGetter>, sptr<DelayGetterDeathRecipient>>> delayGetters_;
     ConcurrentMap<int32_t, uint64_t> copyTime_;
-    std::set<std::pair<std::string, int32_t>> readBundles_;
+    std::set<std::pair<int32_t, uint32_t>> readTokens_;
     std::shared_ptr<PasteBoardCommonEventSubscriber> commonEventSubscriber_ = nullptr;
     std::shared_ptr<PasteBoardAccountStateSubscriber> accountStateSubscriber_ = nullptr;
+    std::shared_ptr<UserContextResolver> userContextResolver_ = std::make_shared<UserContextResolver>();
 
     std::recursive_mutex mutex;
     std::shared_ptr<ClipPlugin> clipPlugin_ = nullptr;
