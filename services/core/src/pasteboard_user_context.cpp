@@ -16,7 +16,6 @@
 #include "pasteboard_user_context.h"
 
 #include <cstdlib>
-#include <inttypes.h>
 
 #include "accesstoken_kit.h"
 #include "ipc_skeleton.h"
