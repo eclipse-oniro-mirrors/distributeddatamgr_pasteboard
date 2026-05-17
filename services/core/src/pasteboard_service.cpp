@@ -1116,7 +1116,7 @@ AppInfo PasteboardService::GetAppInfo(uint32_t tokenId) const
         info.userId = ERROR_USERID;
         return info;
     }
-    auto context = userContextResolver_->ResolveCaller(tokenId, IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid());
+    auto context = userContextResolver_->ResolveCallingUser();
     info.userId = context.isValid ? context.userId : ERROR_USERID;
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE,
         "GetAppInfo: resolved userId=%{public}d from calling user, isValid=%{public}d",
@@ -2983,11 +2983,12 @@ void PasteboardService::SetUserContextResolver(std::shared_ptr<UserContextResolv
 
 UserContext PasteboardService::ResolveCallerContext(uint32_t tokenId) const
 {
+    (void)tokenId;
     if (userContextResolver_ == nullptr) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "resolver is null.");
         return {};
     }
-    return userContextResolver_->ResolveCaller(tokenId, IPCSkeleton::GetCallingPid(), IPCSkeleton::GetCallingUid());
+    return userContextResolver_->ResolveCallingUser();
 }
 
 UserContext PasteboardService::ResolveEventUser(const EventFwk::CommonEventData &data) const

@@ -53,28 +53,6 @@ UserContext UserContextResolver::ResolveCallingUser() const
     return context;
 }
 
-UserContext UserContextResolver::ResolveCaller(uint32_t tokenId, pid_t pid, pid_t uid) const
-{
-    (void)pid;
-    (void)uid;
-    if (AccessTokenKit::GetTokenTypeFlag(tokenId) != ATokenTypeEnum::TOKEN_HAP) {
-        return {};
-    }
-
-    HapTokenInfo hapInfo;
-    if (AccessTokenKit::GetHapTokenInfo(tokenId, hapInfo) != 0) {
-        return {};
-    }
-
-    UserContext context;
-    context.userId = hapInfo.userID;
-    context.accountId = hapInfo.userID;
-    context.tokenId = tokenId;
-    context.source = UserContextSource::CALLER;
-    context.isValid = true;
-    return context;
-}
-
 UserContext UserContextResolver::ResolveMainDisplayUser() const
 {
     UserContext context;

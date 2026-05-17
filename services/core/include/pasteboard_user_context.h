@@ -59,7 +59,6 @@ public:
     virtual ~UserContextResolver() = default;
 
     virtual UserContext ResolveCallingUser() const;
-    virtual UserContext ResolveCaller(uint32_t tokenId, pid_t pid, pid_t uid) const;
     virtual UserContext ResolveEventUser(const EventFwk::CommonEventData &data) const;
     virtual UserContext ResolveMainDisplayUser() const;
     virtual std::vector<UserContext> ResolveForegroundUsers() const;
