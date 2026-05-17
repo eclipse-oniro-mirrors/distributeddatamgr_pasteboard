@@ -68,6 +68,7 @@ const std::string TEST_ENTITY_TEXT_CN_5 =
 const int64_t DEFAULT_MAX_RAW_DATA_SIZE = 128 * 1024 * 1024;
 constexpr int32_t MIMETYPE_MAX_SIZE = 1024;
 static constexpr uint64_t ONE_HOUR_MILLISECONDS = 60 * 60 * 1000;
+constexpr int32_t RESOLVED_USER_ID = 100;
 } // namespace
 
 class FakeUserContextResolver : public UserContextResolver {

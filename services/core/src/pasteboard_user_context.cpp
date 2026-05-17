@@ -35,6 +35,7 @@ UserContext UserContextResolver::ResolveCallingUser() const
     UserContext context;
     context.source = UserContextSource::CALLER;
     context.uid = IPCSkeleton::GetCallingUid();
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ResolveCallingUser: uid=%{public}d", context.uid);
     int32_t userId = ERROR_USERID;
     auto ret = AccountSA::OsAccountManager::GetOsAccountLocalIdFromUid(context.uid, userId);
     if (ret != ERR_OK || !IsValidUserId(userId)) {
@@ -44,6 +45,8 @@ UserContext UserContextResolver::ResolveCallingUser() const
     }
     context.userId = userId;
     context.isValid = true;
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ResolveCallingUser success: uid=%{public}d, userId=%{public}d",
+        context.uid, context.userId);
     return context;
 }
 
@@ -52,6 +55,8 @@ UserContext UserContextResolver::ResolveMainDisplayUser() const
     UserContext context;
     context.source = UserContextSource::MAIN_DISPLAY;
     context.displayId = MAIN_DISPLAY_ID;
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ResolveMainDisplayUser: displayId=%{public}" PRIu64,
+        MAIN_DISPLAY_ID);
     int32_t userId = ERROR_USERID;
     auto ret = AccountSA::OsAccountManager::GetForegroundOsAccountLocalId(MAIN_DISPLAY_ID, userId);
     if (ret != ERR_OK || !IsValidUserId(userId)) {
@@ -62,11 +67,15 @@ UserContext UserContextResolver::ResolveMainDisplayUser() const
     }
     context.userId = userId;
     context.isValid = true;
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE,
+        "ResolveMainDisplayUser success: displayId=%{public}" PRIu64 ", userId=%{public}d",
+        MAIN_DISPLAY_ID, context.userId);
     return context;
 }
 
 std::vector<UserContext> UserContextResolver::ResolveForegroundUsers() const
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ResolveForegroundUsers: start query");
     std::vector<AccountSA::ForegroundOsAccount> accounts;
     auto ret = AccountSA::OsAccountManager::GetForegroundOsAccounts(accounts);
     if (ret != ERR_OK) {
@@ -81,9 +90,14 @@ std::vector<UserContext> UserContextResolver::ResolveForegroundUsers() const
         context.displayId = account.displayId;
         context.isValid = IsValidUserId(context.userId);
         if (context.isValid) {
+            PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE,
+                "ResolveForegroundUsers: userId=%{public}d, displayId=%{public}" PRIu64,
+                context.userId, context.displayId);
             contexts.emplace_back(context);
         }
     }
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ResolveForegroundUsers success: found %{public}zu users",
+        contexts.size());
     return contexts;
 }
 
@@ -123,6 +137,9 @@ UserContext UserContextResolver::MakeEventContext(int32_t userId, UserContextSou
     context.source = source;
     context.userId = userId;
     context.isValid = IsValidUserId(userId);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE,
+        "MakeEventContext: source=%{public}d, userId=%{public}d, isValid=%{public}d",
+        static_cast<int32_t>(source), userId, context.isValid);
     return context;
 }
 } // namespace MiscServices

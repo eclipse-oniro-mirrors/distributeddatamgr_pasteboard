@@ -492,9 +492,12 @@ int32_t PasteboardService::ClearByUser(int32_t userId)
 
 int32_t PasteboardService::ClearInner(int32_t userId, const AppInfo &appInfo)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ClearInner: userId=%{public}d, bundleName=%{public}s",
+        userId, appInfo.bundleName.c_str());
     RADAR_REPORT(DFX_CLEAR_PASTEBOARD, DFX_MANUAL_CLEAR, DFX_SUCCESS);
     auto [hasData, data] = clips_.Find(userId);
     if (hasData) {
+        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ClearInner: found data for userId=%{public}d, erasing", userId);
         clips_.Erase(userId);
         delayDataId_ = 0;
         delayTokenId_ = 0;
@@ -505,7 +508,7 @@ int32_t PasteboardService::ClearInner(int32_t userId, const AppInfo &appInfo)
         NotifyObservers(bundleName, userId, PasteboardEventStatus::PASTEBOARD_CLEAR);
     }
     CancelCriticalTimer();
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "leave, clips_.Size=%{public}zu, appInfo.userId = %{public}d",
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ClearInner leave: clips_.Size=%{public}zu, userId=%{public}d",
         clips_.Size(), userId);
     return ERR_OK;
 }
@@ -1076,12 +1079,16 @@ bool PasteboardService::IsDataAged()
 
 AppInfo PasteboardService::GetAppInfo(uint32_t tokenId)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetAppInfo: tokenId=%{public}u", tokenId);
     AppInfo info;
     info.tokenId = tokenId;
     info.tokenType = AccessTokenKit::GetTokenTypeFlag(tokenId);
     UserContextResolver resolver;
     auto context = resolver.ResolveCallingUser();
     info.userId = context.isValid ? context.userId : ERROR_USERID;
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE,
+        "GetAppInfo: resolved userId=%{public}d from calling user, isValid=%{public}d",
+        info.userId, context.isValid);
     switch (info.tokenType) {
         case ATokenTypeEnum::TOKEN_HAP: {
             HapTokenInfo hapInfo;
@@ -1092,6 +1099,9 @@ AppInfo PasteboardService::GetAppInfo(uint32_t tokenId)
             }
             info.bundleName = hapInfo.bundleName;
             info.appIndex = hapInfo.instIndex;
+            PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE,
+                "GetAppInfo HAP: bundleName=%{public}s, userId=%{public}d, appIndex=%{public}d",
+                info.bundleName.c_str(), info.userId, info.appIndex);
             break;
         }
         case ATokenTypeEnum::TOKEN_NATIVE:
@@ -1102,12 +1112,17 @@ AppInfo PasteboardService::GetAppInfo(uint32_t tokenId)
                 return info;
             }
             info.bundleName = tokenInfo.processName;
+            PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE,
+                "GetAppInfo Native: bundleName=%{public}s, userId=%{public}d", info.bundleName.c_str(), info.userId);
             break;
         }
         default: {
             PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "tokenType = %{public}d not match.", info.tokenType);
         }
     }
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE,
+        "GetAppInfo complete: bundleName=%{public}s, userId=%{public}d, tokenType=%{public}d",
+        info.bundleName.c_str(), info.userId, info.tokenType);
     return info;
 }
 
@@ -2900,18 +2915,25 @@ int32_t PasteboardService::GetCurrentAccountId()
 {
     UserContextResolver resolver;
     auto context = resolver.ResolveCallingUser();
-    return context.isValid ? context.userId : ERROR_USERID;
+    int32_t userId = context.isValid ? context.userId : ERROR_USERID;
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetCurrentAccountId: return userId=%{public}d, isValid=%{public}d",
+        userId, context.isValid);
+    return userId;
 }
 
 int32_t PasteboardService::ResolveMainDisplayUserId()
 {
     UserContextResolver resolver;
     auto context = resolver.ResolveMainDisplayUser();
-    return context.isValid ? context.userId : ERROR_USERID;
+    int32_t userId = context.isValid ? context.userId : ERROR_USERID;
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE,
+        "ResolveMainDisplayUserId: return userId=%{public}d, isValid=%{public}d", userId, context.isValid);
+    return userId;
 }
 
 void PasteboardService::ClearByResolvedUser(int32_t userId)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ClearByResolvedUser: userId=%{public}d", userId);
     if (userId == ERROR_USERID) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "clear resolved user failed, userId invalid");
         return;
@@ -2920,7 +2942,10 @@ void PasteboardService::ClearByResolvedUser(int32_t userId)
     appInfo.userId = userId;
     appInfo.bundleName = PASTEBOARD_SERVICE_NAME;
     appInfo.tokenType = ATokenTypeEnum::TOKEN_NATIVE;
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ClearByResolvedUser: calling ClearInner for userId=%{public}d",
+        userId);
     ClearInner(userId, appInfo);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ClearByResolvedUser completed: userId=%{public}d", userId);
 }
 
 ScreenEvent PasteboardService::GetCurrentScreenStatus()
@@ -4840,12 +4865,15 @@ void PasteBoardCommonEventSubscriber::OnReceiveEventInner(const EventFwk::Common
 
 void PasteboardService::ClearUriOnUninstall(int32_t tokenId)
 {
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ClearUriOnUninstall: tokenId=%{public}d", tokenId);
     UserContextResolver resolver;
     auto context = resolver.ResolveCallingUser();
     if (!context.isValid) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "clear uri uninstall failed, caller user invalid");
         return;
     }
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE,
+        "ClearUriOnUninstall: resolved userId=%{public}d for tokenId=%{public}d", context.userId, tokenId);
     ClearUriOnUninstall(context.userId, tokenId);
 }
 
@@ -4998,8 +5026,12 @@ void PasteboardService::RemoveObserverByPid(int32_t userId, pid_t pid, ObserverM
     auto callObserverKey = std::make_pair(userId, pid);
     auto it = observerMap.find(callObserverKey);
     if (it == observerMap.end()) {
+        PASTEBOARD_HILOGD(PASTEBOARD_MODULE_SERVICE,
+            "RemoveObserverByPid: no observer found for userId=%{public}d, pid=%{public}d", userId, pid);
         return;
     }
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE,
+        "RemoveObserverByPid: removing observer for userId=%{public}d, pid=%{public}d", userId, pid);
     observerMap.erase(callObserverKey);
 }
 
