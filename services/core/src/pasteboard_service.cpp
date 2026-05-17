@@ -2981,16 +2981,6 @@ void PasteboardService::SetUserContextResolver(std::shared_ptr<UserContextResolv
     userContextResolver_ = std::move(resolver);
 }
 
-UserContext PasteboardService::ResolveCallerContext(uint32_t tokenId) const
-{
-    (void)tokenId;
-    if (userContextResolver_ == nullptr) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "resolver is null.");
-        return {};
-    }
-    return userContextResolver_->ResolveCallingUser();
-}
-
 UserContext PasteboardService::ResolveEventUser(const EventFwk::CommonEventData &data) const
 {
     if (userContextResolver_ == nullptr) {
@@ -5011,19 +5001,6 @@ void PasteBoardCommonEventSubscriber::OnReceiveEventInner(const EventFwk::Common
     } else if (action == EventFwk::CommonEventSupport::COMMON_EVENT_WIFI_POWER_STATE && eventState == WIFI_DISABLED) {
         pasteboardService_->HandleWifiOffAndClearDistributedEvent(userId);
     }
-}
-
-void PasteboardService::ClearUriOnUninstall(int32_t tokenId)
-{
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ClearUriOnUninstall: tokenId=%{public}d", tokenId);
-    auto context = ResolveCallerContext(IPCSkeleton::GetCallingTokenID());
-    if (!context.isValid) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "clear uri uninstall failed, caller user invalid");
-        return;
-    }
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE,
-        "ClearUriOnUninstall: resolved userId=%{public}d for tokenId=%{public}d", context.userId, tokenId);
-    ClearUriOnUninstall(context.userId, tokenId);
 }
 
 void PasteboardService::ClearUriOnUninstall(int32_t userId, int32_t tokenId)

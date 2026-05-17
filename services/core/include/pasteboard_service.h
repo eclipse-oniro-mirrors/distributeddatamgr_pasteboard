@@ -193,14 +193,12 @@ public:
     PastedSwitch switch_;
     int32_t GetCurrentAccountId() const;
     void SetUserContextResolver(std::shared_ptr<UserContextResolver> resolver);
-    UserContext ResolveCallerContext(uint32_t tokenId) const;
     UserContext ResolveEventUser(const EventFwk::CommonEventData &data) const;
     UserContext ResolvePackageRemovedUser(const AAFwk::Want &want) const;
     std::vector<int32_t> GetForegroundUserIds() const;
     int32_t ResolveMainDisplayUserId();
     void ClearByResolvedUser(int32_t userId);
     int32_t ClearByEventUser(int32_t userId);
-    void ClearUriOnUninstall(int32_t tokenId);
     void ClearUriOnUninstall(int32_t userId, int32_t tokenId);
     void ClearUriOnUninstall(std::shared_ptr<PasteData> pasteData);
     void CleanDistributedData(int32_t user);
