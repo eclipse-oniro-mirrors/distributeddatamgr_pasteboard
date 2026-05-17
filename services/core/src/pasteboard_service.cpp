@@ -3075,12 +3075,7 @@ bool PasteboardService::IsCopyable(uint32_t tokenId) const
 
 void PasteboardService::SetInputMethodPid(int32_t userId, pid_t callPid)
 {
-    auto imc = InputMethodController::GetInstance();
-    if (imc == nullptr) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "InputMethodController is nullptr!");
-        return;
-    }
-    auto isImePid = imc->IsCurrentImeByPid(callPid);
+    auto isImePid = IsCurrentImeByPid(userId, callPid);
     if (isImePid) {
         imeMap_.InsertOrAssign(userId, callPid);
         PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "set inputMethod userId = %{public}d, pid = %{public}d",
@@ -3465,18 +3460,20 @@ void PasteboardService::ThawInputMethod(pid_t imePid)
 
 bool PasteboardService::IsNeedThaw(PasteboardEventStatus status)
 {
+    return IsNeedThaw(GetCurrentAccountId(), status);
+}
+
+bool PasteboardService::IsNeedThaw(int32_t userId, PasteboardEventStatus status)
+{
     if (status == PasteboardEventStatus::PASTEBOARD_READ) {
         return false;
     }
-
-    auto imc = InputMethodController::GetInstance();
-    if (imc == nullptr) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "InputMethodController is nullptr!");
+    if (userId == ERROR_USERID) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "userId invalid.");
         return false;
     }
-
     std::shared_ptr<Property> property;
-    int32_t ret = imc->GetDefaultInputMethod(property);
+    int32_t ret = GetDefaultInputMethod(userId, property);
     if (ret != ErrorCode::NO_ERROR || property == nullptr) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "default input method is nullptr!");
         return false;
@@ -3484,10 +3481,31 @@ bool PasteboardService::IsNeedThaw(PasteboardEventStatus status)
     return true;
 }
 
+bool PasteboardService::IsCurrentImeByPid(int32_t userId, pid_t callPid) const
+{
+    auto imc = InputMethodController::GetInstance();
+    if (imc == nullptr) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "InputMethodController is nullptr!");
+        return false;
+    }
+    auto isImePid = imc->IsCurrentImeByPid(callPid);
+    return isImePid;
+}
+
+int32_t PasteboardService::GetDefaultInputMethod(int32_t userId, std::shared_ptr<Property> &property) const
+{
+    auto imc = InputMethodController::GetInstance();
+    if (imc == nullptr) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "InputMethodController is nullptr!");
+        return -1;
+    }
+    return imc->GetDefaultInputMethod(property);
+}
+
 void PasteboardService::NotifyObservers(std::string bundleName, int32_t userId, PasteboardEventStatus status)
 {
     auto [hasPid, pid] = imeMap_.Find(userId);
-    if (hasPid && IsNeedThaw(status)) {
+    if (hasPid && IsNeedThaw(userId, status)) {
         ThawInputMethod(pid);
     }
     std::thread thread([this, bundleName, userId, status]() {
