@@ -42,7 +42,6 @@
 
 namespace OHOS {
 namespace MiscServices {
-constexpr int32_t ERROR_USERID = -1;
 constexpr int32_t RESULT_OK = 0;
 constexpr int64_t SIZE_K = 1024;
 constexpr int64_t MIN_LOCAL_CAPACITY = 1; // 1M
