@@ -73,13 +73,16 @@ bool PasteboardService::IsFocusedApp(uint32_t tokenId, int32_t userId)
 
 ### 2. userId 参数化的输入法解冻方法
 
-**当前问题：** HEAD 的 IsNeedThaw 移除了 userId 参数
+**当前问题：** HEAD的IsNeedThaw移除了userId参数，InputMethodController方法现已支持userId参数
 
 **设计：**
 ```cpp
 // pasteboard_service.h
 bool IsNeedThaw(PasteboardEventStatus status);                      // 保留：调用者版本
-bool IsNeedThaw(int32_t userId, PasteboardEventStatus status);  // 新增：userId 版本
+bool IsNeedThaw(int32_t userId, PasteboardEventStatus status);  // 新增：userId版本
+
+bool IsCurrentImeByPid(int32_t userId, pid_t callPid) const;      // 新增：userId参数版本
+int32_t GetDefaultInputMethod(int32_t userId, std::shared_ptr<Property> &property) const; // 新增：userId参数版本
 
 // pasteboard_service.cpp
 bool PasteboardService::IsNeedThaw(PasteboardEventStatus status)
@@ -97,64 +100,60 @@ bool PasteboardService::IsNeedThaw(int32_t userId, PasteboardEventStatus status)
         return false;
     }
     std::shared_ptr<Property> property;
+    // InputMethodController现已支持userId参数
     int32_t ret = GetDefaultInputMethod(userId, property);
     if (ret != ErrorCode::NO_ERROR || property == nullptr) {
         return false;
     }
     return true;
 }
+
+bool PasteboardService::IsCurrentImeByPid(int32_t userId, pid_t callPid) const
+{
+    auto imc = InputMethodController::GetInstance();
+    if (imc == nullptr) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "InputMethodController is nullptr!");
+        return false;
+    }
+    // InputMethodController的IsCurrentImeByPid现已支持userId参数
+    auto isImePid = imc->IsCurrentImeByPid(callPid, userId);
+    return isImePid;
+}
+
+int32_t PasteboardService::GetDefaultInputMethod(int32_t userId, std::shared_ptr<Property> &property) const
+{
+    auto imc = InputMethodController::GetInstance();
+    if (imc == nullptr) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "InputMethodController is nullptr!");
+        return -1;
+    }
+    // InputMethodController的GetDefaultInputMethod现已支持userId参数
+    return imc->GetDefaultInputMethod(property, userId);
+}
+
+void PasteboardService::SetInputMethodPid(int32_t userId, pid_t callPid)
+{
+    auto isImePid = IsCurrentImeByPid(userId, callPid);  // 使用userId版本
+    if (isImePid) {
+        imeMap_.InsertOrAssign(userId, callPid);
+        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "set inputMethod userId = %{public}d, pid = %{public}d",
+            userId, callPid);
+    }
+}
 ```
 
 **关键变更：**
-- IsNeedThaw(status) 使用 GetCurrentAccountId() 调用 userId 版本
-- GetDefaultInputMethod 已在第一阶段恢复
+- InputMethodController的GetDefaultInputMethod和IsCurrentImeByPid现在有第二个userId参数
+- GetDefaultInputMethod(property, userId)参数顺序：property在前，userId在后
+- IsCurrentImeByPid(callPid, userId)参数顺序：callPid在前，userId在后
+- IsNeedThaw(status)调用userId版本，传入GetCurrentAccountId()
+- SetInputMethodPid恢复IsCurrentImeByPid(userId, callPid)检查逻辑
 
 ### 3. 主屏幕用户预同步监视器检查
 
-**当前问题：** HEAD 移除了 ShouldRegisterPreSyncMonitor，所有用户都注册预同步
+**修改意见：预同步相关的新增逻辑取消，无需修改此项**
 
-**设计：**
-```cpp
-// pasteboard_service.h
-bool ShouldRegisterPreSyncMonitor(int32_t userId) const;
-
-// pasteboard_service.cpp
-bool PasteboardService::ShouldRegisterPreSyncMonitor(int32_t userId) const
-{
-    return IsMainScreenUser(userId);
-}
-
-void PasteboardService::PreSyncRemotePasteboardData()
-{
-    auto clipPlugin = GetClipPlugin();
-    if (!clipPlugin) {
-        return;
-    }
-    if (!clipPlugin->NeedSyncTopEvent()) {
-        return;
-    }
-    // 新增检查：仅针对主屏幕用户
-    if (!ShouldRegisterPreSyncMonitor(MAIN_SCREEN_USER_ID)) {
-        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "skip presync, main screen user disabled");
-        return;
-    }
-    clipPlugin->SendPreSyncEvent(MAIN_SCREEN_USER_ID);
-}
-
-void PasteboardService::RegisterPreSyncMonitor()
-{
-    if (!ShouldRegisterPreSyncMonitor(MAIN_SCREEN_USER_ID)) {
-        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "skip presync monitor, userId=%{public}d", MAIN_SCREEN_USER_ID);
-        return;
-    }
-    // ... 注册逻辑
-}
-```
-
-**关键变更：**
-- ShouldRegisterPreSyncMonitor 检查 IsMainScreenUser
-- PreSyncRemotePasteboardData 在发送事件前添加检查
-- RegisterPreSyncMonitor 在注册前添加检查
+此项功能恢复已取消，不需要添加ShouldRegisterPreSyncMonitor检查。HEAD版本的预同步逻辑保持不变。
 
 ### 4. GrantPermission tokenId 参数恢复
 
