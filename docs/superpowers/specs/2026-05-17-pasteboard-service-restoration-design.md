@@ -5,12 +5,11 @@
 对比 commit 051f0fe8（多前台用户剪贴板）与当前 HEAD 发现部分代码回退：
 
 **缺失功能（第二阶段 - 需确认）：**
-1. userId 参数化的焦点窗口检查方法
-2. userId 参数化的输入法解冻方法  
-3. GrantPermission tokenId 参数恢复
-4. RefreshCriticalState 调用恢复（8 处）
-5. pasteboard_window_manager userId 参数版本
-6. 其他解析器使用修改
+1. userId 参数化的输入法解冻方法  
+2. GrantPermission tokenId 参数恢复
+3. RefreshCriticalState 调用恢复（8 处）
+4. pasteboard_window_manager userId 参数版本（含焦点窗口检查）
+5. 其他解析器使用修改
 
 **已恢复（第一阶段）：**
 1. ✅ UserContextResolver 虚拟设计及依赖注入支持
@@ -25,53 +24,7 @@
 
 ## 第二阶段设计详情
 
-### 1. userId 参数化的焦点窗口检查
-
-**当前问题：** HEAD 移除了 userId 参数，仅支持调用者的焦点检查
-
-**设计：**
-```cpp
-// pasteboard_service.h
-bool IsFocusedApp(uint32_t tokenId);                      // 保留：调用者版本
-bool IsFocusedApp(uint32_t tokenId, int32_t userId);  // 新增：userId 版本
-
-FocusedAppInfo GetFocusedAppInfo(void) const;          // 保留：调用者版本  
-FocusedAppInfo GetFocusedAppInfo(int32_t userId) const; // 新增：userId 版本
-
-// pasteboard_service.cpp
-bool PasteboardService::IsFocusedApp(uint32_t tokenId)
-{
-    // 简化版本：使用当前用户
-    return IsFocusedApp(tokenId, GetCurrentAccountId());
-}
-
-bool PasteboardService::IsFocusedApp(uint32_t tokenId, int32_t userId)
-{
-    // userId 版本：检查指定用户的焦点窗口
-    if (AccessTokenKit::GetTokenTypeFlag(tokenId) != ATokenTypeEnum::TOKEN_HAP) {
-        return true;
-    }
-    if (userId == ERROR_USERID) {
-        return false;
-    }
-    FocusChangeInfo info;
-    OHOS::MiscServices::WindowManager::GetFocusWindowInfo(userId, info);
-    auto callPid = IPCSkeleton::GetCallingPid();
-    if (callPid == info.pid_) {
-        return true;
-    }
-    bool isFocused = false;
-    int32_t ret = PasteboardAbilityManager::CheckUIExtensionIsFocused(tokenId, isFocused);
-    return ret == NO_ERROR && isFocused;
-}
-```
-
-**关键变更：**
-- WindowManager::GetFocusWindowInfo 需要 userId 参数版本
-- GetFocusedAppInfo(void) 使用 GetCurrentAccountId() 调用 userId 版本
-- IsFocusedApp(tokenId) 使用当前用户调用 userId 版本
-
-### 2. userId 参数化的输入法解冻方法
+### 1. userId 参数化的输入法解冻方法
 
 **当前问题：** HEAD的IsNeedThaw移除了userId参数，InputMethodController方法现已支持userId参数
 
@@ -149,13 +102,13 @@ void PasteboardService::SetInputMethodPid(int32_t userId, pid_t callPid)
 - IsNeedThaw(status)调用userId版本，传入GetCurrentAccountId()
 - SetInputMethodPid恢复IsCurrentImeByPid(userId, callPid)检查逻辑
 
-### 3. 主屏幕用户预同步监视器检查
+### 2. 主屏幕用户预同步监视器检查
 
 **修改意见：预同步相关的新增逻辑取消，无需修改此项**
 
 此项功能恢复已取消，不需要添加ShouldRegisterPreSyncMonitor检查。HEAD版本的预同步逻辑保持不变。
 
-### 4. GrantPermission tokenId 参数恢复
+### 3. GrantPermission tokenId 参数恢复
 
 **当前问题：** HEAD 改为 bundleName，移除了 token 验证
 
@@ -501,12 +454,11 @@ void PasteboardService::ClearUriOnUninstall(int32_t tokenId) {
 2. GrantPermission tokenId 参数恢复  
 
 ### 优先级 2（功能完整性）：
-3. userId 参数化的焦点窗口检查
-4. userId 参数化的输入法解冻方法  
+3. userId 参数化的输入法解冻方法
+4. pasteboard_window_manager userId 参数（含焦点窗口检查）
 
 ### 优先级 3（较低 - 兼容性）：
-5. pasteboard_window_manager userId 参数（通过GetInstance(userId)）
-6. 其他解析器使用修改
+5. 其他解析器使用修改
 
 ## 测试策略
 
