@@ -4002,7 +4002,7 @@ FocusedAppInfo PasteboardService::GetFocusedAppInfo(int32_t userId) const
                 appInfo.left = windowInfo->rect_.posX_;
                 appInfo.top = windowInfo->rect_.posY_;
                 appInfo.width = windowInfo->rect_.width_;
-                appInfo.height = windowInfo->rect_.height_;               
+                appInfo.height = windowInfo->rect_.height_;
                 break;
             }
         }

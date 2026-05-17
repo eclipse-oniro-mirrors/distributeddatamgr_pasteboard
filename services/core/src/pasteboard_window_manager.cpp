@@ -24,32 +24,12 @@
 namespace OHOS::MiscServices {
 int32_t WindowManager::GetFocusWindowId()
 {
-    return GetFocusWindowId(-1);
-}
-
-int32_t WindowManager::GetFocusWindowId(int32_t userId)
-{
     Rosen::FocusChangeInfo info;
-    GetFocusWindowInfo(userId, info);
+#ifdef SCENE_BOARD_ENABLE
+    Rosen::WindowManagerLite::GetInstance().GetFocusWindowInfo(info);
+#else
+    Rosen::WindowManager::GetInstance().GetFocusWindowInfo(info);
+#endif
     return info.windowId_;
-}
-
-void WindowManager::GetFocusWindowInfo(int32_t userId, Rosen::FocusChangeInfo &info)
-{
-#ifdef SCENE_BOARD_ENABLE
-    Rosen::WindowManagerLite::GetInstance(userId).GetFocusWindowInfo(info);
-#else
-    Rosen::WindowManager::GetInstance(userId).GetFocusWindowInfo(info);
-#endif
-}
-
-Rosen::WMError WindowManager::GetVisibilityWindowInfo(
-    int32_t userId, std::vector<sptr<Rosen::WindowVisibilityInfo>> &infos)
-{
-#ifdef SCENE_BOARD_ENABLE
-    return Rosen::WindowManagerLite::GetInstance(userId).GetVisibilityWindowInfo(infos);
-#else
-    return Rosen::WindowManager::GetInstance(userId).GetVisibilityWindowInfo(infos);
-#endif
 }
 } // namespace OHOS::MiscServices

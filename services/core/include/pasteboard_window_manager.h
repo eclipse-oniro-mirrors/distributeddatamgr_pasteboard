@@ -17,23 +17,12 @@
 #define PASTEBOARD_WINDOW_MANAGER_H
 
 #include <cstdint>
-#include <vector>
-
-#ifdef SCENE_BOARD_ENABLE
-#include "window_manager_lite.h"
-#else
-#include "window_manager.h"
-#endif // SCENE_BOARD_ENABLE
 
 namespace OHOS {
 namespace MiscServices {
 class WindowManager {
 public:
     static int32_t GetFocusWindowId();
-    static int32_t GetFocusWindowId(int32_t userId);
-    static void GetFocusWindowInfo(int32_t userId, Rosen::FocusChangeInfo &info);
-    static Rosen::WMError GetVisibilityWindowInfo(
-        int32_t userId, std::vector<sptr<Rosen::WindowVisibilityInfo>> &infos);
 };
 } // namespace MiscServices
 } // namespace OHOS
