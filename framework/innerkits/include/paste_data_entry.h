@@ -18,6 +18,7 @@
 
 #include "tlv_readable.h"
 #include "tlv_writeable.h"
+#include "uri.h"
 
 namespace OHOS {
 namespace MiscServices {

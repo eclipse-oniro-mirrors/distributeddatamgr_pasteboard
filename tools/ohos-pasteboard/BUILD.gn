@@ -54,12 +54,15 @@ ohos_cli_executable("ohos-pasteboard") {
   ]
 
   external_deps = [
+    "ability_base:want",
     "ability_base:zuri",
     "cJSON:cjson",
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",
+    "image_framework:image",
     "udmf:udmf_client",
+    "json:nlohmann_json_static",
   ]
 
   cflags_cc = [

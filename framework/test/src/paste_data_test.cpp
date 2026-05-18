@@ -22,6 +22,7 @@
 #include "int_wrapper.h"
 #include "pasteboard_client.h"
 #include "pasteboard_service_loader.h"
+#include "pixel_map.h"
 #include "want_params_wrapper.h"
 #include "pasteboard_hilog.h"
 

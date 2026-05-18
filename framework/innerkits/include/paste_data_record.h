@@ -18,6 +18,7 @@
 
 #include "common/constant.h"
 #include "paste_data_entry.h"
+#include "uri.h"
 
 namespace OHOS {
 namespace UDMF {

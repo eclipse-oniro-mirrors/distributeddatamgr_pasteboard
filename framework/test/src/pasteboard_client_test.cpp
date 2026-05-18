@@ -18,6 +18,7 @@
 
 #include "pasteboard_client.h"
 #include "pasteboard_error.h"
+#include "pixel_map.h"
 #include "unistd.h"
 #include "pasteboard_hilog.h"
 

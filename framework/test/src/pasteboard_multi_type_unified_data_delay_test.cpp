@@ -20,6 +20,7 @@
 #include "pasteboard_client.h"
 #include "pasteboard_error.h"
 #include "pasteboard_hilog.h"
+#include "pixel_map.h"
 
 namespace OHOS::MiscServices {
 using namespace testing;

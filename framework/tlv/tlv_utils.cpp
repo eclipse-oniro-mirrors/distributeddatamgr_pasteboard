@@ -16,6 +16,7 @@
 #include "tlv_utils.h"
 
 #include "pasteboard_hilog.h"
+#include "pixel_map.h"
 
 namespace OHOS::MiscServices {
 RawMem TLVUtils::Parcelable2Raw(const Parcelable *value)

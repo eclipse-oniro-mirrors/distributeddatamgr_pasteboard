@@ -19,6 +19,7 @@
 #include "endian_converter.h"
 #include "tlv_buffer.h"
 #include "tlv_utils.h"
+#include "uri.h"
 
 namespace OHOS::MiscServices {
 

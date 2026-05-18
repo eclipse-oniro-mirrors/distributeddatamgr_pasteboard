@@ -56,7 +56,9 @@ ohos_fuzztest("PasteboardServiceFuzzTest") {
   deps = [ "${pasteboard_service_path}:pasteboard_service_idl" ]
 
   external_deps = [
+    "ability_base:want",
     "ability_base:zuri",
+    "cJSON:cjson",
     "c_utils:utils",
     "hilog:libhilog",
     "image_framework:image_native",
