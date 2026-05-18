@@ -55,7 +55,6 @@ ohos_shared_library("libpasteboard") {
     "c_utils:utils",
     "ffrt:libffrt",
     "hilog:libhilog",
-    "image_framework:image",
     "ipc:ipc_single",
     "udmf:libudmf",
     "udmf:udmf_client",

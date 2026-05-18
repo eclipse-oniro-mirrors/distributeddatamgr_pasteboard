@@ -71,7 +71,6 @@ taihe_shared_library("pasteboard_taihe_native") {
     "ffrt:libffrt",
     "hilog:libhilog",
     "image_framework:image_taihe",
-    "image_framework:image",
     "ipc:ipc_core",
     "napi:ace_napi",
     "runtime_core:ani",

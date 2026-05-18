@@ -58,7 +58,6 @@ ohos_cli_executable("ohos-pasteboard") {
     "cJSON:cjson",
     "c_utils:utils",
     "hilog:libhilog",
-    "image_framework:image",
     "ipc:ipc_single",
     "udmf:udmf_client",
   ]

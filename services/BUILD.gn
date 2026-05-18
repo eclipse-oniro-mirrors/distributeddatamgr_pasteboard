@@ -141,7 +141,6 @@ ohos_shared_library("pasteboard_service") {
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
-    "cJSON:cjson",
     "common_event_service:cesfwk_innerkits",
     "data_share:datashare_consumer",
     "dfs_service:distributed_file_daemon_kit_inner",
@@ -150,7 +149,6 @@ ohos_shared_library("pasteboard_service") {
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
-    "image_framework:image",
     "imf:inputmethod_client",
     "init:libbegetutil",
     "input:libmmi-client",
@@ -218,7 +216,6 @@ ohos_source_set("pasteboard_stub_proxy") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
-    "image_framework:image",
     "ipc:ipc_single",
     "samgr:samgr_proxy",
     "udmf:udmf_client",
@@ -247,10 +244,8 @@ ohos_source_set("pasteboard_client_idl") {
 
   deps = [ ":pasteboard_service_interface" ]
   external_deps = [
-    "ability_base:want",
     "c_utils:utils",
     "hilog:libhilog",
-    "image_framework:image",
     "ipc:ipc_single",
     "samgr:samgr_proxy",
     "udmf:udmf_client",
@@ -282,7 +277,6 @@ ohos_source_set("pasteboard_service_idl") {
   external_deps = [
     "c_utils:utils",
     "hilog:libhilog",
-    "image_framework:image",
     "ipc:ipc_single",
     "samgr:samgr_proxy",
     "udmf:udmf_client",
