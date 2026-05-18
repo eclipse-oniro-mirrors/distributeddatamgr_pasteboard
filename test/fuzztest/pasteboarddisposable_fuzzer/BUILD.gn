@@ -63,7 +63,6 @@ ohos_fuzztest("PasteboardDisposableFuzzTest") {
   deps = [ "${pasteboard_service_path}:pasteboard_service_idl" ]
 
   external_deps = [
-    "ability_base:want",
     "ability_base:zuri",
     "c_utils:utils",
     "ffrt:libffrt",

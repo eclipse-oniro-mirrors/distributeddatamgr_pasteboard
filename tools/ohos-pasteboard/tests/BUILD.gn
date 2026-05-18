@@ -54,7 +54,6 @@ ohos_unittest("ExecuteCommandTest") {
   ]
 
   external_deps = [
-    "ability_base:want",
     "ability_base:zuri",
     "c_utils:utils",
     "hilog:libhilog",
