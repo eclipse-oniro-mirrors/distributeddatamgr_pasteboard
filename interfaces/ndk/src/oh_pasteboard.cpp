@@ -119,17 +119,19 @@ void OH_Pasteboard_Destroy(OH_Pasteboard *pasteboard)
     if (!IsPasteboardValid(pasteboard)) {
         return;
     }
-    std::lock_guard<std::mutex> lock(pasteboard->mutex);
-    for (auto iter : pasteboard->observers_) {
-        if (iter.second != nullptr) {
-            PasteboardClient::GetInstance()->Unsubscribe(
-                static_cast<PasteboardObserverType>(iter.second->GetType()), iter.second);
+    {
+        std::lock_guard<std::mutex> lock(pasteboard->mutex);
+        for (auto iter : pasteboard->observers_) {
+            if (iter.second != nullptr) {
+                PasteboardClient::GetInstance()->Unsubscribe(
+                    static_cast<PasteboardObserverType>(iter.second->GetType()), iter.second);
+            }
         }
+        pasteboard->observers_.clear();
+        pasteboard->mimeTypes_.clear();
+        delete[] pasteboard->mimeTypesPtr;
+        pasteboard->mimeTypesPtr = nullptr;
     }
-    pasteboard->observers_.clear();
-    pasteboard->mimeTypes_.clear();
-    delete[] pasteboard->mimeTypesPtr;
-    pasteboard->mimeTypesPtr = nullptr;
     delete pasteboard;
 }
 
