@@ -113,13 +113,6 @@
             }
         },
         {
-            "name":"pasteboard_title",
-            "value":"クロスデバイスクリップボード",
-            "attr":{
-                "priority":"LT"
-            }
-        },
-        {
             "name":"prompttext_pasteboard_remote",
             "value":"「%s」から貼り付け中…",
             "attr":{

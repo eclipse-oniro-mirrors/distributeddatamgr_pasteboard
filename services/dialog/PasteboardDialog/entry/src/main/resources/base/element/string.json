@@ -25,13 +25,6 @@
             "value":"label"
         },
         {
-            "name":"pasteboard_title",
-            "value":"Cross-device clipboard",
-            "attr":{
-                "priority":"translate"
-            }
-        },
-        {
             "name":"pasteboard_desc_text",
             "value":"Copy on one device, paste on another. Devices must be near each other, logged in to the same HUAWEI ID, and have WLAN, Bluetooth, and this feature enabled. %s",
             "attr":{

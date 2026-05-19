@@ -99,13 +99,6 @@
             }
         },
         {
-            "name":"pasteboard_title",
-            "value":"คลิปบอร์ดข้ามอุปกรณ์",
-            "attr":{
-                "priority":"LT"
-            }
-        },
-        {
             "name":"prompttext_pasteboard_remote",
             "value":"กำลังวางจาก \"%s\"…",
             "attr":{

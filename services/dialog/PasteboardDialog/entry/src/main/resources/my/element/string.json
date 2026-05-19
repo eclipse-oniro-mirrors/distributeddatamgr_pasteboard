@@ -99,13 +99,6 @@
             }
         },
         {
-            "name":"pasteboard_title",
-            "value":"စက်များအကြား အပြန်အလှန်သုံး ကလစ်ဘုတ်",
-            "attr":{
-                "priority":"LT"
-            }
-        },
-        {
             "name":"prompttext_pasteboard_remote",
             "value":"\"%s\" မှ ကူးထည့်နေဆဲ…",
             "attr":{

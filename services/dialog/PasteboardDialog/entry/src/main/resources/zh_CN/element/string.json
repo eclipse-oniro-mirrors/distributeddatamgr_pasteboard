@@ -25,13 +25,6 @@
             "value":"label"
         },
         {
-            "name":"pasteboard_title",
-            "value":"跨设备剪贴板",
-            "attr":{
-                "priority":"translate"
-            }
-        },
-        {
             "name":"pasteboard_desc_text",
             "value":"在一台设备上进行复制，然后可在附近另一台登录相同账号的设备上粘贴。此功能需双方设备开启“跨设备剪贴板”、WLAN 和蓝牙。%s",
             "attr":{

@@ -99,13 +99,6 @@
             }
         },
         {
-            "name":"pasteboard_title",
-            "value":"Cihazlar arası pano",
-            "attr":{
-                "priority":"LT"
-            }
-        },
-        {
             "name":"prompttext_pasteboard_remote",
             "value":"\"%s\" öğesinden yapıştırılıyor…",
             "attr":{

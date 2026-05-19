@@ -1,10 +1,6 @@
 {
     "string":[
         {
-            "name":"pasteboard_title",
-            "value":"[TS_940609]_Cross-device clipboard"
-        },
-        {
             "name":"pasteboard_desc_text",
             "value":"[TS_998183]_Copy on one device, paste on another. Devices must be near each other, logged in to the same ID, and have WLAN, Bluetooth, and this feature enabled. %s"
         },

@@ -92,13 +92,6 @@
             }
         },
         {
-            "name":"pasteboard_title",
-            "value":"Cross-device clipboard",
-            "attr":{
-                "priority":"translate"
-            }
-        },
-        {
             "name":"prompttext_pasteboard_remote",
             "value":"Pasting from \"%s\"…",
             "attr":{

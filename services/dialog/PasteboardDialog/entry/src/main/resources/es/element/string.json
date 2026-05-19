@@ -113,13 +113,6 @@
             }
         },
         {
-            "name":"pasteboard_title",
-            "value":"Portapapeles entre dispositivos",
-            "attr":{
-                "priority":"LT"
-            }
-        },
-        {
             "name":"prompttext_pasteboard_remote",
             "value":"Pegando desde “%s”…",
             "attr":{
