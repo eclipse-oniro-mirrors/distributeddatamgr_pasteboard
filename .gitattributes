@@ -1,0 +1,7 @@
+*.json text=crlf
+*.json5 text=crlf
+*.ts text=crlf
+*.ets text=crlf
+*.js text=crlf
+*.gn text=crlf
+*.gitignore text=crlf
