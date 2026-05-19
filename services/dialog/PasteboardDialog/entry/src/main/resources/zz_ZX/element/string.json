@@ -1,0 +1,108 @@
+{
+    "string":[
+        {
+            "name":"pasteboard_desc_text",
+            "value":"[TS_998183]_Copy on one device, paste on another. Devices must be near each other, logged in to the same ID, and have WLAN, Bluetooth, and this feature enabled. %s"
+        },
+        {
+            "name":"PasteboardSwitchAbility_desc",
+            "value":"[TS_940613]_description"
+        },
+        {
+            "name":"typeface",
+            "value":"[TS_909191]_HarmonyHeiTi"
+        },
+        {
+            "name":"entry_desc",
+            "value":"[TS_849893]_Pasteboard dialog"
+        },
+        {
+            "name":"ToastExtensionAbility_desc",
+            "value":"[TS_909190]_Pasteboard toast extension"
+        },
+        {
+            "name":"PasteboardSwitchAbility_label",
+            "value":"[TS_940612]_label"
+        },
+        {
+            "name":"multi_device_collaboration",
+            "value":"[TS_940610]_More connectivity options"
+        },
+        {
+            "name":"ToastExtensionAbility_label",
+            "value":"[TS_909189]_Pasteboard Toast"
+        },
+        {
+            "name":"learn_more",
+            "value":"[TS_995343]_Learn more"
+        },
+        {
+            "name":"PasteboardProgressAbility_desc",
+            "value":"[TS_1006477]_Pasteboard progress dilog"
+        },
+        {
+            "name":"PasteboardProgressAbility_label",
+            "value":"[TS_1006484]_Pasteboard progress"
+        },
+        {
+            "name":"progress_cancel_btn",
+            "value":"[TS_1006481]_Cancel"
+        },
+        {
+            "name":"prompttext_udmf_import",
+            "value":"[TS_1006480]_Importing…"
+        },
+        {
+            "name":"prompttext_udmf_copy_error",
+            "value":"[TS_1006488]_Copy failed. Try again later."
+        },
+        {
+            "name":"prompttext_udmf_format_error",
+            "value":"[TS_1006485]_Format conversion failed. Try again later."
+        },
+        {
+            "name":"prompttext_udmf_format",
+            "value":"[TS_1006486]_Converting format…"
+        },
+        {
+            "name":"prompttext_udmf_download",
+            "value":"[TS_1006473]_Downloading…"
+        },
+        {
+            "name":"prompttext_udmf_move_error",
+            "value":"[TS_1006482]_Move failed. Try again later."
+        },
+        {
+            "name":"prompttext_pasteboard_local",
+            "value":"[TS_1006474]_Pasting…"
+        },
+        {
+            "name":"prompttext_udmf_copy",
+            "value":"[TS_1006487]_Copying…"
+        },
+        {
+            "name":"prompttext_udmf_import_error",
+            "value":"[TS_1006478]_Import failed. Try again later."
+        },
+        {
+            "name":"prompttext_udmf_download_error",
+            "value":"[TS_1006475]_Unable to download. Try again later."
+        },
+        {
+            "name":"prompttext_pasteboard_remote",
+            "value":"[TS_1006476]_Pasting from \"%s\"…"
+        },
+        {
+            "name":"prompttext_udmf_move",
+            "value":"[TS_1006479]_Moving…"
+        },
+        {
+            "name":"prompttext_pasteboard_error",
+            "value":"[TS_1006483]_Unable to paste. Please try again."
+        },
+        {
+            "name":"progress_completed_percentage",
+            "value":"[TS_1006489]_%s completed"
+        }
+    ]
+}
