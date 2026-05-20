@@ -99,13 +99,6 @@
             }
         },
         {
-            "name":"pasteboard_title",
-            "value":"Geräteübergreifende Zwischenablage",
-            "attr":{
-                "priority":"LT"
-            }
-        },
-        {
             "name":"prompttext_pasteboard_remote",
             "value":"Von „%s“ einfügen …",
             "attr":{

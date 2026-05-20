@@ -92,13 +92,6 @@
             }
         },
         {
-            "name":"pasteboard_title",
-            "value":"Bộ nhớ tạm giữa các thiết bị",
-            "attr":{
-                "priority":"LT"
-            }
-        },
-        {
             "name":"prompttext_pasteboard_remote",
             "value":"Đang dán từ \"%s\"…",
             "attr":{

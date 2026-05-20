@@ -1,13 +1,6 @@
 {
     "string":[
         {
-            "name":"pasteboard_title",
-            "value":"跨裝置剪貼簿",
-            "attr":{
-                "priority":"translate"
-            }
-        },
-        {
             "name":"pasteboard_desc_text",
             "value":"在一台裝置上複製，然後可以在附近登入相同 ID 的另一台裝置上貼上。此功能需要雙方裝置皆啟用「跨裝置剪貼簿」、WLAN 和藍牙。%s",
             "attr":{

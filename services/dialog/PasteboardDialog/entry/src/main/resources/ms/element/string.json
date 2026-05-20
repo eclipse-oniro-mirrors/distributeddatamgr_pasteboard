@@ -99,13 +99,6 @@
             }
         },
         {
-            "name":"pasteboard_title",
-            "value":"Papan klip silang peranti",
-            "attr":{
-                "priority":"LT"
-            }
-        },
-        {
             "name":"prompttext_pasteboard_remote",
             "value":"Menampal daripada \"%s\"…",
             "attr":{

@@ -92,13 +92,6 @@
             }
         },
         {
-            "name":"pasteboard_title",
-            "value":"교차 장치 클립보드",
-            "attr":{
-                "priority":"LT"
-            }
-        },
-        {
             "name":"prompttext_pasteboard_remote",
             "value":"\"%s\"에서 붙여넣기 중…",
             "attr":{

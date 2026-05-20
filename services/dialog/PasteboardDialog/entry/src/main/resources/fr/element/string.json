@@ -113,13 +113,6 @@
             }
         },
         {
-            "name":"pasteboard_title",
-            "value":"Presse-papier multi-appareils",
-            "attr":{
-                "priority":"LT"
-            }
-        },
-        {
             "name":"prompttext_pasteboard_remote",
             "value":"Collage depuis \"%s\" en cours.",
             "attr":{

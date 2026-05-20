@@ -92,13 +92,6 @@
             }
         },
         {
-            "name":"pasteboard_title",
-            "value":"حافظة الأجهزة",
-            "attr":{
-                "priority":"LT"
-            }
-        },
-        {
             "name":"prompttext_pasteboard_remote",
             "value":"جارٍ لصق المحتوى من \"\u202a%s\u202c\"…",
             "attr":{

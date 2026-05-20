@@ -92,13 +92,6 @@
             }
         },
         {
-            "name":"pasteboard_title",
-            "value":"Общий буфер обмена",
-            "attr":{
-                "priority":"LT"
-            }
-        },
-        {
             "name":"prompttext_pasteboard_remote",
             "value":"Вставка из \"%s\"…",
             "attr":{
