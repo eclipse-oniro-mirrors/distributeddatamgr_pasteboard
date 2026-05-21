@@ -29,6 +29,7 @@
 #include "pasteboard_error.h"
 #include "pasteboard_hilog.h"
 #include "pasteboard_service.h"
+#include "pasteboard_user_context.h"
 #include "remote_file_share.h"
 #include "eventcenter/pasteboard_event.h"
 
@@ -120,6 +121,9 @@ public:
     virtual ~PasteboardServiceInterface(){};
 
     virtual OHOS::ErrCode QueryActiveOsAccountIds(std::vector<int32_t> &ids);
+    virtual OHOS::ErrCode GetOsAccountLocalIdFromUid(const int uid, int &id) = 0;
+    virtual OHOS::ErrCode GetForegroundOsAccountLocalId(uint64_t displayId, int32_t &userId) = 0;
+    virtual OHOS::ErrCode GetForegroundOsAccounts(std::vector<AccountSA::ForegroundOsAccount> &accounts) = 0;
     virtual bool Decode(const std::vector<std::uint8_t> &buffer) = 0;
     virtual bool Encode(std::vector<uint8_t> &buffer) const = 0;
     virtual pid_t GetCallingUid() = 0;
@@ -156,6 +160,9 @@ public:
     ~PasteboardServiceInterfaceMock() override;
 
     MOCK_METHOD1(QueryActiveOsAccountIds, OHOS::ErrCode(std::vector<int32_t> &ids));
+    MOCK_METHOD2(GetOsAccountLocalIdFromUid, OHOS::ErrCode(const int uid, int &id));
+    MOCK_METHOD2(GetForegroundOsAccountLocalId, OHOS::ErrCode(uint64_t displayId, int32_t &userId));
+    MOCK_METHOD1(GetForegroundOsAccounts, OHOS::ErrCode(std::vector<AccountSA::ForegroundOsAccount> &accounts));
     MOCK_METHOD1(Decode, bool(const std::vector<std::uint8_t> &buffer));
     MOCK_CONST_METHOD1(Encode, bool(std::vector<uint8_t> &buffer));
     MOCK_METHOD0(GetCallingUid, pid_t());
@@ -492,6 +499,33 @@ OHOS::ErrCode OsAccountManager::QueryActiveOsAccountIds(std::vector<int32_t> &id
         ids.push_back(ACCOUNT_IDS_RANDOM);
     }
     return interface->QueryActiveOsAccountIds(ids);
+}
+
+OHOS::ErrCode OsAccountManager::GetOsAccountLocalIdFromUid(const int uid, int &id)
+{
+    PasteboardServiceInterface *interface = GetPasteboardServiceInterface();
+    if (interface == nullptr) {
+        return -1;
+    }
+    return interface->GetOsAccountLocalIdFromUid(uid, id);
+}
+
+OHOS::ErrCode OsAccountManager::GetForegroundOsAccountLocalId(uint64_t displayId, int32_t &userId)
+{
+    PasteboardServiceInterface *interface = GetPasteboardServiceInterface();
+    if (interface == nullptr) {
+        return -1;
+    }
+    return interface->GetForegroundOsAccountLocalId(displayId, userId);
+}
+
+OHOS::ErrCode OsAccountManager::GetForegroundOsAccounts(std::vector<ForegroundOsAccount> &accounts)
+{
+    PasteboardServiceInterface *interface = GetPasteboardServiceInterface();
+    if (interface == nullptr) {
+        return -1;
+    }
+    return interface->GetForegroundOsAccounts(accounts);
 }
 }
 
@@ -1818,6 +1852,141 @@ HWTEST_F(PasteboardServiceMockTest, OnConfigChangeTest001, TestSize.Level1)
     tempPasteboard->currentUserId_.store(1);
     tempPasteboard->OnConfigChange(false);
     EXPECT_EQ(tempPasteboard->GetCurrentAccountId(), 1);
+}
+
+/**
+ * @tc.name: UserContextResolverResolveCallingUser001
+ * @tc.desc: test UserContextResolver ResolveCallingUser success
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, UserContextResolverResolveCallingUser001, TestSize.Level1)
+{
+    NiceMock<PasteboardServiceInterfaceMock> mock;
+    constexpr int32_t uid = 20010001;
+    constexpr int32_t userId = 101;
+    EXPECT_CALL(mock, GetCallingUid()).WillOnce(Return(uid));
+    EXPECT_CALL(mock, GetOsAccountLocalIdFromUid(uid, testing::_))
+        .WillOnce([](const int, int &id) {
+            id = userId;
+            return ERR_OK;
+        });
+
+    UserContextResolver resolver;
+    auto context = resolver.ResolveCallingUser();
+    EXPECT_TRUE(context.isValid);
+    EXPECT_EQ(context.userId, userId);
+    EXPECT_EQ(context.uid, uid);
+}
+
+/**
+ * @tc.name: UserContextResolverResolveCallingUserFail001
+ * @tc.desc: test UserContextResolver ResolveCallingUser failure
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, UserContextResolverResolveCallingUserFail001, TestSize.Level1)
+{
+    NiceMock<PasteboardServiceInterfaceMock> mock;
+    EXPECT_CALL(mock, GetCallingUid()).WillOnce(Return(-1));
+    EXPECT_CALL(mock, GetOsAccountLocalIdFromUid(-1, testing::_)).WillOnce(Return(-1));
+
+    UserContextResolver resolver;
+    auto context = resolver.ResolveCallingUser();
+    EXPECT_FALSE(context.isValid);
+    EXPECT_EQ(context.userId, ERROR_USERID);
+}
+
+/**
+ * @tc.name: UserContextResolverResolveMainDisplayUser001
+ * @tc.desc: test UserContextResolver ResolveMainDisplayUser success
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, UserContextResolverResolveMainDisplayUser001, TestSize.Level1)
+{
+    NiceMock<PasteboardServiceInterfaceMock> mock;
+    constexpr int32_t userId = 10;
+    EXPECT_CALL(mock, GetForegroundOsAccountLocalId(0, testing::_))
+        .WillOnce([](uint64_t, int32_t &id) {
+            id = userId;
+            return ERR_OK;
+        });
+
+    UserContextResolver resolver;
+    auto context = resolver.ResolveMainDisplayUser();
+    EXPECT_TRUE(context.isValid);
+    EXPECT_EQ(context.userId, userId);
+EXPECT_EQ(context.displayId, 0);
+}
+
+/**
+ * @tc.name: GetCurrentAccountIdUseCallingUid001
+ * @tc.desc: test GetCurrentAccountId uses calling uid instead of QueryActiveOsAccountIds
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, GetCurrentAccountIdUseCallingUid001, TestSize.Level1)
+{
+    PasteboardService service;
+    NiceMock<PasteboardServiceInterfaceMock> mock;
+    constexpr int32_t uid = 20020001;
+    constexpr int32_t userId = 102;
+    EXPECT_CALL(mock, GetCallingUid()).WillOnce(Return(uid));
+    EXPECT_CALL(mock, GetOsAccountLocalIdFromUid(uid, testing::_))
+        .WillOnce([](const int, int &id) {
+            id = userId;
+            return ERR_OK;
+        });
+    EXPECT_CALL(mock, QueryActiveOsAccountIds(testing::_)).Times(0);
+
+    EXPECT_EQ(service.GetCurrentAccountId(), userId);
+}
+
+/**
+ * @tc.name: GetAppInfoUsesCallingUserForHap001
+ * @tc.desc: test GetAppInfo uses calling user for HAP tokens
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, GetAppInfoUsesCallingUserForHap001, TestSize.Level1)
+{
+    PasteboardService service;
+    NiceMock<PasteboardServiceInterfaceMock> mock;
+    constexpr uint32_t tokenId = 12345;
+    constexpr int32_t uid = 20010001;
+    constexpr int32_t callerUserId = 101;
+    EXPECT_CALL(mock, GetTokenTypeFlag(tokenId)).WillOnce(Return(ATokenTypeEnum::TOKEN_HAP));
+    EXPECT_CALL(mock, GetCallingUid()).WillOnce(Return(uid));
+    EXPECT_CALL(mock, GetOsAccountLocalIdFromUid(uid, testing::_))
+        .WillOnce([](const int, int &id) {
+            id = callerUserId;
+            return ERR_OK;
+        });
+
+    auto info = service.GetAppInfo(tokenId);
+    EXPECT_EQ(info.userId, callerUserId);
+}
+
+/**
+ * @tc.name: DumpDataForegroundUsers001
+ * @tc.desc: test DumpData returns data for all foreground users
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, DumpDataForegroundUsers001, TestSize.Level1)
+{
+    PasteboardService service;
+    NiceMock<PasteboardServiceInterfaceMock> mock;
+    EXPECT_CALL(mock, GetForegroundOsAccounts(testing::_))
+        .WillOnce([](std::vector<AccountSA::ForegroundOsAccount> &accounts) {
+            AccountSA::ForegroundOsAccount main;
+            main.localId = 10;
+            main.displayId = 0;
+            AccountSA::ForegroundOsAccount passenger;
+            passenger.localId = 101;
+            passenger.displayId = 1;
+            accounts = { main, passenger };
+            return ERR_OK;
+        });
+
+    auto output = service.DumpData();
+    EXPECT_NE(output.find("UserId: 10"), std::string::npos);
+    EXPECT_NE(output.find("UserId: 101"), std::string::npos);
 }
 
 /**
