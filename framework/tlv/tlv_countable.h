@@ -18,6 +18,7 @@
 
 #include "tlv_buffer.h"
 #include "tlv_utils.h"
+#include "want.h"
 
 namespace OHOS::MiscServices {
 

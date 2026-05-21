@@ -17,6 +17,7 @@
 
 #include "entry_getter.h"
 #include "paste_data_record.h"
+#include "pixel_map.h"
 #include "unified_meta.h"
 #include "pasteboard_hilog.h"
 

@@ -22,6 +22,7 @@
 #include "image.h"
 #include "link.h"
 #include "pasteboard_client.h"
+#include "pixel_map.h"
 #include "plain_text.h"
 #include "system_defined_appitem.h"
 #include "system_defined_form.h"

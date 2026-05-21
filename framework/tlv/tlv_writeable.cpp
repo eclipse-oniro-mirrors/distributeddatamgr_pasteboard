@@ -16,6 +16,8 @@
 #include "tlv_writeable.h"
 #include <thread>
 #include "pasteboard_hilog.h"
+#include "want.h"
+#include "pixel_map.h"
 
 namespace OHOS::MiscServices {
 

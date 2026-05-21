@@ -20,6 +20,7 @@
 #include "convert_utils.h"
 #include "paste_data_entry.h"
 #include "pasteboard_hilog.h"
+#include "pixel_map.h"
 #include "unified_meta.h"
 
 namespace OHOS::MiscServices {

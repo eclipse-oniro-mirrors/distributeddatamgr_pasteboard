@@ -58,8 +58,8 @@ ohos_fuzztest("PasteboardServiceFuzzTest") {
   external_deps = [
     "ability_base:want",
     "ability_base:zuri",
-    "c_utils:utils",
     "cJSON:cjson",
+    "c_utils:utils",
     "hilog:libhilog",
     "image_framework:image_native",
     "ipc:ipc_core",

@@ -16,6 +16,7 @@
 #include <gtest/gtest.h>
 
 #include "convert_utils.h"
+#include "pixel_map.h"
 #include "unified_meta.h"
 #include "pasteboard_hilog.h"
 

@@ -15,7 +15,7 @@
 
 #ifndef DISTRIBUTEDDATAMGR_PASTEBOARD_TLV_UTILS_H
 #define DISTRIBUTEDDATAMGR_PASTEBOARD_TLV_UTILS_H
-
+#include <cinttypes>
 #include "parcel.h"
 #include "securec.h"
 #include "unified_meta.h"

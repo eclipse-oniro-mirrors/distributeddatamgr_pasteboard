@@ -16,6 +16,7 @@
 #include "tlv_readable.h"
 
 #include "pasteboard_hilog.h"
+#include "want.h"
 
 namespace OHOS::MiscServices {
 

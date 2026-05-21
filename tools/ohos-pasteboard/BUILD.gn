@@ -59,10 +59,10 @@ ohos_cli_executable("ohos-pasteboard") {
     "cJSON:cjson",
     "c_utils:utils",
     "hilog:libhilog",
-    "image_framework:image",
     "ipc:ipc_single",
-    "json:nlohmann_json_static",
+    "image_framework:image",
     "udmf:udmf_client",
+    "json:nlohmann_json_static",
   ]
 
   cflags_cc = [

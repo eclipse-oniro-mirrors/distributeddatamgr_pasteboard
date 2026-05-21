@@ -372,7 +372,6 @@ ohos_unittest("PasteboardAbilityManagerTest") {
     "c_utils:utils",
     "googletest:gtest_main",
     "hilog:libhilog",
-    "image_framework:image",
     "ipc:ipc_core",
     "samgr:samgr_proxy",
     "udmf:udmf_client",
@@ -407,7 +406,6 @@ ohos_unittest("PasteboardDialogTest") {
     "c_utils:utils",
     "googletest:gtest_main",
     "hilog:libhilog",
-    "image_framework:image",
     "ipc:ipc_core",
     "samgr:samgr_proxy",
   ]
@@ -437,12 +435,13 @@ ohos_unittest("PasteboardPatternTest") {
   configs = [ ":module_private_config" ]
   external_deps = [
     "ability_base:want",
+    "ability_base:zuri",
     "c_utils:utils",
     "ffrt:libffrt",
     "googletest:gtest_main",
     "hilog:libhilog",
-    "image_framework:image",
     "ipc:ipc_core",
+    "image_framework:image",
     "libxml2:libxml2",
     "udmf:udmf_client",
   ]
@@ -473,6 +472,7 @@ ohos_unittest("PasteboardDelayStubTest") {
   ]
   external_deps = [
     "ability_base:want",
+    "ability_base:zuri",
     "c_utils:utils",
     "ffrt:libffrt",
     "googletest:gmock_main",
@@ -503,12 +503,12 @@ ohos_unittest("PasteboardDelayProxyTest") {
   ]
   external_deps = [
     "ability_base:want",
+    "ability_base:zuri",
     "c_utils:utils",
     "ffrt:libffrt",
     "googletest:gmock_main",
     "googletest:gtest_main",
     "hilog:libhilog",
-    "image_framework:image",
     "ipc:ipc_core",
     "udmf:udmf_client",
   ]
@@ -526,14 +526,15 @@ ohos_unittest("PasteboardEntryGetterStubTest") {
   cflags = [ "-fno-access-control" ]
   external_deps = [
     "ability_base:want",
+    "ability_base:zuri",
     "c_utils:utils",
     "ffrt:libffrt",
     "googletest:gmock",
     "googletest:gtest_main",
     "hilog:libhilog",
-    "image_framework:image",
     "init:libbegetutil",
     "ipc:ipc_core",
+    "ipc:ipc_single",
     "udmf:udmf_client",
   ]
   deps = [
@@ -555,12 +556,12 @@ ohos_unittest("PasteboardEntryGetterProxyTest") {
   cflags = [ "-fno-access-control" ]
   external_deps = [
     "ability_base:want",
+    "ability_base:zuri",
     "c_utils:utils",
     "ffrt:libffrt",
     "googletest:gmock",
     "googletest:gtest_main",
     "hilog:libhilog",
-    "image_framework:image",
     "init:libbegetutil",
     "ipc:ipc_core",
     "udmf:udmf_client",
@@ -622,7 +623,6 @@ ohos_unittest("PasteboardDisposableManagerTest") {
   ]
 
   external_deps = [
-    "ability_base:want",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -630,7 +630,6 @@ ohos_unittest("PasteboardDisposableManagerTest") {
     "googletest:gmock",
     "googletest:gtest_main",
     "hilog:libhilog",
-    "image_framework:image",
     "init:libbegetutil",
     "ipc:ipc_single",
     "udmf:udmf_client",
@@ -683,7 +682,6 @@ ohos_unittest("PasteboardDelayManagerTest") {
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
-    "image_framework:image",
     "imf:inputmethod_client",
     "input:libmmi-client",
     "ipc:ipc_single",
@@ -2048,12 +2046,13 @@ ohos_unittest("EntityRecognitionObserverStubTest") {
   ]
   external_deps = [
     "ability_base:want",
+    "ability_base:zuri",
     "c_utils:utils",
     "ffrt:libffrt",
     "googletest:gtest_main",
     "hilog:libhilog",
-    "image_framework:image",
     "init:libbegetutil",
+    "ipc:ipc_single",
     "udmf:udmf_client",
   ]
 }
@@ -2075,13 +2074,12 @@ ohos_unittest("HiViewAdapterTest") {
   ]
   external_deps = [
     "ability_base:want",
+    "ability_base:zuri",
     "c_utils:utils",
     "ffrt:libffrt",
     "googletest:gtest_main",
     "hisysevent:libhisysevent",
     "hilog:libhilog",
-    "image_framework:image",
-    "image_framework:image_native",
     "init:libbegetutil",
     "udmf:udmf_client",
   ]
