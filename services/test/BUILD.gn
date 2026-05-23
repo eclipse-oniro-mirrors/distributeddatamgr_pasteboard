@@ -175,6 +175,7 @@ ohos_unittest("PasteServInterfaceTest") {
     "resource_schedule_service:ressched_client",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
+    "udmf:udmf_core",
     "udmf:udmf_client",
   ]
   deps = [
@@ -512,6 +513,7 @@ ohos_unittest("PasteboardDelayProxyTest") {
     "googletest:gtest_main",
     "hilog:libhilog",
     "ipc:ipc_core",
+    "udmf:udmf_core",
     "udmf:udmf_client",
   ]
 }
@@ -634,6 +636,7 @@ ohos_unittest("PasteboardDisposableManagerTest") {
     "hilog:libhilog",
     "init:libbegetutil",
     "ipc:ipc_single",
+    "udmf:udmf_core",
     "udmf:udmf_client",
   ]
 }
@@ -693,6 +696,7 @@ ohos_unittest("PasteboardDelayManagerTest") {
     "resource_schedule_service:ressched_client",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
+    "udmf:udmf_core",
     "udmf:udmf_client",
   ]
   if (pasteboard_device_manager_part_enabled) {

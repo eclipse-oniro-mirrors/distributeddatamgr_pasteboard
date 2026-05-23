@@ -109,7 +109,9 @@ ohos_unittest("PasteboardFrameworkTest") {
     "libuv:uv",
     "libxml2:libxml2",
     "samgr:samgr_proxy",
+    "udmf:udmf_core",
     "udmf:udmf_client",
+    "udmf:utd_client",
   ]
 
   deps = [
@@ -306,7 +308,9 @@ ohos_unittest("PasteboardWebControllerTest") {
     "c_utils:utils",
     "googletest:gtest_main",
     "hilog:libhilog",
+    "udmf:udmf_core",
     "udmf:udmf_client",
+    "udmf:utd_client",
   ]
 
   deps = [ "${pasteboard_innerkits_path}:pasteboard_data" ]

@@ -18,6 +18,15 @@ import("//build/ohos.gni")
 import("//build/test.gni")
 import("${pasteboard_tlv_path}/pasteboard_tlv.gni")
 
+config("pasteboard_fuzz_compile_config") {
+  cflags = [
+    "-fno-lto",
+    "-g0",
+    "-O0",
+  ]
+  ldflags = [ "-fno-lto" ]
+}
+
 ohos_fuzztest("PasteboardServiceFuzzTest") {
   module_out_path = "pasteboard/pasteboard"
 
@@ -42,6 +51,7 @@ ohos_fuzztest("PasteboardServiceFuzzTest") {
     "-Wno-unused-variable",
     "-fno-omit-frame-pointer",
   ]
+  configs = [ ":pasteboard_fuzz_compile_config" ]
 
   sources = [ "pasteboardservice_fuzzer.cpp" ]
   sources += [
@@ -63,6 +73,7 @@ ohos_fuzztest("PasteboardServiceFuzzTest") {
     "hilog:libhilog",
     "image_framework:image_native",
     "ipc:ipc_core",
+    "udmf:udmf_core",
     "udmf:udmf_client",
   ]
 }
