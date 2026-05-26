@@ -310,7 +310,9 @@ private:
     void InitScreenStatus();
     ScreenEvent GetScreenStatus(int32_t userId);
     std::string DumpHistory() const;
+    std::string DumpUserHistory(int32_t userId) const;
     std::string DumpData();
+    std::string DumpUserData(int32_t userId);
     void ThawInputMethod(pid_t imePid);
     bool IsNeedThaw(PasteboardEventStatus status);
     int32_t ExtractEntity(const std::string &entity, std::string &location);

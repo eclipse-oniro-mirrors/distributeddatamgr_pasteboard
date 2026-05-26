@@ -687,7 +687,7 @@ HWTEST_F(PasteboardServiceGetTest, HasDataTypeTest002, TestSize.Level1)
     auto tempPasteboard = std::make_shared<PasteboardService>();
     ASSERT_NE(tempPasteboard, nullptr);
 
-tempPasteboard->screenStatusMap_.InsertOrAssign(1, ScreenEvent::ScreenUnlocked);
+    tempPasteboard->screenStatusMap_.InsertOrAssign(1, ScreenEvent::ScreenUnlocked);
     tempPasteboard->currentUserId_.store(1);
     tempPasteboard->clipPlugin_ = nullptr;
     bool funcResult;
@@ -747,7 +747,7 @@ HWTEST_F(PasteboardServiceGetTest, HasDataTypeTest005, TestSize.Level1)
     auto tempPasteboard = std::make_shared<PasteboardService>();
     ASSERT_NE(tempPasteboard, nullptr);
 
-tempPasteboard->screenStatusMap_.InsertOrAssign(1, ScreenEvent::Default);
+    tempPasteboard->screenStatusMap_.InsertOrAssign(1, ScreenEvent::Default);
     tempPasteboard->currentUserId_.store(1);
     tempPasteboard->clipPlugin_ = nullptr;
     bool funcResult;
@@ -767,7 +767,7 @@ HWTEST_F(PasteboardServiceGetTest, HasDataTypeTest006, TestSize.Level1)
     auto tempPasteboard = std::make_shared<PasteboardService>();
     ASSERT_NE(tempPasteboard, nullptr);
 
-tempPasteboard->screenStatusMap_.InsertOrAssign(1, ScreenEvent::ScreenLocked);
+    tempPasteboard->screenStatusMap_.InsertOrAssign(1, ScreenEvent::ScreenLocked);
     tempPasteboard->currentUserId_.store(1);
     tempPasteboard->clipPlugin_ = nullptr;
     bool funcResult;

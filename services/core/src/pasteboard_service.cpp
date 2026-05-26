@@ -3582,6 +3582,28 @@ std::string PasteboardService::GetTime()
     return targetTime;
 }
 
+std::string PasteboardService::DumpUserHistory(int32_t userId) const
+{
+    std::lock_guard<decltype(historyMutex_)> lg(historyMutex_);
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(userId != ERROR_USERID, "Access history fail! invalid userId.",
+        PASTEBOARD_MODULE_SERVICE, "invalid userId");
+    std::string result;
+    if (!dataHistory_.empty()) {
+        result.append("Access history last ten times: ").append("\n");
+        for (auto iter = dataHistory_.rbegin(); iter != dataHistory_.rend(); ++iter) {
+            std::string userIdPrefix = " userId:" + std::to_string(userId);
+            size_t userIdPos = (*iter).find(userIdPrefix);
+            if (userIdPos != std::string::npos) {
+                std::string historyWithoutUserId = (*iter).substr(0, userIdPos);
+                result.append("          ").append(historyWithoutUserId).append("\n");
+            }
+        }
+    } else {
+        result.append("Access history fail! dataHistory_ no data.").append("\n");
+    }
+    return result;
+}
+
 std::string PasteboardService::DumpHistory() const
 {
     auto foregroundUsers = GetForegroundUserIds();
@@ -3593,23 +3615,34 @@ std::string PasteboardService::DumpHistory() const
             continue;
         }
         result += "UserId: " + std::to_string(userId) + "\n";
-        std::lock_guard<decltype(historyMutex_)> lg(historyMutex_);
-        PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(userId != ERROR_USERID, "Access history fail! invalid userId.",
-            PASTEBOARD_MODULE_SERVICE, "invalid userId");
-        if (!dataHistory_.empty()) {
-            result.append("Access history last ten times: ").append("\n");
-            for (auto iter = dataHistory_.rbegin(); iter != dataHistory_.rend(); ++iter) {
-                std::string userIdPrefix = " userId:" + std::to_string(userId);
-                size_t userIdPos = (*iter).find(userIdPrefix);
-                if (userIdPos != std::string::npos) {
-                    std::string historyWithoutUserId = (*iter).substr(0, userIdPos);
-                    result.append("          ").append(historyWithoutUserId).append("\n");
-                }
-            }
-        } else {
-            result.append("Access history fail! dataHistory_ no data.").append("\n");
+        result += DumpUserHistory(userId);
+    }
+    return result;
+}
+
+std::string PasteboardService::DumpUserData(int32_t userId)
+{
+    auto it = clips_.Find(userId);
+    if (!it.first || it.second == nullptr) {
+        return "No copy data.\n";
+    }
+    size_t recordCounts = it.second->GetRecordCount();
+    auto property = it.second->GetProperty();
+    std::string shareOption;
+    PasteData::ShareOptionToString(property.shareOption, shareOption);
+    std::string sourceDevice = property.isRemote ? "remote" : "local";
+    std::string result;
+    result.append("|Owner       :  ").append(property.bundleName).append("\n")
+        .append("|Timestamp   :  ").append(property.setTime).append("\n")
+        .append("|Share Option:  ").append(shareOption).append("\n")
+        .append("|Record Count:  ").append(std::to_string(recordCounts)).append("\n")
+        .append("|Mime types  :  {");
+    if (!property.mimeTypes.empty()) {
+        for (size_t i = 0; i < property.mimeTypes.size(); ++i) {
+            result.append(property.mimeTypes[i]).append(",");
         }
     }
+    result.append("}").append("\n").append("|source device:  ").append(sourceDevice);
     return result;
 }
 
@@ -3626,45 +3659,7 @@ std::string PasteboardService::DumpData()
             continue;
         }
         result += "UserId: " + std::to_string(userId) + "\n";
-        if (userId == ERROR_USERID) {
-            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "query foreground user failed.");
-            continue;
-        }
-        PASTEBOARD_HILOGD(PASTEBOARD_MODULE_SERVICE, "id = %{public}d", userId);
-        auto it = clips_.Find(userId);
-        if (it.first && it.second != nullptr) {
-            size_t recordCounts = it.second->GetRecordCount();
-            auto property = it.second->GetProperty();
-            std::string shareOption;
-            PasteData::ShareOptionToString(property.shareOption, shareOption);
-            std::string sourceDevice;
-            if (property.isRemote) {
-                sourceDevice = "remote";
-            } else {
-                sourceDevice = "local";
-            }
-            result.append("|Owner       :  ")
-                .append(property.bundleName)
-                .append("\n")
-                .append("|Timestamp   :  ")
-                .append(property.setTime)
-                .append("\n")
-                .append("|Share Option:  ")
-                .append(shareOption)
-                .append("\n")
-                .append("|Record Count:  ")
-                .append(std::to_string(recordCounts))
-                .append("\n")
-                .append("|Mime types  :  {");
-            if (!property.mimeTypes.empty()) {
-                for (size_t i = 0; i < property.mimeTypes.size(); ++i) {
-                    result.append(property.mimeTypes[i]).append(",");
-                }
-            }
-            result.append("}").append("\n").append("|source device:  ").append(sourceDevice);
-        } else {
-            result.append("No copy data.").append("\n");
-        }
+        result += DumpUserData(userId);
     }
     return result;
 }
