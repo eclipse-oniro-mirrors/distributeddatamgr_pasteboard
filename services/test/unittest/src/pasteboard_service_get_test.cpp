@@ -207,7 +207,7 @@ HWTEST_F(PasteboardServiceGetTest, GetMimeTypesTest001, TestSize.Level1)
     auto service = std::make_shared<PasteboardService>();
     EXPECT_NE(service, nullptr);
 
-    service->currentScreenStatus = ScreenEvent::ScreenUnlocked;
+    service->screenStatusMap_.InsertOrAssign(100, ScreenEvent::ScreenUnlocked);
     std::vector<std::string> funcResult;
     int32_t result = service->GetMimeTypes(funcResult);
     EXPECT_EQ(result, ERR_OK);
@@ -243,7 +243,7 @@ HWTEST_F(PasteboardServiceGetTest, GetMimeTypesTest003, TestSize.Level1)
     auto service = std::make_shared<PasteboardService>();
     EXPECT_NE(service, nullptr);
 
-    service->currentScreenStatus = ScreenEvent::Default;
+    service->screenStatusMap_.InsertOrAssign(100, ScreenEvent::Default);
     std::vector<std::string> funcResult;
     int32_t result = service->GetMimeTypes(funcResult);
     EXPECT_EQ(result, ERR_OK);
@@ -261,7 +261,7 @@ HWTEST_F(PasteboardServiceGetTest, GetMimeTypesTest004, TestSize.Level1)
     auto service = std::make_shared<PasteboardService>();
     EXPECT_NE(service, nullptr);
 
-    service->currentScreenStatus = ScreenEvent::ScreenLocked;
+    service->screenStatusMap_.InsertOrAssign(100, ScreenEvent::ScreenLocked);
     std::vector<std::string> funcResult;
     int32_t result = service->GetMimeTypes(funcResult);
     EXPECT_EQ(result, ERR_OK);
@@ -411,18 +411,18 @@ HWTEST_F(PasteboardServiceGetTest, GetFocusedAppInfoTest001, TestSize.Level1)
 }
 
 /**
- * @tc.name: GetCurrentScreenStatusTest001
- * @tc.desc: test Func GetCurrentScreenStatus
+ * @tc.name: GetScreenStatusTest001
+ * @tc.desc: test Func GetScreenStatus
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceGetTest, GetCurrentScreenStatusTest001, TestSize.Level1)
+HWTEST_F(PasteboardServiceGetTest, GetScreenStatusTest001, TestSize.Level1)
 {
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetCurrentScreenStatusTest001 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetScreenStatusTest001 start");
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
 
-    tempPasteboard->GetCurrentScreenStatus();
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetCurrentScreenStatusTest001 end");
+    tempPasteboard->GetScreenStatus(0);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetScreenStatusTest001 end");
 }
 
 /**
@@ -687,7 +687,7 @@ HWTEST_F(PasteboardServiceGetTest, HasDataTypeTest002, TestSize.Level1)
     auto tempPasteboard = std::make_shared<PasteboardService>();
     ASSERT_NE(tempPasteboard, nullptr);
 
-    tempPasteboard->currentScreenStatus = ScreenEvent::ScreenUnlocked;
+tempPasteboard->screenStatusMap_.InsertOrAssign(1, ScreenEvent::ScreenUnlocked);
     tempPasteboard->currentUserId_.store(1);
     tempPasteboard->clipPlugin_ = nullptr;
     bool funcResult;
@@ -747,7 +747,7 @@ HWTEST_F(PasteboardServiceGetTest, HasDataTypeTest005, TestSize.Level1)
     auto tempPasteboard = std::make_shared<PasteboardService>();
     ASSERT_NE(tempPasteboard, nullptr);
 
-    tempPasteboard->currentScreenStatus = ScreenEvent::Default;
+tempPasteboard->screenStatusMap_.InsertOrAssign(1, ScreenEvent::Default);
     tempPasteboard->currentUserId_.store(1);
     tempPasteboard->clipPlugin_ = nullptr;
     bool funcResult;
@@ -767,7 +767,7 @@ HWTEST_F(PasteboardServiceGetTest, HasDataTypeTest006, TestSize.Level1)
     auto tempPasteboard = std::make_shared<PasteboardService>();
     ASSERT_NE(tempPasteboard, nullptr);
 
-    tempPasteboard->currentScreenStatus = ScreenEvent::ScreenLocked;
+tempPasteboard->screenStatusMap_.InsertOrAssign(1, ScreenEvent::ScreenLocked);
     tempPasteboard->currentUserId_.store(1);
     tempPasteboard->clipPlugin_ = nullptr;
     bool funcResult;
@@ -787,7 +787,7 @@ HWTEST_F(PasteboardServiceGetTest, HasPasteDataTest001, TestSize.Level1)
     auto service = std::make_shared<PasteboardService>();
     EXPECT_NE(service, nullptr);
 
-    service->currentScreenStatus = ScreenEvent::ScreenUnlocked;
+    service->screenStatusMap_.InsertOrAssign(100, ScreenEvent::ScreenUnlocked);
     bool flag = false;
     int32_t result = service->HasPasteData(flag);
     EXPECT_EQ(result, ERR_OK);
@@ -848,7 +848,7 @@ HWTEST_F(PasteboardServiceGetTest, HasPasteDataTest004, TestSize.Level1)
     auto service = std::make_shared<PasteboardService>();
     EXPECT_NE(service, nullptr);
 
-    service->currentScreenStatus = ScreenEvent::Default;
+    service->screenStatusMap_.InsertOrAssign(100, ScreenEvent::Default);
     bool flag = false;
     int32_t result = service->HasPasteData(flag);
     EXPECT_EQ(result, ERR_OK);
@@ -867,7 +867,7 @@ HWTEST_F(PasteboardServiceGetTest, HasPasteDataTest005, TestSize.Level1)
     auto service = std::make_shared<PasteboardService>();
     EXPECT_NE(service, nullptr);
 
-    service->currentScreenStatus = ScreenEvent::ScreenLocked;
+    service->screenStatusMap_.InsertOrAssign(100, ScreenEvent::ScreenLocked);
     bool flag = false;
     int32_t result = service->HasPasteData(flag);
     EXPECT_EQ(result, ERR_OK);

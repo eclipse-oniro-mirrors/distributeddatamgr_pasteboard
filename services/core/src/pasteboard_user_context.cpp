@@ -109,26 +109,12 @@ UserContext UserContextResolver::ResolveUserSwitchedNewUser(const EventFwk::Comm
     return MakeEventContext(data.GetCode(), UserContextSource::USER_SWITCHED_NEW);
 }
 
-UserContext UserContextResolver::ResolveUserSwitchedOldUser(const AAFwk::Want &want) const
-{
-    std::string oldId = want.GetStringParam(USER_SWITCH_OLD_ID);
-    if (oldId.empty()) {
-        return MakeEventContext(ERROR_USERID, UserContextSource::USER_SWITCHED_OLD);
-    }
-    char *end = nullptr;
-    long value = std::strtol(oldId.c_str(), &end, 10);
-    if (end == oldId.c_str() || *end != '\0') {
-        return MakeEventContext(ERROR_USERID, UserContextSource::USER_SWITCHED_OLD);
-    }
-    return MakeEventContext(static_cast<int32_t>(value), UserContextSource::USER_SWITCHED_OLD);
-}
-
 UserContext UserContextResolver::ResolveStoppingUser(const EventFwk::CommonEventData &data) const
 {
     return MakeEventContext(data.GetCode(), UserContextSource::USER_STOPPING);
 }
 
-UserContext UserContextResolver::ResolvePackageRemovedUser(const AAFwk::Want &want) const
+UserContext UserContextResolver::ResolveUserIdFromWant(const AAFwk::Want &want) const
 {
     return MakeEventContext(want.GetIntParam(PACKAGE_REMOVED_USER_ID, ERROR_USERID),
         UserContextSource::PACKAGE_REMOVED);
