@@ -617,7 +617,7 @@ HWTEST_F(PasteboardServiceGetTest, GetLocalMimeTypesTest002, TestSize.Level1)
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
 
-    auto userId = tempPasteboard->GetCurrentAccountId();
+    auto userId = tempPasteboard->GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
     auto result = tempPasteboard->GetLocalMimeTypes();
     std::vector<std::string> emptyVector;
     EXPECT_EQ(result, emptyVector);
@@ -635,7 +635,7 @@ HWTEST_F(PasteboardServiceGetTest, GetLocalMimeTypesTest003, TestSize.Level1)
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
 
-    auto userId = tempPasteboard->GetCurrentAccountId();
+    auto userId = tempPasteboard->GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
     tempPasteboard->currentUserId_.store(ACCOUNT_IDS_RANDOM);
     tempPasteboard->clips_.InsertOrAssign(ACCOUNT_IDS_RANDOM, std::make_shared<PasteData>());
 
@@ -886,7 +886,7 @@ HWTEST_F(PasteboardServiceGetTest, HasLocalDataTypeTest001, TestSize.Level1)
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
 
-    auto userId = tempPasteboard->GetCurrentAccountId();
+    auto userId = tempPasteboard->GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
     std::string mimeType = "text/html";
     tempPasteboard->HasLocalDataType(mimeType);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "HasLocalDataTypeTest001 end");
@@ -903,7 +903,7 @@ HWTEST_F(PasteboardServiceGetTest, HasLocalDataTypeTest002, TestSize.Level1)
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
 
-    auto userId = tempPasteboard->GetCurrentAccountId();
+    auto userId = tempPasteboard->GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
     std::string mimeType = "text/html";
     bool result = tempPasteboard->HasLocalDataType(mimeType);
     EXPECT_EQ(result, false);

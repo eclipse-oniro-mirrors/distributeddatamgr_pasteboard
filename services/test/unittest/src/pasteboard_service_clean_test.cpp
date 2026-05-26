@@ -256,7 +256,7 @@ HWTEST_F(PasteboardServiceCleanTest, ClearInputMethodPidByPidTest001, TestSize.L
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
 
-    auto userId = tempPasteboard->GetCurrentAccountId();
+    auto userId = tempPasteboard->GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
     pid_t callPid = 1;
     tempPasteboard->ClearInputMethodPidByPid(userId, callPid);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ClearInputMethodPidByPidTest001 end");

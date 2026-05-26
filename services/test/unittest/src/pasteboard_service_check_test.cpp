@@ -243,7 +243,7 @@ HWTEST_F(PasteboardServiceCheckTest, IsDataValidTest002, TestSize.Level1)
     EXPECT_NE(tempPasteboard, nullptr);
 
     AppInfo appInfo;
-    appInfo.userId = tempPasteboard->GetCurrentAccountId();
+    appInfo.userId = tempPasteboard->GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
     PasteData pasteData;
     std::string plainText = "hello";
     pasteData.AddTextRecord(plainText);
@@ -279,7 +279,7 @@ HWTEST_F(PasteboardServiceCheckTest, IsDataValidTest003, TestSize.Level1)
     EXPECT_NE(tempPasteboard, nullptr);
 
     AppInfo appInfo;
-    appInfo.userId = tempPasteboard->GetCurrentAccountId();
+    appInfo.userId = tempPasteboard->GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
     PasteData pasteData;
     std::string plainText = "hello";
     pasteData.AddTextRecord(plainText);
