@@ -193,7 +193,7 @@ public:
     int32_t GetCurrentAccountId() const;
     UserContext ResolveEventUser(const EventFwk::CommonEventData &data) const;
     UserContext ResolveUserIdFromWant(const AAFwk::Want &want) const;
-    std::vector<int32_t> GetForegroundUserIds() const;
+    std::vector<UserContext> ResolveForegroundUsers() const;
     int32_t ResolveMainDisplayUserId() const;
     void ClearByResolvedUser(int32_t userId);
     int32_t ClearByEventUser(int32_t userId);

@@ -134,17 +134,6 @@ UserContext UserContextResolver::ResolveInteractionUser(int32_t userId) const
     return context;
 }
 
-std::vector<int32_t> UserContextResolver::GetForegroundUserIds() const
-{
-    std::vector<int32_t> accountIds;
-    auto ret = AccountSA::OsAccountManager::QueryActiveOsAccountIds(accountIds);
-    if (ret != ERR_OK || accountIds.empty()) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "query active user failed errCode=%{public}d", ret);
-        return {};
-    }
-    return accountIds;
-}
-
 bool IsMainScreenUser(int32_t userId)
 {
     return userId == MAIN_SCREEN_USER_ID;
