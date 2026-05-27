@@ -63,11 +63,9 @@ public:
     virtual UserContext ResolveMainDisplayUser() const;
     virtual std::vector<UserContext> ResolveForegroundUsers() const;
     virtual UserContext ResolveUserSwitchedNewUser(const EventFwk::CommonEventData &data) const;
-    virtual UserContext ResolveUserSwitchedOldUser(const AAFwk::Want &want) const;
     virtual UserContext ResolveStoppingUser(const EventFwk::CommonEventData &data) const;
-    virtual UserContext ResolvePackageRemovedUser(const AAFwk::Want &want) const;
+    virtual UserContext ResolveUserIdFromWant(const AAFwk::Want &want) const;
     virtual UserContext ResolveInteractionUser(int32_t userId) const;
-    virtual std::vector<int32_t> GetForegroundUserIds() const;
 
 private:
     UserContext MakeEventContext(int32_t userId, UserContextSource source) const;

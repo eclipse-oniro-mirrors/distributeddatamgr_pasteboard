@@ -126,7 +126,7 @@ std::vector<std::string> PasteboardService::dataHistory_;
 std::shared_ptr<Command> PasteboardService::copyHistory;
 std::shared_ptr<Command> PasteboardService::copyData;
 std::atomic<int32_t> PasteboardService::currentUserId_{ERROR_USERID};
-ScreenEvent PasteboardService::currentScreenStatus = ScreenEvent::Default;
+
 const std::string PasteboardService::REGISTER_PRESYNC_MONITOR = "RegisterPresyncMonitor";
 const std::string PasteboardService::UNREGISTER_PRESYNC_MONITOR = "UnregisterPresyncMonitor";
 const std::string PasteboardService::P2P_ESTABLISH_STR = "P2pEstablish";
@@ -165,9 +165,23 @@ void PasteboardService::InitScreenStatus()
     auto screenLockManager = OHOS::ScreenLock::ScreenLockManager::GetInstance();
     PASTEBOARD_CHECK_AND_RETURN_LOGE(screenLockManager != nullptr, PASTEBOARD_MODULE_SERVICE,
         "ScreenLockManager instance is null.");
-    auto isScreenLocked = screenLockManager->IsScreenLocked();
-    PasteboardService::currentScreenStatus = isScreenLocked ? ScreenEvent::ScreenLocked : ScreenEvent::ScreenUnlocked;
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "screen status is %{public}d", PasteboardService::currentScreenStatus);
+    auto foregroundUsers = ResolveForegroundUsers();
+    for (const auto &ctx : foregroundUsers) {
+        if (!ctx.isValid) {
+            continue;
+        }
+        bool isLocked = false;
+        auto ret = screenLockManager->IsLockedWithUserId(ctx.userId, isLocked);
+        if (ret == ERR_OK) {
+            screenStatusMap_.InsertOrAssign(ctx.userId,
+                isLocked ? ScreenEvent::ScreenLocked : ScreenEvent::ScreenUnlocked);
+            PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "screen status userId=%{public}d is %{public}d",
+                ctx.userId, isLocked ? ScreenEvent::ScreenLocked : ScreenEvent::ScreenUnlocked);
+        } else {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE,
+                "IsLockedWithUserId failed, userId=%{public}d, ret=%{public}d", ctx.userId, ret);
+        }
+    }
 #else
     PASTEBOARD_HILOGW(PASTEBOARD_MODULE_SERVICE, "PB_SCREENLOCK_MGR_ENABLE not defined");
     return;
@@ -182,7 +196,6 @@ void PasteboardService::OnStart()
         PASTEBOARD_MODULE_SERVICE, "PasteboardService is already running.");
     IPCSkeleton::SetMaxWorkThreadNum(MAX_IPC_THREAD_NUM);
     InitServiceHandler();
-    auto appInfo = GetAppInfo(IPCSkeleton::GetCallingTokenID());
     Loader loader;
     uid_ = loader.LoadUid();
     int32_t capacity = OHOS::system::GetIntParameter("const.pasteboard.local_data_capacity",
@@ -343,7 +356,6 @@ void PasteboardService::NotifyDelayGetterDied(int32_t userId)
         return;
     }
     delayGetters_.Erase(userId);
-    RefreshCriticalState();
 }
 
 PasteboardService::EntryGetterDeathRecipient::EntryGetterDeathRecipient(int32_t userId, PasteboardService &service)
@@ -366,7 +378,6 @@ void PasteboardService::NotifyEntryGetterDied(int32_t userId)
         return;
     }
     entryGetters_.Erase(userId);
-    RefreshCriticalState();
 }
 
 void PasteboardService::UpdateAgedTime()
@@ -395,7 +406,7 @@ bool PasteboardService::HasActivePasteboardWork()
         }
         return false;
     });
-    return hasClip || !delayGetters_.Empty() || !entryGetters_.Empty() || taskMgr_.HasRunningTask();
+    return hasClip;
 }
 
 void PasteboardService::RefreshCriticalState()
@@ -527,7 +538,6 @@ int32_t PasteboardService::ClearInner(int32_t userId, const AppInfo &appInfo)
         delayTokenId_ = 0;
     }
     CleanDistributedData(userId);
-    RefreshCriticalState();
     if (hasData) {
         std::string bundleName = GetAppBundleName(appInfo);
         NotifyObservers(bundleName, userId, PasteboardEventStatus::PASTEBOARD_CLEAR);
@@ -535,7 +545,6 @@ int32_t PasteboardService::ClearInner(int32_t userId, const AppInfo &appInfo)
     if (!HasActivePasteboardWork()) {
         CancelCriticalTimer();
     }
-    CancelCriticalTimer();
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ClearInner leave: clips_.Size=%{public}zu, userId=%{public}d",
         clips_.Size(), userId);
     return ERR_OK;
@@ -1034,7 +1043,7 @@ bool PasteboardService::VerifyPermission(uint32_t tokenId)
     return true;
 }
 
-int32_t PasteboardService::IsDataValid(PasteData &pasteData, uint32_t tokenId)
+int32_t PasteboardService::IsDataValid(PasteData &pasteData, uint32_t tokenId, int32_t userId)
 {
     if (pasteData.IsDraggedData() || !pasteData.IsValid()) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "data is invalid");
@@ -1044,7 +1053,7 @@ int32_t PasteboardService::IsDataValid(PasteData &pasteData, uint32_t tokenId)
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "data is aged");
         return static_cast<int32_t>(PasteboardError::DATA_EXPIRED_ERROR);
     }
-    auto screenStatus = GetCurrentScreenStatus();
+    auto screenStatus = GetScreenStatus(userId);
     if (pasteData.GetScreenStatus() > screenStatus) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "current screen is %{public}d, set data screen is %{public}d.",
             screenStatus, pasteData.GetScreenStatus());
@@ -1093,7 +1102,7 @@ int32_t PasteboardService::GetSdkVersion(uint32_t tokenId)
 bool PasteboardService::IsDataAged()
 {
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_SERVICE, "IsDataAged start");
-    auto userId = GetCurrentAccountId();
+    auto userId = GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
     if (userId == ERROR_USERID) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "userId invalid.");
         return true;
@@ -1111,17 +1120,6 @@ AppInfo PasteboardService::GetAppInfo(uint32_t tokenId) const
     AppInfo info;
     info.tokenId = tokenId;
     info.tokenType = AccessTokenKit::GetTokenTypeFlag(tokenId);
-    if (userContextResolver_ == nullptr) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "resolver is null.");
-        info.userId = ERROR_USERID;
-        return info;
-    }
-    auto context = userContextResolver_->ResolveCallingUser();
-    info.userId = context.isValid ? context.userId : ERROR_USERID;
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE,
-        "GetAppInfo: resolved userId=%{public}d from calling user, isValid=%{public}d",
-        info.userId, context.isValid);
-    
     if (info.tokenType == ATokenTypeEnum::TOKEN_HAP) {
         FillHapAppInfo(tokenId, info);
     } else if (info.tokenType == ATokenTypeEnum::TOKEN_NATIVE || info.tokenType == ATokenTypeEnum::TOKEN_SHELL) {
@@ -1146,6 +1144,12 @@ void PasteboardService::FillHapAppInfo(uint32_t tokenId, AppInfo &info) const
     }
     info.bundleName = hapInfo.bundleName;
     info.appIndex = hapInfo.instIndex;
+    if (userContextResolver_ != nullptr) {
+        auto context = userContextResolver_->ResolveCallingUser();
+        info.userId = context.isValid ? context.userId : ERROR_USERID;
+    } else {
+        info.userId = ERROR_USERID;
+    }
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE,
         "GetAppInfo HAP: bundleName=%{public}s, userId=%{public}d, appIndex=%{public}d",
         info.bundleName.c_str(), info.userId, info.appIndex);
@@ -1159,6 +1163,7 @@ void PasteboardService::FillNativeAppInfo(uint32_t tokenId, AppInfo &info) const
         return;
     }
     info.bundleName = tokenInfo.processName;
+    info.userId = ResolveMainDisplayUserId();
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE,
         "GetAppInfo Native: bundleName=%{public}s, userId=%{public}d", info.bundleName.c_str(), info.userId);
 }
@@ -1255,7 +1260,7 @@ bool PasteboardService::WriteRawData(const void *data, int64_t size, int &serFd)
 CommonInfo PasteboardService::GetCommonState(int64_t dataSize)
 {
     CommonInfo commonInfo;
-    commonInfo.currentAccountId = GetCurrentAccountId();
+    commonInfo.currentAccountId = GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
     commonInfo.deviceType = DMAdapter::GetInstance().GetLocalDeviceType();
     commonInfo.dataSize = dataSize;
     return commonInfo;
@@ -1505,7 +1510,7 @@ int32_t PasteboardService::GetData(uint32_t tokenId, PasteData &data, int32_t &s
         }
     }
     if (distRet != static_cast<int32_t>(PasteboardError::E_OK) ||
-        GetCurrentScreenStatus() != ScreenEvent::ScreenUnlocked) {
+        GetScreenStatus(appInfo.userId) != ScreenEvent::ScreenUnlocked) {
         auto currentEvent = GetCurrentEvent();
         pasteBlock = EstablishP2PLinkTask(pasteId, currentEvent);
         result = GetLocalData(appInfo, data);
@@ -1667,7 +1672,6 @@ int32_t PasteboardService::GetRemoteData(int32_t userId, const Event &event, Pas
             ret = static_cast<int32_t>(PasteboardError::E_OK);
         }
         taskMgr_.ClearRemoteDataTask(event);
-        RefreshCriticalState();
         return ret;
     }
 
@@ -1690,7 +1694,6 @@ int32_t PasteboardService::GetRemotePasteData(int32_t userId, const Event &event
                     static_cast<uint64_t>(PasteBoardTime::GetBootTimeMs());
                 copyTime_.InsertOrAssign(userId, curTime);
                 SetDataExpirationTimer(userId);
-                RefreshCriticalState();
             }
             pasteDataTime->syncTime = result.second.syncTime;
             pasteDataTime->data = result.first;
@@ -1703,7 +1706,6 @@ int32_t PasteboardService::GetRemotePasteData(int32_t userId, const Event &event
         }
         block->SetValue(pasteDataTime);
         taskMgr_.ClearRemoteDataTask(event);
-        RefreshCriticalState();
     });
     PasteBoardCommonUtils::SetThreadTaskName(thread, "GetRemotePaste");
     thread.detach();
@@ -1727,7 +1729,7 @@ int32_t PasteboardService::GetLocalData(const AppInfo &appInfo, PasteData &data)
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "no data userId is %{public}d.", appInfo.userId);
         return static_cast<int32_t>(PasteboardError::NO_DATA_ERROR);
     }
-    auto ret = IsDataValid(*(it.second), appInfo.tokenId);
+    auto ret = IsDataValid(*(it.second), appInfo.tokenId, appInfo.userId);
     if (ret != static_cast<int32_t>(PasteboardError::E_OK)) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "paste data is invalid. ret = %{public}d "
             "appInfo.userId = %{public}d", ret, appInfo.userId);
@@ -2123,7 +2125,7 @@ int32_t PasteboardService::GrantPermission(const std::vector<Uri> &grantUris, ui
     bool hasGranted = false;
     int32_t permissionCode = 0;
     int32_t ret = 0;
-    int32_t userId = GetCurrentAccountId();
+    int32_t userId = GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
     auto [hasData, data] = clips_.Find(userId);
     uint32_t srcTokenId = (hasData && data) ? data->GetTokenId() : 0;
     while (length > offset) {
@@ -2250,13 +2252,13 @@ int32_t PasteboardService::HasPasteData(bool &funcResult)
 
 bool PasteboardService::HasPasteData()
 {
-    auto userId = GetCurrentAccountId();
+    auto userId = GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
     if (userId == ERROR_USERID) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "userId invalid.");
         return false;
     }
 
-    if (GetCurrentScreenStatus() == ScreenEvent::ScreenUnlocked) {
+    if (GetScreenStatus(userId) == ScreenEvent::ScreenUnlocked) {
         auto [distRet, distEvt] = GetValidDistributeEvent(userId);
         if (distRet == static_cast<int32_t>(PasteboardError::E_OK)) {
             return true;
@@ -2266,7 +2268,7 @@ bool PasteboardService::HasPasteData()
     auto it = clips_.Find(userId);
     if (it.first && (it.second != nullptr)) {
         auto tokenId = IPCSkeleton::GetCallingTokenID();
-        auto ret = IsDataValid(*(it.second), tokenId);
+        auto ret = IsDataValid(*(it.second), tokenId, userId);
         if (ret != static_cast<int32_t>(PasteboardError::E_OK)) {
             PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE,
                 "pasteData is invalid, tokenId: %{public}d, userId: %{public}d,"
@@ -2326,7 +2328,7 @@ bool PasteboardService::HasRemoteData()
 {
     auto tokenId = IPCSkeleton::GetCallingTokenID();
     auto appInfo = GetAppInfo(tokenId);
-    PASTEBOARD_CHECK_AND_RETURN_RET_LOGI(GetCurrentScreenStatus() == ScreenEvent::ScreenUnlocked, false,
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGI(GetScreenStatus(appInfo.userId) == ScreenEvent::ScreenUnlocked, false,
         PASTEBOARD_MODULE_SERVICE, "screen is locked.");
     auto [distRet, distEvt] = GetValidDistributeEvent(appInfo.userId);
     if (distRet == static_cast<int32_t>(PasteboardError::E_OK)) {
@@ -2413,7 +2415,6 @@ int32_t PasteboardService::SaveData(PasteData &pasteData, int64_t dataSize,
     auto curTime = static_cast<uint64_t>(PasteBoardTime::GetBootTimeMs());
     copyTime_.InsertOrAssign(appInfo.userId, curTime);
     SetDataExpirationTimer(appInfo.userId);
-    RefreshCriticalState();
     if (!(pasteData.IsDelayData())) {
         SetDistributedData(appInfo.userId, pasteData);
         NotifyObservers(appInfo.bundleName, appInfo.userId, PasteboardEventStatus::PASTEBOARD_WRITE);
@@ -2462,7 +2463,7 @@ void PasteboardService::SetPasteDataInfo(PasteData &pasteData, const AppInfo &ap
     pasteData.SetBundleInfo(appInfo.bundleName, appInfo.appIndex);
     pasteData.SetOriginAuthority(std::make_pair(appInfo.bundleName, appInfo.appIndex));
     pasteData.SetTime(GetTime());
-    pasteData.SetScreenStatus(GetCurrentScreenStatus());
+    pasteData.SetScreenStatus(GetScreenStatus(appInfo.userId));
     auto dataId = ++dataId_;
     pasteData.SetDataId(dataId);
     for (auto &record : pasteData.AllRecords()) {
@@ -2506,8 +2507,8 @@ bool PasteboardService::IsBasicType(const std::string &mimeType)
 
 int32_t PasteboardService::GetMimeTypes(std::vector<std::string> &funcResult)
 {
-    if (GetCurrentScreenStatus() == ScreenEvent::ScreenUnlocked) {
-        auto userId = GetCurrentAccountId();
+    auto userId = GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
+    if (GetScreenStatus(userId) == ScreenEvent::ScreenUnlocked) {
         auto [distRet, distEvt] = GetValidDistributeEvent(userId);
         if (distRet == static_cast<int32_t>(PasteboardError::E_OK)) {
             if (distEvt.version != ClipPlugin::InfoType::DEFAULT) {
@@ -2536,8 +2537,8 @@ int32_t PasteboardService::HasDataType(const std::string &mimeType, bool &funcRe
 
 bool PasteboardService::HasDataType(const std::string &mimeType)
 {
-    if (GetCurrentScreenStatus() == ScreenEvent::ScreenUnlocked) {
-        auto userId = GetCurrentAccountId();
+    auto userId = GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
+    if (GetScreenStatus(userId) == ScreenEvent::ScreenUnlocked) {
         auto [distRet, distEvt] = GetValidDistributeEvent(userId);
         if (distRet == static_cast<int32_t>(PasteboardError::E_OK)) {
             auto it = std::find(distEvt.dataType.begin(), distEvt.dataType.end(), mimeType);
@@ -2572,7 +2573,7 @@ bool PasteboardService::HasUtdType(const std::string &utdType)
     auto tokenId = IPCSkeleton::GetCallingTokenID();
     auto appInfo = GetAppInfo(tokenId);
     auto userId = appInfo.userId;
-    auto screenStatus = GetCurrentScreenStatus();
+    auto screenStatus = GetScreenStatus(appInfo.userId);
     PasteData data;
     if (screenStatus == ScreenEvent::ScreenUnlocked) {
         auto [distRet, distEvt] = GetValidDistributeEvent(userId);
@@ -2595,7 +2596,7 @@ bool PasteboardService::HasUtdType(const std::string &utdType)
             userId, utdType.c_str());
         return false;
     }
-    auto ret = IsDataValid(*(it.second), tokenId);
+    auto ret = IsDataValid(*(it.second), tokenId, appInfo.userId);
     if (ret != static_cast<int32_t>(PasteboardError::E_OK)) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE,
             "pasteData is invalid, tokenId is %{public}d, userId: %{public}d,"
@@ -2623,7 +2624,7 @@ int32_t PasteboardService::DetectPatterns(const std::vector<Pattern> &patternsTo
         std::vector<Pattern>().swap(funcResult);
         return static_cast<int32_t>(PasteboardError::NO_DATA_ERROR);
     }
-    int32_t userId = GetCurrentAccountId();
+    int32_t userId = GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
     auto it = clips_.Find(userId);
     if (!it.first) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "error, no PasteData!");
@@ -2727,7 +2728,7 @@ bool PasteboardService::HasRemoteDataType(const std::string &mimeType, const Eve
 
 std::vector<std::string> PasteboardService::GetLocalMimeTypes()
 {
-    auto userId = GetCurrentAccountId();
+    auto userId = GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
     auto it = clips_.Find(userId);
     if (!it.first) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "can not find data. userId: %{public}d", userId);
@@ -2738,7 +2739,7 @@ std::vector<std::string> PasteboardService::GetLocalMimeTypes()
         return {};
     }
     auto tokenId = IPCSkeleton::GetCallingTokenID();
-    auto ret = IsDataValid(*(it.second), tokenId);
+    auto ret = IsDataValid(*(it.second), tokenId, userId);
     if (ret != static_cast<int32_t>(PasteboardError::E_OK)) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE,
             "pasteData is invalid, tokenId is %{public}d, userId: %{public}d, ret is %{public}d",
@@ -2750,7 +2751,7 @@ std::vector<std::string> PasteboardService::GetLocalMimeTypes()
 
 bool PasteboardService::HasLocalDataType(const std::string &mimeType)
 {
-    auto userId = GetCurrentAccountId();
+    auto userId = GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
     auto it = clips_.Find(userId);
     if (!it.first) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "can not find data. userId: %{public}d, mimeType: %{public}s",
@@ -2763,7 +2764,7 @@ bool PasteboardService::HasLocalDataType(const std::string &mimeType)
         return false;
     }
     auto tokenId = IPCSkeleton::GetCallingTokenID();
-    auto ret = IsDataValid(*(it.second), tokenId);
+    auto ret = IsDataValid(*(it.second), tokenId, userId);
     if (ret != static_cast<int32_t>(PasteboardError::E_OK)) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE,
             "pasteData is invalid, tokenId is %{public}d, userId: %{public}d,"
@@ -2771,7 +2772,7 @@ bool PasteboardService::HasLocalDataType(const std::string &mimeType)
             tokenId, userId, mimeType.c_str(), ret);
         return false;
     }
-    auto screenStatus = GetCurrentScreenStatus();
+    auto screenStatus = GetScreenStatus(userId);
     if (it.second->GetScreenStatus() > screenStatus) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE,
             "current screen is %{public}d, set data screen is %{public}d."
@@ -2792,7 +2793,7 @@ int32_t PasteboardService::IsRemoteData(bool &funcResult)
 
 bool PasteboardService::IsRemoteData()
 {
-    auto userId = GetCurrentAccountId();
+    auto userId = GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
     if (userId == ERROR_USERID) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "userId is error");
         return false;
@@ -2807,7 +2808,7 @@ bool PasteboardService::IsRemoteData()
 
 int32_t PasteboardService::GetDataSource(std::string &bundleName)
 {
-    auto userId = GetCurrentAccountId();
+    auto userId = GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
     if (userId == ERROR_USERID) {
         return static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR);
     }
@@ -2977,15 +2978,6 @@ int32_t PasteboardService::GetCurrentAccountId() const
     return userId;
 }
 
-void PasteboardService::SetUserContextResolver(std::shared_ptr<UserContextResolver> resolver)
-{
-    if (resolver == nullptr) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "resolver is null.");
-        return;
-    }
-    userContextResolver_ = std::move(resolver);
-}
-
 UserContext PasteboardService::ResolveEventUser(const EventFwk::CommonEventData &data) const
 {
     if (userContextResolver_ == nullptr) {
@@ -2995,26 +2987,30 @@ UserContext PasteboardService::ResolveEventUser(const EventFwk::CommonEventData 
     return userContextResolver_->ResolveEventUser(data);
 }
 
-UserContext PasteboardService::ResolvePackageRemovedUser(const AAFwk::Want &want) const
+UserContext PasteboardService::ResolveUserIdFromWant(const AAFwk::Want &want) const
 {
     if (userContextResolver_ == nullptr) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "resolver is null.");
         return {};
     }
-    return userContextResolver_->ResolvePackageRemovedUser(want);
+    return userContextResolver_->ResolveUserIdFromWant(want);
 }
 
-std::vector<int32_t> PasteboardService::GetForegroundUserIds() const
+std::vector<UserContext> PasteboardService::ResolveForegroundUsers() const
 {
     if (userContextResolver_ == nullptr) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "resolver is null.");
         return {};
     }
-    return userContextResolver_->GetForegroundUserIds();
+    return userContextResolver_->ResolveForegroundUsers();
 }
 
-int32_t PasteboardService::ResolveMainDisplayUserId()
+int32_t PasteboardService::ResolveMainDisplayUserId() const
 {
+    if (userContextResolver_ == nullptr) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "resolver is null.");
+        return ERROR_USERID;
+    }
     auto context = userContextResolver_->ResolveMainDisplayUser();
     int32_t userId = context.isValid ? context.userId : ERROR_USERID;
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE,
@@ -3055,13 +3051,13 @@ void PasteboardService::ClearByResolvedUser(int32_t userId)
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ClearByResolvedUser completed: userId=%{public}d", userId);
 }
 
-ScreenEvent PasteboardService::GetCurrentScreenStatus()
+ScreenEvent PasteboardService::GetScreenStatus(int32_t userId)
 {
-    if (currentScreenStatus != ScreenEvent::Default) {
-        return currentScreenStatus;
+    auto [found, status] = screenStatusMap_.Find(userId);
+    if (found) {
+        return status;
     }
-
-    PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "query current screen status failed.");
+    PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "screen status not found for userId=%{public}d", userId);
     return ScreenEvent::Default;
 }
 
@@ -3081,7 +3077,12 @@ bool PasteboardService::IsCopyable(uint32_t tokenId) const
 
 void PasteboardService::SetInputMethodPid(int32_t userId, pid_t callPid)
 {
-    auto isImePid = IsCurrentImeByPid(userId, callPid);
+    auto imc = InputMethodController::GetInstance();
+    if (imc == nullptr) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "InputMethodController is nullptr!");
+        return;
+    }
+    auto isImePid = imc->IsCurrentImeByPid(callPid, userId);
     if (isImePid) {
         imeMap_.InsertOrAssign(userId, callPid);
         PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "set inputMethod userId = %{public}d, pid = %{public}d",
@@ -3172,7 +3173,7 @@ int32_t PasteboardService::UnsubscribeAllObserver(PasteboardObserverType type)
 {
     ClearInputMethodPid();
     bool isEventType = static_cast<uint32_t>(type) & static_cast<uint32_t>(PasteboardObserverType::OBSERVER_EVENT);
-    int32_t userId = isEventType ? COMMON_USERID : GetCurrentAccountId();
+    int32_t userId = isEventType ? COMMON_USERID : GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
     if (userId == ERROR_USERID) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "userId invalid.");
         return static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR);
@@ -3466,14 +3467,10 @@ void PasteboardService::ThawInputMethod(pid_t imePid)
 
 bool PasteboardService::IsNeedThaw(PasteboardEventStatus status)
 {
-    return IsNeedThaw(GetCurrentAccountId(), status);
-}
-
-bool PasteboardService::IsNeedThaw(int32_t userId, PasteboardEventStatus status)
-{
     if (status == PasteboardEventStatus::PASTEBOARD_READ) {
         return false;
     }
+    int32_t userId = GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
     if (userId == ERROR_USERID) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "userId invalid.");
         return false;
@@ -3492,21 +3489,10 @@ bool PasteboardService::IsNeedThaw(int32_t userId, PasteboardEventStatus status)
     return true;
 }
 
-bool PasteboardService::IsCurrentImeByPid(int32_t userId, pid_t callPid) const
-{
-    auto imc = InputMethodController::GetInstance();
-    if (imc == nullptr) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "InputMethodController is nullptr!");
-        return false;
-    }
-    auto isImePid = imc->IsCurrentImeByPid(callPid, userId);
-    return isImePid;
-}
-
 void PasteboardService::NotifyObservers(std::string bundleName, int32_t userId, PasteboardEventStatus status)
 {
     auto [hasPid, pid] = imeMap_.Find(userId);
-    if (hasPid && IsNeedThaw(userId, status)) {
+    if (hasPid && IsNeedThaw(status)) {
         ThawInputMethod(pid);
     }
     std::thread thread([this, bundleName, userId, status]() {
@@ -3598,28 +3584,12 @@ std::string PasteboardService::GetTime()
     return targetTime;
 }
 
-std::string PasteboardService::DumpHistory() const
+std::string PasteboardService::DumpUserHistory(int32_t userId) const
 {
-    auto foregroundUsers = GetForegroundUserIds();
-    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(!foregroundUsers.empty(), "Access history fail! no foreground user.",
-        PASTEBOARD_MODULE_SERVICE, "no foreground user");
-    std::string result;
-    for (const auto userId : foregroundUsers) {
-        if (userId == ERROR_USERID) {
-            continue;
-        }
-        result += "UserId: " + std::to_string(userId) + "\n";
-        result += DumpHistory(userId);
-    }
-    return result;
-}
-
-std::string PasteboardService::DumpHistory(int32_t userId) const
-{
-    std::string result;
     std::lock_guard<decltype(historyMutex_)> lg(historyMutex_);
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(userId != ERROR_USERID, "Access history fail! invalid userId.",
         PASTEBOARD_MODULE_SERVICE, "invalid userId");
+    std::string result;
     if (!dataHistory_.empty()) {
         result.append("Access history last ten times: ").append("\n");
         for (auto iter = dataHistory_.rbegin(); iter != dataHistory_.rend(); ++iter) {
@@ -3636,80 +3606,73 @@ std::string PasteboardService::DumpHistory(int32_t userId) const
     return result;
 }
 
+std::string PasteboardService::DumpHistory() const
+{
+    auto foregroundUsers = ResolveForegroundUsers();
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(!foregroundUsers.empty(), "Access history fail! no foreground user.",
+        PASTEBOARD_MODULE_SERVICE, "no foreground user");
+    std::string result;
+    for (const auto &ctx : foregroundUsers) {
+        if (ctx.userId == ERROR_USERID) {
+            continue;
+        }
+        result += "UserId: " + std::to_string(ctx.userId) + "\n";
+        result += DumpUserHistory(ctx.userId);
+    }
+    return result;
+}
+
+std::string PasteboardService::DumpUserData(int32_t userId)
+{
+    auto it = clips_.Find(userId);
+    if (!it.first || it.second == nullptr) {
+        return "No copy data.\n";
+    }
+    size_t recordCounts = it.second->GetRecordCount();
+    auto property = it.second->GetProperty();
+    std::string shareOption;
+    PasteData::ShareOptionToString(property.shareOption, shareOption);
+    std::string sourceDevice = property.isRemote ? "remote" : "local";
+    std::string result;
+    result.append("|Owner       :  ").append(property.bundleName).append("\n")
+        .append("|Timestamp   :  ").append(property.setTime).append("\n")
+        .append("|Share Option:  ").append(shareOption).append("\n")
+        .append("|Record Count:  ").append(std::to_string(recordCounts)).append("\n")
+        .append("|Mime types  :  {");
+    if (!property.mimeTypes.empty()) {
+        for (size_t i = 0; i < property.mimeTypes.size(); ++i) {
+            result.append(property.mimeTypes[i]).append(",");
+        }
+    }
+    result.append("}").append("\n").append("|source device:  ").append(sourceDevice);
+    return result;
+}
+
 std::string PasteboardService::DumpData()
 {
-    auto foregroundUsers = GetForegroundUserIds();
+    auto foregroundUsers = ResolveForegroundUsers();
     if (foregroundUsers.empty()) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "query foreground users failed.");
         return "";
     }
     std::string result;
-    for (const auto userId : foregroundUsers) {
-        if (userId == ERROR_USERID) {
+    for (const auto &ctx : foregroundUsers) {
+        if (ctx.userId == ERROR_USERID) {
             continue;
         }
-        result += "UserId: " + std::to_string(userId) + "\n";
-        result += DumpData(userId);
-    }
-    return result;
-}
-
-std::string PasteboardService::DumpData(int32_t userId)
-{
-    if (userId == ERROR_USERID) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "query foreground user failed.");
-        return "";
-    }
-    PASTEBOARD_HILOGD(PASTEBOARD_MODULE_SERVICE, "id = %{public}d", userId);
-    auto it = clips_.Find(userId);
-    std::string result;
-    if (it.first && it.second != nullptr) {
-        size_t recordCounts = it.second->GetRecordCount();
-        auto property = it.second->GetProperty();
-        std::string shareOption;
-        PasteData::ShareOptionToString(property.shareOption, shareOption);
-        std::string sourceDevice;
-        if (property.isRemote) {
-            sourceDevice = "remote";
-        } else {
-            sourceDevice = "local";
-        }
-        result.append("|Owner       :  ")
-            .append(property.bundleName)
-            .append("\n")
-            .append("|Timestamp   :  ")
-            .append(property.setTime)
-            .append("\n")
-            .append("|Share Option:  ")
-            .append(shareOption)
-            .append("\n")
-            .append("|Record Count:  ")
-            .append(std::to_string(recordCounts))
-            .append("\n")
-            .append("|Mime types  :  {");
-        if (!property.mimeTypes.empty()) {
-            for (size_t i = 0; i < property.mimeTypes.size(); ++i) {
-                result.append(property.mimeTypes[i]).append(",");
-            }
-        }
-        result.append("}").append("\n").append("|source device:  ").append(sourceDevice);
-    } else {
-        result.append("No copy data.").append("\n");
+        result += "UserId: " + std::to_string(ctx.userId) + "\n";
+        result += DumpUserData(ctx.userId);
     }
     return result;
 }
 
 bool PasteboardService::IsFocusedApp(uint32_t tokenId)
 {
-    return IsFocusedApp(tokenId, GetCurrentAccountId());
-}
-
-bool PasteboardService::IsFocusedApp(uint32_t tokenId, int32_t userId)
-{
     if (AccessTokenKit::GetTokenTypeFlag(tokenId) != ATokenTypeEnum::TOKEN_HAP) {
         PASTEBOARD_HILOGD(PASTEBOARD_MODULE_SERVICE, "caller is not application");
         return true;
     }
+    int32_t userId = GetAppInfo(tokenId).userId;
     if (userId == ERROR_USERID) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "userId invalid.");
         return false;
@@ -3725,8 +3688,13 @@ bool PasteboardService::IsFocusedApp(uint32_t tokenId, int32_t userId)
         PASTEBOARD_HILOGD(PASTEBOARD_MODULE_SERVICE, "pid is same, it is focused app");
         return true;
     }
+    uint64_t displayId = 0;
+    auto dispRet = AccountSA::OsAccountManager::GetForegroundOsAccountDisplayId(userId, displayId);
+    if (dispRet != ERR_OK) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "get foreground display id failed, ret=%{public}d", dispRet);
+    }
     bool isFocused = false;
-    int32_t ret = PasteboardAbilityManager::CheckUIExtensionIsFocused(tokenId, isFocused);
+    int32_t ret = PasteboardAbilityManager::CheckUIExtensionIsFocused(tokenId, displayId, isFocused);
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_SERVICE, "check result:%{public}d, isFocused:%{public}d", ret, isFocused);
     return ret == NO_ERROR && isFocused;
 }
@@ -3976,14 +3944,10 @@ void PasteboardService::UnRegisterPreSyncMonitor()
     }
 }
 
-FocusedAppInfo PasteboardService::GetFocusedAppInfo(void) const
-{
-    return GetFocusedAppInfo(GetCurrentAccountId());
-}
-
-FocusedAppInfo PasteboardService::GetFocusedAppInfo(int32_t userId) const
+FocusedAppInfo PasteboardService::GetFocusedAppInfo() const
 {
     FocusedAppInfo appInfo = { 0 };
+    int32_t userId = GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
     if (userId == ERROR_USERID) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "userId invalid.");
         return appInfo;
@@ -4721,7 +4685,7 @@ void PasteboardService::GenerateDistributedUri(PasteData &data)
 {
     std::vector<std::string> uris;
     std::vector<size_t> indexes;
-    auto userId = GetCurrentAccountId();
+    auto userId = GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
     PASTEBOARD_CHECK_AND_RETURN_LOGE(userId != ERROR_USERID, PASTEBOARD_MODULE_SERVICE, "invalid userId");
     std::unique_lock<std::shared_mutex> write(pasteDataMutex_);
     for (size_t i = 0; i < data.GetRecordCount(); i++) {
@@ -4963,9 +4927,9 @@ void PasteBoardCommonEventSubscriber::OnReceiveEventInner(const EventFwk::Common
     } else if (action == EventFwk::CommonEventSupport::COMMON_EVENT_USER_STOPPING) {
         HandleUserStopping(data);
     } else if (action == EventFwk::CommonEventSupport::COMMON_EVENT_SCREEN_LOCKED) {
-        HandleScreenLocked();
+        HandleScreenLocked(data);
     } else if (action == EventFwk::CommonEventSupport::COMMON_EVENT_SCREEN_UNLOCKED) {
-        HandleScreenUnlocked();
+        HandleScreenUnlocked(data);
     } else if (action == EventFwk::CommonEventSupport::COMMON_EVENT_PACKAGE_REMOVED) {
         HandlePackageRemoved(want);
     } else if (action == EventFwk::CommonEventSupport::COMMON_EVENT_WIFI_POWER_STATE && eventState == WIFI_DISABLED) {
@@ -5004,25 +4968,41 @@ void PasteBoardCommonEventSubscriber::HandleUserStopping(const EventFwk::CommonE
     }
 }
 
-void PasteBoardCommonEventSubscriber::HandleScreenLocked()
+void PasteBoardCommonEventSubscriber::HandleScreenLocked(const EventFwk::CommonEventData &data)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "screen is locked");
-    PasteboardService::currentScreenStatus = ScreenEvent::ScreenLocked;
+    if (pasteboardService_ == nullptr) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "pasteboardService_ is null.");
+        return;
+    }
+    auto context = pasteboardService_->ResolveUserIdFromWant(data.GetWant());
+    if (!context.isValid) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "screen locked userId invalid.");
+        return;
+    }
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "screen is locked, userId=%{public}d", context.userId);
+    pasteboardService_->screenStatusMap_.InsertOrAssign(context.userId, ScreenEvent::ScreenLocked);
 }
 
-void PasteBoardCommonEventSubscriber::HandleScreenUnlocked()
+void PasteBoardCommonEventSubscriber::HandleScreenUnlocked(const EventFwk::CommonEventData &data)
 {
-    std::lock_guard<std::mutex> lock(mutex_);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "screen is unlocked");
-    PasteboardService::currentScreenStatus = ScreenEvent::ScreenUnlocked;
+    if (pasteboardService_ == nullptr) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "pasteboardService_ is null.");
+        return;
+    }
+    auto context = pasteboardService_->ResolveUserIdFromWant(data.GetWant());
+    if (!context.isValid) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "screen unlocked userId invalid.");
+        return;
+    }
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "screen is unlocked, userId=%{public}d", context.userId);
+    pasteboardService_->screenStatusMap_.InsertOrAssign(context.userId, ScreenEvent::ScreenUnlocked);
 }
 
 void PasteBoardCommonEventSubscriber::HandlePackageRemoved(const EventFwk::Want &want)
 {
     auto tokenId = want.GetIntParam("accessTokenId", -1);
     if (pasteboardService_ != nullptr) {
-        auto context = pasteboardService_->ResolvePackageRemovedUser(want);
+        auto context = pasteboardService_->ResolveUserIdFromWant(want);
         if (!context.isValid) {
             PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "package removed userId invalid.");
             return;
@@ -5062,7 +5042,6 @@ void PasteboardService::ClearUriOnUninstall(int32_t userId, int32_t tokenId)
             }
             return false;
         });
-        RefreshCriticalState();
         return true;
     });
 }
@@ -5196,12 +5175,6 @@ void PasteboardService::RemoveObserverByPid(int32_t userId, pid_t pid, ObserverM
     observerMap.erase(callObserverKey);
 }
 
-int32_t PasteboardService::AppExit(pid_t pid)
-{
-    int32_t userId = GetCurrentAccountId();
-    return AppExit(pid, userId);
-}
-
 int32_t PasteboardService::AppExit(pid_t pid, int32_t userId)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "pid %{public}d exit, userId %{public}d.", pid, userId);
@@ -5262,7 +5235,7 @@ PasteboardService::PasteboardDeathRecipient::PasteboardDeathRecipient(
 int32_t PasteboardService::RegisterClientDeathObserver(const sptr<IRemoteObject> &observer)
 {
     pid_t pid = IPCSkeleton::GetCallingPid();
-    int32_t userId = GetCurrentAccountId();
+    int32_t userId = GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(userId != ERROR_USERID,
         static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR), PASTEBOARD_MODULE_SERVICE, "invalid userId");
     sptr<PasteboardDeathRecipient> deathRecipient = sptr<PasteboardDeathRecipient>::MakeSptr(*this, pid, userId);
@@ -5274,7 +5247,7 @@ int32_t PasteboardService::RegisterClientDeathObserver(const sptr<IRemoteObject>
 int32_t PasteboardService::DetachPasteboard()
 {
     pid_t pid = IPCSkeleton::GetCallingPid();
-    return AppExit(pid);
+    return AppExit(pid, GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId);
 }
 
 std::function<void(const OHOS::MiscServices::Event &)> PasteboardService::RemotePasteboardChange()

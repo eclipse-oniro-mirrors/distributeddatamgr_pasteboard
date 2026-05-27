@@ -21,7 +21,7 @@
 namespace OHOS::MiscServices {
 class PasteboardAbilityManager {
 public:
-    static int32_t CheckUIExtensionIsFocused(uint32_t tokenId, bool &isFocused);
+    static int32_t CheckUIExtensionIsFocused(uint32_t tokenId, uint64_t displayId, bool &isFocused);
     static int32_t StartAbility(const OHOS::AAFwk::Want &want);
 
 private:

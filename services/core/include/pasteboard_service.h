@@ -177,7 +177,7 @@ public:
     virtual int32_t RegisterClientDeathObserver(const sptr<IRemoteObject> &observer) override;
     virtual int32_t DetachPasteboard() override;
     static std::atomic<int32_t> currentUserId_;
-    static ScreenEvent currentScreenStatus;
+    ConcurrentMap<int32_t, ScreenEvent> screenStatusMap_;
     size_t GetDataSize(PasteData &data) const;
     int Dump(int fd, const std::vector<std::u16string> &args) override;
     void NotifyDelayGetterDied(int32_t userId);
@@ -191,11 +191,10 @@ public:
     void RefreshCriticalState();
     PastedSwitch switch_;
     int32_t GetCurrentAccountId() const;
-    void SetUserContextResolver(std::shared_ptr<UserContextResolver> resolver);
     UserContext ResolveEventUser(const EventFwk::CommonEventData &data) const;
-    UserContext ResolvePackageRemovedUser(const AAFwk::Want &want) const;
-    std::vector<int32_t> GetForegroundUserIds() const;
-    int32_t ResolveMainDisplayUserId();
+    UserContext ResolveUserIdFromWant(const AAFwk::Want &want) const;
+    std::vector<UserContext> ResolveForegroundUsers() const;
+    int32_t ResolveMainDisplayUserId() const;
     void ClearByResolvedUser(int32_t userId);
     int32_t ClearByEventUser(int32_t userId);
     void ClearUriOnUninstall(int32_t userId, int32_t tokenId);
@@ -236,15 +235,13 @@ private:
     std::atomic<int32_t> agedTime_ = ONE_HOUR_MINUTES * MINUTES_TO_MILLISECONDS; // 1 hour
     bool SetPasteboardHistory(HistoryInfo &info);
     bool IsFocusedApp(uint32_t tokenId);
-    bool IsFocusedApp(uint32_t tokenId, int32_t userId);
     void InitBundles(Loader &loader);
     void SetInputMethodPid(int32_t userId, pid_t callPid);
     void ClearInputMethodPidByPid(int32_t userId, pid_t callPid);
     void ClearInputMethodPid(void);
     int32_t ClearInner(int32_t userId, const AppInfo &appInfo);
     bool IsSystemAppByFullTokenID(uint64_t tokenId);
-    FocusedAppInfo GetFocusedAppInfo(void) const;
-    FocusedAppInfo GetFocusedAppInfo(int32_t userId) const;
+    FocusedAppInfo GetFocusedAppInfo() const;
     int32_t GetDataTokenId(PasteData &pasteData);
     class DelayGetterDeathRecipient final : public IRemoteObject::DeathRecipient {
     public:
@@ -311,15 +308,13 @@ private:
     void AddSysAbilityListener();
     int32_t Init();
     void InitScreenStatus();
-    static ScreenEvent GetCurrentScreenStatus();
+    ScreenEvent GetScreenStatus(int32_t userId);
     std::string DumpHistory() const;
-    std::string DumpHistory(int32_t userId) const;
+    std::string DumpUserHistory(int32_t userId) const;
     std::string DumpData();
-    std::string DumpData(int32_t userId);
+    std::string DumpUserData(int32_t userId);
     void ThawInputMethod(pid_t imePid);
     bool IsNeedThaw(PasteboardEventStatus status);
-    bool IsNeedThaw(int32_t userId, PasteboardEventStatus status);
-    bool IsCurrentImeByPid(int32_t userId, pid_t callPid) const;
     int32_t ExtractEntity(const std::string &entity, std::string &location);
     int32_t GetAllEntryPlainText(uint32_t dataId, uint32_t recordId,
         std::vector<std::shared_ptr<PasteDataEntry>> &entries, std::string &primaryText);
@@ -432,7 +427,7 @@ private:
     static std::string GetTime();
     bool IsDataAged();
     bool VerifyPermission(uint32_t tokenId);
-    int32_t IsDataValid(PasteData &pasteData, uint32_t tokenId);
+    int32_t IsDataValid(PasteData &pasteData, uint32_t tokenId, int32_t userId);
     AppInfo GetAppInfo(uint32_t tokenId) const;
     void FillHapAppInfo(uint32_t tokenId, AppInfo &info) const;
     void FillNativeAppInfo(uint32_t tokenId, AppInfo &info) const;
@@ -498,7 +493,7 @@ private:
     std::set<std::pair<std::string, int32_t>> readBundles_;
     std::shared_ptr<PasteBoardCommonEventSubscriber> commonEventSubscriber_ = nullptr;
     std::shared_ptr<PasteBoardAccountStateSubscriber> accountStateSubscriber_ = nullptr;
-    std::shared_ptr<UserContextResolver> userContextResolver_ = std::make_shared<UserContextResolver>();
+    std::unique_ptr<UserContextResolver> userContextResolver_ = std::make_unique<UserContextResolver>();
 
     std::recursive_mutex mutex;
     std::shared_ptr<ClipPlugin> clipPlugin_ = nullptr;
@@ -577,7 +572,6 @@ private:
         pid_t pid_;
         int32_t userId_ = ERROR_USERID;
     };
-    int32_t AppExit(pid_t pid);
     int32_t AppExit(pid_t pid, int32_t userId);
     void RemoveObserverByPid(int32_t userId, pid_t pid, ObserverMap &observerMap);
     ClipPlugin::GlobalEvent GetCurrentEvent() const;

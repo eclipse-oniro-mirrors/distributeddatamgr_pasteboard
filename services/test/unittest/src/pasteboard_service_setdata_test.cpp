@@ -666,7 +666,7 @@ HWTEST_F(PasteboardServiceSetDataTest, SetInputMethodPidTest001, TestSize.Level1
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
 
-    auto userId = tempPasteboard->GetCurrentAccountId();
+    auto userId = tempPasteboard->GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
     pid_t callPid = 1;
     tempPasteboard->SetInputMethodPid(userId, callPid);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetInputMethodPidTest001 end");

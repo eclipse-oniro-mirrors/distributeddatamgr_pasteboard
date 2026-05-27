@@ -1284,7 +1284,7 @@ HWTEST_F(PasteboardServiceTest, AppExitTest001, TestSize.Level1)
     EXPECT_NE(tempPasteboard, nullptr);
 
     pid_t pid = 3;
-    tempPasteboard->AppExit(pid);
+    tempPasteboard->AppExit(pid, ERROR_USERID);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "AppExitTest001 end");
 }
 
@@ -1309,7 +1309,7 @@ HWTEST_F(PasteboardServiceTest, AppExitTest002, TestSize.Level1)
     ConcurrentMap<std::string, PasteboardService::PasteboardP2pInfo> p2pMap;
     p2pMap.Insert(key, p2pInfo);
     tempPasteboard->p2pMap_.Insert(networkId, p2pMap);
-    int32_t ret = tempPasteboard->AppExit(pid);
+    int32_t ret = tempPasteboard->AppExit(pid, ERROR_USERID);
     EXPECT_EQ(ret, ERR_OK);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "AppExitTest002 end");
 }
@@ -1340,7 +1340,7 @@ HWTEST_F(PasteboardServiceTest, AppExitTest003, TestSize.Level1)
     p2pInfo.callPid = pid + 1;
     p2pMap.Insert(key, p2pInfo);
     tempPasteboard->p2pMap_.Insert(networkId, p2pMap);
-    int32_t ret = tempPasteboard->AppExit(pid);
+    int32_t ret = tempPasteboard->AppExit(pid, ERROR_USERID);
     EXPECT_EQ(ret, ERR_OK);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "AppExitTest003 end");
 }
@@ -1500,7 +1500,7 @@ HWTEST_F(PasteboardServiceTest, HasRemoteDataTest001, TestSize.Level1)
     auto service = std::make_shared<PasteboardService>();
     EXPECT_NE(service, nullptr);
 
-    service->currentScreenStatus = ScreenEvent::ScreenUnlocked;
+    service->screenStatusMap_.InsertOrAssign(100, ScreenEvent::ScreenUnlocked);
     bool flag = false;
     int32_t result = service->HasRemoteData(flag);
     EXPECT_EQ(result, ERR_OK);
@@ -1519,7 +1519,7 @@ HWTEST_F(PasteboardServiceTest, HasRemoteDataTest002, TestSize.Level1)
     auto service = std::make_shared<PasteboardService>();
     EXPECT_NE(service, nullptr);
 
-    service->currentScreenStatus = ScreenEvent::Default;
+    service->screenStatusMap_.InsertOrAssign(100, ScreenEvent::Default);
     bool flag = false;
     int32_t result = service->HasRemoteData(flag);
     EXPECT_EQ(result, ERR_OK);
@@ -1538,7 +1538,7 @@ HWTEST_F(PasteboardServiceTest, HasRemoteDataTest003, TestSize.Level1)
     auto service = std::make_shared<PasteboardService>();
     EXPECT_NE(service, nullptr);
 
-    service->currentScreenStatus = ScreenEvent::ScreenLocked;
+    service->screenStatusMap_.InsertOrAssign(100, ScreenEvent::ScreenLocked);
     bool flag = false;
     int32_t result = service->HasRemoteData(flag);
     EXPECT_EQ(result, ERR_OK);
@@ -1556,7 +1556,7 @@ HWTEST_F(PasteboardServiceTest, HasRemoteDataTest004, TestSize.Level1)
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "HasRemoteDataTest004 start");
     auto service = std::make_shared<PasteboardService>();
     EXPECT_NE(service, nullptr);
-    service->currentScreenStatus = ScreenEvent::ScreenUnlocked;
+    service->screenStatusMap_.InsertOrAssign(100, ScreenEvent::ScreenUnlocked);
 
     TestEvent evt;
     int32_t user = 100;
@@ -1584,7 +1584,7 @@ HWTEST_F(PasteboardServiceTest, HasRemoteDataTest005, TestSize.Level1)
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "HasRemoteDataTest005 start");
     auto service = std::make_shared<PasteboardService>();
     EXPECT_NE(service, nullptr);
-    service->currentScreenStatus = ScreenEvent::ScreenUnlocked;
+    service->screenStatusMap_.InsertOrAssign(1, ScreenEvent::ScreenUnlocked);
 
     int32_t userId = 1;
     service->currentUserId_.store(userId);
@@ -1611,7 +1611,7 @@ HWTEST_F(PasteboardServiceTest, HasRemoteDataTest006, TestSize.Level1)
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "HasRemoteDataTest006 start");
     auto service = std::make_shared<PasteboardService>();
     EXPECT_NE(service, nullptr);
-    service->currentScreenStatus = ScreenEvent::ScreenUnlocked;
+    service->screenStatusMap_.InsertOrAssign(1, ScreenEvent::ScreenUnlocked);
 
     int32_t userId = 1;
     service->currentUserId_.store(userId);
@@ -1642,7 +1642,7 @@ HWTEST_F(PasteboardServiceTest, HasRemoteUriTest001, TestSize.Level1)
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "HasRemoteUriTest001 start");
     auto service = std::make_shared<PasteboardService>();
     EXPECT_NE(service, nullptr);
-    service->currentScreenStatus = ScreenEvent::ScreenUnlocked;
+    service->screenStatusMap_.InsertOrAssign(1, ScreenEvent::ScreenUnlocked);
 
     int32_t userId = 1;
     service->currentUserId_.store(userId);
@@ -1668,7 +1668,7 @@ HWTEST_F(PasteboardServiceTest, HasRemoteUriTest002, TestSize.Level1)
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "HasRemoteUriTest002 start");
     auto service = std::make_shared<PasteboardService>();
     EXPECT_NE(service, nullptr);
-    service->currentScreenStatus = ScreenEvent::ScreenUnlocked;
+    service->screenStatusMap_.InsertOrAssign(1, ScreenEvent::ScreenUnlocked);
 
     int32_t userId = 1;
     service->currentUserId_.store(userId);
@@ -1694,7 +1694,7 @@ HWTEST_F(PasteboardServiceTest, HasRemoteUriTest003, TestSize.Level1)
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "HasRemoteUriTest003 start");
     auto service = std::make_shared<PasteboardService>();
     EXPECT_NE(service, nullptr);
-    service->currentScreenStatus = ScreenEvent::ScreenUnlocked;
+    service->screenStatusMap_.InsertOrAssign(1, ScreenEvent::ScreenUnlocked);
 
     int32_t userId = 1;
     service->currentUserId_.store(userId);
@@ -1722,7 +1722,7 @@ HWTEST_F(PasteboardServiceTest, HasRemoteUriTest004, TestSize.Level1)
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "HasRemoteUriTest004 start");
     auto service = std::make_shared<PasteboardService>();
     EXPECT_NE(service, nullptr);
-    service->currentScreenStatus = ScreenEvent::ScreenUnlocked;
+    service->screenStatusMap_.InsertOrAssign(1, ScreenEvent::ScreenUnlocked);
 
     int32_t userId = 1;
     service->currentUserId_.store(userId);
