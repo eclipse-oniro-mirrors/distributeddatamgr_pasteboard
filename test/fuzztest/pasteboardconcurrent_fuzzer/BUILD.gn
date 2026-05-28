@@ -18,15 +18,6 @@ import("//build/config/features.gni")
 import("//build/ohos.gni")
 import("//build/test.gni")
 
-config("pasteboard_fuzz_compile_config") {
-  cflags = [
-    "-fno-lto",
-    "-g0",
-    "-O0",
-  ]
-  ldflags = [ "-fno-lto" ]
-}
-
 ohos_fuzztest("PasteboardConcurrentFuzzTest") {
   module_out_path = "pasteboard/pasteboard/concurrent"
 
@@ -47,7 +38,6 @@ ohos_fuzztest("PasteboardConcurrentFuzzTest") {
     "-fno-sanitize-coverage=inline-8bit-counters",
   ]
   cflags_cc = [ "-fno-sanitize-coverage=inline-8bit-counters" ]
-  configs = [ ":pasteboard_fuzz_compile_config" ]
 
   include_dirs = [ "${pasteboard_root_path}/test/fuzztest/mock/permission" ]
   include_dirs += [
