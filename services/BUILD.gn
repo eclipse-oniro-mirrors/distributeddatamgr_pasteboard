@@ -203,7 +203,9 @@ ohos_shared_library("pasteboard_service") {
 }
 
 ohos_source_set("pasteboard_stub_proxy") {
+  branch_protector_ret = "pac_ret"
   sanitize = {
+    integer_overflow = true
     ubsan = true
     boundary_sanitize = true
     cfi = true
@@ -229,7 +231,9 @@ ohos_source_set("pasteboard_stub_proxy") {
 }
 
 ohos_source_set("pasteboard_client_idl") {
+  branch_protector_ret = "pac_ret"
   sanitize = {
+    integer_overflow = true
     ubsan = true
     boundary_sanitize = true
     cfi = true
@@ -263,7 +267,9 @@ ohos_source_set("pasteboard_client_idl") {
 }
 
 ohos_source_set("pasteboard_service_idl") {
+  branch_protector_ret = "pac_ret"
   sanitize = {
+    integer_overflow = true
     ubsan = true
     boundary_sanitize = true
     cfi = true
