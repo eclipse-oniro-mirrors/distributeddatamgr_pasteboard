@@ -377,9 +377,9 @@ private:
         PasteData &data, const std::pair<std::string, int32_t> &targetBundleAppIndex);
     void RemoveInvalidRemoteUri(std::vector<Uri> &grantUris);
     int32_t GrantPermission(const std::vector<Uri> &grantUris, uint32_t permFlag, bool isRemoteData,
-        const std::string &targetBundleName, int32_t appIndex);
+        uint32_t targetTokenId);
     int32_t GrantUriPermission(std::map<uint32_t, std::vector<Uri>> &grantUris,
-        const std::string &targetBundleName, bool isRemoteData, int32_t appIndex);
+        uint32_t targetTokenId, bool isRemoteData);
     void GenerateDistributedUri(PasteData &data);
     bool IsBundleOwnUriPermission(const std::string &bundleName, Uri &uri);
     std::string GetAppLabel(uint32_t tokenId);
@@ -490,7 +490,7 @@ private:
     ConcurrentMap<int32_t, std::pair<sptr<IPasteboardEntryGetter>, sptr<EntryGetterDeathRecipient>>> entryGetters_;
     ConcurrentMap<int32_t, std::pair<sptr<IPasteboardDelayGetter>, sptr<DelayGetterDeathRecipient>>> delayGetters_;
     ConcurrentMap<int32_t, uint64_t> copyTime_;
-    std::set<std::pair<std::string, int32_t>> readBundles_;
+    std::set<uint32_t> readBundles_;
     std::shared_ptr<PasteBoardCommonEventSubscriber> commonEventSubscriber_ = nullptr;
     std::shared_ptr<PasteBoardAccountStateSubscriber> accountStateSubscriber_ = nullptr;
     std::unique_ptr<UserContextResolver> userContextResolver_ = std::make_unique<UserContextResolver>();
