@@ -50,6 +50,7 @@ int32_t PasteboardAbilityManager::CheckUIExtensionIsFocused(uint32_t tokenId, bo
     MessageParcel data;
     MessageParcel reply;
     MessageOption option;
+
     bool ret = data.WriteInterfaceToken(ABILITY_MGR_DESCRIPTOR);
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(ret, ERR_INVALID_DATA, PASTEBOARD_MODULE_SERVICE,
         "write interface token failed");
