@@ -19,7 +19,7 @@ SecurityLevel::SecurityLevel() : securityLevel_(0)
 {
 }
 
-uint32_t SecurityLevel::IsSupportedDistributed(bool needLog)
+bool SecurityLevel::IsSupportedDistributed(bool needLog)
 {
     return false;
 }
