@@ -43,7 +43,9 @@ int32_t DATASL_GetHighestSecLevel(DEVSLQueryParams *queryParams, uint32_t *level
 {
     auto mock = DevSlInfoMgrMock::GetMock();
     if (mock == nullptr) {
-        *levelInfo = DATA_SEC_LEVEL0;
+        if (levelInfo != nullptr) {
+            *levelInfo = DATA_SEC_LEVEL0;
+        }
         return DEVSL_SUCCESS;
     }
     return mock->GetHighestSecLevel(queryParams, levelInfo);
