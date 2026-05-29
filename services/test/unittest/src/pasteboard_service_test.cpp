@@ -869,9 +869,7 @@ HWTEST_F(PasteboardServiceTest, GrantUriPermissionTest001, TestSize.Level1)
     PasteboardService service;
     std::map<uint32_t, std::vector<Uri>> emptyUris;
     uint32_t targetTokenId = 1;
-    int32_t targetUserId = 100;
-    uint32_t srcTokenId = 2;
-    int32_t result = service.GrantUriPermission(emptyUris, targetTokenId, targetUserId, srcTokenId, false);
+    int32_t result = service.GrantUriPermission(emptyUris, targetTokenId, false);
     EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::E_OK));
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GrantUriPermissionTest001 end");
 }
