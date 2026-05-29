@@ -4969,7 +4969,6 @@ void PasteBoardCommonEventSubscriber::HandleScreenLocked(const EventFwk::CommonE
     }
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "screen is locked, userId=%{public}d", context.userId);
     pasteboardService_->screenStatusMap_.InsertOrAssign(context.userId, ScreenEvent::ScreenLocked);
-    Memory::MemMgrClient::GetInstance().ReclaimPurgeableCleanMem();
 }
 
 void PasteBoardCommonEventSubscriber::HandleScreenUnlocked(const EventFwk::CommonEventData &data)
