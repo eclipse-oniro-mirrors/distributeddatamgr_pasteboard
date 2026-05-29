@@ -16,8 +16,9 @@
 #ifndef OHOS_PASTEBOARD_SECURITY_LEVEL_H
 #define OHOS_PASTEBOARD_SECURITY_LEVEL_H
 
-#include <string>
 #include <atomic>
+#include <mutex>
+#include <string>
 
 namespace OHOS::MiscServices {
 class SecurityLevel {
@@ -30,6 +31,7 @@ private:
     uint32_t GetDeviceSecurityLevel();
 
     std::atomic<uint32_t> securityLevel_;
+    std::mutex mutex_;
 };
 } // namespace OHOS::MiscServices
 #endif // OHOS_PASTEBOARD_SECURITY_LEVEL_H

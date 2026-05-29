@@ -58,6 +58,8 @@ bool InitDEVSLQueryParams(DEVSLQueryParams *params, const std::string &udid)
 
 uint32_t SecurityLevel::GetSensitiveLevel()
 {
+    std::lock_guard lock(mutex_);
+
     auto &udid = DMAdapter::GetInstance().GetLocalDeviceUdid();
     DEVSLQueryParams query;
     bool initRet = InitDEVSLQueryParams(&query, udid);

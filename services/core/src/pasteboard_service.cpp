@@ -4739,8 +4739,8 @@ std::shared_ptr<ClipPlugin> PasteboardService::GetClipPlugin()
 {
     auto isOn = moduleConfig_.IsOn();
     if (isOn) {
-        auto IsSupported = securityLevel_.IsSupportedDistributed(false);
-        if (!IsSupported) {
+        auto isSupported = securityLevel_.IsSupportedDistributed(false);
+        if (!isSupported) {
             return nullptr;
         }
     }
@@ -4820,8 +4820,8 @@ void PasteboardService::OnConfigChangeInner(bool isOn)
         return;
     }
     SetCriticalTimer();
-    auto IsSupported = securityLevel_.IsSupportedDistributed(true);
-    if (!IsSupported) {
+    auto isSupported = securityLevel_.IsSupportedDistributed(true);
+    if (!isSupported) {
         return;
     }
     if (clipPlugin_ != nullptr) {
