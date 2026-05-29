@@ -213,12 +213,9 @@ ohos_unittest("PasteServInterfaceTest") {
 
   if (pasteboard_dataclassification_enabled) {
     external_deps += [ "dataclassification:data_transit_mgr" ]
-    sources +=
-        [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
+    sources += [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
   } else {
-    sources += [
-      "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp",
-    ]
+    sources += [ "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp" ]
   }
 }
 
@@ -353,12 +350,9 @@ ohos_unittest("PasteServInterfaceMockTest") {
 
   if (pasteboard_dataclassification_enabled) {
     external_deps += [ "dataclassification:data_transit_mgr" ]
-    sources +=
-        [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
+    sources += [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
   } else {
-    sources += [
-      "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp",
-    ]
+    sources += [ "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp" ]
   }
 }
 
@@ -836,12 +830,9 @@ ohos_unittest("PasteServGetLocalDataTest") {
 
   if (pasteboard_dataclassification_enabled) {
     external_deps += [ "dataclassification:data_transit_mgr" ]
-    sources +=
-        [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
+    sources += [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
   } else {
-    sources += [
-      "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp",
-    ]
+    sources += [ "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp" ]
   }
 }
 
@@ -972,12 +963,9 @@ ohos_unittest("PasteServSubscribeTest") {
 
   if (pasteboard_dataclassification_enabled) {
     external_deps += [ "dataclassification:data_transit_mgr" ]
-    sources +=
-        [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
+    sources += [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
   } else {
-    sources += [
-      "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp",
-    ]
+    sources += [ "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp" ]
   }
 }
 
@@ -1108,12 +1096,9 @@ ohos_unittest("PasteServNotifyTest") {
 
   if (pasteboard_dataclassification_enabled) {
     external_deps += [ "dataclassification:data_transit_mgr" ]
-    sources +=
-        [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
+    sources += [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
   } else {
-    sources += [
-      "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp",
-    ]
+    sources += [ "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp" ]
   }
 }
 
@@ -1244,12 +1229,9 @@ ohos_unittest("PasteServSetDataTest") {
 
   if (pasteboard_dataclassification_enabled) {
     external_deps += [ "dataclassification:data_transit_mgr" ]
-    sources +=
-        [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
+    sources += [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
   } else {
-    sources += [
-      "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp",
-    ]
+    sources += [ "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp" ]
   }
 }
 
@@ -1380,12 +1362,9 @@ ohos_unittest("PasteServGetDataTest") {
 
   if (pasteboard_dataclassification_enabled) {
     external_deps += [ "dataclassification:data_transit_mgr" ]
-    sources +=
-        [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
+    sources += [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
   } else {
-    sources += [
-      "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp",
-    ]
+    sources += [ "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp" ]
   }
 }
 
@@ -1518,12 +1497,9 @@ ohos_unittest("PasteServEventTest") {
 
   if (pasteboard_dataclassification_enabled) {
     external_deps += [ "dataclassification:data_transit_mgr" ]
-    sources +=
-        [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
+    sources += [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
   } else {
-    sources += [
-      "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp",
-    ]
+    sources += [ "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp" ]
   }
 }
 
@@ -1656,12 +1632,9 @@ ohos_unittest("PasteServGetTest") {
 
   if (pasteboard_dataclassification_enabled) {
     external_deps += [ "dataclassification:data_transit_mgr" ]
-    sources +=
-        [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
+    sources += [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
   } else {
-    sources += [
-      "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp",
-    ]
+    sources += [ "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp" ]
   }
 }
 
@@ -1794,12 +1767,9 @@ ohos_unittest("PasteServCheckTest") {
 
   if (pasteboard_dataclassification_enabled) {
     external_deps += [ "dataclassification:data_transit_mgr" ]
-    sources +=
-        [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
+    sources += [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
   } else {
-    sources += [
-      "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp",
-    ]
+    sources += [ "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp" ]
   }
 }
 
@@ -1932,12 +1902,9 @@ ohos_unittest("PasteServCleanTest") {
 
   if (pasteboard_dataclassification_enabled) {
     external_deps += [ "dataclassification:data_transit_mgr" ]
-    sources +=
-        [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
+    sources += [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
   } else {
-    sources += [
-      "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp",
-    ]
+    sources += [ "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp" ]
   }
 }
 
@@ -2070,12 +2037,9 @@ ohos_unittest("PasteServRemoteTest") {
 
   if (pasteboard_dataclassification_enabled) {
     external_deps += [ "dataclassification:data_transit_mgr" ]
-    sources +=
-        [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
+    sources += [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
   } else {
-    sources += [
-      "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp",
-    ]
+    sources += [ "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp" ]
   }
 }
 
@@ -2179,6 +2143,9 @@ group("unittest") {
     ":PasteboardLoadTest",
     ":PasteboardPatternTest",
     ":PasteboardServiceTest",
-    ":SecurityLevelTest",
   ]
+
+  if (pasteboard_dataclassification_enabled) {
+    deps += [ ":SecurityLevelTest" ]
+  }
 }
