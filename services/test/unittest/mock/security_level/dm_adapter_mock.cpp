@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,25 +13,30 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_PASTEBOARD_SECURITY_LEVEL_H
-#define OHOS_PASTEBOARD_SECURITY_LEVEL_H
-
-#include <atomic>
-#include <mutex>
-#include <string>
+#include "dm_adapter_mock.h"
 
 namespace OHOS::MiscServices {
-class SecurityLevel {
-public:
-    SecurityLevel();
-    bool IsSupportedDistributed(bool needLog);
+DMAdapterMock::DMAdapterMock()
+{
+    DMAdapterMock::mock_ = this;
+}
 
-private:
-    uint32_t GetSensitiveLevel();
-    uint32_t GetDeviceSecurityLevel();
+DMAdapterMock::~DMAdapterMock()
+{
+    DMAdapterMock::mock_ = nullptr;
+}
 
-    std::atomic<uint32_t> securityLevel_;
-    std::mutex mutex_;
-};
+DMAdapterMock *DMAdapterMock::GetMock()
+{
+    return DMAdapterMock::mock_;
+}
+
+const std::string &DMAdapter::GetLocalDeviceUdid()
+{
+    auto mock = DMAdapterMock::GetMock();
+    if (mock == nullptr) {
+        return DMAdapterMock::emptyUdid_;
+    }
+    return mock->GetLocalDeviceUdid();
+}
 } // namespace OHOS::MiscServices
-#endif // OHOS_PASTEBOARD_SECURITY_LEVEL_H

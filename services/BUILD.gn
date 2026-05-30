@@ -81,7 +81,6 @@ ohos_shared_library("pasteboard_service") {
     "${pasteboard_utils_path}/native/src/pasteboard_common.cpp",
     "${pasteboard_utils_path}/native/src/pasteboard_time.cpp",
     "../adapter/data_share/datashare_delegate.cpp",
-    "../adapter/security_level/security_level.cpp",
     "account/src/account_manager.cpp",
     "core/src/pasteboard_ability_manager.cpp",
     "core/src/pasteboard_dialog.cpp",
@@ -195,7 +194,9 @@ ohos_shared_library("pasteboard_service") {
 
   if (pasteboard_dataclassification_enabled) {
     external_deps += [ "dataclassification:data_transit_mgr" ]
-    defines += [ "PB_DATACLASSIFICATION_ENABLE" ]
+    sources += [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
+  } else {
+    sources += [ "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp" ]
   }
 
   subsystem_name = "distributeddatamgr"

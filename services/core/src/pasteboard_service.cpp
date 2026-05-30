@@ -204,10 +204,6 @@ void PasteboardService::OnStart()
         (capacity >= MIN_LOCAL_CAPACITY && capacity <= MAX_LOCAL_CAPACITY) ? capacity : DEFAULT_LOCAL_CAPACITY;
     maxLocalCapacity_.store(maxLocalCapacity * SIZE_K * SIZE_K);
     moduleConfig_.Init();
-#ifdef PB_DATACLASSIFICATION_ENABLE
-    auto status = DATASL_OnStart();
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "datasl on start ret:%{public}d", status);
-#endif
     moduleConfig_.Watch(std::bind(&PasteboardService::OnConfigChange, this, std::placeholders::_1));
     ffrtTimer_ = FFRTPool::GetTimer("pasteboard_service");
     UpdateAgedTime();
@@ -277,9 +273,6 @@ void PasteboardService::OnStop()
     }
     moduleConfig_.DeInit();
     switch_.DeInit();
-#ifdef PB_DATACLASSIFICATION_ENABLE
-    DATASL_OnStop();
-#endif
     EventCenter::GetInstance().Unsubscribe(PasteboardEvent::DISCONNECT);
     EventCenter::GetInstance().Unsubscribe(OHOS::MiscServices::Event::EVT_REMOTE_CHANGE);
     CancelCriticalTimer();
@@ -4751,12 +4744,10 @@ std::shared_ptr<ClipPlugin> PasteboardService::GetClipPlugin()
 {
     auto isOn = moduleConfig_.IsOn();
     if (isOn) {
-        auto securityLevel = securityLevel_.GetDeviceSecurityLevel();
-#ifdef PB_DATACLASSIFICATION_ENABLE
-        if (securityLevel < DATA_SEC_LEVEL3) {
+        auto isSupported = securityLevel_.IsSupportedDistributed(false);
+        if (!isSupported) {
             return nullptr;
         }
-#endif
     }
     std::lock_guard<decltype(mutex)> lockGuard(mutex);
     if (!isOn || clipPlugin_ != nullptr) {
@@ -4834,13 +4825,10 @@ void PasteboardService::OnConfigChangeInner(bool isOn)
         return;
     }
     SetCriticalTimer();
-    auto securityLevel = securityLevel_.GetDeviceSecurityLevel();
-#ifdef PB_DATACLASSIFICATION_ENABLE
-    if (securityLevel < DATA_SEC_LEVEL3) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "device sec level is %{public}u less than 3.", securityLevel);
+    auto isSupported = securityLevel_.IsSupportedDistributed(true);
+    if (!isSupported) {
         return;
     }
-#endif
     if (clipPlugin_ != nullptr) {
         return;
     }

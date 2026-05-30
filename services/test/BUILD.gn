@@ -89,7 +89,6 @@ ohos_unittest("PasteServInterfaceTest") {
   module_out_path = module_output_path
   sources = [
     "${pasteboard_root_path}/adapter/data_share/datashare_delegate.cpp",
-    "${pasteboard_root_path}/adapter/security_level/security_level.cpp",
     "${pasteboard_service_path}/account/src/account_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_ability_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_delay_manager.cpp",
@@ -214,7 +213,9 @@ ohos_unittest("PasteServInterfaceTest") {
 
   if (pasteboard_dataclassification_enabled) {
     external_deps += [ "dataclassification:data_transit_mgr" ]
-    defines += [ "PB_DATACLASSIFICATION_ENABLE" ]
+    sources += [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
+  } else {
+    sources += [ "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp" ]
   }
 }
 
@@ -224,12 +225,11 @@ ohos_unittest("PasteServInterfaceMockTest") {
   sources = [
     "${pasteboard_framework_path}/clip/default_clip.cpp",
     "${pasteboard_root_path}/adapter/data_share/datashare_delegate.cpp",
-    "${pasteboard_root_path}/adapter/security_level/security_level.cpp",
     "${pasteboard_service_path}/account/src/account_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_ability_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_delay_manager.cpp",
-    "${pasteboard_service_path}/core/src/pasteboard_disposable_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_dialog.cpp",
+    "${pasteboard_service_path}/core/src/pasteboard_disposable_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_pattern.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_service.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_user_context.cpp",
@@ -350,7 +350,9 @@ ohos_unittest("PasteServInterfaceMockTest") {
 
   if (pasteboard_dataclassification_enabled) {
     external_deps += [ "dataclassification:data_transit_mgr" ]
-    defines += [ "PB_DATACLASSIFICATION_ENABLE" ]
+    sources += [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
+  } else {
+    sources += [ "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp" ]
   }
 }
 
@@ -384,7 +386,7 @@ ohos_unittest("PasteboardLinkedListTest") {
   module_out_path = module_output_path
   include_dirs = [ "${pasteboard_utils_path}/native/include" ]
   sources = [ "unittest/src/pasteboard_linked_list_test.cpp" ]
-  external_deps = [ 
+  external_deps = [
     "googletest:gtest_main",
     "hilog:libhilog",
   ]
@@ -394,8 +396,8 @@ ohos_unittest("PasteboardDialogTest") {
   module_out_path = module_output_path
 
   sources = [
-    "unittest/src/pasteboard_dialog_test.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_dialog.cpp",
+    "unittest/src/pasteboard_dialog_test.cpp",
   ]
   configs = [ ":module_private_config" ]
   deps = [
@@ -442,8 +444,8 @@ ohos_unittest("PasteboardPatternTest") {
     "ffrt:libffrt",
     "googletest:gtest_main",
     "hilog:libhilog",
-    "ipc:ipc_core",
     "image_framework:image",
+    "ipc:ipc_core",
     "libxml2:libxml2",
     "udmf:udmf_client",
   ]
@@ -585,8 +587,8 @@ ohos_unittest("PasteboardLoadTest") {
   configs = [ ":module_private_config" ]
   cflags = [ "-fno-access-control" ]
   external_deps = [
-    "c_utils:utils",
     "cJSON:cjson",
+    "c_utils:utils",
     "ffrt:libffrt",
     "googletest:gtest_main",
     "hilog:libhilog",
@@ -674,8 +676,8 @@ ohos_unittest("PasteboardDelayManagerTest") {
     "app_file_service:remote_file_share_native",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
-    "c_utils:utils",
     "cJSON:cjson",
+    "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
     "data_share:datashare_consumer",
     "dfs_service:distributed_file_daemon_kit_inner",
@@ -699,11 +701,6 @@ ohos_unittest("PasteboardDelayManagerTest") {
     external_deps += [ "device_manager:devicemanagersdk" ]
     defines += [ "PB_DEVICE_MANAGER_ENABLE" ]
   }
-
-  if (pasteboard_dataclassification_enabled) {
-    external_deps += [ "dataclassification:data_transit_mgr" ]
-    defines += [ "PB_DATACLASSIFICATION_ENABLE" ]
-  }
 }
 
 ohos_unittest("PasteServGetLocalDataTest") {
@@ -711,7 +708,6 @@ ohos_unittest("PasteServGetLocalDataTest") {
   module_out_path = module_output_path
   sources = [
     "${pasteboard_root_path}/adapter/data_share/datashare_delegate.cpp",
-    "${pasteboard_root_path}/adapter/security_level/security_level.cpp",
     "${pasteboard_service_path}/account/src/account_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_ability_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_delay_manager.cpp",
@@ -834,7 +830,9 @@ ohos_unittest("PasteServGetLocalDataTest") {
 
   if (pasteboard_dataclassification_enabled) {
     external_deps += [ "dataclassification:data_transit_mgr" ]
-    defines += [ "PB_DATACLASSIFICATION_ENABLE" ]
+    sources += [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
+  } else {
+    sources += [ "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp" ]
   }
 }
 
@@ -843,7 +841,6 @@ ohos_unittest("PasteServSubscribeTest") {
   module_out_path = module_output_path
   sources = [
     "${pasteboard_root_path}/adapter/data_share/datashare_delegate.cpp",
-    "${pasteboard_root_path}/adapter/security_level/security_level.cpp",
     "${pasteboard_service_path}/account/src/account_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_ability_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_delay_manager.cpp",
@@ -966,7 +963,9 @@ ohos_unittest("PasteServSubscribeTest") {
 
   if (pasteboard_dataclassification_enabled) {
     external_deps += [ "dataclassification:data_transit_mgr" ]
-    defines += [ "PB_DATACLASSIFICATION_ENABLE" ]
+    sources += [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
+  } else {
+    sources += [ "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp" ]
   }
 }
 
@@ -975,7 +974,6 @@ ohos_unittest("PasteServNotifyTest") {
   module_out_path = module_output_path
   sources = [
     "${pasteboard_root_path}/adapter/data_share/datashare_delegate.cpp",
-    "${pasteboard_root_path}/adapter/security_level/security_level.cpp",
     "${pasteboard_service_path}/account/src/account_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_ability_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_delay_manager.cpp",
@@ -1098,7 +1096,9 @@ ohos_unittest("PasteServNotifyTest") {
 
   if (pasteboard_dataclassification_enabled) {
     external_deps += [ "dataclassification:data_transit_mgr" ]
-    defines += [ "PB_DATACLASSIFICATION_ENABLE" ]
+    sources += [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
+  } else {
+    sources += [ "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp" ]
   }
 }
 
@@ -1107,7 +1107,6 @@ ohos_unittest("PasteServSetDataTest") {
   module_out_path = module_output_path
   sources = [
     "${pasteboard_root_path}/adapter/data_share/datashare_delegate.cpp",
-    "${pasteboard_root_path}/adapter/security_level/security_level.cpp",
     "${pasteboard_service_path}/account/src/account_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_ability_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_delay_manager.cpp",
@@ -1230,7 +1229,9 @@ ohos_unittest("PasteServSetDataTest") {
 
   if (pasteboard_dataclassification_enabled) {
     external_deps += [ "dataclassification:data_transit_mgr" ]
-    defines += [ "PB_DATACLASSIFICATION_ENABLE" ]
+    sources += [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
+  } else {
+    sources += [ "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp" ]
   }
 }
 
@@ -1239,7 +1240,6 @@ ohos_unittest("PasteServGetDataTest") {
   module_out_path = module_output_path
   sources = [
     "${pasteboard_root_path}/adapter/data_share/datashare_delegate.cpp",
-    "${pasteboard_root_path}/adapter/security_level/security_level.cpp",
     "${pasteboard_service_path}/account/src/account_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_ability_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_delay_manager.cpp",
@@ -1362,7 +1362,9 @@ ohos_unittest("PasteServGetDataTest") {
 
   if (pasteboard_dataclassification_enabled) {
     external_deps += [ "dataclassification:data_transit_mgr" ]
-    defines += [ "PB_DATACLASSIFICATION_ENABLE" ]
+    sources += [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
+  } else {
+    sources += [ "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp" ]
   }
 }
 
@@ -1371,7 +1373,6 @@ ohos_unittest("PasteServEventTest") {
   module_out_path = module_output_path
   sources = [
     "${pasteboard_root_path}/adapter/data_share/datashare_delegate.cpp",
-    "${pasteboard_root_path}/adapter/security_level/security_level.cpp",
     "${pasteboard_service_path}/account/src/account_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_ability_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_delay_manager.cpp",
@@ -1496,7 +1497,9 @@ ohos_unittest("PasteServEventTest") {
 
   if (pasteboard_dataclassification_enabled) {
     external_deps += [ "dataclassification:data_transit_mgr" ]
-    defines += [ "PB_DATACLASSIFICATION_ENABLE" ]
+    sources += [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
+  } else {
+    sources += [ "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp" ]
   }
 }
 
@@ -1505,7 +1508,6 @@ ohos_unittest("PasteServGetTest") {
   module_out_path = module_output_path
   sources = [
     "${pasteboard_root_path}/adapter/data_share/datashare_delegate.cpp",
-    "${pasteboard_root_path}/adapter/security_level/security_level.cpp",
     "${pasteboard_service_path}/account/src/account_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_ability_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_delay_manager.cpp",
@@ -1630,7 +1632,9 @@ ohos_unittest("PasteServGetTest") {
 
   if (pasteboard_dataclassification_enabled) {
     external_deps += [ "dataclassification:data_transit_mgr" ]
-    defines += [ "PB_DATACLASSIFICATION_ENABLE" ]
+    sources += [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
+  } else {
+    sources += [ "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp" ]
   }
 }
 
@@ -1639,7 +1643,6 @@ ohos_unittest("PasteServCheckTest") {
   module_out_path = module_output_path
   sources = [
     "${pasteboard_root_path}/adapter/data_share/datashare_delegate.cpp",
-    "${pasteboard_root_path}/adapter/security_level/security_level.cpp",
     "${pasteboard_service_path}/account/src/account_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_ability_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_delay_manager.cpp",
@@ -1764,7 +1767,9 @@ ohos_unittest("PasteServCheckTest") {
 
   if (pasteboard_dataclassification_enabled) {
     external_deps += [ "dataclassification:data_transit_mgr" ]
-    defines += [ "PB_DATACLASSIFICATION_ENABLE" ]
+    sources += [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
+  } else {
+    sources += [ "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp" ]
   }
 }
 
@@ -1773,7 +1778,6 @@ ohos_unittest("PasteServCleanTest") {
   module_out_path = module_output_path
   sources = [
     "${pasteboard_root_path}/adapter/data_share/datashare_delegate.cpp",
-    "${pasteboard_root_path}/adapter/security_level/security_level.cpp",
     "${pasteboard_service_path}/account/src/account_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_ability_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_delay_manager.cpp",
@@ -1898,17 +1902,17 @@ ohos_unittest("PasteServCleanTest") {
 
   if (pasteboard_dataclassification_enabled) {
     external_deps += [ "dataclassification:data_transit_mgr" ]
-    defines += [ "PB_DATACLASSIFICATION_ENABLE" ]
+    sources += [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
+  } else {
+    sources += [ "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp" ]
   }
 }
-
 
 ohos_unittest("PasteServRemoteTest") {
   use_exceptions = true
   module_out_path = module_output_path
   sources = [
     "${pasteboard_root_path}/adapter/data_share/datashare_delegate.cpp",
-    "${pasteboard_root_path}/adapter/security_level/security_level.cpp",
     "${pasteboard_service_path}/account/src/account_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_ability_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_delay_manager.cpp",
@@ -2033,7 +2037,9 @@ ohos_unittest("PasteServRemoteTest") {
 
   if (pasteboard_dataclassification_enabled) {
     external_deps += [ "dataclassification:data_transit_mgr" ]
-    defines += [ "PB_DATACLASSIFICATION_ENABLE" ]
+    sources += [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
+  } else {
+    sources += [ "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp" ]
   }
 }
 
@@ -2085,16 +2091,44 @@ ohos_unittest("HiViewAdapterTest") {
     "c_utils:utils",
     "ffrt:libffrt",
     "googletest:gtest_main",
-    "hisysevent:libhisysevent",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
     "init:libbegetutil",
     "udmf:udmf_client",
   ]
 }
 
+ohos_unittest("SecurityLevelTest") {
+  module_out_path = module_output_path
+  cflags = [ "-fno-access-control" ]
+  sources = [
+    "${pasteboard_adapter_path}/security_level/security_level.cpp",
+    "unittest/mock/security_level/dev_slinfo_mgr_mock.cpp",
+    "unittest/mock/security_level/dm_adapter_mock.cpp",
+    "unittest/src/security_level_test.cpp",
+  ]
+  include_dirs = [
+    "${pasteboard_adapter_path}/security_level",
+    "${pasteboard_utils_path}/native/include",
+    "${pasteboard_framework_path}/include",
+    "${pasteboard_framework_path}/include/device",
+    "unittest/mock/security_level",
+  ]
+  configs = [ ":module_private_config" ]
+  external_deps = [
+    "c_utils:utils",
+    "dataclassification:data_transit_mgr",
+    "googletest:gmock",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+  ]
+  deps = [ "${pasteboard_framework_path}:pasteboard_framework" ]
+}
+
 group("unittest") {
   testonly = true
   deps = [
+    ":EntityRecognitionObserverStubTest",
     ":HiViewAdapterTest",
     ":PasteboardAbilityManagerTest",
     ":PasteboardDeduplicateMemoryTest",
@@ -2107,8 +2141,11 @@ group("unittest") {
     ":PasteboardEntryGetterStubTest",
     ":PasteboardLinkedListTest",
     ":PasteboardLoadTest",
-    ":EntityRecognitionObserverStubTest",
     ":PasteboardPatternTest",
     ":PasteboardServiceTest",
   ]
+
+  if (pasteboard_dataclassification_enabled) {
+    deps += [ ":SecurityLevelTest" ]
+  }
 }

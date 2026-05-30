@@ -13,6 +13,8 @@
 
 pasteboard_root_path = "//foundation/distributeddatamgr/pasteboard"
 
+pasteboard_adapter_path = "${pasteboard_root_path}/adapter"
+
 pasteboard_kits_path = "${pasteboard_root_path}/kits"
 
 pasteboard_innerkits_path = "${pasteboard_root_path}/framework/innerkits"
