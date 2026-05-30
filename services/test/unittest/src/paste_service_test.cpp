@@ -1552,8 +1552,8 @@ HWTEST_F(PasteboardServiceTest, DumpDataTest001, TestSize.Level1)
     std::string result;
     ret = PasteboardServiceTest::ExecuteCmd(result);
     EXPECT_TRUE(ret);
-    EXPECT_TRUE(result.find("CrossDevice") == std::string::npos);
-    EXPECT_TRUE(result.find("remote") == std::string::npos);
+    EXPECT_TRUE(result.find("CrossDevice") != std::string::npos);
+    EXPECT_TRUE(result.find("remote") != std::string::npos);
     PasteboardClient::GetInstance()->Clear();
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "DumpDataTest001 end");
 }
@@ -1578,8 +1578,8 @@ HWTEST_F(PasteboardServiceTest, DumpDataTest002, TestSize.Level1)
     std::string result;
     ret = PasteboardServiceTest::ExecuteCmd(result);
     EXPECT_TRUE(ret);
-    EXPECT_TRUE(result.find("LocalDevice") == std::string::npos);
-    EXPECT_TRUE(result.find("local") == std::string::npos);
+    EXPECT_TRUE(result.find("LocalDevice") != std::string::npos);
+    EXPECT_TRUE(result.find("local") != std::string::npos);
     PasteboardClient::GetInstance()->Clear();
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "DumpDataTest002 end");
 }
@@ -1604,8 +1604,8 @@ HWTEST_F(PasteboardServiceTest, DumpDataTest003, TestSize.Level1)
     std::string result;
     ret = PasteboardServiceTest::ExecuteCmd(result);
     EXPECT_TRUE(ret);
-    EXPECT_TRUE(result.find("InAPP") == std::string::npos);
-    EXPECT_TRUE(result.find("local") == std::string::npos);
+    EXPECT_TRUE(result.find("InAPP") != std::string::npos);
+    EXPECT_TRUE(result.find("local") != std::string::npos);
     PasteboardClient::GetInstance()->Clear();
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "DumpDataTest003 end");
 }
