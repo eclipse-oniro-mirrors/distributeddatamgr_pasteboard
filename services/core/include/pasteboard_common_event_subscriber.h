@@ -36,8 +36,8 @@ private:
     void OnReceiveEventInner(const EventFwk::CommonEventData &data);
     void HandleUserSwitched(const EventFwk::CommonEventData &data);
     void HandleUserStopping(const EventFwk::CommonEventData &data);
-    void HandleScreenLocked();
-    void HandleScreenUnlocked();
+    void HandleScreenLocked(const EventFwk::CommonEventData &data);
+    void HandleScreenUnlocked(const EventFwk::CommonEventData &data);
     void HandlePackageRemoved(const EventFwk::Want &want);
     void HandleWifiDisabled(int32_t userId);
     std::mutex mutex_;

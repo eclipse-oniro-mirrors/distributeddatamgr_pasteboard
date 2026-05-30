@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,26 +15,23 @@
 
 #ifndef OHOS_PASTEBOARD_SECURITY_LEVEL_H
 #define OHOS_PASTEBOARD_SECURITY_LEVEL_H
-#include <string>
+
 #include <atomic>
-#ifdef PB_DATACLASSIFICATION_ENABLE
-#include "dev_slinfo_mgr.h"
-#endif
+#include <mutex>
+#include <string>
 
 namespace OHOS::MiscServices {
 class SecurityLevel {
 public:
-#ifdef PB_DATACLASSIFICATION_ENABLE
-    SecurityLevel() : securityLevel_(DATA_SEC_LEVEL0) {}
-#endif
-    uint32_t GetDeviceSecurityLevel();
+    SecurityLevel();
+    bool IsSupportedDistributed(bool needLog);
 
 private:
-#ifdef PB_DATACLASSIFICATION_ENABLE
-    bool InitDEVSLQueryParams(DEVSLQueryParams *params, const std::string &udid);
-    std::atomic<uint32_t> securityLevel_;
-#endif
     uint32_t GetSensitiveLevel();
+    uint32_t GetDeviceSecurityLevel();
+
+    std::atomic<uint32_t> securityLevel_;
+    std::mutex mutex_;
 };
 } // namespace OHOS::MiscServices
 #endif // OHOS_PASTEBOARD_SECURITY_LEVEL_H

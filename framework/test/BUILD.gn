@@ -506,7 +506,6 @@ ohos_unittest("PasteboardClientMockTest") {
   sources = [
     "${pasteboard_root_path}/adapter/data_share/datashare_delegate.cpp",
     "${pasteboard_root_path}/adapter/pasteboard_progress/pasteboard_progress.cpp",
-    "${pasteboard_root_path}/adapter/security_level/security_level.cpp",
     "${pasteboard_root_path}/framework/framework/device/dm_adapter.cpp",
     "${pasteboard_root_path}/framework/framework/serializable/serializable.cpp",
     "${pasteboard_root_path}/framework/innerkits/src/pasteboard_client.cpp",
@@ -613,7 +612,9 @@ ohos_unittest("PasteboardClientMockTest") {
 
   if (pasteboard_dataclassification_enabled) {
     external_deps += [ "dataclassification:data_transit_mgr" ]
-    defines += [ "PB_DATACLASSIFICATION_ENABLE" ]
+    sources += [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
+  } else {
+    sources += [ "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp" ]
   }
 }
 

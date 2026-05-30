@@ -116,7 +116,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest002, TestSize.Level1
     EXPECT_NE(tempPasteboard, nullptr);
 
     AppInfo appInfo;
-    appInfo.userId = tempPasteboard->GetCurrentAccountId();
+    appInfo.userId = tempPasteboard->GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
     PasteData pasteData;
     std::string plainText = "hello";
     pasteData.AddTextRecord(plainText);
@@ -150,7 +150,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest003, TestSize.Level1
     EXPECT_NE(tempPasteboard, nullptr);
 
     AppInfo appInfo;
-    appInfo.userId = tempPasteboard->GetCurrentAccountId();
+    appInfo.userId = tempPasteboard->GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
     PasteData pasteData;
     std::string plainText = "hello";
     pasteData.AddTextRecord(plainText);
@@ -187,7 +187,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest004, TestSize.Level1
     EXPECT_NE(tempPasteboard, nullptr);
 
     AppInfo appInfo;
-    appInfo.userId = tempPasteboard->GetCurrentAccountId();
+    appInfo.userId = tempPasteboard->GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
     PasteData pasteData;
     std::string plainText = "hello";
     pasteData.AddTextRecord(plainText);
@@ -224,7 +224,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest005, TestSize.Level1
     EXPECT_NE(tempPasteboard, nullptr);
 
     AppInfo appInfo;
-    appInfo.userId = tempPasteboard->GetCurrentAccountId();
+    appInfo.userId = tempPasteboard->GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
     PasteData pasteData;
     std::string plainText = "hello";
     pasteData.AddTextRecord(plainText);
@@ -261,7 +261,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest006, TestSize.Level1
     EXPECT_NE(tempPasteboard, nullptr);
 
     AppInfo appInfo;
-    appInfo.userId = tempPasteboard->GetCurrentAccountId();
+    appInfo.userId = tempPasteboard->GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
     PasteData pasteData;
     std::string plainText = "hello";
     pasteData.AddTextRecord(plainText);
@@ -299,7 +299,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest007, TestSize.Level1
     EXPECT_NE(tempPasteboard, nullptr);
 
     AppInfo appInfo;
-    appInfo.userId = tempPasteboard->GetCurrentAccountId();
+    appInfo.userId = tempPasteboard->GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
     PasteData pasteData;
     std::string plainText = "hello";
     pasteData.AddTextRecord(plainText);
@@ -337,7 +337,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest008, TestSize.Level1
     EXPECT_NE(tempPasteboard, nullptr);
 
     AppInfo appInfo;
-    appInfo.userId = tempPasteboard->GetCurrentAccountId();
+    appInfo.userId = tempPasteboard->GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
     PasteData pasteData;
     std::string plainText = "hello";
     pasteData.AddTextRecord(plainText);
@@ -375,7 +375,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest009, TestSize.Level1
     EXPECT_NE(tempPasteboard, nullptr);
 
     AppInfo appInfo;
-    appInfo.userId = tempPasteboard->GetCurrentAccountId();
+    appInfo.userId = tempPasteboard->GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
     PasteData pasteData;
     std::string plainText = "hello";
     pasteData.AddTextRecord(plainText);
@@ -413,7 +413,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest010, TestSize.Level1
     EXPECT_NE(tempPasteboard, nullptr);
 
     AppInfo appInfo;
-    appInfo.userId = tempPasteboard->GetCurrentAccountId();
+    appInfo.userId = tempPasteboard->GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
     PasteData pasteData;
     std::string plainText = "hello";
     pasteData.AddTextRecord(plainText);
@@ -451,7 +451,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest011, TestSize.Level1
     EXPECT_NE(tempPasteboard, nullptr);
 
     AppInfo appInfo;
-    appInfo.userId = tempPasteboard->GetCurrentAccountId();
+    appInfo.userId = tempPasteboard->GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
     PasteData pasteData;
     std::string plainText = "hello";
     pasteData.AddTextRecord(plainText);
@@ -489,7 +489,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest012, TestSize.Level1
     EXPECT_NE(tempPasteboard, nullptr);
 
     AppInfo appInfo;
-    appInfo.userId = tempPasteboard->GetCurrentAccountId();
+    appInfo.userId = tempPasteboard->GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
     PasteData pasteData;
     std::string plainText = "hello";
     pasteData.AddTextRecord(plainText);
@@ -528,7 +528,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest013, TestSize.Level1
     EXPECT_NE(tempPasteboard, nullptr);
 
     AppInfo appInfo;
-    appInfo.userId = tempPasteboard->GetCurrentAccountId();
+    appInfo.userId = tempPasteboard->GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
     PasteData pasteData;
     std::string plainText = "hello";
     pasteData.AddTextRecord(plainText);
@@ -567,7 +567,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest014, TestSize.Level1
     EXPECT_NE(tempPasteboard, nullptr);
 
     AppInfo appInfo;
-    appInfo.userId = tempPasteboard->GetCurrentAccountId();
+    appInfo.userId = tempPasteboard->GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
     PasteData pasteData;
     std::string plainText = "hello";
     pasteData.AddTextRecord(plainText);
@@ -606,7 +606,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest015, TestSize.Level1
     EXPECT_NE(tempPasteboard, nullptr);
 
     AppInfo appInfo;
-    appInfo.userId = tempPasteboard->GetCurrentAccountId();
+    appInfo.userId = tempPasteboard->GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
     PasteData pasteData;
     std::string plainText = "hello";
     pasteData.AddTextRecord(plainText);
@@ -645,7 +645,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest016, TestSize.Level1
     EXPECT_NE(tempPasteboard, nullptr);
 
     AppInfo appInfo;
-    appInfo.userId = tempPasteboard->GetCurrentAccountId();
+    appInfo.userId = tempPasteboard->GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
     PasteData pasteData;
     std::string plainText = "hello";
     pasteData.AddTextRecord(plainText);
@@ -684,7 +684,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest017, TestSize.Level1
     EXPECT_NE(tempPasteboard, nullptr);
 
     AppInfo appInfo;
-    appInfo.userId = tempPasteboard->GetCurrentAccountId();
+    appInfo.userId = tempPasteboard->GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
     PasteData pasteData;
     std::string plainText = "hello";
     pasteData.AddTextRecord(plainText);
@@ -723,7 +723,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest018, TestSize.Level1
     EXPECT_NE(tempPasteboard, nullptr);
 
     AppInfo appInfo;
-    appInfo.userId = tempPasteboard->GetCurrentAccountId();
+    appInfo.userId = tempPasteboard->GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
     PasteData pasteData;
     std::string plainText = "hello";
     pasteData.AddTextRecord(plainText);
@@ -762,7 +762,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest019, TestSize.Level1
     EXPECT_NE(tempPasteboard, nullptr);
 
     AppInfo appInfo;
-    appInfo.userId = tempPasteboard->GetCurrentAccountId();
+    appInfo.userId = tempPasteboard->GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
     PasteData pasteData;
     std::string plainText = "hello";
     pasteData.AddTextRecord(plainText);
@@ -801,7 +801,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest020, TestSize.Level1
     EXPECT_NE(tempPasteboard, nullptr);
 
     AppInfo appInfo;
-    appInfo.userId = tempPasteboard->GetCurrentAccountId();
+    appInfo.userId = tempPasteboard->GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
     PasteData pasteData;
     std::string plainText = "hello";
     pasteData.AddTextRecord(plainText);
@@ -840,7 +840,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest0021, TestSize.Level
     EXPECT_NE(tempPasteboard, nullptr);
 
     AppInfo appInfo;
-    appInfo.userId = tempPasteboard->GetCurrentAccountId();
+    appInfo.userId = tempPasteboard->GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
     PasteData pasteData;
     std::string plainText = "hello";
     pasteData.AddTextRecord(plainText);
@@ -879,7 +879,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest0022, TestSize.Level
     EXPECT_NE(tempPasteboard, nullptr);
 
     AppInfo appInfo;
-    appInfo.userId = tempPasteboard->GetCurrentAccountId();
+    appInfo.userId = tempPasteboard->GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
     PasteData pasteData;
     std::string plainText = "hello";
     pasteData.AddTextRecord(plainText);
@@ -918,7 +918,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest0023, TestSize.Level
     EXPECT_NE(tempPasteboard, nullptr);
 
     AppInfo appInfo;
-    appInfo.userId = tempPasteboard->GetCurrentAccountId();
+    appInfo.userId = tempPasteboard->GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
     PasteData pasteData;
     std::string plainText = "hello";
     pasteData.AddTextRecord(plainText);
@@ -957,7 +957,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest0024, TestSize.Level
     EXPECT_NE(tempPasteboard, nullptr);
 
     AppInfo appInfo;
-    appInfo.userId = tempPasteboard->GetCurrentAccountId();
+    appInfo.userId = tempPasteboard->GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
     PasteData pasteData;
     std::string plainText = "hello";
     pasteData.AddTextRecord(plainText);
@@ -997,7 +997,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest0025, TestSize.Level
     EXPECT_NE(tempPasteboard, nullptr);
 
     AppInfo appInfo;
-    appInfo.userId = tempPasteboard->GetCurrentAccountId();
+    appInfo.userId = tempPasteboard->GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
     PasteData pasteData;
     std::string plainText = "hello";
     pasteData.AddTextRecord(plainText);
@@ -1037,7 +1037,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest0026, TestSize.Level
     EXPECT_NE(tempPasteboard, nullptr);
 
     AppInfo appInfo;
-    appInfo.userId = tempPasteboard->GetCurrentAccountId();
+    appInfo.userId = tempPasteboard->GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
     PasteData pasteData;
     std::string plainText = "hello";
     pasteData.AddTextRecord(plainText);
@@ -1077,7 +1077,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest0027, TestSize.Level
     EXPECT_NE(tempPasteboard, nullptr);
 
     AppInfo appInfo;
-    appInfo.userId = tempPasteboard->GetCurrentAccountId();
+    appInfo.userId = tempPasteboard->GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
     PasteData pasteData;
     std::string plainText = "hello";
     pasteData.AddTextRecord(plainText);
@@ -1117,7 +1117,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest0028, TestSize.Level
     EXPECT_NE(tempPasteboard, nullptr);
 
     AppInfo appInfo;
-    appInfo.userId = tempPasteboard->GetCurrentAccountId();
+    appInfo.userId = tempPasteboard->GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
     PasteData pasteData;
     std::string plainText = "hello";
     pasteData.AddTextRecord(plainText);
@@ -1157,7 +1157,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest0029, TestSize.Level
     EXPECT_NE(tempPasteboard, nullptr);
 
     AppInfo appInfo;
-    appInfo.userId = tempPasteboard->GetCurrentAccountId();
+    appInfo.userId = tempPasteboard->GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
     PasteData pasteData;
     std::string plainText = "hello";
     pasteData.AddTextRecord(plainText);
@@ -1197,7 +1197,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest0030, TestSize.Level
     EXPECT_NE(tempPasteboard, nullptr);
 
     AppInfo appInfo;
-    appInfo.userId = tempPasteboard->GetCurrentAccountId();
+    appInfo.userId = tempPasteboard->GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
     PasteData pasteData;
     std::string plainText = "hello";
     pasteData.AddTextRecord(plainText);
@@ -1237,7 +1237,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest0031, TestSize.Level
     EXPECT_NE(tempPasteboard, nullptr);
 
     AppInfo appInfo;
-    appInfo.userId = tempPasteboard->GetCurrentAccountId();
+    appInfo.userId = tempPasteboard->GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
     PasteData pasteData;
     std::string plainText = "hello";
     pasteData.AddTextRecord(plainText);
@@ -1277,7 +1277,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest0032, TestSize.Level
     EXPECT_NE(tempPasteboard, nullptr);
 
     AppInfo appInfo;
-    appInfo.userId = tempPasteboard->GetCurrentAccountId();
+    appInfo.userId = tempPasteboard->GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
     PasteData pasteData;
     std::string plainText = "hello";
     pasteData.AddTextRecord(plainText);
@@ -1317,7 +1317,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest0033, TestSize.Level
     EXPECT_NE(tempPasteboard, nullptr);
 
     AppInfo appInfo;
-    appInfo.userId = tempPasteboard->GetCurrentAccountId();
+    appInfo.userId = tempPasteboard->GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
     PasteData pasteData;
     std::string plainText = "hello";
     pasteData.AddTextRecord(plainText);
@@ -1357,7 +1357,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest0034, TestSize.Level
     EXPECT_NE(tempPasteboard, nullptr);
 
     AppInfo appInfo;
-    appInfo.userId = tempPasteboard->GetCurrentAccountId();
+    appInfo.userId = tempPasteboard->GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
     PasteData pasteData;
     std::string plainText = "hello";
     pasteData.AddTextRecord(plainText);
@@ -1397,7 +1397,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest0035, TestSize.Level
     EXPECT_NE(tempPasteboard, nullptr);
 
     AppInfo appInfo;
-    appInfo.userId = tempPasteboard->GetCurrentAccountId();
+    appInfo.userId = tempPasteboard->GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
     PasteData pasteData;
     std::string plainText = "hello";
     pasteData.AddTextRecord(plainText);
@@ -1437,7 +1437,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest0036, TestSize.Level
     EXPECT_NE(tempPasteboard, nullptr);
 
     AppInfo appInfo;
-    appInfo.userId = tempPasteboard->GetCurrentAccountId();
+    appInfo.userId = tempPasteboard->GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
     PasteData pasteData;
     std::string plainText = "hello";
     pasteData.AddTextRecord(plainText);
@@ -1475,7 +1475,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest037, TestSize.Level1
     EXPECT_NE(tempPasteboard, nullptr);
 
     AppInfo appInfo;
-    appInfo.userId = tempPasteboard->GetCurrentAccountId();
+    appInfo.userId = tempPasteboard->GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
     PasteData pasteData;
     std::string plainText = "hello";
     pasteData.AddTextRecord(plainText);
@@ -1513,7 +1513,7 @@ HWTEST_F(PasteboardServiceGetLocalDataTest, GetLocalDataTest038, TestSize.Level1
     EXPECT_NE(tempPasteboard, nullptr);
 
     AppInfo appInfo;
-    appInfo.userId = tempPasteboard->GetCurrentAccountId();
+    appInfo.userId = tempPasteboard->GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
     PasteData pasteData;
     std::string plainText = "hello";
     pasteData.AddTextRecord(plainText);

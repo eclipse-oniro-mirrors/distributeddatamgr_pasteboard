@@ -1007,7 +1007,7 @@ HWTEST_F(PasteboardServiceEventTest, IncreaseChangeCountTest002, TestSize.Level1
     EXPECT_EQ(testCount, 0);
 
     tempPasteboard->currentUserId_.store(10);
-    auto userId = tempPasteboard->GetCurrentAccountId();
+    auto userId = tempPasteboard->GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
     tempPasteboard->IncreaseChangeCount(userId);
     tempPasteboard->GetChangeCount(testCount);
     EXPECT_EQ(testCount, 1);

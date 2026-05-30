@@ -69,8 +69,9 @@ HWTEST_F(PasteboardAbilityManagerTest, CheckUIExtensionIsFocusedFailedTest, Test
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "CheckUIExtensionIsFocusedFailedTest start");
     uint32_t tokenId = 0;
+    uint64_t displayId = 0;
     bool isFocused = false;
-    int32_t ret = PasteboardAbilityManager::CheckUIExtensionIsFocused(tokenId, isFocused);
+    int32_t ret = PasteboardAbilityManager::CheckUIExtensionIsFocused(tokenId, displayId, isFocused);
     EXPECT_NE(ret, NO_ERROR);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "CheckUIExtensionIsFocusedFailedTest end");
 }

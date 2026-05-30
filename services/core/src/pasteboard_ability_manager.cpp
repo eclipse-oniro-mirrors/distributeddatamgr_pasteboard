@@ -40,7 +40,7 @@ sptr<IRemoteObject> PasteboardAbilityManager::GetAbilityManagerService()
     return remoteObject;
 }
 
-int32_t PasteboardAbilityManager::CheckUIExtensionIsFocused(uint32_t tokenId, bool &isFocused)
+int32_t PasteboardAbilityManager::CheckUIExtensionIsFocused(uint32_t tokenId, uint64_t displayId, bool &isFocused)
 {
     sptr<IRemoteObject> remote = GetAbilityManagerService();
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(remote != nullptr,
@@ -56,6 +56,9 @@ int32_t PasteboardAbilityManager::CheckUIExtensionIsFocused(uint32_t tokenId, bo
     ret = data.WriteUint32(tokenId);
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(ret, ERR_INVALID_DATA, PASTEBOARD_MODULE_SERVICE,
         "write token id failed");
+    ret = data.WriteUint64(displayId);
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(ret, ERR_INVALID_DATA, PASTEBOARD_MODULE_SERVICE,
+        "write display id failed");
 
     uint32_t cmd = static_cast<uint32_t>(AbilityManagerInterfaceCode::CHECK_UI_EXTENSION_IS_FOCUSED);
     int32_t result = remote->SendRequest(cmd, data, reply, option);

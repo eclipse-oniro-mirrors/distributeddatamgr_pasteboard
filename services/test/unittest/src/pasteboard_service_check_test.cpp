@@ -71,27 +71,6 @@ static constexpr uint64_t ONE_HOUR_MILLISECONDS = 60 * 60 * 1000;
 constexpr int32_t RESOLVED_USER_ID = 100;
 } // namespace
 
-class FakeUserContextResolver : public UserContextResolver {
-public:
-    explicit FakeUserContextResolver(int32_t userId) : userId_(userId) {}
-
-    UserContext ResolveCaller(uint32_t tokenId, pid_t pid, pid_t uid) const override
-    {
-        (void)pid;
-        (void)uid;
-        UserContext context;
-        context.userId = userId_;
-        context.accountId = userId_;
-        context.tokenId = tokenId;
-        context.source = UserContextSource::CALLER;
-        context.isValid = userId_ != ERROR_USERID;
-        return context;
-    }
-
-private:
-    int32_t userId_ = ERROR_USERID;
-};
-
 class MyTestEntityRecognitionObserver : public IEntityRecognitionObserver {
     void OnRecognitionEvent(EntityType entityType, std::string &entity)
     {
@@ -235,140 +214,6 @@ HWTEST_F(PasteboardServiceCheckTest, IsDataAgedTest001, TestSize.Level1)
 }
 
 /**
- * @tc.name: IsDataAgedTest002
- * @tc.desc: test Func IsDataAged
- * @tc.type: FUNC
- */
-HWTEST_F(PasteboardServiceCheckTest, IsDataAgedTest002, TestSize.Level1)
-{
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "IsDataAgedTest002 start");
-    auto tempPasteboard = std::make_shared<PasteboardService>();
-    EXPECT_NE(tempPasteboard, nullptr);
-
-    tempPasteboard->SetUserContextResolver(std::make_shared<FakeUserContextResolver>(RESOLVED_USER_ID));
-    auto userId = RESOLVED_USER_ID;
-    auto curTime = static_cast<uint64_t>(duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count());
-    auto copyTime = curTime;
-    tempPasteboard->copyTime_.InsertOrAssign(userId, copyTime);
-
-    bool ret = tempPasteboard->IsDataAged();
-    EXPECT_EQ(ret, false);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "IsDataAgedTest002 end");
-}
-
-/**
- * @tc.name: IsDataAgedTest003
- * @tc.desc: test Func IsDataAged
- * @tc.type: FUNC
- */
-HWTEST_F(PasteboardServiceCheckTest, IsDataAgedTest003, TestSize.Level1)
-{
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "IsDataAgedTest003 start");
-    auto tempPasteboard = std::make_shared<PasteboardService>();
-    EXPECT_NE(tempPasteboard, nullptr);
-
-    tempPasteboard->SetUserContextResolver(std::make_shared<FakeUserContextResolver>(RESOLVED_USER_ID));
-    auto userId = RESOLVED_USER_ID;
-    auto curTime = static_cast<uint64_t>(duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count());
-    auto copyTime = curTime - ONE_HOUR_MILLISECONDS;
-    tempPasteboard->copyTime_.InsertOrAssign(userId, copyTime);
-
-    bool ret = tempPasteboard->IsDataAged();
-    EXPECT_EQ(ret, false);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "IsDataAgedTest003 end");
-}
-
-/**
- * @tc.name: IsDataAgedTest004
- * @tc.desc: test Func IsDataAged
- * @tc.type: FUNC
- */
-HWTEST_F(PasteboardServiceCheckTest, IsDataAgedTest004, TestSize.Level1)
-{
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "IsDataAgedTest004 start");
-    auto tempPasteboard = std::make_shared<PasteboardService>();
-    EXPECT_NE(tempPasteboard, nullptr);
-
-    tempPasteboard->SetUserContextResolver(std::make_shared<FakeUserContextResolver>(RESOLVED_USER_ID));
-    auto userId = RESOLVED_USER_ID;
-    auto curTime = static_cast<uint64_t>(PasteBoardTime::GetBootTimeMs());
-    auto copyTime = curTime - 2;
-    tempPasteboard->agedTime_ = 1;
-    tempPasteboard->copyTime_.InsertOrAssign(userId, copyTime);
-
-    bool ret = tempPasteboard->IsDataAged();
-    EXPECT_EQ(ret, true);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "IsDataAgedTest004 end");
-}
-
-/**
- * @tc.name: IsDataAgedTest005
- * @tc.desc: test Func IsDataAged
- * @tc.type: FUNC
- */
-HWTEST_F(PasteboardServiceCheckTest, IsDataAgedTest005, TestSize.Level1)
-{
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "IsDataAgedTest005 start");
-    auto tempPasteboard = std::make_shared<PasteboardService>();
-    EXPECT_NE(tempPasteboard, nullptr);
-
-    tempPasteboard->SetUserContextResolver(std::make_shared<FakeUserContextResolver>(RESOLVED_USER_ID));
-    auto userId = RESOLVED_USER_ID;
-    auto curTime = static_cast<uint64_t>(duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count());
-    auto copyTime = curTime + ONE_HOUR_MILLISECONDS;
-    tempPasteboard->copyTime_.InsertOrAssign(userId, copyTime);
-
-    bool ret = tempPasteboard->IsDataAged();
-    EXPECT_EQ(ret, false);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "IsDataAgedTest005 end");
-}
-
-/**
- * @tc.name: IsDataAgedTest006
- * @tc.desc: test Func IsDataAged
- * @tc.type: FUNC
- */
-HWTEST_F(PasteboardServiceCheckTest, IsDataAgedTest006, TestSize.Level1)
-{
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "IsDataAgedTest006 start");
-    auto tempPasteboard = std::make_shared<PasteboardService>();
-    EXPECT_NE(tempPasteboard, nullptr);
-
-    tempPasteboard->SetUserContextResolver(std::make_shared<FakeUserContextResolver>(RESOLVED_USER_ID));
-    auto userId = RESOLVED_USER_ID;
-    auto curTime = static_cast<uint64_t>(PasteBoardTime::GetBootTimeMs());
-    auto copyTime = curTime - 2;
-    tempPasteboard->copyTime_.InsertOrAssign(userId, copyTime);
-
-    PasteData pasteData;
-    tempPasteboard->agedTime_ = 1;
-    tempPasteboard->clips_.InsertOrAssign(userId, std::make_shared<PasteData>(pasteData));
-
-    bool ret = tempPasteboard->IsDataAged();
-    EXPECT_EQ(ret, true);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "IsDataAgedTest006 end");
-}
-
-/**
- * @tc.name: GetAppInfoUsesCallerContextResolver001
- * @tc.desc: test Func GetAppInfo uses caller user context
- * @tc.type: FUNC
- */
-HWTEST_F(PasteboardServiceCheckTest, GetAppInfoUsesCallerContextResolver001, TestSize.Level1)
-{
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetAppInfoUsesCallerContextResolver001 start");
-    auto tempPasteboard = std::make_shared<PasteboardService>();
-    EXPECT_NE(tempPasteboard, nullptr);
-
-    uint32_t tokenId = IPCSkeleton::GetCallingTokenID();
-    tempPasteboard->SetUserContextResolver(std::make_shared<FakeUserContextResolver>(RESOLVED_USER_ID));
-    auto appInfo = tempPasteboard->GetAppInfo(tokenId);
-
-    EXPECT_EQ(appInfo.userId, RESOLVED_USER_ID);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetAppInfoUsesCallerContextResolver001 end");
-}
-
-/**
  * @tc.name: IsDataValidTest001
  * @tc.desc: test Func IsDataValid
  * @tc.type: FUNC
@@ -381,7 +226,7 @@ HWTEST_F(PasteboardServiceCheckTest, IsDataValidTest001, TestSize.Level1)
 
     PasteData pasteData;
     uint32_t tokenId = 0x123456;
-    int32_t ret = tempPasteboard->IsDataValid(pasteData, tokenId);
+    int32_t ret = tempPasteboard->IsDataValid(pasteData, tokenId, RESOLVED_USER_ID);
     EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::DATA_EXPIRED_ERROR));
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "IsDataValidTest001 end");
 }
@@ -398,7 +243,7 @@ HWTEST_F(PasteboardServiceCheckTest, IsDataValidTest002, TestSize.Level1)
     EXPECT_NE(tempPasteboard, nullptr);
 
     AppInfo appInfo;
-    appInfo.userId = tempPasteboard->GetCurrentAccountId();
+    appInfo.userId = tempPasteboard->GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
     PasteData pasteData;
     std::string plainText = "hello";
     pasteData.AddTextRecord(plainText);
@@ -417,7 +262,7 @@ HWTEST_F(PasteboardServiceCheckTest, IsDataValidTest002, TestSize.Level1)
     ret = tempPasteboard->SetPasteData(dup(fd), tlvSize, pasteDataTlv, delayGetter, entryGetter);
 
     uint32_t tokenId = 0x123456;
-    ret = tempPasteboard->IsDataValid(pasteData, tokenId);
+    ret = tempPasteboard->IsDataValid(pasteData, tokenId, RESOLVED_USER_ID);
     EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::CROSS_BORDER_ERROR));
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "IsDataValidTest002 end");
 }
@@ -434,7 +279,7 @@ HWTEST_F(PasteboardServiceCheckTest, IsDataValidTest003, TestSize.Level1)
     EXPECT_NE(tempPasteboard, nullptr);
 
     AppInfo appInfo;
-    appInfo.userId = tempPasteboard->GetCurrentAccountId();
+    appInfo.userId = tempPasteboard->GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
     PasteData pasteData;
     std::string plainText = "hello";
     pasteData.AddTextRecord(plainText);
@@ -456,7 +301,7 @@ HWTEST_F(PasteboardServiceCheckTest, IsDataValidTest003, TestSize.Level1)
     int32_t ret = WritePasteData(pasteData, pasteDataTlv, fd, tlvSize, messageData, parcelPata);
     ret = tempPasteboard->SetPasteData(dup(fd), tlvSize, pasteDataTlv, delayGetter, entryGetter);
 
-    ret = tempPasteboard->IsDataValid(pasteData, tokenId);
+    ret = tempPasteboard->IsDataValid(pasteData, tokenId, RESOLVED_USER_ID);
     EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "IsDataValidTest003 end");
 }
@@ -649,13 +494,13 @@ HWTEST_F(PasteboardServiceCheckTest, IsNeedThawTest001, TestSize.Level1)
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
 
-    bool ret = tempPasteboard->IsNeedThaw(RESOLVED_USER_ID, PasteboardEventStatus::PASTEBOARD_READ);
+    bool ret = tempPasteboard->IsNeedThaw(PasteboardEventStatus::PASTEBOARD_READ);
     EXPECT_FALSE(ret);
 
-    ret = tempPasteboard->IsNeedThaw(RESOLVED_USER_ID, PasteboardEventStatus::PASTEBOARD_WRITE);
+    ret = tempPasteboard->IsNeedThaw(PasteboardEventStatus::PASTEBOARD_WRITE);
     EXPECT_TRUE(ret);
 
-    ret = tempPasteboard->IsNeedThaw(RESOLVED_USER_ID, PasteboardEventStatus::PASTEBOARD_CLEAR);
+    ret = tempPasteboard->IsNeedThaw(PasteboardEventStatus::PASTEBOARD_CLEAR);
     EXPECT_TRUE(ret);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "IsNeedThawTest001 end");
 }

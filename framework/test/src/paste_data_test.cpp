@@ -2082,4 +2082,70 @@ HWTEST_F(PasteDataTest, HasUtdTypeTest002, TestSize.Level0)
     EXPECT_EQ(ret, false);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "HasUtdTypeTest002 end");
 }
+
+/**
+ * @tc.name: SetUserId001
+ * @tc.desc: SetUserId and GetUserId test
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(PasteDataTest, SetUserId001, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SetUserId001 start");
+    PasteData data;
+    int32_t userId = 100;
+    data.SetUserId(userId);
+    EXPECT_EQ(data.GetUserId(), userId);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SetUserId001 end");
+}
+
+/**
+ * @tc.name: GetUserId001
+ * @tc.desc: GetUserId default value test
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(PasteDataTest, GetUserId001, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "GetUserId001 start");
+    PasteData data;
+    EXPECT_EQ(data.GetUserId(), -1);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "GetUserId001 end");
+}
+
+/**
+ * @tc.name: SetUserId002
+ * @tc.desc: SetUserId with zero value test
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(PasteDataTest, SetUserId002, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SetUserId002 start");
+    PasteData data;
+    int32_t userId = 0;
+    data.SetUserId(userId);
+    EXPECT_EQ(data.GetUserId(), userId);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SetUserId002 end");
+}
+
+/**
+ * @tc.name: SetUserId003
+ * @tc.desc: SetUserId with negative value test
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(PasteDataTest, SetUserId003, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SetUserId003 start");
+    PasteData data;
+    int32_t userId = -100;
+    data.SetUserId(userId);
+    EXPECT_EQ(data.GetUserId(), userId);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SetUserId003 end");
+}
 } // namespace OHOS::MiscServices

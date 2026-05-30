@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,19 +13,30 @@
  * limitations under the License.
  */
 
-#ifndef PASTEBOARD_ABILITY_MANAGER_H
-#define PASTEBOARD_ABILITY_MANAGER_H
-
-#include "want.h"
+#include "dm_adapter_mock.h"
 
 namespace OHOS::MiscServices {
-class PasteboardAbilityManager {
-public:
-    static int32_t CheckUIExtensionIsFocused(uint32_t tokenId, uint64_t displayId, bool &isFocused);
-    static int32_t StartAbility(const OHOS::AAFwk::Want &want);
+DMAdapterMock::DMAdapterMock()
+{
+    DMAdapterMock::mock_ = this;
+}
 
-private:
-    static sptr<IRemoteObject> GetAbilityManagerService();
-};
+DMAdapterMock::~DMAdapterMock()
+{
+    DMAdapterMock::mock_ = nullptr;
+}
+
+DMAdapterMock *DMAdapterMock::GetMock()
+{
+    return DMAdapterMock::mock_;
+}
+
+const std::string &DMAdapter::GetLocalDeviceUdid()
+{
+    auto mock = DMAdapterMock::GetMock();
+    if (mock == nullptr) {
+        return DMAdapterMock::emptyUdid_;
+    }
+    return mock->GetLocalDeviceUdid();
+}
 } // namespace OHOS::MiscServices
-#endif // PASTEBOARD_ABILITY_MANAGER_H

@@ -68,7 +68,6 @@ ohos_fuzztest("PasteboardConcurrentFuzzTest") {
   ]
   sources += [
     "${pasteboard_root_path}/adapter/data_share/datashare_delegate.cpp",
-    "${pasteboard_root_path}/adapter/security_level/security_level.cpp",
     "${pasteboard_service_path}/account/src/account_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_ability_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_dialog.cpp",
@@ -173,7 +172,9 @@ ohos_fuzztest("PasteboardConcurrentFuzzTest") {
   }
   if (pasteboard_dataclassification_enabled) {
     external_deps += [ "dataclassification:data_transit_mgr" ]
-    defines += [ "PB_DATACLASSIFICATION_ENABLE" ]
+    sources += [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
+  } else {
+    sources += [ "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp" ]
   }
 }
 
