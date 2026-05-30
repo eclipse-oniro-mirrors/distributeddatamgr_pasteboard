@@ -161,7 +161,7 @@ ohos_shared_library("pasteboard_service") {
     "resource_schedule_service:ressched_client",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
-    "udmf:udmf_client",
+    "udmf:udmf_core",
   ]
   if (window_manager_use_sceneboard) {
     external_deps += [ "window_manager:libwm_lite" ]
@@ -225,7 +225,7 @@ ohos_source_set("pasteboard_stub_proxy") {
     "hilog:libhilog",
     "ipc:ipc_single",
     "samgr:samgr_proxy",
-    "udmf:udmf_client",
+    "udmf:udmf_core",
   ]
   subsystem_name = "distributeddatamgr"
   part_name = "pasteboard"
@@ -260,7 +260,7 @@ ohos_source_set("pasteboard_client_idl") {
     "ipc:ipc_single",
     "image_framework:image",
     "samgr:samgr_proxy",
-    "udmf:udmf_client",
+    "udmf:udmf_core",
   ]
 
   subsystem_name = "distributeddatamgr"
@@ -296,7 +296,7 @@ ohos_source_set("pasteboard_service_idl") {
     "ipc:ipc_single",
     "image_framework:image",
     "samgr:samgr_proxy",
-    "udmf:udmf_client",
+    "udmf:udmf_core",
   ]
 
   subsystem_name = "distributeddatamgr"
