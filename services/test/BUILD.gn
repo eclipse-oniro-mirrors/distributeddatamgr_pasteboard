@@ -1403,6 +1403,7 @@ ohos_unittest("PasteServEventTest") {
     "${pasteboard_service_path}/zidl/src/pasteboard_entry_getter_proxy.cpp",
     "${pasteboard_utils_path}/native/src/pasteboard_common.cpp",
     "${pasteboard_utils_path}/native/src/pasteboard_time.cpp",
+    "unittest/src/pasteboard_common_event_subscriber_test.cpp",
     "unittest/src/pasteboard_service_event_test.cpp",
   ]
   defines = []
