@@ -67,6 +67,7 @@ const std::string TEST_ENTITY_TEXT_CN_5 =
     "清晨,从杭";
 const int64_t DEFAULT_MAX_RAW_DATA_SIZE = 128 * 1024 * 1024;
 constexpr int32_t MIMETYPE_MAX_SIZE = 1024;
+constexpr int32_t TEST_USER_ID = 100;
 static constexpr uint64_t ONE_HOUR_MILLISECONDS = 60 * 60 * 1000;
 } // namespace
 
@@ -892,7 +893,7 @@ HWTEST_F(PasteboardServiceEventTest, OnRemoteDiedTest003, TestSize.Level1)
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnRemoteDiedTest003 start");
     PasteboardService service;
     pid_t pid = 2;
-    auto tempPasteboard = std::make_shared<PasteboardService::PasteboardDeathRecipient>(service, pid);
+    auto tempPasteboard = std::make_shared<PasteboardService::PasteboardDeathRecipient>(service, pid, TEST_USER_ID);
     EXPECT_NE(tempPasteboard, nullptr);
 
     tempPasteboard->OnRemoteDied(nullptr);
