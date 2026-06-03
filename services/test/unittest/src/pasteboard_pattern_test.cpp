@@ -479,7 +479,7 @@ HWTEST_F(PasteboardPatternTest, DetectPlainTextTest001, TestSize.Level1)
     );
     record2->AddEntry(utdId2, plainEntry2);
     pasteData.AddRecord(record2);
-    std::set<Pattern> result = PatternDetection::Detect(patternsToCheck, pasteData, true, false);
+    std::set<Pattern> result = PatternDetection::Detect(patternsToCheck, pasteData, false, true);
     ASSERT_EQ(result.count(Pattern::URL), 1);
     ASSERT_EQ(result.count(Pattern::NUMBER), 1);
 }

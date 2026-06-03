@@ -1877,6 +1877,7 @@ HWTEST_F(PasteboardServiceMockTest, UserContextResolverResolveCallingUser001, Te
     EXPECT_TRUE(context.isValid);
     EXPECT_EQ(context.userId, userId);
     EXPECT_EQ(context.uid, uid);
+    EXPECT_EQ(context.source, UserContextSource::CALLER);
 }
 
 /**
@@ -1894,6 +1895,32 @@ HWTEST_F(PasteboardServiceMockTest, UserContextResolverResolveCallingUserFail001
     auto context = resolver.ResolveCallingUser();
     EXPECT_FALSE(context.isValid);
     EXPECT_EQ(context.userId, ERROR_USERID);
+    EXPECT_EQ(context.uid, -1);
+    EXPECT_EQ(context.source, UserContextSource::CALLER);
+}
+
+/**
+ * @tc.name: UserContextResolverResolveCallingUserFail002
+ * @tc.desc: test UserContextResolver ResolveCallingUser invalid userId
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, UserContextResolverResolveCallingUserFail002, TestSize.Level1)
+{
+    NiceMock<PasteboardServiceInterfaceMock> mock;
+    constexpr int32_t uid = 20010002;
+    EXPECT_CALL(mock, GetCallingUid()).WillOnce(Return(uid));
+    EXPECT_CALL(mock, GetOsAccountLocalIdFromUid(uid, testing::_))
+        .WillOnce([](const int, int &id) {
+            id = ERROR_USERID;
+            return ERR_OK;
+        });
+
+    UserContextResolver resolver;
+    auto context = resolver.ResolveCallingUser();
+    EXPECT_FALSE(context.isValid);
+    EXPECT_EQ(context.userId, ERROR_USERID);
+    EXPECT_EQ(context.uid, uid);
+    EXPECT_EQ(context.source, UserContextSource::CALLER);
 }
 
 /**
@@ -1915,7 +1942,230 @@ HWTEST_F(PasteboardServiceMockTest, UserContextResolverResolveMainDisplayUser001
     auto context = resolver.ResolveMainDisplayUser();
     EXPECT_TRUE(context.isValid);
     EXPECT_EQ(context.userId, userId);
-EXPECT_EQ(context.displayId, 0);
+    EXPECT_EQ(context.displayId, MAIN_DISPLAY_ID);
+    EXPECT_EQ(context.source, UserContextSource::MAIN_DISPLAY);
+}
+
+/**
+ * @tc.name: UserContextResolverResolveMainDisplayUserFail001
+ * @tc.desc: test UserContextResolver ResolveMainDisplayUser failure
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, UserContextResolverResolveMainDisplayUserFail001, TestSize.Level1)
+{
+    NiceMock<PasteboardServiceInterfaceMock> mock;
+    EXPECT_CALL(mock, GetForegroundOsAccountLocalId(MAIN_DISPLAY_ID, testing::_)).WillOnce(Return(-1));
+
+    UserContextResolver resolver;
+    auto context = resolver.ResolveMainDisplayUser();
+    EXPECT_FALSE(context.isValid);
+    EXPECT_EQ(context.userId, ERROR_USERID);
+    EXPECT_EQ(context.displayId, MAIN_DISPLAY_ID);
+    EXPECT_EQ(context.source, UserContextSource::MAIN_DISPLAY);
+}
+
+/**
+ * @tc.name: UserContextResolverResolveMainDisplayUserFail002
+ * @tc.desc: test UserContextResolver ResolveMainDisplayUser invalid userId
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, UserContextResolverResolveMainDisplayUserFail002, TestSize.Level1)
+{
+    NiceMock<PasteboardServiceInterfaceMock> mock;
+    EXPECT_CALL(mock, GetForegroundOsAccountLocalId(MAIN_DISPLAY_ID, testing::_))
+        .WillOnce([](uint64_t, int32_t &id) {
+            id = ERROR_USERID;
+            return ERR_OK;
+        });
+
+    UserContextResolver resolver;
+    auto context = resolver.ResolveMainDisplayUser();
+    EXPECT_FALSE(context.isValid);
+    EXPECT_EQ(context.userId, ERROR_USERID);
+    EXPECT_EQ(context.displayId, MAIN_DISPLAY_ID);
+    EXPECT_EQ(context.source, UserContextSource::MAIN_DISPLAY);
+}
+
+/**
+ * @tc.name: UserContextResolverResolveForegroundUsers001
+ * @tc.desc: test UserContextResolver ResolveForegroundUsers filters invalid user
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, UserContextResolverResolveForegroundUsers001, TestSize.Level1)
+{
+    NiceMock<PasteboardServiceInterfaceMock> mock;
+    constexpr int32_t mainUserId = 10;
+    constexpr int32_t subUserId = 101;
+    constexpr uint64_t subDisplayId = 1;
+    EXPECT_CALL(mock, GetForegroundOsAccounts(testing::_))
+        .WillOnce([](std::vector<AccountSA::ForegroundOsAccount> &accounts) {
+            AccountSA::ForegroundOsAccount main;
+            main.localId = mainUserId;
+            main.displayId = MAIN_DISPLAY_ID;
+            AccountSA::ForegroundOsAccount invalid;
+            invalid.localId = ERROR_USERID;
+            invalid.displayId = 2;
+            AccountSA::ForegroundOsAccount sub;
+            sub.localId = subUserId;
+            sub.displayId = subDisplayId;
+            accounts = { main, invalid, sub };
+            return ERR_OK;
+        });
+
+    UserContextResolver resolver;
+    auto contexts = resolver.ResolveForegroundUsers();
+    ASSERT_EQ(contexts.size(), 2);
+    EXPECT_EQ(contexts[0].userId, mainUserId);
+    EXPECT_EQ(contexts[0].displayId, MAIN_DISPLAY_ID);
+    EXPECT_EQ(contexts[0].source, UserContextSource::FOREGROUND);
+    EXPECT_TRUE(contexts[0].isValid);
+    EXPECT_EQ(contexts[1].userId, subUserId);
+    EXPECT_EQ(contexts[1].displayId, subDisplayId);
+    EXPECT_EQ(contexts[1].source, UserContextSource::FOREGROUND);
+    EXPECT_TRUE(contexts[1].isValid);
+}
+
+/**
+ * @tc.name: UserContextResolverResolveForegroundUsersFail001
+ * @tc.desc: test UserContextResolver ResolveForegroundUsers failure
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, UserContextResolverResolveForegroundUsersFail001, TestSize.Level1)
+{
+    NiceMock<PasteboardServiceInterfaceMock> mock;
+    EXPECT_CALL(mock, GetForegroundOsAccounts(testing::_)).WillOnce(Return(-1));
+
+    UserContextResolver resolver;
+    auto contexts = resolver.ResolveForegroundUsers();
+    EXPECT_TRUE(contexts.empty());
+}
+
+/**
+ * @tc.name: UserContextResolverResolveForegroundUsersFail002
+ * @tc.desc: test UserContextResolver ResolveForegroundUsers only invalid users
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, UserContextResolverResolveForegroundUsersFail002, TestSize.Level1)
+{
+    NiceMock<PasteboardServiceInterfaceMock> mock;
+    EXPECT_CALL(mock, GetForegroundOsAccounts(testing::_))
+        .WillOnce([](std::vector<AccountSA::ForegroundOsAccount> &accounts) {
+            AccountSA::ForegroundOsAccount invalid;
+            invalid.localId = ERROR_USERID;
+            invalid.displayId = MAIN_DISPLAY_ID;
+            accounts = { invalid };
+            return ERR_OK;
+        });
+
+    UserContextResolver resolver;
+    auto contexts = resolver.ResolveForegroundUsers();
+    EXPECT_TRUE(contexts.empty());
+}
+
+/**
+ * @tc.name: UserContextResolverResolveEventContext001
+ * @tc.desc: test UserContextResolver event context resolve success
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, UserContextResolverResolveEventContext001, TestSize.Level1)
+{
+    constexpr int32_t userId = 100;
+    EventFwk::CommonEventData data;
+    data.SetCode(userId);
+    AAFwk::Want want;
+    want.SetParam(PACKAGE_REMOVED_USER_ID, userId);
+
+    UserContextResolver resolver;
+    auto switched = resolver.ResolveUserSwitchedNewUser(data);
+    auto stopping = resolver.ResolveStoppingUser(data);
+    auto packageRemoved = resolver.ResolveUserIdFromWant(want);
+    auto event = resolver.ResolveEventUser(data);
+    auto made = resolver.MakeEventContext(userId, UserContextSource::USER_SWITCHED_OLD);
+
+    EXPECT_TRUE(switched.isValid);
+    EXPECT_EQ(switched.userId, userId);
+    EXPECT_EQ(switched.source, UserContextSource::USER_SWITCHED_NEW);
+    EXPECT_TRUE(stopping.isValid);
+    EXPECT_EQ(stopping.userId, userId);
+    EXPECT_EQ(stopping.source, UserContextSource::USER_STOPPING);
+    EXPECT_TRUE(packageRemoved.isValid);
+    EXPECT_EQ(packageRemoved.userId, userId);
+    EXPECT_EQ(packageRemoved.source, UserContextSource::PACKAGE_REMOVED);
+    EXPECT_TRUE(event.isValid);
+    EXPECT_EQ(event.userId, userId);
+    EXPECT_EQ(event.source, UserContextSource::EVENT);
+    EXPECT_TRUE(made.isValid);
+    EXPECT_EQ(made.userId, userId);
+    EXPECT_EQ(made.source, UserContextSource::USER_SWITCHED_OLD);
+}
+
+/**
+ * @tc.name: UserContextResolverResolveEventContextFail001
+ * @tc.desc: test UserContextResolver event context resolve invalid user
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, UserContextResolverResolveEventContextFail001, TestSize.Level1)
+{
+    EventFwk::CommonEventData data;
+    data.SetCode(ERROR_USERID);
+    AAFwk::Want want;
+
+    UserContextResolver resolver;
+    auto switched = resolver.ResolveUserSwitchedNewUser(data);
+    auto stopping = resolver.ResolveStoppingUser(data);
+    auto packageRemoved = resolver.ResolveUserIdFromWant(want);
+    auto event = resolver.ResolveEventUser(data);
+    auto made = resolver.MakeEventContext(ERROR_USERID, UserContextSource::USER_SWITCHED_OLD);
+
+    EXPECT_FALSE(switched.isValid);
+    EXPECT_EQ(switched.userId, ERROR_USERID);
+    EXPECT_EQ(switched.source, UserContextSource::USER_SWITCHED_NEW);
+    EXPECT_FALSE(stopping.isValid);
+    EXPECT_EQ(stopping.userId, ERROR_USERID);
+    EXPECT_EQ(stopping.source, UserContextSource::USER_STOPPING);
+    EXPECT_FALSE(packageRemoved.isValid);
+    EXPECT_EQ(packageRemoved.userId, ERROR_USERID);
+    EXPECT_EQ(packageRemoved.source, UserContextSource::PACKAGE_REMOVED);
+    EXPECT_FALSE(event.isValid);
+    EXPECT_EQ(event.userId, ERROR_USERID);
+    EXPECT_EQ(event.source, UserContextSource::EVENT);
+    EXPECT_FALSE(made.isValid);
+    EXPECT_EQ(made.userId, ERROR_USERID);
+    EXPECT_EQ(made.source, UserContextSource::USER_SWITCHED_OLD);
+}
+
+/**
+ * @tc.name: UserContextResolverResolveInteractionUser001
+ * @tc.desc: test UserContextResolver ResolveInteractionUser
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, UserContextResolverResolveInteractionUser001, TestSize.Level1)
+{
+    constexpr int32_t userId = 101;
+    UserContextResolver resolver;
+
+    auto valid = resolver.ResolveInteractionUser(userId);
+    EXPECT_TRUE(valid.isValid);
+    EXPECT_EQ(valid.userId, userId);
+    EXPECT_EQ(valid.source, UserContextSource::INTERACTION);
+
+    auto invalid = resolver.ResolveInteractionUser(ERROR_USERID);
+    EXPECT_FALSE(invalid.isValid);
+    EXPECT_EQ(invalid.userId, ERROR_USERID);
+    EXPECT_EQ(invalid.source, UserContextSource::INTERACTION);
+}
+
+/**
+ * @tc.name: UserContextResolverIsMainDisplayUser001
+ * @tc.desc: test IsMainScreenUser and IsMainDisplayUser
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, UserContextResolverIsMainDisplayUser001, TestSize.Level1)
+{
+    EXPECT_TRUE(IsMainScreenUser(MAIN_SCREEN_USER_ID));
+    EXPECT_FALSE(IsMainScreenUser(MAIN_SCREEN_USER_ID + 1));
+    EXPECT_TRUE(IsMainDisplayUser(MAIN_SCREEN_USER_ID));
+    EXPECT_FALSE(IsMainDisplayUser(ERROR_USERID));
 }
 
 /**
