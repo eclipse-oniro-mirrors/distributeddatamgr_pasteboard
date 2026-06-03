@@ -56,7 +56,6 @@
           "ipc",
           "image_framework",
           "json",
-          "kv_store",
           "libuv",
           "libxml2",
           "memmgr",
@@ -87,7 +86,7 @@
                 "//foundation/distributeddatamgr/pasteboard/services/dialog:pasteboard_dialog_hap",
                 "//foundation/distributeddatamgr/pasteboard/interfaces/taihe:pasteboard_taihe",
                 "//foundation/distributeddatamgr/pasteboard/tools/ohos-pasteboard:ohos-pasteboard"
-	    ],
+            ],
             "service_group": [
                 "//foundation/distributeddatamgr/pasteboard/etc/init:pasteboardservice.cfg",
                 "//foundation/distributeddatamgr/pasteboard/profile:distributeddatamgr_pasteboard_sa_profiles",
