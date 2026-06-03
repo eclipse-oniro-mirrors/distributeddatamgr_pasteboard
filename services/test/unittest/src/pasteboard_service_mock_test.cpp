@@ -21,6 +21,7 @@
 #include "accesstoken_kit.h"
 #include "default_clip.h"
 #include "dev_profile.h"
+#include "dev_slinfo_mgr.h"
 #include "distributed_file_daemon_manager.h"
 #include "input_method_controller.h"
 #include "input_method_property.h"
