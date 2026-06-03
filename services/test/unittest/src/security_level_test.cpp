@@ -45,12 +45,22 @@ void SecurityLevelTest::TearDownTestCase(void) {}
 void SecurityLevelTest::SetUp(void) {}
 void SecurityLevelTest::TearDown(void) {}
 
+/**
+ * @tc.name: Constructor_001
+ * @tc.desc: Test SecurityLevel default constructor initializes securityLevel_ to DATA_SEC_LEVEL0
+ * @tc.type: FUNC
+ */
 HWTEST_F(SecurityLevelTest, Constructor_001, TestSize.Level1)
 {
     SecurityLevel securityLevel;
     EXPECT_EQ(securityLevel.securityLevel_, DATA_SEC_LEVEL0);
 }
 
+/**
+ * @tc.name: IsSupportedDistributed_LevelAboveThreshold_001
+ * @tc.desc: Test IsSupportedDistributed returns true when security level is above threshold
+ * @tc.type: FUNC
+ */
 HWTEST_F(SecurityLevelTest, IsSupportedDistributed_LevelAboveThreshold_001, TestSize.Level1)
 {
     NiceMock<DevSlInfoMgrMock> devSlMock;
@@ -65,6 +75,11 @@ HWTEST_F(SecurityLevelTest, IsSupportedDistributed_LevelAboveThreshold_001, Test
     EXPECT_TRUE(securityLevel.IsSupportedDistributed(false));
 }
 
+/**
+ * @tc.name: IsSupportedDistributed_LevelBelowThreshold_NeedLog_001
+ * @tc.desc: Test IsSupportedDistributed returns false when level below threshold and needLog is true
+ * @tc.type: FUNC
+ */
 HWTEST_F(SecurityLevelTest, IsSupportedDistributed_LevelBelowThreshold_NeedLog_001, TestSize.Level1)
 {
     NiceMock<DevSlInfoMgrMock> devSlMock;
@@ -79,6 +94,11 @@ HWTEST_F(SecurityLevelTest, IsSupportedDistributed_LevelBelowThreshold_NeedLog_0
     EXPECT_FALSE(securityLevel.IsSupportedDistributed(true));
 }
 
+/**
+ * @tc.name: IsSupportedDistributed_LevelBelowThreshold_NoLog_001
+ * @tc.desc: Test IsSupportedDistributed returns false when level below threshold and needLog is false
+ * @tc.type: FUNC
+ */
 HWTEST_F(SecurityLevelTest, IsSupportedDistributed_LevelBelowThreshold_NoLog_001, TestSize.Level1)
 {
     NiceMock<DevSlInfoMgrMock> devSlMock;
@@ -93,6 +113,11 @@ HWTEST_F(SecurityLevelTest, IsSupportedDistributed_LevelBelowThreshold_NoLog_001
     EXPECT_FALSE(securityLevel.IsSupportedDistributed(false));
 }
 
+/**
+ * @tc.name: GetDeviceSecurityLevel_CachedLevel_001
+ * @tc.desc: Test cached security level is reused on second IsSupportedDistributed call without re-querying
+ * @tc.type: FUNC
+ */
 HWTEST_F(SecurityLevelTest, GetDeviceSecurityLevel_CachedLevel_001, TestSize.Level1)
 {
     NiceMock<DevSlInfoMgrMock> devSlMock;
@@ -114,6 +139,11 @@ HWTEST_F(SecurityLevelTest, GetDeviceSecurityLevel_CachedLevel_001, TestSize.Lev
     EXPECT_TRUE(securityLevel.IsSupportedDistributed(false));
 }
 
+/**
+ * @tc.name: GetSensitiveLevel_Success_001
+ * @tc.desc: Test GetSensitiveLevel succeeds with DATA_SEC_LEVEL3 and IsSupportedDistributed returns true
+ * @tc.type: FUNC
+ */
 HWTEST_F(SecurityLevelTest, GetSensitiveLevel_Success_001, TestSize.Level1)
 {
     NiceMock<DevSlInfoMgrMock> devSlMock;
@@ -129,6 +159,11 @@ HWTEST_F(SecurityLevelTest, GetSensitiveLevel_Success_001, TestSize.Level1)
     EXPECT_EQ(securityLevel.securityLevel_, DATA_SEC_LEVEL3);
 }
 
+/**
+ * @tc.name: GetSensitiveLevel_Failed_001
+ * @tc.desc: Test GetSensitiveLevel fails with DEVSL_ERROR and IsSupportedDistributed returns false
+ * @tc.type: FUNC
+ */
 HWTEST_F(SecurityLevelTest, GetSensitiveLevel_Failed_001, TestSize.Level1)
 {
     NiceMock<DevSlInfoMgrMock> devSlMock;
@@ -143,6 +178,11 @@ HWTEST_F(SecurityLevelTest, GetSensitiveLevel_Failed_001, TestSize.Level1)
     EXPECT_FALSE(securityLevel.IsSupportedDistributed(false));
 }
 
+/**
+ * @tc.name: InitDEVSLQueryParams_NullParams_001
+ * @tc.desc: Test SecurityLevel default state when DEVSL query params are not initialized
+ * @tc.type: FUNC
+ */
 HWTEST_F(SecurityLevelTest, InitDEVSLQueryParams_NullParams_001, TestSize.Level1)
 {
     NiceMock<DevSlInfoMgrMock> devSlMock;
@@ -156,6 +196,11 @@ HWTEST_F(SecurityLevelTest, InitDEVSLQueryParams_NullParams_001, TestSize.Level1
     EXPECT_EQ(securityLevel.securityLevel_, DATA_SEC_LEVEL0);
 }
 
+/**
+ * @tc.name: InitDEVSLQueryParams_EmptyUdid_001
+ * @tc.desc: Test IsSupportedDistributed returns false when device UDID is empty
+ * @tc.type: FUNC
+ */
 HWTEST_F(SecurityLevelTest, InitDEVSLQueryParams_EmptyUdid_001, TestSize.Level1)
 {
     NiceMock<DevSlInfoMgrMock> devSlMock;
@@ -171,6 +216,11 @@ HWTEST_F(SecurityLevelTest, InitDEVSLQueryParams_EmptyUdid_001, TestSize.Level1)
     EXPECT_EQ(securityLevel.securityLevel_, DATA_SEC_LEVEL0);
 }
 
+/**
+ * @tc.name: InitDEVSLQueryParams_Success_001
+ * @tc.desc: Test InitDEVSLQueryParams succeeds with valid UDID and sets correct udidLen
+ * @tc.type: FUNC
+ */
 HWTEST_F(SecurityLevelTest, InitDEVSLQueryParams_Success_001, TestSize.Level1)
 {
     DEVSLQueryParams params = {};
@@ -179,12 +229,22 @@ HWTEST_F(SecurityLevelTest, InitDEVSLQueryParams_Success_001, TestSize.Level1)
     EXPECT_EQ(params.udidLen, static_cast<uint32_t>(MAX_UDID_LENGTH));
 }
 
+/**
+ * @tc.name: InitDEVSLQueryParams_NullParams_002
+ * @tc.desc: Test InitDEVSLQueryParams returns false when params pointer is nullptr
+ * @tc.type: FUNC
+ */
 HWTEST_F(SecurityLevelTest, InitDEVSLQueryParams_NullParams_002, TestSize.Level1)
 {
     bool ret = InitDEVSLQueryParams(nullptr, TEST_UDID);
     EXPECT_FALSE(ret);
 }
 
+/**
+ * @tc.name: InitDEVSLQueryParams_EmptyUdid_002
+ * @tc.desc: Test InitDEVSLQueryParams returns false when UDID string is empty
+ * @tc.type: FUNC
+ */
 HWTEST_F(SecurityLevelTest, InitDEVSLQueryParams_EmptyUdid_002, TestSize.Level1)
 {
     DEVSLQueryParams params = {};
@@ -192,6 +252,11 @@ HWTEST_F(SecurityLevelTest, InitDEVSLQueryParams_EmptyUdid_002, TestSize.Level1)
     EXPECT_FALSE(ret);
 }
 
+/**
+ * @tc.name: InitDEVSLQueryParams_ShortUdid_001
+ * @tc.desc: Test InitDEVSLQueryParams succeeds with short UDID and copies partial content correctly
+ * @tc.type: FUNC
+ */
 HWTEST_F(SecurityLevelTest, InitDEVSLQueryParams_ShortUdid_001, TestSize.Level1)
 {
     DEVSLQueryParams params = {};
@@ -204,6 +269,11 @@ HWTEST_F(SecurityLevelTest, InitDEVSLQueryParams_ShortUdid_001, TestSize.Level1)
     EXPECT_EQ(params.udidLen, static_cast<uint32_t>(MAX_UDID_LENGTH));
 }
 
+/**
+ * @tc.name: GetSensitiveLevel_InitFailed_001
+ * @tc.desc: Test IsSupportedDistributed returns false when UDID is empty causing init to fail
+ * @tc.type: FUNC
+ */
 HWTEST_F(SecurityLevelTest, GetSensitiveLevel_InitFailed_001, TestSize.Level1)
 {
     NiceMock<DevSlInfoMgrMock> devSlMock;
@@ -218,6 +288,11 @@ HWTEST_F(SecurityLevelTest, GetSensitiveLevel_InitFailed_001, TestSize.Level1)
     EXPECT_FALSE(securityLevel.IsSupportedDistributed(false));
 }
 
+/**
+ * @tc.name: IsSupportedDistributed_Level3_001
+ * @tc.desc: Test IsSupportedDistributed returns true with DATA_SEC_LEVEL3 security level
+ * @tc.type: FUNC
+ */
 HWTEST_F(SecurityLevelTest, IsSupportedDistributed_Level3_001, TestSize.Level1)
 {
     NiceMock<DevSlInfoMgrMock> devSlMock;
