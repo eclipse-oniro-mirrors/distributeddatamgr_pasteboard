@@ -29,6 +29,7 @@ config("pasteboard_client_config") {
     "${pasteboard_utils_path}/native/include",
     "${root_out_dir}/gen/foundation/distributeddatamgr/pasteboard/services",
   ]
+  ldflags = ["-lc++"]
 }
 
 config("pasteboard_data_config") {
