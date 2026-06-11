@@ -71,7 +71,6 @@ ohos_fuzztest("PasteboardDisposableFuzzTest") {
     "image_framework:image_native",
     "init:libbegetutil",
     "ipc:ipc_single",
-    "udmf:udmf_core",
     "udmf:udmf_client",
   ]
 }
