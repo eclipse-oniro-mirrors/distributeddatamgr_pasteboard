@@ -1113,6 +1113,7 @@ AppInfo PasteboardService::GetAppInfo(uint32_t tokenId) const
     AppInfo info;
     info.tokenId = tokenId;
     info.tokenType = AccessTokenKit::GetTokenTypeFlag(tokenId);
+    info.userId = ResolveMainDisplayUserId();
     if (info.tokenType == ATokenTypeEnum::TOKEN_HAP) {
         FillHapAppInfo(tokenId, info);
     } else if (info.tokenType == ATokenTypeEnum::TOKEN_NATIVE || info.tokenType == ATokenTypeEnum::TOKEN_SHELL) {
@@ -1156,7 +1157,6 @@ void PasteboardService::FillNativeAppInfo(uint32_t tokenId, AppInfo &info) const
         return;
     }
     info.bundleName = tokenInfo.processName;
-    info.userId = ResolveMainDisplayUserId();
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE,
         "GetAppInfo Native: bundleName=%{public}s, userId=%{public}d", info.bundleName.c_str(), info.userId);
 }
