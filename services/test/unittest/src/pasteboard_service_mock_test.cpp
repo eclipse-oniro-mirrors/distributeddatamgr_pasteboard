@@ -2191,27 +2191,22 @@ HWTEST_F(PasteboardServiceMockTest, GetCurrentAccountIdUseCallingUid001, TestSiz
 }
 
 /**
- * @tc.name: GetAppInfoUsesCallingUserForHap001
- * @tc.desc: test GetAppInfo uses calling user for HAP tokens
+ * @tc.name: GetAppInfoReturnsErrorUserForInvalidHapToken001
+ * @tc.desc: test GetAppInfo returns invalid user when HAP token info query fails
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, GetAppInfoUsesCallingUserForHap001, TestSize.Level1)
+HWTEST_F(PasteboardServiceMockTest, GetAppInfoReturnsErrorUserForInvalidHapToken001, TestSize.Level1)
 {
     PasteboardService service;
     NiceMock<PasteboardServiceInterfaceMock> mock;
     constexpr uint32_t tokenId = 12345;
-    constexpr int32_t uid = 20010001;
-    constexpr int32_t callerUserId = 101;
     EXPECT_CALL(mock, GetTokenTypeFlag(tokenId)).WillOnce(Return(ATokenTypeEnum::TOKEN_HAP));
-    EXPECT_CALL(mock, GetCallingUid()).WillOnce(Return(uid));
-    EXPECT_CALL(mock, GetOsAccountLocalIdFromUid(uid, testing::_))
-        .WillOnce([](const int, int &id) {
-            id = callerUserId;
-            return ERR_OK;
-        });
+    EXPECT_CALL(mock, GetCallingUid()).Times(0);
+    EXPECT_CALL(mock, GetOsAccountLocalIdFromUid(testing::_, testing::_)).Times(0);
+    EXPECT_CALL(mock, GetForegroundOsAccountLocalId(testing::_, testing::_)).Times(0);
 
     auto info = service.GetAppInfo(tokenId);
-    EXPECT_EQ(info.userId, callerUserId);
+    EXPECT_EQ(info.userId, ERROR_USERID);
 }
 
 /**

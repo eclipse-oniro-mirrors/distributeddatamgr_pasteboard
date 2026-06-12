@@ -1113,15 +1113,17 @@ AppInfo PasteboardService::GetAppInfo(uint32_t tokenId) const
     AppInfo info;
     info.tokenId = tokenId;
     info.tokenType = AccessTokenKit::GetTokenTypeFlag(tokenId);
-    info.userId = ResolveMainDisplayUserId();
     if (info.tokenType == ATokenTypeEnum::TOKEN_HAP) {
         FillHapAppInfo(tokenId, info);
-    } else if (info.tokenType == ATokenTypeEnum::TOKEN_NATIVE || info.tokenType == ATokenTypeEnum::TOKEN_SHELL) {
-        FillNativeAppInfo(tokenId, info);
-    } else {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "tokenType = %{public}d not match.", info.tokenType);
+        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE,
+            "GetAppInfo complete: bundleName=%{public}s, userId=%{public}d, tokenType=%{public}d",
+            info.bundleName.c_str(), info.userId, info.tokenType);
+        return info;
     }
-    
+    info.userId = ResolveMainDisplayUserId();
+    if (info.tokenType == ATokenTypeEnum::TOKEN_NATIVE || info.tokenType == ATokenTypeEnum::TOKEN_SHELL) {
+        FillNativeAppInfo(tokenId, info);
+    }
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE,
         "GetAppInfo complete: bundleName=%{public}s, userId=%{public}d, tokenType=%{public}d",
         info.bundleName.c_str(), info.userId, info.tokenType);
@@ -1138,15 +1140,7 @@ void PasteboardService::FillHapAppInfo(uint32_t tokenId, AppInfo &info) const
     }
     info.bundleName = hapInfo.bundleName;
     info.appIndex = hapInfo.instIndex;
-    if (userContextResolver_ != nullptr) {
-        auto context = userContextResolver_->ResolveCallingUser();
-        info.userId = context.isValid ? context.userId : ERROR_USERID;
-    } else {
-        info.userId = ERROR_USERID;
-    }
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE,
-        "GetAppInfo HAP: bundleName=%{public}s, userId=%{public}d, appIndex=%{public}d",
-        info.bundleName.c_str(), info.userId, info.appIndex);
+    info.userId = hapInfo.userID;
 }
 
 void PasteboardService::FillNativeAppInfo(uint32_t tokenId, AppInfo &info) const
