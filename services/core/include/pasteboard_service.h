@@ -425,7 +425,7 @@ private:
     void IncreaseChangeCount(int32_t userId);
 
     static std::string GetTime();
-    bool IsDataAged();
+    bool IsDataAged(int32_t userId);
     bool VerifyPermission(uint32_t tokenId);
     int32_t IsDataValid(PasteData &pasteData, uint32_t tokenId, int32_t userId);
     AppInfo GetAppInfo(uint32_t tokenId) const;
@@ -537,7 +537,7 @@ private:
     void RemoveAllObserver(int32_t userId, ObserverMap &observerMap);
     bool IsCallerUidValid();
     std::vector<std::string> GetLocalMimeTypes();
-    bool HasLocalDataType(const std::string &mimeType);
+    bool HasLocalDataType(const std::string &mimeType, uint32_t tokenId, int32_t userId);
     int32_t GetRemoteMimeTypes(std::vector<std::string> &mimeTypes, const Event &event);
     bool HasRemoteDataType(const std::string &mimeType, const Event &event);
     void AddPermissionRecord(uint32_t tokenId, bool isReadGrant, bool isSecureGrant);

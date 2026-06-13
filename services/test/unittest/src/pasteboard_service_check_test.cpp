@@ -208,7 +208,8 @@ HWTEST_F(PasteboardServiceCheckTest, IsDataAgedTest001, TestSize.Level1)
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
 
-    bool ret = tempPasteboard->IsDataAged();
+    auto userId = tempPasteboard->GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
+    bool ret = tempPasteboard->IsDataAged(userId);
     EXPECT_EQ(ret, true);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "IsDataAgedTest001 end");
 }
