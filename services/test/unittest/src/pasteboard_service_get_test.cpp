@@ -886,9 +886,10 @@ HWTEST_F(PasteboardServiceGetTest, HasLocalDataTypeTest001, TestSize.Level1)
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
 
-    auto userId = tempPasteboard->GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
+    auto tokenId = IPCSkeleton::GetCallingTokenID();
+    auto userId = tempPasteboard->GetAppInfo(tokenId).userId;
     std::string mimeType = "text/html";
-    tempPasteboard->HasLocalDataType(mimeType);
+    tempPasteboard->HasLocalDataType(mimeType, tokenId, userId);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "HasLocalDataTypeTest001 end");
 }
 
@@ -903,9 +904,10 @@ HWTEST_F(PasteboardServiceGetTest, HasLocalDataTypeTest002, TestSize.Level1)
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
 
-    auto userId = tempPasteboard->GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
+    auto tokenId = IPCSkeleton::GetCallingTokenID();
+    auto userId = tempPasteboard->GetAppInfo(tokenId).userId;
     std::string mimeType = "text/html";
-    bool result = tempPasteboard->HasLocalDataType(mimeType);
+    bool result = tempPasteboard->HasLocalDataType(mimeType, tokenId, userId);
     EXPECT_EQ(result, false);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "HasLocalDataTypeTest002 end");
 }
@@ -922,8 +924,9 @@ HWTEST_F(PasteboardServiceGetTest, HasLocalDataTypeTest003, TestSize.Level1)
     EXPECT_NE(tempPasteboard, nullptr);
 
     auto userId = -1;
+    auto tokenId = IPCSkeleton::GetCallingTokenID();
     std::string mimeType = "text/html";
-    bool result = tempPasteboard->HasLocalDataType(mimeType);
+    bool result = tempPasteboard->HasLocalDataType(mimeType, tokenId, userId);
     EXPECT_EQ(result, false);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "HasLocalDataTypeTest003 end");
 }
@@ -944,8 +947,9 @@ HWTEST_F(PasteboardServiceGetTest, HasLocalDataTypeTest004, TestSize.Level1)
     pasteData->AddTextRecord("hello");
     tempPasteboard->clips_.InsertOrAssign(ACCOUNT_IDS_RANDOM, pasteData);
 
+    auto tokenId = IPCSkeleton::GetCallingTokenID();
     std::string mimeType = "text/plain";
-    bool result = tempPasteboard->HasLocalDataType(mimeType);
+    bool result = tempPasteboard->HasLocalDataType(mimeType, tokenId, ACCOUNT_IDS_RANDOM);
     EXPECT_EQ(result, false);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "HasLocalDataTypeTest004 end");
 }

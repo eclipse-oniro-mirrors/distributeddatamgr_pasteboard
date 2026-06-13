@@ -1042,7 +1042,7 @@ int32_t PasteboardService::IsDataValid(PasteData &pasteData, uint32_t tokenId, i
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "data is invalid");
         return static_cast<int32_t>(PasteboardError::INVALID_PARAM_ERROR);
     }
-    if (IsDataAged()) {
+    if (IsDataAged(userId)) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "data is aged");
         return static_cast<int32_t>(PasteboardError::DATA_EXPIRED_ERROR);
     }
@@ -1092,10 +1092,9 @@ int32_t PasteboardService::GetSdkVersion(uint32_t tokenId)
     return hapTokenInfo.apiVersion;
 }
 
-bool PasteboardService::IsDataAged()
+bool PasteboardService::IsDataAged(int32_t userId)
 {
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_SERVICE, "IsDataAged start");
-    auto userId = GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
     if (userId == ERROR_USERID) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "userId invalid.");
         return true;
@@ -2529,7 +2528,8 @@ int32_t PasteboardService::HasDataType(const std::string &mimeType, bool &funcRe
 
 bool PasteboardService::HasDataType(const std::string &mimeType)
 {
-    auto userId = GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
+    auto tokenId = IPCSkeleton::GetCallingTokenID();
+    auto userId = GetAppInfo(tokenId).userId;
     if (GetScreenStatus(userId) == ScreenEvent::ScreenUnlocked) {
         auto [distRet, distEvt] = GetValidDistributeEvent(userId);
         if (distRet == static_cast<int32_t>(PasteboardError::E_OK)) {
@@ -2550,7 +2550,7 @@ bool PasteboardService::HasDataType(const std::string &mimeType)
             }
         }
     }
-    return HasLocalDataType(mimeType);
+    return HasLocalDataType(mimeType, tokenId, userId);
 }
 
 int32_t PasteboardService::HasUtdType(const std::string &utdType, bool &funcResult)
@@ -2609,14 +2609,15 @@ bool PasteboardService::HasUtdType(const std::string &utdType)
 int32_t PasteboardService::DetectPatterns(const std::vector<Pattern> &patternsToCheck,
     std::vector<Pattern> &funcResult)
 {
-    bool hasPlain = HasLocalDataType(MIMETYPE_TEXT_PLAIN);
-    bool hasHTML = HasLocalDataType(MIMETYPE_TEXT_HTML);
+    auto tokenId = IPCSkeleton::GetCallingTokenID();
+    auto userId = GetAppInfo(tokenId).userId;
+    bool hasPlain = HasLocalDataType(MIMETYPE_TEXT_PLAIN, tokenId, userId);
+    bool hasHTML = HasLocalDataType(MIMETYPE_TEXT_HTML, tokenId, userId);
     if (!hasHTML && !hasPlain) {
         PASTEBOARD_HILOGW(PASTEBOARD_MODULE_SERVICE, "no text");
         std::vector<Pattern>().swap(funcResult);
         return static_cast<int32_t>(PasteboardError::NO_DATA_ERROR);
     }
-    int32_t userId = GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
     auto it = clips_.Find(userId);
     if (!it.first) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "error, no PasteData!");
@@ -2741,9 +2742,8 @@ std::vector<std::string> PasteboardService::GetLocalMimeTypes()
     return it.second->GetMimeTypes();
 }
 
-bool PasteboardService::HasLocalDataType(const std::string &mimeType)
+bool PasteboardService::HasLocalDataType(const std::string &mimeType, uint32_t tokenId, int32_t userId)
 {
-    auto userId = GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
     auto it = clips_.Find(userId);
     if (!it.first) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "can not find data. userId: %{public}d, mimeType: %{public}s",
@@ -2755,7 +2755,6 @@ bool PasteboardService::HasLocalDataType(const std::string &mimeType)
             userId, mimeType.c_str());
         return false;
     }
-    auto tokenId = IPCSkeleton::GetCallingTokenID();
     auto ret = IsDataValid(*(it.second), tokenId, userId);
     if (ret != static_cast<int32_t>(PasteboardError::E_OK)) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE,
