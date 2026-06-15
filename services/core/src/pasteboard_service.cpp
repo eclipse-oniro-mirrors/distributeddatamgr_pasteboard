@@ -893,6 +893,9 @@ int32_t PasteboardService::GetRecordValueByType(uint32_t dataId, uint32_t record
     auto [hasData, data] = clips_.Find(appInfo.userId);
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(hasData && data, static_cast<int32_t>(PasteboardError::NO_DATA_ERROR),
         PASTEBOARD_MODULE_SERVICE, "data not find, userId=%{public}d", appInfo.userId);
+    auto validRet = IsDataValid(*data, tokenId, appInfo.userId);
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(validRet == static_cast<int32_t>(PasteboardError::E_OK), validRet,
+        PASTEBOARD_MODULE_SERVICE, "paste data is invalid, ret=%{public}d", validRet);
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(dataId == data->GetDataId(),
         static_cast<int32_t>(PasteboardError::INVALID_DATA_ID), PASTEBOARD_MODULE_SERVICE,
         "dataId=%{public}u mismatch, local=%{public}u", dataId, data->GetDataId());
