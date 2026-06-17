@@ -16,6 +16,7 @@
 #ifndef OHOS_PASTEBOARD_SERVICES_DEVICE_DM_ADAPTER_H
 #define OHOS_PASTEBOARD_SERVICES_DEVICE_DM_ADAPTER_H
 #include <shared_mutex>
+#include <unordered_set>
 
 #include "api/visibility.h"
 #include "common/concurrent_map.h"
@@ -71,14 +72,13 @@ public:
     const std::string &GetLocalDeviceUdid();
     const std::string GetLocalNetworkId();
     std::string GetUdidByNetworkId(const std::string &networkId);
-    std::vector<std::string> GetNetworkIds();
+    std::vector<std::string> GetUdidList();
+    size_t GetDeviceNum();
+    bool IsDeviceOnline(const std::string &networkId);
     int32_t GetLocalDeviceType();
-    bool IsSameAccount(const std::string &networkId);
-    void SetDevices();
 
 #ifdef PB_DEVICE_MANAGER_ENABLE
     int32_t GetRemoteDeviceInfo(const std::string &networkId, DmDeviceInfo &remoteDevice);
-    std::vector<DmDeviceInfo> GetDevices();
 #endif
     std::string GetDeviceName(const std::string &networkId);
     void Register(DMObserver *observer);
@@ -100,12 +100,14 @@ private:
     ConcurrentMap<DMObserver *, DMObserver *> observers_;
 #ifdef PB_DEVICE_MANAGER_ENABLE
     std::shared_ptr<DmStateObserver> GetDmStateObserver();
+    std::string AddDevice(const DmDeviceInfo &deviceInfo);
+    std::string RemoveDevice(const DmDeviceInfo &deviceInfo);
 
     std::shared_ptr<DmStateObserver> dmStateObserver_ = nullptr;
     std::shared_ptr<DmDeath> dmDeathObserver_ = nullptr;
     std::shared_mutex dmMutex_;
     std::mutex observerMutex_;
-    std::vector<DmDeviceInfo> devices_;
+    std::unordered_set<std::string> devices_;
     std::atomic<int32_t> deviceType_ = DmDeviceType::DEVICE_TYPE_UNKNOWN;
 #endif
 };

@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#include <algorithm>
+#include <cstring>
 #include <thread>
 
 #include "common/pasteboard_common_utils.h"
@@ -60,16 +62,15 @@ void DmStateObserver::OnDeviceOffline(const DmDeviceInfo &deviceInfo)
 
 void DmStateObserver::OnDeviceChanged(const DmDeviceInfo &deviceInfo)
 {
-    if (DeviceManager::GetInstance().IsSameAccount(deviceInfo.networkId)) {
-        std::thread thread([=] {
-            // authForm not valid use networkId
-            PASTEBOARD_CHECK_AND_RETURN_LOGE(online_ != nullptr, PASTEBOARD_MODULE_SERVICE, "online_ is null");
-            PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "device config changed:%{public}.6s", deviceInfo.networkId);
-            online_(deviceInfo);
-        });
-        PasteBoardCommonUtils::SetThreadTaskName(thread, "OnDeviceChanged");
-        thread.detach();
-    }
+    std::thread thread([=] {
+        if (online_ == nullptr || deviceInfo.authForm != IDENTICAL_ACCOUNT) {
+            return;
+        }
+        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "device config changed:%{public}.6s", deviceInfo.networkId);
+        online_(deviceInfo);
+    });
+    PasteBoardCommonUtils::SetThreadTaskName(thread, "OnDeviceChanged");
+    thread.detach();
 }
 
 void DmStateObserver::OnDeviceReady(const DmDeviceInfo &deviceInfo)
@@ -116,7 +117,6 @@ bool DMAdapter::Initialize()
     }
     DeviceManager::GetInstance().InitDeviceManager(PKG_NAME, dmDeathObserver_);
     DeviceManager::GetInstance().RegisterDevStateCallback(PKG_NAME, "", observer);
-    SetDevices();
 #endif
     return false;
 }
@@ -130,22 +130,26 @@ std::shared_ptr<DmStateObserver> DMAdapter::GetDmStateObserver()
     }
     dmStateObserver_ = std::make_shared<DmStateObserver>(
         [this](const DmDeviceInfo &deviceInfo) {
-            observers_.ForEachCopies([&deviceInfo](auto &key, auto &value) {
-                DMAdapter::GetInstance().SetDevices();
-                value->Online(deviceInfo.networkId);
+            auto udid = AddDevice(deviceInfo);
+            PASTEBOARD_CHECK_AND_RETURN_LOGE(!udid.empty(), PASTEBOARD_MODULE_SERVICE, "add device failed");
+            observers_.ForEachCopies([&udid](auto &key, auto &value) {
+                value->Online(udid);
                 return false;
             });
         },
         [this](const DmDeviceInfo &deviceInfo) {
-            observers_.ForEachCopies([&deviceInfo](auto &key, auto &value) {
-                value->OnReady(deviceInfo.networkId);
+            auto udid = GetUdidByNetworkId(deviceInfo.networkId);
+            PASTEBOARD_CHECK_AND_RETURN_LOGE(!udid.empty(), PASTEBOARD_MODULE_SERVICE, "get udid failed");
+            observers_.ForEachCopies([&udid](auto &key, auto &value) {
+                value->OnReady(udid);
                 return false;
             });
         },
         [this](const DmDeviceInfo &deviceInfo) {
-            observers_.ForEachCopies([&deviceInfo](auto &key, auto &value) {
-                DMAdapter::GetInstance().SetDevices();
-                value->Offline(deviceInfo.networkId);
+            auto udid = RemoveDevice(deviceInfo);
+            PASTEBOARD_CHECK_AND_RETURN_LOGE(!udid.empty(), PASTEBOARD_MODULE_SERVICE, "remove device failed");
+            observers_.ForEachCopies([&udid](auto &key, auto &value) {
+                value->Offline(udid);
                 return false;
             });
         });
@@ -185,12 +189,11 @@ const std::string &DMAdapter::GetLocalDeviceUdid()
 std::string DMAdapter::GetDeviceName(const std::string &networkId)
 {
 #ifdef PB_DEVICE_MANAGER_ENABLE
-    auto devices = GetDevices();
-    for (auto &device : devices) {
-        if (device.networkId == networkId) {
-            return device.deviceName;
-        }
-    }
+    DmDeviceInfo remoteDevice;
+    int32_t ret = GetRemoteDeviceInfo(networkId, remoteDevice);
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(ret == static_cast<int32_t>(PasteboardError::E_OK), DEVICE_INVALID_NAME,
+        PASTEBOARD_MODULE_SERVICE, "remote device is not exist");
+    return remoteDevice.deviceName;
 #endif
     return DEVICE_INVALID_NAME;
 }
@@ -212,12 +215,15 @@ const std::string DMAdapter::GetLocalNetworkId()
 #ifdef PB_DEVICE_MANAGER_ENABLE
 int32_t DMAdapter::GetRemoteDeviceInfo(const std::string &networkId, DmDeviceInfo &remoteDevice)
 {
-    auto devices = GetDevices();
-    for (auto &device : devices) {
-        if (device.networkId == networkId) {
-            remoteDevice = device;
-            return static_cast<int32_t>(PasteboardError::E_OK);
-        }
+    remoteDevice = {};
+    if (IsDeviceOnline(networkId)) {
+        PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(networkId.size() < sizeof(remoteDevice.networkId),
+            static_cast<int32_t>(PasteboardError::INVALID_PARAM_ERROR), PASTEBOARD_MODULE_SERVICE,
+            "networkId too long");
+        std::copy(networkId.begin(), networkId.end(), remoteDevice.networkId);
+        std::copy_n(DEVICE_INVALID_NAME, strlen(DEVICE_INVALID_NAME), remoteDevice.deviceName);
+        remoteDevice.authForm = IDENTICAL_ACCOUNT;
+        return static_cast<int32_t>(PasteboardError::E_OK);
     }
     return static_cast<int32_t>(PasteboardError::NO_TRUST_DEVICE_ERROR);
 }
@@ -245,22 +251,37 @@ void DMAdapter::Unregister(DMObserver *observer)
     observers_.Erase(observer);
 }
 
-std::vector<std::string> DMAdapter::GetNetworkIds()
+std::vector<std::string> DMAdapter::GetUdidList()
 {
 #ifdef PB_DEVICE_MANAGER_ENABLE
-    auto devices = GetDevices();
-    PASTEBOARD_HILOGD(PASTEBOARD_MODULE_SERVICE, "devicesNums = %{public}zu.", devices.size());
-    if (devices.empty()) {
-        PASTEBOARD_HILOGD(PASTEBOARD_MODULE_SERVICE, "no device online!");
-        return {};
-    }
-    std::vector<std::string> networkIds;
-    for (auto &item : devices) {
-        networkIds.emplace_back(item.networkId);
-    }
-    return networkIds;
+    std::shared_lock<std::shared_mutex> lock(dmMutex_);
+    return { devices_.begin(), devices_.end() };
 #else
     return {};
+#endif
+}
+
+size_t DMAdapter::GetDeviceNum()
+{
+#ifdef PB_DEVICE_MANAGER_ENABLE
+    std::shared_lock<std::shared_mutex> lock(dmMutex_);
+    return devices_.size();
+#else
+    return 0;
+#endif
+}
+
+bool DMAdapter::IsDeviceOnline(const std::string &networkId)
+{
+#ifdef PB_DEVICE_MANAGER_ENABLE
+    auto udid = GetUdidByNetworkId(networkId);
+    if (udid.empty()) {
+        return false;
+    }
+    std::shared_lock<std::shared_mutex> lock(dmMutex_);
+    return devices_.find(udid) != devices_.end();
+#else
+    return false;
 #endif
 }
 
@@ -283,44 +304,30 @@ int32_t DMAdapter::GetLocalDeviceType()
 #endif
 }
 
-bool DMAdapter::IsSameAccount(const std::string &networkId)
-{
 #ifdef PB_DEVICE_MANAGER_ENABLE
-    auto devices = GetDevices();
-    for (auto &device : devices) {
-        if (device.networkId == networkId) {
-            return device.authForm == IDENTICAL_ACCOUNT;
-        }
-    }
-#endif
-    return false;
-}
-
-void DMAdapter::SetDevices()
+std::string DMAdapter::AddDevice(const DmDeviceInfo &deviceInfo)
 {
-#ifdef PB_DEVICE_MANAGER_ENABLE
-    std::vector<DmDeviceInfo> devices;
-    int32_t ret = DeviceManager::GetInstance().GetTrustedDeviceList(PKG_NAME, "", devices);
-    if (ret != 0) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "Get device list failed, errCode: %{public}d", ret);
-        return;
+    if (deviceInfo.authForm != IDENTICAL_ACCOUNT) {
+        return {};
     }
-    std::vector<DmDeviceInfo> networkIds;
-    for (auto &item : devices) {
-        if (DeviceManager::GetInstance().IsSameAccount(item.networkId)) {
-            networkIds.emplace_back(item);
-        }
+    auto udid = GetUdidByNetworkId(deviceInfo.networkId);
+    if (udid.empty()) {
+        return {};
     }
     std::unique_lock<std::shared_mutex> lock(dmMutex_);
-    devices_ = std::move(networkIds);
-#endif
+    devices_.emplace(udid);
+    return udid;
 }
 
-#ifdef PB_DEVICE_MANAGER_ENABLE
-std::vector<DmDeviceInfo> DMAdapter::GetDevices()
+std::string DMAdapter::RemoveDevice(const DmDeviceInfo &deviceInfo)
 {
-    std::shared_lock<std::shared_mutex> lock(dmMutex_);
-    return devices_;
+    auto udid = GetUdidByNetworkId(deviceInfo.networkId);
+    if (udid.empty()) {
+        return {};
+    }
+    std::unique_lock<std::shared_mutex> lock(dmMutex_);
+    devices_.erase(udid);
+    return udid;
 }
 #endif
 } // namespace OHOS::MiscServices
