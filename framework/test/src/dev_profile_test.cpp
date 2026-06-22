@@ -122,8 +122,8 @@ HWTEST_F(DevProfileTest, GetDeviceStatusTest001, TestSize.Level0)
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "GetDeviceStatusTest001 start");
 #ifdef PB_DEVICE_INFO_MANAGER_ENABLE
     bool enabledStatus = false;
-    std::string networkId = "test.dev.profile";
-    int32_t ret = DevProfile::GetInstance().GetDeviceStatus(networkId, enabledStatus);
+    std::string udid = "test.dev.profile";
+    int32_t ret = DevProfile::GetInstance().GetDeviceStatus(udid, enabledStatus);
     EXPECT_NE(ret, static_cast<int32_t>(PasteboardError::E_OK));
 #else
     EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::NO_TRUST_DEVICE_ERROR));
@@ -144,7 +144,8 @@ HWTEST_F(DevProfileTest, GetDeviceStatusTest002, TestSize.Level0)
 #ifdef PB_DEVICE_INFO_MANAGER_ENABLE
     bool enabledStatus = false;
     auto networkId = DMAdapter::GetInstance().GetLocalNetworkId();
-    int32_t ret = DevProfile::GetInstance().GetDeviceStatus(networkId, enabledStatus);
+    auto udid = DMAdapter::GetInstance().GetUdidByNetworkId(networkId);
+    int32_t ret = DevProfile::GetInstance().GetDeviceStatus(udid, enabledStatus);
     EXPECT_NE(ret, static_cast<int32_t>(PasteboardError::NO_TRUST_DEVICE_ERROR));
 #else
     EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::NO_TRUST_DEVICE_ERROR));

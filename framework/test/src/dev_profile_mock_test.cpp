@@ -59,15 +59,9 @@ HWTEST_F(DevProfileMockTest, GetDeviceStatusTest001, TestSize.Level0)
     NiceMock<DistributedDeviceProfile::DeviceProfileClientMock> dpMock;
     EXPECT_CALL(dpMock, GetCharacteristicProfile)
         .WillRepeatedly(testing::Return(static_cast<int32_t>(PasteboardError::NO_TRUST_DEVICE_ERROR)));
-    EXPECT_CALL(*deviceManagerMock_, GetUdidByNetworkId(testing::_, testing::_, testing::_))
-        .Times(1)
-        .WillRepeatedly([](auto, auto, std::string &udid) {
-            udid = "testUdid";
-            return 0;
-        });
+    EXPECT_CALL(*deviceManagerMock_, GetUdidByNetworkId(testing::_, testing::_, testing::_)).Times(0);
     bool enabledStatus = false;
-    auto networkId = DMAdapter::GetInstance().GetLocalNetworkId();
-    int32_t ret = DevProfile::GetInstance().GetDeviceStatus(networkId, enabledStatus);
+    int32_t ret = DevProfile::GetInstance().GetDeviceStatus("testUdid", enabledStatus);
     ASSERT_EQ(static_cast<int32_t>(PasteboardError::NO_TRUST_DEVICE_ERROR), ret);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "GetDeviceStatusTest001 end");
 }
@@ -92,12 +86,34 @@ HWTEST_F(DevProfileMockTest, GetDeviceStatusTest002, TestSize.Level0)
         });
     
     bool enabledStatus = false;
-    auto networkId = DMAdapter::GetInstance().GetLocalNetworkId();
-    int32_t ret = DevProfile::GetInstance().GetDeviceStatus(networkId, enabledStatus);
+    int32_t ret = DevProfile::GetInstance().GetDeviceStatus("testUdid", enabledStatus);
     ASSERT_EQ(static_cast<int32_t>(PasteboardError::E_OK), ret);
-    ret = DevProfile::GetInstance().GetDeviceStatus(networkId, enabledStatus);
+    ret = DevProfile::GetInstance().GetDeviceStatus("testUdid", enabledStatus);
     ASSERT_EQ(static_cast<int32_t>(PasteboardError::E_OK), ret);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "GetDeviceStatusTest002 end");
+}
+
+/**
+ * @tc.name: GetDeviceStatusByUdid001
+ * @tc.desc: GetDeviceStatus should use udid directly.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(DevProfileMockTest, GetDeviceStatusByUdid001, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "GetDeviceStatusByUdid001 start");
+    constexpr const char *UDID = "testUdid";
+    NiceMock<DistributedDeviceProfile::DeviceProfileClientMock> dpMock;
+    EXPECT_CALL(dpMock, GetCharacteristicProfile)
+        .WillRepeatedly(testing::Return(DistributedDeviceProfile::DP_SUCCESS));
+    EXPECT_CALL(*deviceManagerMock_, GetUdidByNetworkId(testing::_, testing::_, testing::_)).Times(0);
+    DevProfile::GetInstance().enabledStatusCache_.Clear();
+
+    bool enabledStatus = false;
+    int32_t ret = DevProfile::GetInstance().GetDeviceStatus(UDID, enabledStatus);
+    ASSERT_EQ(static_cast<int32_t>(PasteboardError::E_OK), ret);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "GetDeviceStatusByUdid001 end");
 }
 
 /**
@@ -388,10 +404,10 @@ PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "UnSubscribeProfileEventTest002 star
         udid = "testUdid";
         return 0;
     });
-    std::string networkId = "pasteboard_dm_adapter";
+    std::string udid = "testUdid";
     DMAdapter::GetInstance().Initialize();
     DevProfile::GetInstance().proxy_ = nullptr;
-    DevProfile::GetInstance().UnSubscribeProfileEvent(networkId);
+    DevProfile::GetInstance().UnSubscribeProfileEvent(udid);
     EXPECT_TRUE(DevProfile::GetInstance().subscribeUdidList_.empty());
 #else
     EXPECT_TRUE(true);

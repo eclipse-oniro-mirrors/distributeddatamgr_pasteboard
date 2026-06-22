@@ -527,7 +527,7 @@ HWTEST_F(PasteboardServiceEventTest, SetUeEventTest001, TestSize.Level1)
     UeReportInfo ueReportInfo;
     std::string peerNetId = "";
     tempPasteboard->SetUeEvent(appInfo, pasteData, isPeerOnline, ueReportInfo, peerNetId);
-    EXPECT_EQ(ueReportInfo.pasteInfo.onlineDevNum, DMAdapter::GetInstance().GetNetworkIds().size());
+    EXPECT_EQ(ueReportInfo.pasteInfo.onlineDevNum, DMAdapter::GetInstance().GetDeviceNum());
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetUeEventTest001 end");
 }
 

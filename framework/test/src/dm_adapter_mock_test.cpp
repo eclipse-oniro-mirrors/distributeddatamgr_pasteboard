@@ -15,6 +15,9 @@
 
 #include "dm_adapter_mock_test.h"
 
+#include <algorithm>
+#include <thread>
+
 #include "device/dm_adapter.h"
 #include "pasteboard_error.h"
 #include "pasteboard_hilog.h"
@@ -24,6 +27,31 @@ using namespace testing::ext;
 
 namespace OHOS {
 namespace MiscServices {
+namespace {
+constexpr uint32_t DM_STATE_SLEEP_MS = 20;
+
+class TestDMObserver : public DMAdapter::DMObserver {
+public:
+    void Online(const std::string &device) override
+    {
+        onlineDevice_ = device;
+    }
+
+    void Offline(const std::string &device) override
+    {
+        offlineDevice_ = device;
+    }
+
+    void OnReady(const std::string &device) override
+    {
+        readyDevice_ = device;
+    }
+
+    std::string onlineDevice_;
+    std::string offlineDevice_;
+    std::string readyDevice_;
+};
+} // namespace
 
 void DMAdapterMockTest::SetUpTestCase(void)
 {
@@ -54,8 +82,9 @@ HWTEST_F(DMAdapterMockTest, OnDeviceChanged001, TestSize.Level0)
 {
 PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "OnDeviceChanged001 start");
 #ifdef PB_DEVICE_MANAGER_ENABLE
-    EXPECT_CALL(*deviceManagerMock_, IsSameAccount(testing::_)).Times(1).WillRepeatedly(testing::Return(true));
+    EXPECT_CALL(*deviceManagerMock_, IsSameAccount(testing::_)).Times(0);
     DmDeviceInfo info;
+    info.authForm = IDENTICAL_ACCOUNT;
     std::string networkId = "testNetworkId";
     std::copy(networkId.begin(), networkId.end(), info.networkId);
     auto stateObserver = std::make_shared<DmStateObserver>(
@@ -87,8 +116,9 @@ HWTEST_F(DMAdapterMockTest, OnDeviceChanged002, TestSize.Level0)
 {
 PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "OnDeviceChanged002 start");
 #ifdef PB_DEVICE_MANAGER_ENABLE
-    EXPECT_CALL(*deviceManagerMock_, IsSameAccount(testing::_)).Times(1).WillRepeatedly(testing::Return(false));
+    EXPECT_CALL(*deviceManagerMock_, IsSameAccount(testing::_)).Times(0);
     DmDeviceInfo info;
+    info.authForm = INVALID_TYPE;
     std::string networkId = "testNetworkId";
     std::copy(networkId.begin(), networkId.end(), info.networkId);
     auto stateObserver = std::make_shared<DmStateObserver>(
@@ -273,6 +303,37 @@ PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "GetUdidByNetworkId003 end");
 }
 
 /**
+ * @tc.name: GetUdidByNetworkId004
+ * @tc.desc: GetUdidByNetworkId should resolve only by networkId.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(DMAdapterMockTest, GetUdidByNetworkId004, TestSize.Level0)
+{
+PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "GetUdidByNetworkId004 start");
+#ifdef PB_DEVICE_MANAGER_ENABLE
+    constexpr const char *ONLINE_UDID = "onlineUdid";
+    constexpr const char *RESOLVED_UDID = "resolvedUdid";
+    DMAdapter::GetInstance().devices_.clear();
+    DMAdapter::GetInstance().devices_.emplace(ONLINE_UDID);
+
+    EXPECT_CALL(*deviceManagerMock_, GetUdidByNetworkId(testing::_, testing::_, testing::_))
+        .Times(1)
+        .WillRepeatedly([](auto, auto, std::string &udid) {
+            udid = "resolvedUdid";
+            return 0;
+        });
+    std::string udid = DMAdapter::GetInstance().GetUdidByNetworkId(ONLINE_UDID);
+    ASSERT_EQ(RESOLVED_UDID, udid);
+    DMAdapter::GetInstance().devices_.clear();
+#else
+    ASSERT_TRUE(true);
+#endif
+PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "GetUdidByNetworkId004 end");
+}
+
+/**
  * @tc.name: GetLocalDeviceType001
  * @tc.desc: GetLocalDeviceType.
  * @tc.type: FUNC
@@ -295,93 +356,46 @@ PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "GetLocalDeviceType001 end");
 }
 
 /**
- * @tc.name: SetDevices001
- * @tc.desc: SetDevices.
+ * @tc.name: OnDeviceOnlineMaintainsUdidCache001
+ * @tc.desc: OnDeviceOnline should maintain udid cache incrementally.
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(DMAdapterMockTest, SetDevices001, TestSize.Level0)
+HWTEST_F(DMAdapterMockTest, OnDeviceOnlineMaintainsUdidCache001, TestSize.Level0)
 {
-PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SetDevices001 start");
+PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "OnDeviceOnlineMaintainsUdidCache001 start");
 #ifdef PB_DEVICE_MANAGER_ENABLE
-    EXPECT_CALL(*deviceManagerMock_, GetTrustedDeviceList(testing::_, testing::_, testing::_))
-        .Times(1)
-        .WillRepeatedly([](auto, auto, std::vector<DmDeviceInfo> &deviceList) {
-            DmDeviceInfo info;
-            std::string networkId = "testNetworkId";
-            std::copy(networkId.begin(), networkId.end(), info.networkId);
-            deviceList.emplace_back(info);
-            return 1;
-        });
-    EXPECT_CALL(*deviceManagerMock_, IsSameAccount(testing::_)).Times(0);
-    DMAdapter::GetInstance().SetDevices();
-    ASSERT_TRUE(true);
+    constexpr const char *NETWORK_ID = "testNetworkId";
+    constexpr const char *UDID = "testUdid";
     DMAdapter::GetInstance().devices_.clear();
-#else
-    ASSERT_TRUE(true);
-#endif
-PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SetDevices001 end");
-}
-
-/**
- * @tc.name: SetDevices002
- * @tc.desc: SetDevices.
- * @tc.type: FUNC
- * @tc.require:
- * @tc.author:
- */
-HWTEST_F(DMAdapterMockTest, SetDevices002, TestSize.Level0)
-{
-PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SetDevices002 start");
-#ifdef PB_DEVICE_MANAGER_ENABLE
-    EXPECT_CALL(*deviceManagerMock_, GetTrustedDeviceList(testing::_, testing::_, testing::_))
+    TestDMObserver observer;
+    DMAdapter::GetInstance().Register(&observer);
+    EXPECT_CALL(*deviceManagerMock_, GetTrustedDeviceList(testing::_, testing::_, testing::_)).Times(0);
+    EXPECT_CALL(*deviceManagerMock_, GetUdidByNetworkId(testing::_, testing::_, testing::_))
         .Times(1)
-        .WillRepeatedly([](auto, auto, std::vector<DmDeviceInfo> &deviceList) {
-            DmDeviceInfo info;
-            std::string networkId = "testNetworkId";
-            std::copy(networkId.begin(), networkId.end(), info.networkId);
-            deviceList.emplace_back(info);
+        .WillRepeatedly([](auto, auto, std::string &udid) {
+            udid = "testUdid";
             return 0;
         });
-    EXPECT_CALL(*deviceManagerMock_, IsSameAccount(testing::_)).Times(1).WillRepeatedly(testing::Return(false));
-    DMAdapter::GetInstance().SetDevices();
-    ASSERT_TRUE(true);
-    DMAdapter::GetInstance().devices_.clear();
-#else
-    ASSERT_TRUE(true);
-#endif
-PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SetDevices002 end");
-}
 
-/**
- * @tc.name: SetDevices003
- * @tc.desc: SetDevices.
- * @tc.type: FUNC
- * @tc.require:
- * @tc.author:
- */
-HWTEST_F(DMAdapterMockTest, SetDevices003, TestSize.Level0)
-{
-PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SetDevices003 start");
-#ifdef PB_DEVICE_MANAGER_ENABLE
-    EXPECT_CALL(*deviceManagerMock_, GetTrustedDeviceList(testing::_, testing::_, testing::_))
-        .Times(1)
-        .WillRepeatedly([](auto, auto, std::vector<DmDeviceInfo> &deviceList) {
-            DmDeviceInfo info;
-            std::string networkId = "testNetworkId";
-            std::copy(networkId.begin(), networkId.end(), info.networkId);
-            deviceList.emplace_back(info);
-            return 0;
-        });
-    EXPECT_CALL(*deviceManagerMock_, IsSameAccount(testing::_)).Times(1).WillRepeatedly(testing::Return(true));
-    DMAdapter::GetInstance().SetDevices();
-    ASSERT_TRUE(true);
+    DmDeviceInfo info;
+    info.authForm = IDENTICAL_ACCOUNT;
+    std::string networkId = NETWORK_ID;
+    std::copy(networkId.begin(), networkId.end(), info.networkId);
+    DMAdapter::GetInstance().GetDmStateObserver()->OnDeviceOnline(info);
+    std::this_thread::sleep_for(std::chrono::milliseconds(DM_STATE_SLEEP_MS));
+
+    EXPECT_EQ(1U, DMAdapter::GetInstance().GetDeviceNum());
+    auto udids = DMAdapter::GetInstance().GetUdidList();
+    EXPECT_NE(std::find(udids.begin(), udids.end(), UDID), udids.end());
+    EXPECT_EQ(UDID, observer.onlineDevice_);
+    DMAdapter::GetInstance().Unregister(&observer);
     DMAdapter::GetInstance().devices_.clear();
 #else
     ASSERT_TRUE(true);
 #endif
-PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SetDevices003 end");
+PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "OnDeviceOnlineMaintainsUdidCache001 end");
 }
 
 } // namespace MiscServices

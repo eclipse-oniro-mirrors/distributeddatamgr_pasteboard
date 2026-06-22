@@ -94,7 +94,7 @@ HWTEST_F(DistributedModuleConfigTest, IsOnTest003, TestSize.Level0)
     info.authForm = IDENTICAL_ACCOUNT;
     std::copy(networkId.begin(), networkId.end(), info.networkId);
     std::copy(testName.begin(), testName.end(), info.deviceName);
-    DMAdapter::GetInstance().devices_.emplace_back(info);
+    DMAdapter::GetInstance().devices_.emplace(networkId);
 
     DistributedModuleConfig config;
     bool result = config.IsOn();

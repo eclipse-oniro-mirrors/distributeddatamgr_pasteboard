@@ -95,25 +95,25 @@ void DistributedModuleConfig::GetRetryTask()
 
 size_t DistributedModuleConfig::GetDeviceNum()
 {
-    auto networkIds = DMAdapter::GetInstance().GetNetworkIds();
-    return networkIds.size();
+    return DMAdapter::GetInstance().GetDeviceNum();
 }
 
 int32_t DistributedModuleConfig::GetEnabledStatus()
 {
     auto localNetworkId = DMAdapter::GetInstance().GetLocalNetworkId();
+    auto localUdid = DMAdapter::GetInstance().GetUdidByNetworkId(localNetworkId);
     bool localEnable = false;
-    auto status = DevProfile::GetInstance().GetDeviceStatus(localNetworkId, localEnable);
+    auto status = DevProfile::GetInstance().GetDeviceStatus(localUdid, localEnable);
     if (status != static_cast<int32_t>(PasteboardError::E_OK) || !localEnable) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "GetLocalEnable false, ret:%{public}d, switch:%{public}d",
             status, localEnable);
         return static_cast<int32_t>(PasteboardError::LOCAL_SWITCH_NOT_TURNED_ON);
     }
-    auto networkIds = DMAdapter::GetInstance().GetNetworkIds();
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "device online nums: %{public}zu", networkIds.size());
-    for (auto &id : networkIds) {
+    auto udids = DMAdapter::GetInstance().GetUdidList();
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "device online nums: %{public}zu", udids.size());
+    for (auto &udid : udids) {
         bool remoteEnable = false;
-        auto res = DevProfile::GetInstance().GetDeviceStatus(id, remoteEnable);
+        auto res = DevProfile::GetInstance().GetDeviceStatus(udid, remoteEnable);
         if (res == static_cast<int32_t>(PasteboardError::E_OK) && remoteEnable) {
             return static_cast<int32_t>(PasteboardError::E_OK);
         }
@@ -139,16 +139,16 @@ std::pair<uint32_t, uint32_t> DistributedModuleConfig::GetRemoteDeviceVersion()
     uint32_t minVersion = UINT_MAX;
     uint32_t maxVersion = 0;
 
-    const auto &networkIds = DMAdapter::GetInstance().GetNetworkIds();
-    for (const auto &networkId : networkIds) {
+    const auto &udids = DMAdapter::GetInstance().GetUdidList();
+    for (const auto &udid : udids) {
         bool remoteEnable = false;
-        auto res = DevProfile::GetInstance().GetDeviceStatus(networkId, remoteEnable);
+        auto res = DevProfile::GetInstance().GetDeviceStatus(udid, remoteEnable);
         if (res != static_cast<int32_t>(PasteboardError::E_OK) || !remoteEnable) {
             continue;
         }
 
         uint32_t deviceVersion = 0;
-        if (!DevProfile::GetInstance().GetDeviceVersion(networkId, deviceVersion)) {
+        if (!DevProfile::GetInstance().GetDeviceVersion(udid, deviceVersion)) {
             continue;
         }
 
@@ -173,8 +173,7 @@ void DistributedModuleConfig::Offline(const std::string &device)
     srand(time(nullptr));
     std::this_thread::sleep_for(std::chrono::milliseconds((int32_t(rand() % (RANDOM_MAX - RANDOM_MIN)))));
     DevProfile::GetInstance().UnSubscribeProfileEvent(device);
-    std::string udid = DMAdapter::GetInstance().GetUdidByNetworkId(device);
-    DevProfile::GetInstance().EraseEnabledStatus(udid);
+    DevProfile::GetInstance().EraseEnabledStatus(device);
     Notify();
 }
 
