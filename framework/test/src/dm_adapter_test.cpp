@@ -356,32 +356,6 @@ PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "OnDeviceReady004 end");
 }
 
 /**
- * @tc.name: GetNetworkIds001
- * @tc.desc: GetNetworkIds.
- * @tc.type: FUNC
- * @tc.require:
- * @tc.author:
- */
-HWTEST_F(DMAdapterTest, GetNetworkIds001, TestSize.Level0)
-{
-PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "GetNetworkIds001 start");
-#ifdef PB_DEVICE_MANAGER_ENABLE
-    std::string networkId = "testNetworkId";
-    std::string testName = "testDeviceName";
-    DmDeviceInfo info;
-    info.authForm = IDENTICAL_ACCOUNT;
-    std::copy(networkId.begin(), networkId.end(), info.networkId);
-    std::copy(testName.begin(), testName.end(), info.deviceName);
-    DMAdapter::GetInstance().devices_.emplace_back(info);
-    auto ids = DMAdapter::GetInstance().GetNetworkIds();
-    ASSERT_NE(0, ids.size());
-#else
-    ASSERT_TRUE(true);
-#endif
-PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "GetNetworkIds001 end");
-}
-
-/**
  * @tc.name: GetLocalDeviceUdid001
  * @tc.desc: Get the local device udid.
  * @tc.type: FUNC
@@ -535,7 +509,7 @@ PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "GetRemoteDeviceInfo002 start");
     info.authForm = IDENTICAL_ACCOUNT;
     std::copy(networkId.begin(), networkId.end(), info.networkId);
     std::copy(testName.begin(), testName.end(), info.deviceName);
-    DMAdapter::GetInstance().devices_.emplace_back(info);
+    DMAdapter::GetInstance().devices_.emplace(networkId);
     DmDeviceInfo remoteDevice;
     int32_t result = DMAdapter::GetInstance().GetRemoteDeviceInfo("testNetworkId", remoteDevice);
     ASSERT_EQ(static_cast<int32_t>(PasteboardError::NO_TRUST_DEVICE_ERROR), result);
@@ -558,91 +532,6 @@ HWTEST_F(DMAdapterTest, GetUdidByNetworkId, TestSize.Level0)
     auto udid = DMAdapter::GetInstance().GetUdidByNetworkId("");
     ASSERT_TRUE(udid.empty());
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "GetUdidByNetworkId end");
-}
-
-/**
- * @tc.name: IsSameAccount
- * @tc.desc: is same account.
- * @tc.type: FUNC
- * @tc.require:
- * @tc.author:
- */
-HWTEST_F(DMAdapterTest, IsSameAccount, TestSize.Level0)
-{
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "IsSameAccount start");
-    std::string networkId = DMAdapter::GetInstance().GetLocalNetworkId();
-    bool ret = DMAdapter::GetInstance().IsSameAccount(networkId);
-    ASSERT_TRUE(ret);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "IsSameAccount end");
-}
-
-/**
- * @tc.name: IsSameAccount002
- * @tc.desc: is same account.
- * @tc.type: FUNC
- * @tc.require:
- * @tc.author:
- */
-HWTEST_F(DMAdapterTest, IsSameAccount002, TestSize.Level0)
-{
-PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "IsSameAccount002 start");
-#ifdef PB_DEVICE_MANAGER_ENABLE
-    std::string networkId = "testNetworkId";
-    std::string testName = "testDeviceName";
-    DmDeviceInfo info;
-    info.authForm = IDENTICAL_ACCOUNT;
-    std::copy(networkId.begin(), networkId.end(), info.networkId);
-    std::copy(testName.begin(), testName.end(), info.deviceName);
-    DMAdapter::GetInstance().devices_.emplace_back(info);
-    bool ret = DMAdapter::GetInstance().IsSameAccount(networkId);
-    ASSERT_TRUE(ret);
-#else
-    ASSERT_TRUE(true);
-#endif
-PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "IsSameAccount002 end");
-}
-
-/**
- * @tc.name: IsSameAccount003
- * @tc.desc: is same account.
- * @tc.type: FUNC
- * @tc.require:
- * @tc.author:
- */
-HWTEST_F(DMAdapterTest, IsSameAccount003, TestSize.Level0)
-{
-PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "IsSameAccount003 start");
-#ifdef PB_DEVICE_MANAGER_ENABLE
-    bool res = DMAdapter::GetInstance().Initialize();
-    std::string networkId = DMAdapter::GetInstance().GetLocalNetworkId();
-    std::string testName = "testDeviceName";
-    DmDeviceInfo info;
-    info.authForm = IDENTICAL_ACCOUNT;
-    std::copy(networkId.begin(), networkId.end(), info.networkId);
-    std::copy(testName.begin(), testName.end(), info.deviceName);
-    DMAdapter::GetInstance().devices_.emplace_back(info);
-    bool ret = DMAdapter::GetInstance().IsSameAccount("testNetworkId");
-    ASSERT_FALSE(ret);
-#else
-    ASSERT_TRUE(true);
-#endif
-PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "IsSameAccount003 end");
-}
-
-/**
- * @tc.name: GetDevices
- * @tc.desc: Get Devices.
- * @tc.type: FUNC
- * @tc.require:
- * @tc.author:
- */
-HWTEST_F(DMAdapterTest, GetDevices, TestSize.Level0)
-{
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "GetDevices start");
-    DMAdapter::GetInstance().SetDevices();
-    std::vector<DmDeviceInfo> devices = DMAdapter::GetInstance().GetDevices();
-    ASSERT_TRUE(devices.empty());
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "GetDevices end");
 }
 
 /**
@@ -714,12 +603,12 @@ PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "GetDeviceName003 start");
 #ifdef PB_DEVICE_MANAGER_ENABLE
     bool res = DMAdapter::GetInstance().Initialize();
     std::string networkId = DMAdapter::GetInstance().GetLocalNetworkId();
-    std::string expectedDeviceName = "testDeviceName";
+    std::string expectedDeviceName = "unknown";
     DmDeviceInfo info;
     info.authForm = IDENTICAL_ACCOUNT;
     std::copy(networkId.begin(), networkId.end(), info.networkId);
     std::copy(expectedDeviceName.begin(), expectedDeviceName.end(), info.deviceName);
-    DMAdapter::GetInstance().devices_.emplace_back(info);
+    DMAdapter::GetInstance().devices_.emplace(networkId);
     std::string actualDeviceName = DMAdapter::GetInstance().GetDeviceName(networkId);
     EXPECT_EQ(expectedDeviceName, actualDeviceName);
 #else
@@ -746,7 +635,7 @@ PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "GetDeviceName004 start");
     info.authForm = IDENTICAL_ACCOUNT;
     std::copy(networkId.begin(), networkId.end(), info.networkId);
     std::copy(testName.begin(), testName.end(), info.deviceName);
-    DMAdapter::GetInstance().devices_.emplace_back(info);
+    DMAdapter::GetInstance().devices_.emplace(networkId);
     std::string actualDeviceName = DMAdapter::GetInstance().GetDeviceName("testNetworkId");
     EXPECT_EQ("unknown", actualDeviceName);
 #else

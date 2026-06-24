@@ -1270,7 +1270,7 @@ void PasteboardService::SetRadarEvent(const AppInfo &appInfo, PasteData &data, b
     radarReportInfo.stageRes = DFX_SUCCESS;
     radarReportInfo.bundleName = appInfo.bundleName;
     radarReportInfo.description = data.GetReportDescription();
-    radarReportInfo.pasteInfo.onlineDevNum = DMAdapter::GetInstance().GetNetworkIds().size();
+    radarReportInfo.pasteInfo.onlineDevNum = DMAdapter::GetInstance().GetDeviceNum();
     radarReportInfo.pasteInfo.peerNetId = PasteboardDfxUntil::GetAnonymousID(peerNetId);
     radarReportInfo.pasteInfo.peerUdid = PasteboardDfxUntil::GetAnonymousID(peerUdid);
     radarReportInfo.pasteInfo.peerBundleName = data.GetOriginAuthority().first;
@@ -1293,7 +1293,7 @@ void PasteboardService::SetUeEvent(const AppInfo &appInfo, PasteData &data, bool
     ueReportInfo.pasteInfo.peerBundleName = data.GetOriginAuthority().first;
     ueReportInfo.pasteInfo.isDistributed = data.IsRemote();
     ueReportInfo.pasteInfo.isPeerOnline = isPeerOnline;
-    ueReportInfo.pasteInfo.onlineDevNum = DMAdapter::GetInstance().GetNetworkIds().size();
+    ueReportInfo.pasteInfo.onlineDevNum = DMAdapter::GetInstance().GetDeviceNum();
     ueReportInfo.description = data.GetReportDescription();
     ueReportInfo.timestamp = data.GetProperty().timestamp;
 }
@@ -1541,9 +1541,7 @@ void PasteboardService::HandleNotificationsAndStatusChecks(const AppInfo &appInf
         NotifyObservers(targetBundleName, appInfo.userId, PasteboardEventStatus::PASTEBOARD_READ);
     }
     if (!peerNetId.empty()) {
-        auto peerNetIds = DMAdapter::GetInstance().GetNetworkIds();
-        auto it = std::find(peerNetIds.begin(), peerNetIds.end(), peerNetId);
-        isPeerOnline = (it != peerNetIds.end());
+        isPeerOnline = DMAdapter::GetInstance().IsDeviceOnline(peerNetId);
     }
 }
 

@@ -31,11 +31,11 @@ class API_EXPORT DevProfile {
 public:
     using Observer = std::function<void(bool isEnable)>;
     static DevProfile &GetInstance();
-    int32_t GetDeviceStatus(const std::string &networkId, bool &status);
+    int32_t GetDeviceStatus(const std::string &udid, bool &status);
     void PutDeviceStatus(bool status);
-    bool GetDeviceVersion(const std::string &networkId, uint32_t &deviceVersion);
-    void SubscribeProfileEvent(const std::string &networkId);
-    void UnSubscribeProfileEvent(const std::string &networkId);
+    bool GetDeviceVersion(const std::string &udid, uint32_t &deviceVersion);
+    void SubscribeProfileEvent(const std::string &udid);
+    void UnSubscribeProfileEvent(const std::string &udid);
     void UnSubscribeAllProfileEvents();
     void SendSubscribeInfos();
     void ClearDeviceProfileService();

@@ -92,12 +92,11 @@ void DevProfile::PutDeviceStatus(bool status)
     Notify(status);
 }
 
-int32_t DevProfile::GetDeviceStatus(const std::string &networkId, bool &status)
+int32_t DevProfile::GetDeviceStatus(const std::string &udid, bool &status)
 {
-    std::string udid = DMAdapter::GetInstance().GetUdidByNetworkId(networkId);
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(!udid.empty(),
         static_cast<int32_t>(PasteboardError::GET_LOCAL_DEVICE_ID_ERROR), PASTEBOARD_MODULE_SERVICE,
-        "get udid failed, netId=%{public}.5s", networkId.c_str());
+        "udid is empty");
 
     bool cachedStatus = enabledStatusCache_.ComputeIfPresent(udid, [&status](const auto &key, auto &value) {
         status = value;
@@ -123,11 +122,10 @@ int32_t DevProfile::GetDeviceStatus(const std::string &networkId, bool &status)
     return static_cast<int32_t>(PasteboardError::E_OK);
 }
 
-bool DevProfile::GetDeviceVersion(const std::string &networkId, uint32_t &versionId)
+bool DevProfile::GetDeviceVersion(const std::string &udid, uint32_t &versionId)
 {
-    std::string udid = DMAdapter::GetInstance().GetUdidByNetworkId(networkId);
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(!udid.empty(), false,
-        PASTEBOARD_MODULE_SERVICE, "get udid failed, netId=%{public}.5s", networkId.c_str());
+        PASTEBOARD_MODULE_SERVICE, "udid is empty");
 
     std::lock_guard lock(proxyMutex_);
     PostDelayReleaseProxy();
@@ -140,16 +138,14 @@ bool DevProfile::GetDeviceVersion(const std::string &networkId, uint32_t &versio
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(ret, false,
         PASTEBOARD_MODULE_SERVICE, "get dp version failed, udid=%{public}.5s", udid.c_str());
 
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "netid=%{public}.5s, udid=%{public}.5s, version=%{public}u",
-        networkId.c_str(), udid.c_str(), versionId);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "udid=%{public}.5s, version=%{public}u", udid.c_str(), versionId);
     return true;
 }
 
-void DevProfile::SubscribeProfileEvent(const std::string &networkId)
+void DevProfile::SubscribeProfileEvent(const std::string &udid)
 {
-    std::string udid = DMAdapter::GetInstance().GetUdidByNetworkId(networkId);
     PASTEBOARD_CHECK_AND_RETURN_LOGE(!udid.empty(), PASTEBOARD_MODULE_SERVICE,
-        "get udid failed, netId=%{public}.5s", networkId.c_str());
+        "udid is empty");
 
     std::lock_guard lock(proxyMutex_);
     PostDelayReleaseProxy();
@@ -169,11 +165,10 @@ void DevProfile::SubscribeProfileEvent(const std::string &networkId)
     subscribeUdidList_.emplace(udid);
 }
 
-void DevProfile::UnSubscribeProfileEvent(const std::string &networkId)
+void DevProfile::UnSubscribeProfileEvent(const std::string &udid)
 {
-    std::string udid = DMAdapter::GetInstance().GetUdidByNetworkId(networkId);
     PASTEBOARD_CHECK_AND_RETURN_LOGE(!udid.empty(), PASTEBOARD_MODULE_SERVICE,
-        "get udid failed, netId=%{public}.5s", networkId.c_str());
+        "udid is empty");
 
     std::lock_guard lock(proxyMutex_);
     PostDelayReleaseProxy();
