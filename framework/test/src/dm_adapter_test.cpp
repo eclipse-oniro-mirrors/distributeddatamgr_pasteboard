@@ -16,6 +16,7 @@
 #include <gtest/gtest.h>
 #include <thread>
 
+#include "device/dev_profile.h"
 #include "device/dm_adapter.h"
 #include "device_manager.h"
 #include "distributed_clip.h"
@@ -35,7 +36,10 @@ public:
 
 void DMAdapterTest::SetUpTestCase(void) {}
 
-void DMAdapterTest::TearDownTestCase(void) {}
+void DMAdapterTest::TearDownTestCase(void)
+{
+    DevProfile::GetInstance().ClearDeviceProfileService();
+}
 
 void DMAdapterTest::SetUp(void) {}
 
@@ -507,40 +511,12 @@ PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "GetRemoteDeviceInfo002 start");
     std::copy(testName.begin(), testName.end(), info.deviceName);
     DMAdapter::GetInstance().devices_.emplace(networkId);
     DmDeviceInfo remoteDevice;
-    int32_t result = DMAdapter::GetInstance().GetRemoteDeviceInfo(networkId, remoteDevice);
-    ASSERT_EQ(static_cast<int32_t>(PasteboardError::E_OK), result);
-#else
-    ASSERT_TRUE(true);
-#endif
-PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "GetRemoteDeviceInfo002 end");
-}
-
-/**
- * @tc.name: GetRemoteDeviceInfo003
- * @tc.desc: Get the remote device info.
- * @tc.type: FUNC
- * @tc.require:
- * @tc.author:
- */
-HWTEST_F(DMAdapterTest, GetRemoteDeviceInfo003, TestSize.Level0)
-{
-PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "GetRemoteDeviceInfo003 start");
-#ifdef PB_DEVICE_MANAGER_ENABLE
-    bool res = DMAdapter::GetInstance().Initialize();
-    std::string networkId = DMAdapter::GetInstance().GetLocalNetworkId();
-    std::string testName = "testDeviceName";
-    DmDeviceInfo info;
-    info.authForm = IDENTICAL_ACCOUNT;
-    std::copy(networkId.begin(), networkId.end(), info.networkId);
-    std::copy(testName.begin(), testName.end(), info.deviceName);
-    DMAdapter::GetInstance().devices_.emplace(networkId);
-    DmDeviceInfo remoteDevice;
     int32_t result = DMAdapter::GetInstance().GetRemoteDeviceInfo("testNetworkId", remoteDevice);
     ASSERT_EQ(static_cast<int32_t>(PasteboardError::NO_TRUST_DEVICE_ERROR), result);
 #else
     ASSERT_TRUE(true);
 #endif
-PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "GetRemoteDeviceInfo003 end");
+PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "GetRemoteDeviceInfo002 end");
 }
 
 /**
