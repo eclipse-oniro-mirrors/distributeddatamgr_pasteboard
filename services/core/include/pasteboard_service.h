@@ -31,6 +31,9 @@
 #include "loader.h"
 #include "pasteboard_account_state_subscriber.h"
 #include "pasteboard_common_event_subscriber.h"
+#ifdef PB_COCKPIT_PLATFORM_ENABLE
+#include "pasteboard_distributed_account_subscriber.h"
+#endif
 #include "pasteboard_dump_helper.h"
 #include "pasteboard_event_common.h"
 #include "pasteboard_service_stub.h"
@@ -493,6 +496,9 @@ private:
     std::set<uint32_t> readBundles_;
     std::shared_ptr<PasteBoardCommonEventSubscriber> commonEventSubscriber_ = nullptr;
     std::shared_ptr<PasteBoardAccountStateSubscriber> accountStateSubscriber_ = nullptr;
+#ifdef PB_COCKPIT_PLATFORM_ENABLE
+    std::shared_ptr<PasteboardDistributedAccountSubscriber> distributedAccountSubscriber_ = nullptr;
+#endif
     std::unique_ptr<UserContextResolver> userContextResolver_ = std::make_unique<UserContextResolver>();
 
     std::recursive_mutex mutex;
@@ -548,6 +554,9 @@ private:
     void PasteboardEventSubscriber();
     void CommonEventSubscriber();
     void AccountStateSubscriber();
+#ifdef PB_COCKPIT_PLATFORM_ENABLE
+    void DistributedAccountSubscriber();
+#endif
     bool IsBasicType(const std::string &mimeType);
     std::function<void(const OHOS::MiscServices::Event &)> RemotePasteboardChange();
     std::shared_ptr<InputEventCallback> inputEventCallback_;
