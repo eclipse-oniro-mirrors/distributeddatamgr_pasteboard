@@ -90,6 +90,7 @@ ohos_shared_library("pasteboard_service") {
     "core/src/pasteboard_service.cpp",
     "core/src/pasteboard_user_context.cpp",
     "core/src/pasteboard_window_manager.cpp",
+    "core/src/pasteboard_distributed_account_subscriber.cpp",
     "dfx/src/behaviour/pasteboard_behaviour_reporter_impl.cpp",
     "dfx/src/calculate_time_consuming.cpp",
     "dfx/src/command.cpp",
@@ -197,6 +198,10 @@ ohos_shared_library("pasteboard_service") {
     sources += [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
   } else {
     sources += [ "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp" ]
+  }
+
+  if (pasteboard_cockpit_platform_enabled) {
+    defines += [ "PB_COCKPIT_PLATFORM_ENABLE" ]
   }
 
   subsystem_name = "distributeddatamgr"
