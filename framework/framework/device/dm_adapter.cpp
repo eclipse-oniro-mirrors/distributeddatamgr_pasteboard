@@ -36,12 +36,14 @@ DmStateObserver::DmStateObserver(const std::function<void(const DmDeviceInfo &)>
 
 void DmStateObserver::OnDeviceOnline(const DmDeviceInfo &deviceInfo)
 {
-    std::thread thread([=] {
-        if (online_ == nullptr || deviceInfo.authForm != IDENTICAL_ACCOUNT) {
+    auto online = online_;
+    auto info = deviceInfo;
+    std::thread thread([online, info] {
+        if (online == nullptr || info.authForm != IDENTICAL_ACCOUNT) {
             return;
         }
-        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "device on:%{public}.6s", deviceInfo.networkId);
-        online_(deviceInfo);
+        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "device on:%{public}.6s", info.networkId);
+        online(info);
     });
     PasteBoardCommonUtils::SetThreadTaskName(thread, "OnDeviceOnline");
     thread.detach();
@@ -49,12 +51,14 @@ void DmStateObserver::OnDeviceOnline(const DmDeviceInfo &deviceInfo)
 
 void DmStateObserver::OnDeviceOffline(const DmDeviceInfo &deviceInfo)
 {
-    std::thread thread([=] {
-        if (offline_ == nullptr) {
+    auto offline = offline_;
+    auto info = deviceInfo;
+    std::thread thread([offline, info] {
+        if (offline == nullptr) {
             return;
         }
-        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "device off:%{public}.6s", deviceInfo.networkId);
-        offline_(deviceInfo);
+        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "device off:%{public}.6s", info.networkId);
+        offline(info);
     });
     PasteBoardCommonUtils::SetThreadTaskName(thread, "OnDeviceOffline");
     thread.detach();
@@ -62,12 +66,14 @@ void DmStateObserver::OnDeviceOffline(const DmDeviceInfo &deviceInfo)
 
 void DmStateObserver::OnDeviceChanged(const DmDeviceInfo &deviceInfo)
 {
-    std::thread thread([=] {
-        if (online_ == nullptr || deviceInfo.authForm != IDENTICAL_ACCOUNT) {
+    auto online = online_;
+    auto info = deviceInfo;
+    std::thread thread([online, info] {
+        if (online == nullptr || info.authForm != IDENTICAL_ACCOUNT) {
             return;
         }
-        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "device config changed:%{public}.6s", deviceInfo.networkId);
-        online_(deviceInfo);
+        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "device config changed:%{public}.6s", info.networkId);
+        online(info);
     });
     PasteBoardCommonUtils::SetThreadTaskName(thread, "OnDeviceChanged");
     thread.detach();
@@ -75,12 +81,14 @@ void DmStateObserver::OnDeviceChanged(const DmDeviceInfo &deviceInfo)
 
 void DmStateObserver::OnDeviceReady(const DmDeviceInfo &deviceInfo)
 {
-    std::thread thread([=] {
-        if (onReady_ == nullptr || deviceInfo.authForm != IDENTICAL_ACCOUNT) {
+    auto onReady = onReady_;
+    auto info = deviceInfo;
+    std::thread thread([onReady, info] {
+        if (onReady == nullptr || info.authForm != IDENTICAL_ACCOUNT) {
             return;
         }
-        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "device onReady:%{public}.6s", deviceInfo.networkId);
-        onReady_(deviceInfo);
+        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "device onReady:%{public}.6s", info.networkId);
+        onReady(info);
     });
     PasteBoardCommonUtils::SetThreadTaskName(thread, "OnDeviceReady");
     thread.detach();

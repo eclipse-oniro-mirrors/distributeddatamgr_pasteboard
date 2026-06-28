@@ -1222,7 +1222,7 @@ bool SystemPasteboardNapi::CheckParamsType(napi_env env, napi_value in, napi_val
 bool SystemPasteboardNapi::ParseJsGetDataWithProgress(napi_env env, napi_value in,
     std::shared_ptr<MiscServices::GetDataParams> &getDataParam)
 {
-    #define MAX_DESTURI_LEN 250
+    constexpr size_t MAX_DESTURI_LEN = 250;
     napi_value destUri = nullptr;
     PASTEBOARD_CALL_BASE(napi_get_named_property(env, in, "destUri", &destUri), false);
     if (CheckParamsType(env, destUri, napi_string)) {
@@ -1232,14 +1232,9 @@ bool SystemPasteboardNapi::ParseJsGetDataWithProgress(napi_env env, napi_value i
             PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "destUriLen check failed!");
             return false;
         }
-        char *uri = (char *)malloc(destUriLen + 1);
-        if (uri == nullptr) {
-            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "malloc failed, uri is nullptr.");
-            return false;
-        }
-        PASTEBOARD_CALL_BASE(napi_get_value_string_utf8(env, destUri, uri, destUriLen + 1, &destUriLen), false);
+        std::string uri;
+        PASTEBOARD_CALL_BASE(GetValue(env, destUri, uri), false);
         getDataParam->destUri = uri;
-        free(uri);
     }
     napi_value fileConflictOption;
     PASTEBOARD_CALL_BASE(napi_get_named_property(env, in, "fileConflictOptions", &fileConflictOption), false);
