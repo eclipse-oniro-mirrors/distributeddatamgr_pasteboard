@@ -255,6 +255,9 @@ void PasteboardService::InitializeDumpCommands()
     PasteboardDumpHelper::GetInstance().RegisterCommand(copyData);
     CommonEventSubscriber();
     AccountStateSubscriber();
+#ifdef PB_COCKPIT_PLATFORM_ENABLE
+    DistributedAccountSubscriber();
+#endif
     PasteboardEventSubscriber();
 }
 
@@ -5146,6 +5149,35 @@ void PasteboardService::AccountStateSubscriber()
     accountStateSubscriber_ = std::make_shared<PasteBoardAccountStateSubscriber>(subscribeInfo, this);
     AccountSA::OsAccountManager::SubscribeOsAccount(accountStateSubscriber_);
 }
+
+#ifdef PB_COCKPIT_PLATFORM_ENABLE
+void PasteboardService::DistributedAccountSubscriber()
+{
+    if (distributedAccountSubscriber_ != nullptr) {
+        PASTEBOARD_HILOGD(PASTEBOARD_MODULE_SERVICE, "distributedAccountSubscriber_ already exists");
+        return;
+    }
+    
+    std::set<AccountSA::DistributedAccountSpaceEventType> types = {
+        AccountSA::DistributedAccountSpaceEventType::SWITCHING
+    };
+    
+    distributedAccountSubscriber_ = std::make_shared<PasteboardDistributedAccountSubscriber>(this);
+    
+    ErrCode err = AccountSA::OsAccountManager::SubscribeDistributedAccountSpaceEvents(
+        types, distributedAccountSubscriber_);
+    
+    if (err != AccountSA::ERR_OK) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, 
+            "SubscribeDistributedAccountSpaceEvents failed: %{public}d", err);
+        distributedAccountSubscriber_ = nullptr;
+        return;
+    }
+    
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, 
+        "DistributedAccountSubscriber initialized, subscribed SWITCHING event");
+}
+#endif
 
 void PasteboardService::RemoveObserverByPid(int32_t userId, pid_t pid, ObserverMap &observerMap)
 {
