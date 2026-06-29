@@ -13,18 +13,18 @@
  * limitations under the License.
  */
 
-#ifndef PASTEBOARD_DUMP_HELPER_H
-#define PASTEBOARD_DUMP_HELPER_H
+#ifndef PASTEBOARD_DUMP_MANAGER_H
+#define PASTEBOARD_DUMP_MANAGER_H
 
 #include "pasteboard_service.h"
 
 namespace OHOS {
 namespace MiscServices {
 
-class PasteboardDumpHelper {
+class PasteboardDumpManager {
 public:
-    explicit PasteboardDumpHelper(PasteboardService& service);
-    ~PasteboardDumpHelper();
+    explicit PasteboardDumpManager(PasteboardService& service);
+    ~PasteboardDumpManager();
     
     void InitializeDumpCommands();
     
@@ -49,4 +49,4 @@ private:
 } // namespace MiscServices
 } // namespace OHOS
 
-#endif // PASTEBOARD_DUMP_HELPER_H
+#endif // PASTEBOARD_DUMP_MANAGER_H

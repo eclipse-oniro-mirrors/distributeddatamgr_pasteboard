@@ -55,9 +55,10 @@ public:
     
     void HandleWifiOffAndClearDistributedEvent(int32_t userId);
     
+    std::shared_ptr<PasteBoardCommonEventSubscriber> commonEventSubscriber_;
+    
 private:
     PasteboardService& service_;
-    std::shared_ptr<PasteBoardCommonEventSubscriber> commonEventSubscriber_;
     std::shared_ptr<PasteBoardAccountStateSubscriber> accountStateSubscriber_;
 #ifdef PB_COCKPIT_PLATFORM_ENABLE
     std::shared_ptr<PasteboardDistributedAccountSubscriber> distributedAccountSubscriber_;

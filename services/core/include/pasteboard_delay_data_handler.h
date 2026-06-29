@@ -25,17 +25,37 @@ namespace MiscServices {
 
 class PasteboardDelayDataHandler {
 public:
+    class DelayGetterDeathRecipient final : public IRemoteObject::DeathRecipient {
+    public:
+        explicit DelayGetterDeathRecipient(int32_t userId, PasteboardDelayDataHandler& handler);
+        virtual ~DelayGetterDeathRecipient() = default;
+        void OnRemoteDied(const wptr<IRemoteObject>& remote) override;
+    private:
+        int32_t userId_ = ERROR_USERID;
+        PasteboardDelayDataHandler& handler_;
+    };
+
+    class EntryGetterDeathRecipient final : public IRemoteObject::DeathRecipient {
+    public:
+        explicit EntryGetterDeathRecipient(int32_t userId, PasteboardDelayDataHandler& handler);
+        virtual ~EntryGetterDeathRecipient() = default;
+        void OnRemoteDied(const wptr<IRemoteObject>& remote) override;
+    private:
+        int32_t userId_ = ERROR_USERID;
+        PasteboardDelayDataHandler& handler_;
+    };
+
     explicit PasteboardDelayDataHandler(PasteboardService& service);
     ~PasteboardDelayDataHandler();
-    
+
     int32_t GetDelayPasteRecord(int32_t userId, PasteData& data);
     void GetDelayPasteData(int32_t userId, PasteData& data);
     int32_t GetFullDelayPasteData(int32_t userId, PasteData& data);
     int32_t SyncDelayedData();
-    
+
     int32_t ProcessDelayHtmlEntry(PasteData& data, const AppInfo& targetAppInfo, PasteDataEntry& entry);
     int32_t PostProcessDelayHtmlEntry(PasteData& data, const AppInfo& targetAppInfo, PasteDataEntry& entry);
-    
+
     int32_t GetLocalEntryValue(int32_t userId, PasteData& data, PasteDataRecord& record, PasteDataEntry& entry);
     int32_t GetRemoteEntryValue(const AppInfo& appInfo, PasteData& data, PasteDataRecord& record,
         PasteDataEntry& entry);
@@ -45,10 +65,10 @@ public:
         const std::vector<uint8_t>& rawData, PasteData& data, PasteDataRecord& record, PasteDataEntry& entry);
     int32_t ProcessRemoteDelayHtmlInner(const std::string& remoteDeviceId, const AppInfo& appInfo,
         PasteData& tmpData, PasteData& data, PasteDataEntry& entry);
-    
+
     void NotifyDelayGetterDied(int32_t userId);
     void NotifyEntryGetterDied(int32_t userId);
-    
+
 private:
     PasteboardService& service_;
     ConcurrentMap<int32_t, std::pair<sptr<IPasteboardDelayGetter>, sptr<DelayGetterDeathRecipient>>> delayGetters_;
