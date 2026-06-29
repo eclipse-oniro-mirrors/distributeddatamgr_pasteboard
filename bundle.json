@@ -20,8 +20,7 @@
         "pasteboard_device_info_manager_part_enabled",
         "pasteboard_device_manager_part_enabled",
         "pasteboard_screenlock_mgr_part_enabled",
-        "pasteboard_dataclassification_enabled",
-        "pasteboard_cockpit_platform_enabled"
+        "pasteboard_dataclassification_enabled"
       ],
       "adapted_system_type": [
         "standard"

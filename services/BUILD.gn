@@ -88,19 +88,8 @@ ohos_shared_library("pasteboard_service") {
     "core/src/pasteboard_disposable_manager.cpp",
     "core/src/pasteboard_pattern.cpp",
     "core/src/pasteboard_service.cpp",
-    "core/src/pasteboard_distributed_manager.cpp",
-    "core/src/pasteboard_p2p_manager.cpp",
-    "core/src/pasteboard_uri_handler.cpp",
-    "core/src/pasteboard_observer_manager.cpp",
-    "core/src/pasteboard_entity_recognizer.cpp",
-    "core/src/pasteboard_permission_checker.cpp",
-    "core/src/pasteboard_app_info_helper.cpp",
-    "core/src/pasteboard_delay_data_handler.cpp",
-    "core/src/pasteboard_system_event_listener.cpp",
-    "core/src/pasteboard_dump_manager.cpp",
     "core/src/pasteboard_user_context.cpp",
     "core/src/pasteboard_window_manager.cpp",
-    "core/src/pasteboard_distributed_account_subscriber.cpp",
     "dfx/src/behaviour/pasteboard_behaviour_reporter_impl.cpp",
     "dfx/src/calculate_time_consuming.cpp",
     "dfx/src/command.cpp",
@@ -208,10 +197,6 @@ ohos_shared_library("pasteboard_service") {
     sources += [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
   } else {
     sources += [ "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp" ]
-  }
-
-  if (pasteboard_cockpit_platform_enabled) {
-    defines += [ "PB_COCKPIT_PLATFORM_ENABLE" ]
   }
 
   subsystem_name = "distributeddatamgr"
