@@ -196,6 +196,18 @@ void PasteboardService::OnStart()
         PASTEBOARD_MODULE_SERVICE, "PasteboardService is already running.");
     IPCSkeleton::SetMaxWorkThreadNum(MAX_IPC_THREAD_NUM);
     InitServiceHandler();
+    
+    distributedManager_ = std::make_unique<PasteboardDistributedManager>(*this);
+    p2pManager_ = std::make_unique<PasteboardP2PManager>(*this);
+    uriHandler_ = std::make_unique<PasteboardUriHandler>(*this);
+    observerManager_ = std::make_unique<PasteboardObserverManager>(*this);
+    entityRecognizer_ = std::make_unique<PasteboardEntityRecognizer>(*this);
+    permissionChecker_ = std::make_unique<PasteboardPermissionChecker>(*this);
+    appInfoHelper_ = std::make_unique<PasteboardAppInfoHelper>(*this);
+    delayDataHandler_ = std::make_unique<PasteboardDelayDataHandler>(*this);
+    systemEventListener_ = std::make_unique<PasteboardSystemEventListener>(*this);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "Managers initialized.");
+    
     Loader loader;
     uid_ = loader.LoadUid();
     int32_t capacity = OHOS::system::GetIntParameter("const.pasteboard.local_data_capacity",
@@ -268,6 +280,18 @@ void PasteboardService::OnStop()
     if (PasteboardService::state_ != ServiceRunningState::STATE_RUNNING) {
         return;
     }
+    
+    distributedManager_.reset();
+    p2pManager_.reset();
+    uriHandler_.reset();
+    observerManager_.reset();
+    entityRecognizer_.reset();
+    permissionChecker_.reset();
+    appInfoHelper_.reset();
+    delayDataHandler_.reset();
+    systemEventListener_.reset();
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "Managers destroyed.");
+    
     serviceHandler_ = nullptr;
     PasteboardService::state_ = ServiceRunningState::STATE_NOT_START;
     DMAdapter::GetInstance().DeInitialize();
