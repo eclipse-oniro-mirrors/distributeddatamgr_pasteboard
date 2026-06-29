@@ -42,6 +42,15 @@
 #include "privacy_kit.h"
 #include "security_level.h"
 #include "system_ability.h"
+#include "pasteboard_distributed_manager.h"
+#include "pasteboard_p2p_manager.h"
+#include "pasteboard_uri_handler.h"
+#include "pasteboard_observer_manager.h"
+#include "pasteboard_entity_recognizer.h"
+#include "pasteboard_permission_checker.h"
+#include "pasteboard_app_info_helper.h"
+#include "pasteboard_delay_data_handler.h"
+#include "pasteboard_system_event_listener.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -570,6 +579,17 @@ private:
     mutable std::mutex currentEventMutex_;
     std::mutex entityRecognizeMutex_;
     SecurityLevel securityLevel_;
+    
+    std::unique_ptr<PasteboardDistributedManager> distributedManager_;
+    std::unique_ptr<PasteboardP2PManager> p2pManager_;
+    std::unique_ptr<PasteboardUriHandler> uriHandler_;
+    std::unique_ptr<PasteboardObserverManager> observerManager_;
+    std::unique_ptr<PasteboardEntityRecognizer> entityRecognizer_;
+    std::unique_ptr<PasteboardPermissionChecker> permissionChecker_;
+    std::unique_ptr<PasteboardAppInfoHelper> appInfoHelper_;
+    std::unique_ptr<PasteboardDelayDataHandler> delayDataHandler_;
+    std::unique_ptr<PasteboardSystemEventListener> systemEventListener_;
+    
     class PasteboardDeathRecipient final : public IRemoteObject::DeathRecipient {
     public:
         PasteboardDeathRecipient(PasteboardService &service, pid_t pid, int32_t userId);
