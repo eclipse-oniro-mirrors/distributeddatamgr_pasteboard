@@ -136,7 +136,6 @@ PasteboardService::PasteboardService(): SystemAbility(PASTEBOARD_SERVICE_ID, tru
 {
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_SERVICE, "PasteboardService Start.");
     PasteboardService::state_ = ServiceRunningState::STATE_NOT_START;
-    p2pEstablishInfo_.pasteBlock = nullptr;
 }
 
 PasteboardService::~PasteboardService()
@@ -485,8 +484,8 @@ void PasteboardService::HandleWifiOffAndClearDistributedEvent(int32_t userId)
     bool isdeviceCollabSwitch = switch_.GetDeviceCollabSwitch(userId);
     PASTEBOARD_CHECK_AND_RETURN_LOGD(!isdeviceCollabSwitch, PASTEBOARD_MODULE_SERVICE,
         "wifi off but DeviceCollabSwitch is on");
-    PASTEBOARD_CHECK_AND_RETURN_LOGD(IsValidCurrentEvent(), PASTEBOARD_MODULE_SERVICE, "wifi off but no valid event");
-    CleanDistributedData(userId);
+    PASTEBOARD_CHECK_AND_RETURN_LOGD(distributedManager_->IsValidCurrentEvent(), PASTEBOARD_MODULE_SERVICE, "wifi off but no valid event");
+    distributedManager_->CleanDistributedData(userId);
 }
 
 void PasteboardService::ReportUeCopyEvent(PasteData &pasteData, int64_t dataSize, int32_t result)
@@ -550,14 +549,18 @@ int32_t PasteboardService::ClearInner(int32_t userId, const AppInfo &appInfo)
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ClearInner: userId=%{public}d, bundleName=%{public}s",
         userId, appInfo.bundleName.c_str());
     RADAR_REPORT(DFX_CLEAR_PASTEBOARD, DFX_MANUAL_CLEAR, DFX_SUCCESS);
-    auto [hasData, data] = clips_.Find(userId);
+    #ifdef PB_COCKPIT_PLATFORM_ENABLE
+    auto [hasData, data] = clips_.Find(GetCompositeKey(userId));
+#else
+    auto [hasData, data] = clips_.Find(GetCompositeKey(userId));
+#endif
     if (hasData) {
         PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ClearInner: found data for userId=%{public}d, erasing", userId);
-        clips_.Erase(userId);
+        clips_.Erase(GetCompositeKey(userId));
         delayDataId_ = 0;
         delayTokenId_ = 0;
     }
-    CleanDistributedData(userId);
+    distributedManager_->CleanDistributedData(userId);
     if (hasData) {
         std::string bundleName = GetAppBundleName(appInfo);
         NotifyObservers(bundleName, userId, PasteboardEventStatus::PASTEBOARD_CLEAR);
@@ -917,7 +920,11 @@ int32_t PasteboardService::GetRecordValueByType(uint32_t dataId, uint32_t record
         PASTEBOARD_MODULE_SERVICE, "check permission failed, calling pid is %{public}d", callPid);
 
     auto appInfo = GetAppInfo(tokenId);
-    auto [hasData, data] = clips_.Find(appInfo.userId);
+    #ifdef PB_COCKPIT_PLATFORM_ENABLE
+    auto [hasData, data] = clips_.Find(GetCompositeKey(appInfo.userId));
+#else
+    auto [hasData, data] = clips_.Find(GetCompositeKey(appInfo.userId));
+#endif
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(hasData && data, static_cast<int32_t>(PasteboardError::NO_DATA_ERROR),
         PASTEBOARD_MODULE_SERVICE, "data not find, userId=%{public}d", appInfo.userId);
     auto validRet = IsDataValid(*data, tokenId, appInfo.userId);
@@ -1528,14 +1535,14 @@ int32_t PasteboardService::GetData(uint32_t tokenId, PasteData &data, int32_t &s
     if (distRet != static_cast<int32_t>(PasteboardError::E_OK) ||
         GetScreenStatus(appInfo.userId) != ScreenEvent::ScreenUnlocked) {
         auto currentEvent = GetCurrentEvent();
-        pasteBlock = EstablishP2PLinkTask(pasteId, currentEvent);
+        pasteBlock = p2pManager_->EstablishP2PLinkTask(pasteId, currentEvent);
         result = GetLocalData(appInfo, data);
         if (distRet == static_cast<int32_t>(PasteboardError::GET_SAME_REMOTE_DATA)) {
             peerNetId = currentEvent.deviceId;
             peerUdid = DMAdapter::GetInstance().GetUdidByNetworkId(peerNetId);
         }
     } else {
-        pasteBlock = EstablishP2PLinkTask(pasteId, distEvt);
+        pasteBlock = p2pManager_->EstablishP2PLinkTask(pasteId, distEvt);
         result = GetRemoteData(appInfo.userId, distEvt, data, syncTime);
         if (result == static_cast<int32_t>(PasteboardError::REMOTE_DATA_SIZE_EXCEEDED)) {
             HandleGetDataError(result, pasteBlock, distEvt.deviceId, pasteId);
@@ -1575,7 +1582,7 @@ void PasteboardService::HandleNotificationsAndStatusChecks(const AppInfo &appInf
 void PasteboardService::PublishServiceState(const PasteData &data, int32_t syncTime,
     const std::string &peerNetId, std::shared_ptr<BlockObject<int32_t>> pasteBlock)
 {
-    auto plugin = GetClipPlugin();
+    auto plugin = distributedManager_->GetClipPlugin();
     bool isNeedPublishState = data.IsRemote() && syncTime != 0 && pasteBlock == nullptr && plugin != nullptr;
     if (isNeedPublishState) {
         auto status = plugin->PublishServiceState(peerNetId, ClipPlugin::ServiceStatus::IDLE);
@@ -1680,7 +1687,11 @@ int32_t PasteboardService::GetRemoteData(int32_t userId, const Event &event, Pas
     if (distRet != static_cast<int32_t>(PasteboardError::E_OK) || !(distEvt == event)) {
         int32_t ret = distRet == static_cast<int32_t>(PasteboardError::E_OK) ?
             static_cast<int32_t>(PasteboardError::INVALID_EVENT_ERROR) : distRet;
-        auto it = clips_.Find(userId);
+        #ifdef PB_COCKPIT_PLATFORM_ENABLE
+    auto it = clips_.Find(GetCompositeKey(userId));
+#else
+    auto it = clips_.Find(GetCompositeKey(userId));
+#endif
         if (it.first) {
             data = *it.second;
             ret = static_cast<int32_t>(PasteboardError::E_OK);
@@ -1696,13 +1707,21 @@ int32_t PasteboardService::GetRemotePasteData(int32_t userId, const Event &event
 {
     auto block = std::make_shared<BlockObject<std::shared_ptr<PasteDateTime>>>(GET_REMOTE_DATA_WAIT_TIME);
     std::thread thread([this, event, block, userId]() mutable {
-        auto result = GetDistributedData(event, userId);
+        auto result = distributedManager_->GetDistributedData(event, userId);
         auto [distRet, distEvt] = GetValidDistributeEvent(userId);
         std::shared_ptr<PasteDateTime> pasteDataTime = std::make_shared<PasteDateTime>();
         if (result.first != nullptr) {
             result.first->SetRemote(true);
             if (distEvt == event) {
-                clips_.InsertOrAssign(userId, result.first);
+                #ifdef PB_COCKPIT_PLATFORM_ENABLE
+                clips_.InsertOrAssign(GetCompositeKey(userId), result.first);
+#else
+                #ifdef PB_COCKPIT_PLATFORM_ENABLE
+    clips_.InsertOrAssign(GetCompositeKey(userId), result.first);
+#else
+    clips_.InsertOrAssign(GetCompositeKey(userId), result.first);
+#endif
+#endif
                 IncreaseChangeCount(userId);
                 auto curTime =
                     static_cast<uint64_t>(PasteBoardTime::GetBootTimeMs());
@@ -1737,7 +1756,15 @@ int32_t PasteboardService::GetRemotePasteData(int32_t userId, const Event &event
 int32_t PasteboardService::GetLocalData(const AppInfo &appInfo, PasteData &data)
 {
     std::string pasteId = data.GetPasteId();
-    auto it = clips_.Find(appInfo.userId);
+#ifdef PB_COCKPIT_PLATFORM_ENABLE
+    auto it = clips_.Find(GetCompositeKey(appInfo.userId));
+#else
+    #ifdef PB_COCKPIT_PLATFORM_ENABLE
+    auto it = clips_.Find(GetCompositeKey(appInfo.userId));
+#else
+    auto it = clips_.Find(GetCompositeKey(appInfo.userId));
+#endif
+#endif
     auto tempTime = copyTime_.Find(appInfo.userId);
     if (!it.first || !tempTime.first) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "no data userId is %{public}d.", appInfo.userId);
@@ -1767,7 +1794,11 @@ int32_t PasteboardService::GetLocalData(const AppInfo &appInfo, PasteData &data)
     auto curTime = result.second;
     if (tempTime.second == curTime) {
         bool isNotify = false;
-        clips_.ComputeIfPresent(appInfo.userId, [&data, &isNotify](auto &key, auto &value) {
+        #ifdef PB_COCKPIT_PLATFORM_ENABLE
+        clips_.ComputeIfPresent(GetCompositeKey(appInfo.userId), [&data, &isNotify](auto &key, auto &value) {
+#else
+        clips_.ComputeIfPresent(GetCompositeKey(appInfo.userId), [&data, &isNotify](auto &key, auto &value) {
+#endif
             if (value->IsDelayData()) {
                 value = std::make_shared<PasteData>(data);
                 isNotify = true;
@@ -1829,235 +1860,7 @@ int32_t PasteboardService::GetDelayPasteRecord(int32_t userId, PasteData &data)
         PasteboardWebController::GetInstance().SetWebviewPasteData(data, bundleIndex);
         PasteboardWebController::GetInstance().CheckAppUriPermission(data);
     }
-    return static_cast<int32_t>(PasteboardError::E_OK);
-}
-
-void PasteboardService::ClearP2PEstablishTaskInfo()
-{
-    std::lock_guard<std::mutex> tmpMutex(p2pMapMutex_);
-    p2pEstablishInfo_.networkId.clear();
-    p2pEstablishInfo_.pasteBlock = nullptr;
-}
-
-void PasteboardService::OpenP2PLink(const std::string &networkId)
-{
-#ifdef PB_DEVICE_MANAGER_ENABLE
-    DmDeviceInfo remoteDevice;
-    auto ret = DMAdapter::GetInstance().GetRemoteDeviceInfo(networkId, remoteDevice);
-    if (ret != static_cast<int32_t>(PasteboardError::E_OK)) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "remote device is not exist");
-        std::lock_guard<std::mutex> tmpMutex(p2pMapMutex_);
-        p2pMap_.Erase(networkId);
-        return;
-    }
-#endif
-    auto plugin = GetClipPlugin();
-    if (plugin == nullptr) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "plugin is not exist");
-        std::lock_guard<std::mutex> tmpMutex(p2pMapMutex_);
-        p2pMap_.Erase(networkId);
-        return;
-    }
-    int32_t status = plugin->ApplyAdvancedResource(networkId);
-    PASTEBOARD_CHECK_AND_RETURN_LOGE(status == RESULT_OK, PASTEBOARD_MODULE_SERVICE,
-        "apply resource failed, deviceId=%{public}.5s, status=%{public}d", networkId.c_str(), status);
-
-    status = plugin->PublishServiceState(networkId, ClipPlugin::ServiceStatus::CONNECT_SUCC);
-    PASTEBOARD_CHECK_AND_RETURN_LOGE(status == RESULT_OK, PASTEBOARD_MODULE_SERVICE,
-        "publish CONNECT_SUCC failed, deviceId=%{public}.5s, status=%{public}d", networkId.c_str(), status);
-
-#ifdef PB_DEVICE_MANAGER_ENABLE
-    status = DistributedFileDaemonManager::GetInstance().ConnectDfs(networkId);
-    if (status != RESULT_OK) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "open p2p error, status:%{public}d", status);
-        plugin->PublishServiceState(networkId, ClipPlugin::ServiceStatus::IDLE);
-        std::lock_guard<std::mutex> tmpMutex(p2pMapMutex_);
-        p2pMap_.Erase(networkId);
-        return;
-    }
-#endif
-}
-
-void PasteboardService::EstablishP2PLink(const std::string &networkId, const std::string &pasteId)
-{
-#ifdef PB_DEVICE_MANAGER_ENABLE
-    auto callPid = IPCSkeleton::GetCallingPid();
-    {
-        std::lock_guard<std::mutex> tmpMutex(p2pMapMutex_);
-        p2pMap_.Compute(networkId, [pasteId, callPid](const auto &key, auto &value) {
-            value.Compute(pasteId, [callPid](const auto &key, auto &value) {
-                value.callPid = callPid;
-                value.isSuccess = false;
-                return true;
-            });
-            return true;
-        });
-    }
-    if (ffrtTimer_) {
-        FFRTTask task = [this, networkId, pasteId] {
-            std::thread thread([=]() {
-                PasteComplete(networkId, pasteId);
-            });
-            PasteBoardCommonUtils::SetThreadTaskName(thread, "PasteComplete01");
-            thread.detach();
-        };
-        ffrtTimer_->SetTimer(pasteId, task, MIN_TRANMISSION_TIME);
-    }
-    OpenP2PLink(networkId);
-#endif
-}
-
-std::shared_ptr<BlockObject<int32_t>> PasteboardService::CheckAndReuseP2PLink(
-    const std::string &networkId, const std::string &pasteId)
-{
-#ifdef PB_DEVICE_MANAGER_ENABLE
-    auto callPid = IPCSkeleton::GetCallingPid();
-    std::lock_guard<std::mutex> tmpMutex(p2pMapMutex_);
-    p2pMap_.Compute(networkId, [pasteId, callPid](const auto &key, auto &value) {
-        value.Compute(pasteId, [callPid](const auto &key, auto &value) {
-            value.callPid = callPid;
-            value.isSuccess = false;
-            return true;
-        });
-        return true;
-    });
-    if (ffrtTimer_) {
-        FFRTTask task = [this, networkId, pasteId] {
-            std::thread thread([=]() {
-                PasteComplete(networkId, pasteId);
-            });
-            PasteBoardCommonUtils::SetThreadTaskName(thread, "PasteComplete02");
-            thread.detach();
-        };
-        ffrtTimer_->SetTimer(pasteId, task, MIN_TRANMISSION_TIME);
-    }
-    auto p2pNetwork = p2pMap_.Find(networkId);
-    bool isP2pSuccess = p2pNetwork.first && p2pNetwork.second.Find(P2P_PRESYNC_ID).first &&
-        p2pNetwork.second.Find(P2P_PRESYNC_ID).second.isSuccess == true;
-    if (isP2pSuccess) {
-        if (ffrtTimer_) {
-            std::string taskName = P2P_PRESYNC_ID + networkId;
-            ffrtTimer_->CancelTimer(taskName);
-        }
-        p2pMap_.ComputeIfPresent(networkId, [this](const auto &key, auto &value) {
-            value.ComputeIfPresent(P2P_PRESYNC_ID, [](const auto &key, auto &value) {
-                return false;
-            });
-            return true;
-        });
-        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "No Need P2pEstablish");
-        std::shared_ptr<BlockObject<int32_t>> result = nullptr;
-        auto p2pIter = preSyncP2pMap_.find(networkId);
-        if (p2pIter != preSyncP2pMap_.end()) {
-            result = p2pIter->second;
-        }
-        preSyncP2pMap_.erase(networkId);
-        return result;
-    }
-    return nullptr;
-#else
-    return nullptr;
-#endif
-}
-
-bool PasteboardService::IsContainUri(const Event &evt)
-{
-    if (evt.notNeedLink && !evt.isDelay) {
-        return false;
-    }
-    std::vector<std::string> keyVecs;
-    keyVecs.push_back(MIMETYPE_TEXT_URI);
-    keyVecs.push_back(MIMETYPE_TEXT_HTML);
-    bool result = std::any_of(keyVecs.begin(), keyVecs.end(), [dataType = evt.dataType](const std::string &key) {
-        return std::find(dataType.begin(), dataType.end(), key) != dataType.end();
-    });
-    return result;
-}
-
-void PasteboardService::OnEstablishP2PLinkTask(const std::string &networkId,
-    std::shared_ptr<BlockObject<int32_t>> pasteBlock)
-{
-    PASTEBOARD_CHECK_AND_RETURN_LOGE(pasteBlock != nullptr, PASTEBOARD_MODULE_SERVICE, "block is nullptr");
-    OpenP2PLink(networkId);
-    pasteBlock->SetValue(SET_VALUE_SUCCESS);
-    std::lock_guard<std::mutex> tmpMutex(p2pMapMutex_);
-    auto findResult = p2pMap_.Find(networkId);
-    if (!findResult.first || findResult.second.Empty()) {
-        CloseP2PLink(networkId);
-    }
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "P2pEstablish Finish");
-}
-
-std::shared_ptr<BlockObject<int32_t>> PasteboardService::EstablishP2PLinkTask(
-    const std::string &pasteId, const ClipPlugin::GlobalEvent &event)
-{
-#ifdef PB_DEVICE_MANAGER_ENABLE
-    const std::string &networkId = event.deviceId;
-    if (networkId.empty() || networkId == DMAdapter::GetInstance().GetLocalNetworkId()) {
-        PASTEBOARD_HILOGD(PASTEBOARD_MODULE_SERVICE, "local device");
-        return nullptr;
-    }
-    if (!IsContainUri(event)) {
-        PASTEBOARD_HILOGD(PASTEBOARD_MODULE_SERVICE, "no MIMETYPE_TEXT_URI and no MIMETYPE_TEXT_HTML");
-        return nullptr;
-    }
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "EstablishP2PLinkTask enter");
-    std::shared_ptr<BlockObject<int32_t>> result = CheckAndReuseP2PLink(networkId, pasteId);
-    if (result) {
-        return result;
-    }
-    if (!ffrtTimer_) {
-        return nullptr;
-    }
-    std::shared_ptr<BlockObject<int32_t>> pasteBlock = std::make_shared<BlockObject<int32_t>>(MIN_TRANMISSION_TIME, 0);
-    if (!pasteBlock) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "failed to alloc BlockObject");
-        return nullptr;
-    }
-    {
-        std::lock_guard<std::mutex> tmpMutex(p2pMapMutex_);
-        p2pEstablishInfo_.networkId = networkId;
-        p2pEstablishInfo_.pasteBlock = pasteBlock;
-    }
-    FFRTTask p2pTask = [networkId, pasteBlock, this] {
-        std::thread thread([=]() {
-            OnEstablishP2PLinkTask(networkId, pasteBlock);
-        });
-        PasteBoardCommonUtils::SetThreadTaskName(thread, "OnEstablishP2P");
-        thread.detach();
-    };
-    std::string taskName = pasteId + P2P_ESTABLISH_STR;
-    ffrtTimer_->SetTimer(taskName, p2pTask);
-    return pasteBlock;
-#else
-    return nullptr;
-#endif
-}
-
-void PasteboardService::CloseP2PLink(const std::string &networkId)
-{
-#ifdef PB_DEVICE_MANAGER_ENABLE
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "CloseP2PLink enter");
-    DmDeviceInfo remoteDevice;
-    auto ret = DMAdapter::GetInstance().GetRemoteDeviceInfo(networkId, remoteDevice);
-    if (ret != static_cast<int32_t>(PasteboardError::E_OK)) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "remote device is not exist");
-        return;
-    }
-    std::thread thread([networkId]() {
-        auto status = DistributedFileDaemonManager::GetInstance().DisconnectDfs(networkId);
-        if (status != RESULT_OK) {
-            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "close p2p error, status:%{public}d", status);
-        }
-    });
-    thread.detach();
-    auto plugin = GetClipPlugin();
-    PASTEBOARD_CHECK_AND_RETURN_LOGE(plugin != nullptr, PASTEBOARD_MODULE_SERVICE, "plugin is not exist");
-    auto status = plugin->PublishServiceState(networkId, ClipPlugin::ServiceStatus::IDLE);
-    if (status != RESULT_OK) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "Publish state idle error, status:%{public}d", status);
-    }
-#endif
+return static_cast<int32_t>(PasteboardError::E_OK);
 }
 
 int32_t PasteboardService::PasteStart(const std::string &pasteId)
@@ -2078,18 +1881,7 @@ int32_t PasteboardService::PasteComplete(const std::string &deviceId, const std:
         pasteId.c_str());
     RADAR_REPORT(RadarReporter::DFX_GET_PASTEBOARD, RadarReporter::DFX_DISTRIBUTED_FILE_END, RadarReporter::DFX_SUCCESS,
         RadarReporter::BIZ_STATE, RadarReporter::DFX_END, RadarReporter::CONCURRENT_ID, pasteId);
-    std::lock_guard<std::mutex> tmpMutex(p2pMapMutex_);
-    p2pMap_.ComputeIfPresent(deviceId, [pasteId, deviceId, this](const auto &key, auto &value) {
-        value.ComputeIfPresent(pasteId, [deviceId](const auto &key, auto &value) {
-            return false;
-        });
-        if (value.Empty()) {
-            CloseP2PLink(deviceId);
-            return false;
-        }
-        return true;
-    });
-    return ERR_OK;
+    return p2pManager_->OnPasteComplete(deviceId, pasteId);
 }
 
 int32_t PasteboardService::GetRemoteDeviceName(std::string &deviceName, bool &isRemote)
@@ -2141,7 +1933,11 @@ int32_t PasteboardService::GrantPermission(const std::vector<Uri> &grantUris, ui
     int32_t ret = 0;
     auto appInfo = GetAppInfo(targetTokenId);
     int32_t userId = appInfo.userId;
-    auto [hasData, data] = clips_.Find(userId);
+    #ifdef PB_COCKPIT_PLATFORM_ENABLE
+    auto [hasData, data] = clips_.Find(GetCompositeKey(userId));
+#else
+    auto [hasData, data] = clips_.Find(GetCompositeKey(userId));
+#endif
     uint32_t srcTokenId = (hasData && data) ? data->GetTokenId() : 0;
     while (length > offset) {
         if (length - offset < PasteData::URI_BATCH_SIZE) {
@@ -2284,7 +2080,11 @@ bool PasteboardService::HasPasteData()
         }
     }
 
-    auto it = clips_.Find(userId);
+    #ifdef PB_COCKPIT_PLATFORM_ENABLE
+    auto it = clips_.Find(GetCompositeKey(userId));
+#else
+    auto it = clips_.Find(GetCompositeKey(userId));
+#endif
     if (it.first && (it.second != nullptr)) {
         auto tokenId = IPCSkeleton::GetCallingTokenID();
         auto ret = IsDataValid(*(it.second), tokenId, userId);
@@ -2357,7 +2157,11 @@ bool PasteboardService::HasRemoteData()
         auto isPasting = taskMgr_.IsRemoteDataPasting(distEvt);
         PASTEBOARD_CHECK_AND_RETURN_RET_LOGI(!isPasting, true, PASTEBOARD_MODULE_SERVICE, "remote data is pasting.");
     }
-    auto [hasData, data] = clips_.Find(appInfo.userId);
+    #ifdef PB_COCKPIT_PLATFORM_ENABLE
+    auto [hasData, data] = clips_.Find(GetCompositeKey(appInfo.userId));
+#else
+    auto [hasData, data] = clips_.Find(GetCompositeKey(appInfo.userId));
+#endif
     if (!hasData || data == nullptr) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "local data is null");
         return false;
@@ -2422,7 +2226,11 @@ int32_t PasteboardService::SaveData(PasteData &pasteData, int64_t dataSize,
     }
     setPasteDataUId_.store(IPCSkeleton::GetCallingUid());
     RemovePasteData(appInfo);
-    clips_.InsertOrAssign(appInfo.userId, std::make_shared<PasteData>(pasteData));
+#ifdef PB_COCKPIT_PLATFORM_ENABLE
+    clips_.InsertOrAssign(GetCompositeKey(appInfo.userId), std::make_shared<PasteData>(pasteData));
+#else
+    clips_.InsertOrAssign(GetCompositeKey(appInfo.userId), std::make_shared<PasteData>(pasteData));
+#endif
     IncreaseChangeCount(appInfo.userId);
     RadarReportInfo radarReportInfo;
     radarReportInfo.stageRes = static_cast<int32_t>(pasteData.IsDelayData());
@@ -2435,7 +2243,7 @@ int32_t PasteboardService::SaveData(PasteData &pasteData, int64_t dataSize,
     copyTime_.InsertOrAssign(appInfo.userId, curTime);
     SetDataExpirationTimer(appInfo.userId);
     if (!(pasteData.IsDelayData())) {
-        SetDistributedData(appInfo.userId, pasteData);
+        distributedManager_->SetDistributedData(appInfo.userId, pasteData);
         NotifyObservers(appInfo.bundleName, appInfo.userId, PasteboardEventStatus::PASTEBOARD_WRITE);
     }
     SetPasteDataDot(pasteData, appInfo.userId);
@@ -2446,9 +2254,9 @@ int32_t PasteboardService::SaveData(PasteData &pasteData, int64_t dataSize,
 
 void PasteboardService::ClearAgedData(int32_t userId)
 {
-    auto data = clips_.Find(userId);
+    auto data = clips_.Find(GetCompositeKey(userId));
     if (data.first) {
-        clips_.Erase(userId);
+        clips_.Erase(GetCompositeKey(userId));
         delayDataId_ = 0;
         delayTokenId_ = 0;
     }
@@ -2605,7 +2413,11 @@ bool PasteboardService::HasUtdType(const std::string &utdType)
             return data.HasUtdType(utdType);
         }
     }
-    auto it = clips_.Find(userId);
+    #ifdef PB_COCKPIT_PLATFORM_ENABLE
+    auto it = clips_.Find(GetCompositeKey(userId));
+#else
+    auto it = clips_.Find(GetCompositeKey(userId));
+#endif
     if (!it.first) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "can not find data. userId: %{public}d, utdType: %{public}s",
             userId, utdType.c_str());
@@ -2646,7 +2458,11 @@ int32_t PasteboardService::DetectPatterns(const std::vector<Pattern> &patternsTo
         std::vector<Pattern>().swap(funcResult);
         return static_cast<int32_t>(PasteboardError::NO_DATA_ERROR);
     }
-    auto it = clips_.Find(userId);
+    #ifdef PB_COCKPIT_PLATFORM_ENABLE
+    auto it = clips_.Find(GetCompositeKey(userId));
+#else
+    auto it = clips_.Find(GetCompositeKey(userId));
+#endif
     if (!it.first) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "error, no PasteData!");
         std::vector<Pattern>().swap(funcResult);
@@ -2750,7 +2566,11 @@ bool PasteboardService::HasRemoteDataType(const std::string &mimeType, const Eve
 std::vector<std::string> PasteboardService::GetLocalMimeTypes()
 {
     auto userId = GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
-    auto it = clips_.Find(userId);
+    #ifdef PB_COCKPIT_PLATFORM_ENABLE
+    auto it = clips_.Find(GetCompositeKey(userId));
+#else
+    auto it = clips_.Find(GetCompositeKey(userId));
+#endif
     if (!it.first) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "can not find data. userId: %{public}d", userId);
         return {};
@@ -2772,7 +2592,11 @@ std::vector<std::string> PasteboardService::GetLocalMimeTypes()
 
 bool PasteboardService::HasLocalDataType(const std::string &mimeType, uint32_t tokenId, int32_t userId)
 {
-    auto it = clips_.Find(userId);
+    #ifdef PB_COCKPIT_PLATFORM_ENABLE
+    auto it = clips_.Find(GetCompositeKey(userId));
+#else
+    auto it = clips_.Find(GetCompositeKey(userId));
+#endif
     if (!it.first) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "can not find data. userId: %{public}d, mimeType: %{public}s",
             userId, mimeType.c_str());
@@ -2817,7 +2641,11 @@ bool PasteboardService::IsRemoteData()
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "userId is error");
         return false;
     }
-    auto it = clips_.Find(userId);
+    #ifdef PB_COCKPIT_PLATFORM_ENABLE
+    auto it = clips_.Find(GetCompositeKey(userId));
+#else
+    auto it = clips_.Find(GetCompositeKey(userId));
+#endif
     if (!it.first) {
         auto [distRet, distEvt] = GetValidDistributeEvent(userId);
         return distRet == static_cast<int32_t>(PasteboardError::E_OK);
@@ -2831,7 +2659,11 @@ int32_t PasteboardService::GetDataSource(std::string &bundleName)
     if (userId == ERROR_USERID) {
         return static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR);
     }
-    auto it = clips_.Find(userId);
+    #ifdef PB_COCKPIT_PLATFORM_ENABLE
+    auto it = clips_.Find(GetCompositeKey(userId));
+#else
+    auto it = clips_.Find(GetCompositeKey(userId));
+#endif
     if (!it.first) {
         return static_cast<int32_t>(PasteboardError::NO_USER_DATA_ERROR);
     }
@@ -3643,7 +3475,11 @@ std::string PasteboardService::DumpHistory() const
 
 std::string PasteboardService::DumpUserData(int32_t userId)
 {
-    auto it = clips_.Find(userId);
+    #ifdef PB_COCKPIT_PLATFORM_ENABLE
+    auto it = clips_.Find(GetCompositeKey(userId));
+#else
+    auto it = clips_.Find(GetCompositeKey(userId));
+#endif
     if (!it.first || it.second == nullptr) {
         return "No copy data.\n";
     }
@@ -3718,249 +3554,14 @@ bool PasteboardService::IsFocusedApp(uint32_t tokenId)
     return ret == NO_ERROR && isFocused;
 }
 
-void PasteboardService::DeletePreSyncP2pFromP2pMap(const std::string &networkId)
-{
-    std::string taskName = P2P_PRESYNC_ID + networkId;
-    if (ffrtTimer_) {
-        ffrtTimer_->CancelTimer(taskName);
-    }
-    std::lock_guard<std::mutex> tmpMutex(p2pMapMutex_);
-    p2pMap_.ComputeIfPresent(networkId, [this](const auto &key, auto &value) {
-        value.ComputeIfPresent(P2P_PRESYNC_ID, [](const auto &key, auto &value) {
-            return false;
-        });
-        return true;
-    });
-    DeletePreSyncP2pMap(networkId);
-}
-
-void PasteboardService::DeletePreSyncP2pMap(const std::string &networkId)
-{
-    auto p2pIter = preSyncP2pMap_.find(networkId);
-    if (p2pIter != preSyncP2pMap_.end()) {
-        if (p2pIter->second) {
-            p2pIter->second->SetValue(SET_VALUE_SUCCESS);
-        }
-        preSyncP2pMap_.erase(networkId);
-    }
-}
-
-void PasteboardService::AddPreSyncP2pTimeoutTask(const std::string &networkId)
-{
-    if (!ffrtTimer_) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "ffrtTimer_ is null");
-        return;
-    }
-    std::string taskName = P2P_PRESYNC_ID + networkId;
-    ffrtTimer_->CancelTimer(taskName);
-    FFRTTask p2pTask = [this, networkId] {
-        std::thread thread([=]() {
-            PasteComplete(networkId, P2P_PRESYNC_ID);
-            std::lock_guard<std::mutex> tmpMutex(p2pMapMutex_);
-            DeletePreSyncP2pMap(networkId);
-        });
-        PasteBoardCommonUtils::SetThreadTaskName(thread, "PasteComplete03");
-        thread.detach();
-    };
-    ffrtTimer_->SetTimer(taskName, p2pTask, PRE_ESTABLISH_P2P_LINK_TIME);
-}
-
-void PasteboardService::InitPlugin(std::shared_ptr<ClipPlugin> clipPlugin)
-{
-    if (!clipPlugin) {
-        return;
-    }
-    clipPlugin->RegisterPreSyncCallback(std::bind(&PasteboardService::PreEstablishP2PLinkCallback,
-        this, std::placeholders::_1, std::placeholders::_2));
-    clipPlugin->RegisterPreSyncMonitorCallback(std::bind(&PasteboardService::PreSyncSwitchMonitorCallback, this));
-    clipPlugin->SetMaxLocalCapacity(maxLocalCapacity_.load() / SIZE_K / SIZE_K);
-}
-
-bool PasteboardService::OpenP2PLinkForPreEstablish(const std::string &networkId, ClipPlugin *clipPlugin)
-{
-#ifdef PB_DEVICE_MANAGER_ENABLE
-    DmDeviceInfo remoteDevice;
-    auto ret = DMAdapter::GetInstance().GetRemoteDeviceInfo(networkId, remoteDevice);
-    if (ret != static_cast<int32_t>(PasteboardError::E_OK)) {
-        DeletePreSyncP2pFromP2pMap(networkId);
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "remote device is not exist, ret:%{public}d", ret);
-        return false;
-    }
-    auto status = DistributedFileDaemonManager::GetInstance().ConnectDfs(networkId);
-    if (status != RESULT_OK) {
-        DeletePreSyncP2pFromP2pMap(networkId);
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "open p2p error, status:%{public}d", status);
-        return false;
-    }
-    std::lock_guard<std::mutex> tmpMutex(p2pMapMutex_);
-    p2pMap_.Compute(networkId, [](const auto &key, auto &value) {
-        value.Compute(P2P_PRESYNC_ID, [](const auto &key, auto &value) {
-            value.isSuccess = true;
-            PASTEBOARD_HILOGD(PASTEBOARD_MODULE_SERVICE, "preP2pLink isSuccess:%{public}d", value.isSuccess);
-            return true;
-        });
-        return true;
-    });
-    if (clipPlugin) {
-        status = clipPlugin->PublishServiceState(networkId, ClipPlugin::ServiceStatus::CONNECT_SUCC);
-        if (status != RESULT_OK) {
-            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "Publish state connect_succ error, status:%{public}d", status);
-        }
-    }
-    AddPreSyncP2pTimeoutTask(networkId);
-    return true;
-#else
-    return false;
-#endif
-}
-
-void PasteboardService::PreEstablishP2PLink(const std::string &networkId, ClipPlugin *clipPlugin)
-{
-#ifdef PB_DEVICE_MANAGER_ENABLE
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PreEstablishP2PLink enter");
-    std::shared_ptr<BlockObject<int32_t>> pasteBlock = nullptr;
-    {
-        std::lock_guard<std::mutex> tmpMutex(p2pMapMutex_);
-        if (p2pEstablishInfo_.pasteBlock && p2pEstablishInfo_.networkId == networkId) {
-            return;
-        }
-        auto p2pNetwork = p2pMap_.Find(networkId);
-        bool isP2pSuccess = p2pNetwork.first && p2pNetwork.second.Find(P2P_PRESYNC_ID).first &&
-            p2pNetwork.second.Find(P2P_PRESYNC_ID).second.isSuccess == true;
-        if (isP2pSuccess) {
-            PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "Pre P2pEstablish exist");
-            AddPreSyncP2pTimeoutTask(networkId);
-            return;
-        }
-        pasteBlock = std::make_shared<BlockObject<int32_t>>(MIN_TRANMISSION_TIME, 0);
-        if (!pasteBlock) {
-            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "failed to alloc BlockObject");
-            return;
-        }
-        p2pMap_.Compute(networkId, [this](const auto &key, auto &value) {
-            value.Compute(P2P_PRESYNC_ID, [](const auto &key, auto &value) {
-                value.callPid = 0;
-                value.isSuccess = false;
-                return true;
-            });
-            return true;
-        });
-        preSyncP2pMap_.emplace(networkId, pasteBlock);
-    }
-    if (OpenP2PLinkForPreEstablish(networkId, clipPlugin)) {
-        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PreEstablishP2PLink Finish");
-    } else {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "PreEstablishP2PLink failed");
-    }
-    pasteBlock->SetValue(SET_VALUE_SUCCESS);
-#endif
-}
-
-void PasteboardService::PreEstablishP2PLinkCallback(const std::string &networkId, ClipPlugin *clipPlugin)
-{
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PreEstablishP2PLinkCallback enter");
-    if (networkId.empty()) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "PreEstablishP2PLinkCallback failed, networkId is null");
-        return;
-    }
-    if (!clipPlugin) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "clipPlugin is null");
-        return;
-    }
-    if (!ffrtTimer_) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "ffrtTimer_ is null");
-        return;
-    }
-#ifdef PB_DEVICE_MANAGER_ENABLE
-    FFRTTask p2pTask = [this, networkId, clipPlugin] {
-        std::thread thread([=]() {
-            PreEstablishP2PLink(networkId, clipPlugin);
-        });
-        PasteBoardCommonUtils::SetThreadTaskName(thread, "PreEstablishP2P");
-        thread.detach();
-    };
-    std::string taskName = "PreEstablishP2PLink_";
-    taskName += networkId;
-    ffrtTimer_->SetTimer(taskName, p2pTask);
-#endif
-}
-
 void PasteboardService::PreSyncRemotePasteboardData()
 {
-    auto clipPlugin = GetClipPlugin();
-    if (!clipPlugin) {
-        return;
-    }
-    if (!clipPlugin->NeedSyncTopEvent()) {
-        return;
-    }
-    const int32_t DEFAULT_USER_ID = 0;
-    clipPlugin->SendPreSyncEvent(DEFAULT_USER_ID);
+    p2pManager_->PreSyncRemotePasteboardData();
 }
 
 void PasteboardService::PreSyncSwitchMonitorCallback()
 {
-    if (!ffrtTimer_) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "ffrtTimer_ is null");
-        return;
-    }
-    FFRTTask monitorTask = [this] {
-        std::thread thread([=]() {
-            RegisterPreSyncMonitor();
-        });
-        PasteBoardCommonUtils::SetThreadTaskName(thread, "PreSyncSwitchMo");
-        thread.detach();
-    };
-    ffrtTimer_->SetTimer(REGISTER_PRESYNC_MONITOR, monitorTask);
-}
-
-void PasteboardService::RegisterPreSyncMonitor()
-{
-    if (!ffrtTimer_) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "ffrtTimer_ is null");
-        return;
-    }
-    if (!MMI::InputManager::GetInstance()) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "MMI::InputManager is null");
-        return;
-    }
-    FFRTTask monitorTask = [this] {
-        std::thread thread([=]() {
-            UnRegisterPreSyncMonitor();
-        });
-        PasteBoardCommonUtils::SetThreadTaskName(thread, "RegisterPreSync");
-        thread.detach();
-    };
-    if (subscribeActiveId_ != INVALID_SUBSCRIBE_ID) {
-        ffrtTimer_->SetTimer(UNREGISTER_PRESYNC_MONITOR, monitorTask, PRESYNC_MONITOR_TIME);
-        return;
-    }
-    std::shared_ptr<InputEventCallback> preSyncMonitor =
-        std::make_shared<InputEventCallback>(InputEventCallback::INPUTTYPE_PRESYNC, this);
-    if (!preSyncMonitor) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "failed to alloc InputEventCallback");
-        return;
-    }
-    subscribeActiveId_ = MMI::InputManager::GetInstance()->SubscribeInputActive(
-        std::static_pointer_cast<MMI::IInputEventConsumer>(preSyncMonitor), PRESYNC_MONITOR_INTERVAL_MILLISECONDS);
-    if (subscribeActiveId_ < 0) {
-        subscribeActiveId_ = INVALID_SUBSCRIBE_ID;
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "SubscribeInputActive failed");
-        return;
-    }
-    ffrtTimer_->SetTimer(UNREGISTER_PRESYNC_MONITOR, monitorTask, PRESYNC_MONITOR_TIME);
-}
-
-void PasteboardService::UnRegisterPreSyncMonitor()
-{
-    if (!MMI::InputManager::GetInstance()) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "MMI::InputManager is null");
-        return;
-    }
-    if (subscribeActiveId_ != INVALID_SUBSCRIBE_ID) {
-        MMI::InputManager::GetInstance()->UnsubscribeInputActive(subscribeActiveId_);
-        subscribeActiveId_ = INVALID_SUBSCRIBE_ID;
-    }
+    p2pManager_->PreSyncSwitchMonitorCallback();
 }
 
 FocusedAppInfo PasteboardService::GetFocusedAppInfo() const
@@ -4039,402 +3640,6 @@ void PasteboardService::GetPasteDataDot(PasteData &pasteData, const std::string 
     Reporter::GetInstance().PasteboardBehaviour().Report({ bState, bundleName });
     size_t dataSize = pasteData.GetTextSize();
     CalculateTimeConsuming timeC(dataSize, pState);
-}
-
-std::pair<std::shared_ptr<PasteData>, PasteDateResult> PasteboardService::GetDistributedData(
-    const Event &event, int32_t user)
-{
-    auto clipPlugin = GetClipPlugin();
-    PasteDateResult pasteDateResult;
-    if (clipPlugin == nullptr) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "clipPlugin null.");
-        pasteDateResult.syncTime = -1;
-        pasteDateResult.errorCode = static_cast<int32_t>(PasteboardError::REMOTE_TASK_ERROR);
-        return std::make_pair(nullptr, pasteDateResult);
-    }
-    std::vector<uint8_t> rawData;
-    auto result = clipPlugin->GetPasteData(event, rawData);
-    if (result.first != 0) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "get data failed");
-        Reporter::GetInstance().PasteboardFault().Report({ user, "GET_REMOTE_DATA_FAILED" });
-        pasteDateResult.syncTime = -1;
-        pasteDateResult.errorCode = result.first;
-        return std::make_pair(nullptr, pasteDateResult);
-    }
-    if (static_cast<int64_t>(rawData.size()) > maxLocalCapacity_.load()) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "remote dataSize exceeded, dataSize=%{public}zu", rawData.size());
-        pasteDateResult.syncTime = 0;
-        pasteDateResult.errorCode = static_cast<int32_t>(PasteboardError::REMOTE_DATA_SIZE_EXCEEDED);
-        return std::make_pair(nullptr, pasteDateResult);
-    }
-    SetCurrentEvent(std::move(event));
-    std::shared_ptr<PasteData> pasteData = std::make_shared<PasteData>();
-    pasteData->Decode(rawData);
-    pasteData->SetOriginAuthority(std::make_pair(pasteData->GetBundleName(), pasteData->GetAppIndex()));
-    pasteData->rawDataSize_ = static_cast<int64_t>(rawData.size());
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "set remote data, dataSize=%{public}" PRId64, pasteData->rawDataSize_);
-    for (size_t i = 0; i < pasteData->GetRecordCount(); i++) {
-        auto item = pasteData->GetRecordAt(i);
-        if (item == nullptr || item->GetConvertUri().empty()) {
-            continue;
-        }
-        if (item->GetOriginUri() == nullptr) {
-            item->SetConvertUri("");
-            continue;
-        }
-        item->isConvertUriFromRemote = true;
-    }
-    pasteDateResult.syncTime = result.second;
-    pasteDateResult.errorCode = static_cast<int32_t>(PasteboardError::E_OK);
-    return std::make_pair(pasteData, pasteDateResult);
-}
-
-bool PasteboardService::IsConstraintEnabled(int32_t user)
-{
-    bool isConstraintEnabled = false;
-    ErrCode err = AccountSA::OsAccountManager::CheckOsAccountConstraintEnabled(user, CONSTRAINT, isConstraintEnabled);
-    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(
-        err == ERR_OK, false, PASTEBOARD_MODULE_SERVICE, "CheckOsAccountConstraintEnabled failed, %{public}d", err);
-    return isConstraintEnabled;
-}
-
-bool PasteboardService::IsDisallowDistributed()
-{
-    pid_t uid = IPCSkeleton::GetCallingUid();
-    if (uid == DEVICE_COLLABORATION_UID) {
-        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "uid from device collaboration");
-        return true;
-    }
-    return false;
-}
-
-bool PasteboardService::IsNeedLink(PasteData &data)
-{
-    for (const auto &record : data.AllRecords()) {
-        if (record == nullptr) {
-            continue;
-        }
-        auto uri = record->GetConvertUri();
-        if (uri.empty()) {
-            continue;
-        }
-        if (uri.find("networkid=") != std::string::npos) {
-            return true;
-        }
-    }
-    return false;
-}
-
-bool PasteboardService::SetDistributedData(int32_t user, PasteData &data)
-{
-    auto networkId = DMAdapter::GetInstance().GetLocalNetworkId();
-    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(!networkId.empty(), false, PASTEBOARD_MODULE_SERVICE, "networkId is empty.");
-    Event event;
-    event.user = user;
-    event.seqId = ++sequenceId_;
-    auto expiration = PasteBoardTime::GetBootTimeMs() + EXPIRATION_INTERVAL;
-    event.expiration = static_cast<uint64_t>(expiration);
-    event.deviceId = networkId;
-    event.account = AccountManager::GetInstance().GetCurrentAccount();
-    event.status = ClipPlugin::EVT_NORMAL;
-    event.dataType = data.GetMimeTypes();
-    event.isDelay = data.IsDelayRecord();
-    event.dataId = data.GetDataId();
-    SetCurrentEvent(event);
-
-    if (IsConstraintEnabled(user) || IsDisallowDistributed()) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "not allowed to send, user:%{public}d", user);
-        return false;
-    }
-    auto clipPlugin = GetClipPlugin();
-    if (clipPlugin == nullptr) {
-        RADAR_REPORT(DFX_SET_PASTEBOARD, DFX_CHECK_ONLINE_DEVICE, DFX_SUCCESS);
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "clip plugin is null, dataId:%{public}u", data.GetDataId());
-        return false;
-    }
-    ShareOption shareOpt = data.GetShareOption();
-    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(shareOpt != ShareOption::InApp, false, PASTEBOARD_MODULE_SERVICE,
-        "data share option is in app, dataId:%{public}u", data.GetDataId());
-    if (CheckMdmShareOption(data)) {
-        PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(shareOpt != ShareOption::LocalDevice, false, PASTEBOARD_MODULE_SERVICE,
-            "data share option is local device, dataId:%{public}u", data.GetDataId());
-    }
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "dataId:%{public}u, seqId:%{public}hu, isDelay:%{public}d,"
-        "expiration:%{public}" PRIu64, event.dataId, event.seqId, event.isDelay, event.expiration);
-    return SetCurrentDistributedData(data, event);
-}
-
-bool PasteboardService::SetCurrentDistributedData(PasteData &data, Event event)
-{
-    std::thread thread([this, data, event]() mutable {
-        {
-            std::lock_guard<std::mutex> lock(setDistributedMemory_.mutex);
-            setDistributedMemory_.latestEvent = event;
-            setDistributedMemory_.latestData = std::make_shared<PasteData>(data);
-            if (setDistributedMemory_.isRunning) {
-                return;
-            }
-            setDistributedMemory_.isRunning = true;
-        }
-        bool isNeedCheck = false;
-        while (true) {
-            auto block = std::make_shared<BlockObject<bool>>(SET_DISTRIBUTED_DATA_INTERVAL, false);
-            {
-                std::lock_guard<std::mutex> lock(setDistributedMemory_.mutex);
-                if ((setDistributedMemory_.currentEvent.seqId == setDistributedMemory_.latestEvent.seqId
-                        && isNeedCheck) || setDistributedMemory_.latestData == nullptr) {
-                    setDistributedMemory_.latestData = nullptr;
-                    setDistributedMemory_.isRunning = false;
-                    break;
-                }
-            }
-            if (!isNeedCheck) {
-                isNeedCheck = true;
-            }
-            std::thread innerThread([this, block]() mutable {
-                auto result = SetCurrentData();
-                block->SetValue(true);
-            });
-            PasteBoardCommonUtils::SetThreadTaskName(innerThread, "SetCurrentData");
-            innerThread.detach();
-            bool ret = block->GetValue();
-            PASTEBOARD_CHECK_AND_RETURN_LOGE(ret, PASTEBOARD_MODULE_SERVICE, "timeout,seqId:%{public}hu", event.seqId);
-        }
-    });
-    PasteBoardCommonUtils::SetThreadTaskName(thread, "SetDistributeDa");
-    thread.detach();
-    return true;
-}
-
-bool PasteboardService::SetCurrentData()
-{
-    PasteData currentData;
-    Event currentEvent;
-    {
-        std::lock_guard<std::mutex> lock(setDistributedMemory_.mutex);
-        if (setDistributedMemory_.latestData == nullptr) {
-            return false;
-        }
-        setDistributedMemory_.currentEvent = setDistributedMemory_.latestEvent;
-        currentEvent = setDistributedMemory_.currentEvent;
-        currentData = *setDistributedMemory_.latestData;
-    }
-    auto clipPlugin = GetClipPlugin();
-    if (clipPlugin == nullptr) {
-        RADAR_REPORT(DFX_SET_PASTEBOARD, DFX_CHECK_ONLINE_DEVICE, DFX_SUCCESS);
-        PASTEBOARD_HILOGE(
-            PASTEBOARD_MODULE_SERVICE, "clip plugin is null, dataId:%{public}u", currentData.GetDataId());
-        return false;
-    }
-    RADAR_REPORT(DFX_SET_PASTEBOARD, DFX_LOAD_DISTRIBUTED_PLUGIN, DFX_SUCCESS);
-    bool needFull = currentData.IsDelayRecord() &&
-        moduleConfig_.GetRemoteDeviceMinVersion() == DistributedModuleConfig::Version::VERSION_FOUR;
-    if (needFull) {
-        GetFullDelayPasteData(currentEvent.user, currentData);
-        currentEvent.isDelay = false;
-        {
-            std::unique_lock<std::shared_mutex> write(pasteDataMutex_);
-            std::string bundleIndex = PasteBoardCommon::GetDirByAuthority(currentData.GetOriginAuthority());
-            PasteboardWebController::GetInstance().SplitWebviewPasteData(
-                currentData, bundleIndex, currentData.userId_);
-            PasteboardWebController::GetInstance().SetWebviewPasteData(currentData, bundleIndex);
-            PasteboardWebController::GetInstance().CheckAppUriPermission(currentData);
-        }
-    }
-    GenerateDistributedUri(currentData);
-    currentEvent.notNeedLink = !IsNeedLink(currentData);
-    std::vector<uint8_t> rawData;
-    auto remoteVersionMin = moduleConfig_.GetRemoteDeviceMinVersion();
-    {
-        std::shared_lock<std::shared_mutex> read(pasteDataMutex_);
-        if (!currentData.Encode(rawData, remoteVersionMin <= DistributedModuleConfig::Version::VERSION_FIVE)) {
-            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE,
-                "distributed data encode failed, dataId:%{public}u, seqId:%{public}hu",
-                currentEvent.dataId, currentEvent.seqId);
-            return false;
-        }
-    }
-    if (currentData.IsDelayRecord() && !needFull) {
-        clipPlugin->RegisterDelayCallback(
-            std::bind(&PasteboardService::GetDistributedDelayData, this, std::placeholders::_1,
-                std::placeholders::_2, std::placeholders::_3),
-            std::bind(&PasteboardService::GetDistributedDelayEntry, this, std::placeholders::_1,
-                std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
-    }
-    std::vector<uint8_t> rawMimeTypes;
-    if (rawData.size() > MAX_TRANSFER_SIZE) {
-        auto mimeTypes = currentData.GetMimeTypes();
-        rawMimeTypes = EncodeMimeTypes(mimeTypes);
-    }
-    clipPlugin->SetPasteData(currentEvent, rawData, remoteVersionMin, rawMimeTypes);
-    return true;
-}
-
-int32_t PasteboardService::GetDistributedDelayEntry(const Event &evt, uint32_t recordId, const std::string &utdId,
-    std::vector<uint8_t> &rawData)
-{
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "dataId:%{public}u, seqId:%{public}hu, expiration:%{public}" PRIu64
-        ", recordId:%{public}u, type:%{public}s", evt.dataId, evt.seqId, evt.expiration, recordId, utdId.c_str());
-    auto [hasData, data] = clips_.Find(evt.user);
-    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(hasData && data, static_cast<int32_t>(PasteboardError::NO_DATA_ERROR),
-        PASTEBOARD_MODULE_SERVICE, "data not find, userId=%{public}u", evt.user);
-    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(evt.dataId == data->GetDataId(),
-        static_cast<int32_t>(PasteboardError::INVALID_DATA_ID), PASTEBOARD_MODULE_SERVICE,
-        "dataId=%{public}u mismatch, local=%{public}u", evt.dataId, data->GetDataId());
-
-    auto record = data->GetRecordById(recordId);
-    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(record != nullptr, static_cast<int32_t>(PasteboardError::INVALID_RECORD_ID),
-        PASTEBOARD_MODULE_SERVICE, "recordId=%{public}u invalid, max=%{public}zu", recordId, data->GetRecordCount());
-
-    PasteDataEntry entry;
-    entry.SetUtdId(utdId);
-    int32_t ret = GetLocalEntryValue(evt.user, *data, *record, entry);
-    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(ret == static_cast<int32_t>(PasteboardError::E_OK), ret,
-        PASTEBOARD_MODULE_SERVICE, "get local entry failed, seqId=%{public}hu, dataId=%{public}u, recordId=%{public}u"
-        ", type=%{public}s, ret=%{public}d", evt.seqId, evt.dataId, recordId, utdId.c_str(), ret);
-
-    std::string mimeType = entry.GetMimeType();
-    if (mimeType == MIMETYPE_TEXT_URI) {
-        ret = ProcessDistributedDelayUri(evt.user, *data, entry, rawData);
-    } else if (mimeType == MIMETYPE_TEXT_HTML) {
-        ret = ProcessDistributedDelayHtml(*data, entry, rawData);
-    } else {
-        ret = ProcessDistributedDelayEntry(entry, rawData);
-    }
-    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(ret == static_cast<int32_t>(PasteboardError::E_OK), ret,
-        PASTEBOARD_MODULE_SERVICE, "process distributed entry failed, seqId=%{public}hu, dataId=%{public}u, "
-        "recordId=%{public}u, type=%{public}s, ret=%{public}d", evt.seqId, evt.dataId, recordId, utdId.c_str(), ret);
-
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "type=%{public}s, size=%{public}zu", utdId.c_str(), rawData.size());
-    return static_cast<int32_t>(PasteboardError::E_OK);
-}
-
-int32_t PasteboardService::ProcessDistributedDelayUri(int32_t userId, PasteData &data, PasteDataEntry &entry,
-    std::vector<uint8_t> &rawData)
-{
-    auto uri = entry.ConvertToUri();
-    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(uri != nullptr, static_cast<int32_t>(PasteboardError::GET_ENTRY_VALUE_FAILED),
-        PASTEBOARD_MODULE_SERVICE, "convert entry to uri failed");
-
-    {
-        std::unique_lock<std::shared_mutex> write(pasteDataMutex_);
-        PasteboardWebController::GetInstance().CheckAppUriPermission(data);
-    }
-    std::string localUri = uri->ToString();
-    std::vector<std::string> localUris = { localUri };
-    std::unordered_map<std::string, HmdfsUriInfo> dfsUris;
-    int32_t ret = Storage::DistributedFile::FileMountManager::GetDfsUrisDirFromLocal(localUris, userId, dfsUris);
-    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(ret == 0, ret, PASTEBOARD_MODULE_SERVICE,
-        "generate distributed uri failed, uri=%{private}s", localUri.c_str());
-
-    auto dfsUri = dfsUris.find(localUri);
-    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(dfsUri != dfsUris.end(), static_cast<int32_t>(PasteboardError::NO_DATA_ERROR),
-        PASTEBOARD_MODULE_SERVICE, "dfsUris is null");
-    std::string distributedUri = dfsUri->second.uriStr;
-    size_t fileSize = dfsUri->second.fileSize;
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "uri: %{private}s -> %{private}s, fileSize=%{public}zu",
-        localUri.c_str(), distributedUri.c_str(), fileSize);
-
-    auto entryValue = entry.GetValue();
-    if (std::holds_alternative<std::string>(entryValue)) {
-        entry.SetValue(distributedUri);
-    } else if (std::holds_alternative<std::shared_ptr<Object>>(entryValue)) {
-        auto object = std::get<std::shared_ptr<Object>>(entryValue);
-        auto newObject = std::make_shared<Object>();
-        newObject->value_ = object->value_;
-        newObject->value_[UDMF::FILE_URI_PARAM] = distributedUri;
-        entry.SetValue(newObject);
-        entry.SetFileSize(static_cast<int64_t>(fileSize));
-    }
-
-    bool encodeSucc = entry.Encode(rawData, true);
-    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(encodeSucc, static_cast<int32_t>(PasteboardError::DATA_ENCODE_ERROR),
-        PASTEBOARD_MODULE_SERVICE, "encode uri failed");
-    return static_cast<int32_t>(PasteboardError::E_OK);
-}
-
-int32_t PasteboardService::ProcessDistributedDelayHtml(PasteData &data, PasteDataEntry &entry,
-    std::vector<uint8_t> &rawData)
-{
-    {
-        std::unique_lock<std::shared_mutex> write(pasteDataMutex_);
-        std::string bundleIndex = PasteBoardCommon::GetDirByAuthority(data.GetOriginAuthority());
-        if (PasteboardWebController::GetInstance().SplitWebviewPasteData(data, bundleIndex, data.userId_)) {
-            PasteboardWebController::GetInstance().SetWebviewPasteData(data, bundleIndex);
-            PasteboardWebController::GetInstance().CheckAppUriPermission(data);
-        }
-    }
-
-    PasteData tmp;
-    std::shared_ptr<std::string> html = entry.ConvertToHtml();
-    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(html != nullptr, static_cast<int32_t>(PasteboardError::GET_ENTRY_VALUE_FAILED),
-        PASTEBOARD_MODULE_SERVICE, "convert to html failed");
-
-    tmp.AddHtmlRecord(*html);
-    tmp.SetBundleInfo(data.GetBundleName(), data.GetAppIndex());
-    tmp.SetOriginAuthority(data.GetOriginAuthority());
-    tmp.SetTokenId(data.GetTokenId());
-    std::string bundleIndex = PasteBoardCommon::GetDirByAuthority(data.GetOriginAuthority());
-    if (PasteboardWebController::GetInstance().SplitWebviewPasteData(tmp, bundleIndex, data.userId_)) {
-        PasteboardWebController::GetInstance().SetWebviewPasteData(tmp, bundleIndex);
-        PasteboardWebController::GetInstance().CheckAppUriPermission(tmp);
-        GenerateDistributedUri(tmp);
-    }
-
-    auto remoteVersionMin = moduleConfig_.GetRemoteDeviceMinVersion();
-    bool encodeSucc = tmp.Encode(rawData, remoteVersionMin <= DistributedModuleConfig::Version::VERSION_FIVE);
-    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(encodeSucc, static_cast<int32_t>(PasteboardError::DATA_ENCODE_ERROR),
-        PASTEBOARD_MODULE_SERVICE, "encode html failed");
-    return static_cast<int32_t>(PasteboardError::E_OK);
-}
-
-int32_t PasteboardService::ProcessDistributedDelayEntry(PasteDataEntry &entry, std::vector<uint8_t> &rawData)
-{
-    bool encodeSucc = entry.Encode(rawData, true);
-    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(encodeSucc, static_cast<int32_t>(PasteboardError::DATA_ENCODE_ERROR),
-        PASTEBOARD_MODULE_SERVICE, "encode entry failed, type=%{public}s", entry.GetUtdId().c_str());
-    return static_cast<int32_t>(PasteboardError::E_OK);
-}
-
-int32_t PasteboardService::GetDistributedDelayData(const Event &evt, uint8_t version, std::vector<uint8_t> &rawData)
-{
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "dataId:%{public}u, seqId:%{public}hu, expiration:%{public}" PRIu64,
-        evt.dataId, evt.seqId, evt.expiration);
-    auto [hasData, data] = clips_.Find(evt.user);
-    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(hasData && data, static_cast<int32_t>(PasteboardError::NO_DATA_ERROR),
-        PASTEBOARD_MODULE_SERVICE, "data not find, userId=%{public}u", evt.user);
-    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(evt.dataId == data->GetDataId(),
-        static_cast<int32_t>(PasteboardError::INVALID_DATA_ID), PASTEBOARD_MODULE_SERVICE,
-        "dataId=%{public}u mismatch, local=%{public}u", evt.dataId, data->GetDataId());
-
-    int32_t ret = static_cast<int32_t>(PasteboardError::E_OK);
-    if (version == 0) {
-        ret = GetFullDelayPasteData(evt.user, *data);
-    } else if (version == 1) {
-        ret = GetDelayPasteRecord(evt.user, *data);
-    }
-    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(ret == static_cast<int32_t>(PasteboardError::E_OK), ret,
-        PASTEBOARD_MODULE_SERVICE, "get delay data failed, version=%{public}hhu", version);
-
-    auto authorityInfo = data->GetOriginAuthority();
-    data->SetBundleInfo(authorityInfo.first, authorityInfo.second);
-    {
-        std::unique_lock<std::shared_mutex> write(pasteDataMutex_);
-        std::string bundleIndex = PasteBoardCommon::GetDirByAuthority(authorityInfo);
-        PasteboardWebController::GetInstance().SplitWebviewPasteData(*data, bundleIndex, evt.user);
-        PasteboardWebController::GetInstance().SetWebviewPasteData(*data, bundleIndex);
-        PasteboardWebController::GetInstance().CheckAppUriPermission(*data);
-    }
-    GenerateDistributedUri(*data);
-
-    auto remoteVersionMin = moduleConfig_.GetRemoteDeviceMinVersion();
-    std::shared_lock<std::shared_mutex> read(pasteDataMutex_);
-    bool encodeSucc = data->Encode(rawData, remoteVersionMin <= DistributedModuleConfig::Version::VERSION_FIVE);
-    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(encodeSucc, static_cast<int32_t>(PasteboardError::DATA_ENCODE_ERROR),
-        PASTEBOARD_MODULE_SERVICE, "encode data failed, dataId:%{public}u, seqId:%{public}hu", evt.dataId, evt.seqId);
-
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "size=%{public}zu", rawData.size());
-    return static_cast<int32_t>(PasteboardError::E_OK);
 }
 
 int32_t PasteboardService::GetLocalEntryValue(int32_t userId, PasteData &data, PasteDataRecord &record,
@@ -4548,7 +3753,7 @@ int32_t PasteboardService::ProcessRemoteDelayUri(const std::string &deviceId, co
     std::map<uint32_t, std::vector<Uri>> grantUris = CheckUriPermission(
         data, std::make_pair(appInfo.bundleName, appInfo.appIndex));
     if (!grantUris.empty()) {
-        EstablishP2PLink(deviceId, data.GetPasteId());
+        p2pManager_->EstablishP2PLink(deviceId, data.GetPasteId());
         int32_t ret = GrantUriPermission(grantUris, appInfo.tokenId, data.IsRemote());
         PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(ret == static_cast<int32_t>(PasteboardError::E_OK), ret,
             PASTEBOARD_MODULE_SERVICE, "grant remote uri failed, uri=%{private}s, ret=%{public}d",
@@ -4622,7 +3827,7 @@ int32_t PasteboardService::ProcessRemoteDelayHtmlInner(const std::string &remote
     std::map<uint32_t, std::vector<Uri>> grantUris = CheckUriPermission(
         data, std::make_pair(appInfo.bundleName, appInfo.appIndex));
     if (!grantUris.empty()) {
-        EstablishP2PLink(remoteDeviceId, data.GetPasteId());
+        p2pManager_->EstablishP2PLink(remoteDeviceId, data.GetPasteId());
         int32_t ret = GrantUriPermission(grantUris, appInfo.tokenId, data.IsRemote());
         PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(ret == static_cast<int32_t>(PasteboardError::E_OK), ret,
             PASTEBOARD_MODULE_SERVICE, "grant to %{public}s failed, ret=%{public}d", appInfo.bundleName.c_str(), ret);
@@ -4656,7 +3861,11 @@ int32_t PasteboardService::GetFullDelayPasteData(int32_t userId, PasteData &data
         PasteboardWebController::GetInstance().SetWebviewPasteData(data, bundleIndex);
         PasteboardWebController::GetInstance().CheckAppUriPermission(data);
     }
-    clips_.ComputeIfPresent(userId, [&data](auto, auto &value) {
+    #ifdef PB_COCKPIT_PLATFORM_ENABLE
+    clips_.ComputeIfPresent(GetCompositeKey(userId), [&data](auto, auto &value) {
+#else
+    clips_.ComputeIfPresent(GetCompositeKey(userId), [&data](auto, auto &value) {
+#endif
         if (data.GetDataId() != value->GetDataId()) {
             PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE,
                 "set data fail, data is out time, pre dataId is %{public}d, cur dataId is %{public}d",
@@ -4673,7 +3882,11 @@ int32_t PasteboardService::SyncDelayedData()
 {
     auto tokenId = IPCSkeleton::GetCallingTokenID();
     auto appInfo = GetAppInfo(tokenId);
-    auto [hasData, data] = clips_.Find(appInfo.userId);
+    #ifdef PB_COCKPIT_PLATFORM_ENABLE
+    auto [hasData, data] = clips_.Find(GetCompositeKey(appInfo.userId));
+#else
+    auto [hasData, data] = clips_.Find(GetCompositeKey(appInfo.userId));
+#endif
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(hasData && data, static_cast<int32_t>(PasteboardError::NO_DATA_ERROR),
         PASTEBOARD_MODULE_SERVICE, "data not find, userId=%{public}u", appInfo.userId);
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(tokenId == data->GetTokenId(),
@@ -4688,7 +3901,11 @@ int32_t PasteboardService::SyncDelayedData()
         std::unique_lock<std::shared_mutex> write(pasteDataMutex_);
         PASTEBOARD_CHECK_AND_RETURN_LOGE(data != nullptr, PASTEBOARD_MODULE_SERVICE, "sync delayed data is null");
         data->RemoveEmptyEntry();
-        clips_.ComputeIfPresent(userId, [=](auto, auto &value) {
+        #ifdef PB_COCKPIT_PLATFORM_ENABLE
+        clips_.ComputeIfPresent(GetCompositeKey(userId), [=](auto, auto &value) {
+#else
+        clips_.ComputeIfPresent(GetCompositeKey(userId), [=](auto, auto &value) {
+#endif
             if (data->GetDataId() == value->GetDataId()) {
                 value = std::move(data);
             }
@@ -4761,59 +3978,6 @@ void PasteboardService::GenerateDistributedUri(PasteData &data)
     data.SetFileSize(static_cast<int64_t>(fileSize));
 }
 
-std::shared_ptr<ClipPlugin> PasteboardService::GetClipPlugin()
-{
-    auto isOn = moduleConfig_.IsOn();
-    if (isOn) {
-        auto isSupported = securityLevel_.IsSupportedDistributed(false);
-        if (!isSupported) {
-            return nullptr;
-        }
-    }
-    std::lock_guard<decltype(mutex)> lockGuard(mutex);
-    if (!isOn || clipPlugin_ != nullptr) {
-        return clipPlugin_;
-    }
-    Loader loader;
-    loader.LoadComponents();
-    auto release = [this](ClipPlugin *plugin) {
-        ClipPlugin::DestroyPlugin(PLUGIN_NAME, plugin);
-    };
-
-    clipPlugin_ = std::shared_ptr<ClipPlugin>(ClipPlugin::CreatePlugin(PLUGIN_NAME), release);
-    InitPlugin(clipPlugin_);
-    return clipPlugin_;
-}
-
-void PasteboardService::CleanDistributedData(int32_t user)
-{
-    auto clipPlugin = GetClipPlugin();
-    if (clipPlugin == nullptr) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "clipPlugin null.");
-        return;
-    }
-    clipPlugin->Clear(user);
-}
-
-bool PasteboardService::IsValidCurrentEvent()
-{
-    auto expiration = PasteBoardTime::GetBootTimeMs();
-    auto currentEvent = GetCurrentEvent();
-    PASTEBOARD_CHECK_AND_RETURN_RET_LOGD(static_cast<uint64_t>(expiration) < currentEvent.expiration,
-        false, PASTEBOARD_MODULE_SERVICE, "event is invalid");
-    return true;
-}
-
-void PasteboardService::CloseDistributedStore(int32_t user, bool isNeedClear)
-{
-    std::lock_guard<decltype(mutex)> lockGuard(mutex);
-    PASTEBOARD_CHECK_AND_RETURN_LOGE(clipPlugin_ != nullptr, PASTEBOARD_MODULE_SERVICE, "clipPlugin is null");
-    if (isNeedClear) {
-        clipPlugin_->Clear(user);
-    }
-    clipPlugin_->Close(user);
-}
-
 void PasteboardService::OnConfigChange(bool isOn)
 {
     std::thread thread([=]() {
@@ -4827,13 +3991,7 @@ void PasteboardService::OnConfigChangeInner(bool isOn)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ConfigChange isOn: %{public}d.", isOn);
     if (!isOn) {
-        std::lock_guard<std::mutex> tmpMutex(p2pMapMutex_);
-        p2pMap_.ForEach([this](const auto &deviceId, auto &value) {
-            PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "configChange is off, need close p2p link.");
-            CloseP2PLink(deviceId);
-            return false;
-        });
-        p2pMap_.Clear();
+        p2pManager_->ClearAllP2PLinks();
     }
     std::lock_guard<decltype(mutex)> lockGuard(mutex);
     if (!isOn) {
@@ -4897,17 +4055,6 @@ sptr<AppExecFwk::IBundleMgr> PasteboardService::GetAppBundleManager()
     return OHOS::iface_cast<AppExecFwk::IBundleMgr>(remoteObject);
 }
 
-void PasteboardService::ChangeStoreStatus(int32_t userId)
-{
-    PasteboardService::currentUserId_.store(userId);
-    auto clipPlugin = GetClipPlugin();
-    if (clipPlugin == nullptr) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "clipPlugin null.");
-        return;
-    }
-    clipPlugin->ChangeStoreStatus(userId);
-}
-
 ClipPlugin::GlobalEvent PasteboardService::GetCurrentEvent() const
 {
     std::lock_guard<std::mutex> lock(currentEventMutex_);
@@ -4961,7 +4108,7 @@ void PasteBoardCommonEventSubscriber::HandleUserSwitched(const EventFwk::CommonE
             return;
         }
         PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "user id switched: %{public}d", context.userId);
-        pasteboardService_->ChangeStoreStatus(context.userId);
+        pasteboardService_->distributedManager_->ChangeStoreStatus(context.userId);
         pasteboardService_->switch_.DeInit();
         pasteboardService_->switch_.Init(context.userId);
         PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetSwitch end, userId=%{public}d", context.userId);
@@ -5034,7 +4181,11 @@ void PasteboardService::ClearUriOnUninstall(int32_t userId, int32_t tokenId)
 {
     PASTEBOARD_CHECK_AND_RETURN_LOGE(tokenId >= 0, PASTEBOARD_MODULE_SERVICE, "tokenId is invalid");
     PASTEBOARD_CHECK_AND_RETURN_LOGE(userId != ERROR_USERID, PASTEBOARD_MODULE_SERVICE, "userId is invalid");
-    clips_.ComputeIfPresent(userId, [this, tokenId, userId](auto, auto &pasteData) {
+    #ifdef PB_COCKPIT_PLATFORM_ENABLE
+    clips_.ComputeIfPresent(GetCompositeKey(userId), [this, tokenId, userId](auto, auto &pasteData) {
+#else
+    clips_.ComputeIfPresent(GetCompositeKey(userId), [this, tokenId, userId](auto, auto &pasteData) {
+#endif
         if (pasteData == nullptr) {
             return true;
         }
@@ -5103,7 +4254,7 @@ void PasteBoardAccountStateSubscriber::OnStateChangedInner(const AccountSA::OsAc
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "state: %{public}d, fromId: %{public}d, toId: %{public}d,"
         "callback is nullptr: %{public}d", data.state, data.fromId, data.toId, data.callback == nullptr);
     if (data.state == AccountSA::OsAccountState::STOPPING && pasteboardService_ != nullptr) {
-        pasteboardService_->CloseDistributedStore(data.fromId, true);
+        pasteboardService_->distributedManager_->CloseDistributedStore(data.fromId, true);
     }
     if (data.callback != nullptr) {
         data.callback->OnComplete();
@@ -5132,14 +4283,7 @@ void PasteboardService::PasteboardEventSubscriber()
             PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "networkId is empty.");
             return;
         }
-        std::lock_guard<std::mutex> tmpMutex(p2pMapMutex_);
-        p2pMap_.EraseIf([networkId, this](auto &key, auto &value) {
-            if (key == networkId) {
-                CloseP2PLink(networkId);
-                return true;
-            }
-            return false;
-        });
+        p2pManager_->RemoveP2PLinkByNetworkId(networkId);
     });
 }
 
@@ -5201,6 +4345,28 @@ void PasteboardService::DistributedAccountSubscriber()
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, 
         "DistributedAccountSubscriber initialized, subscribed SWITCHING event");
 }
+
+int32_t PasteboardService::GetActiveSubspaceId(int32_t userId) const
+{
+    auto subspaceId = activeSubspaceMap_.Find(userId);
+    if (subspaceId.first) {
+        return subspaceId.second;
+    }
+    return DEFAULT_SUBSPACE_ID;
+}
+
+CompositeKey PasteboardService::GetCompositeKey(int32_t userId) const
+{
+    return CompositeKey(userId, GetActiveSubspaceId(userId));
+}
+
+void PasteboardService::UpdateActiveSubspace(int32_t userId, int32_t subspaceId)
+{
+    activeSubspaceMap_.Insert(userId, subspaceId);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE,
+        "UpdateActiveSubspace: userId=%{public}d, subspaceId=%{public}d",
+        userId, subspaceId);
+}
 #endif
 
 void PasteboardService::RemoveObserverByPid(int32_t userId, pid_t pid, ObserverMap &observerMap)
@@ -5230,25 +4396,9 @@ int32_t PasteboardService::AppExit(pid_t pid, int32_t userId)
     DisposableManager::GetInstance().RemoveDisposableInfo(pid, false);
     ClearInputMethodPidByPid(userId, pid);
     std::vector<std::string> networkIds;
-    {
-        std::lock_guard<std::mutex> tmpMutex(p2pMapMutex_);
-        p2pMap_.EraseIf([pid, &networkIds, this](auto &networkId, auto &pidMap) {
-            pidMap.EraseIf([pid, this, networkId](const auto &key, const auto &value) {
-                if (value.callPid == pid) {
-                    PasteStart(networkId);
-                    return true;
-                }
-                return false;
-            });
-            if (pidMap.Empty()) {
-                networkIds.emplace_back(networkId);
-                return true;
-            }
-            return false;
-        });
-    }
+    p2pManager_->RemoveP2PLinksByPid(pid, networkIds);
     for (const auto &id : networkIds) {
-        CloseP2PLink(id);
+        p2pManager_->CloseP2PLink(id);
     }
     bool isExist = clients_.ComputeIfPresent(pid, [pid](auto, auto &value) {
         PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "find client death recipient succeed, pid=%{public}d", pid);

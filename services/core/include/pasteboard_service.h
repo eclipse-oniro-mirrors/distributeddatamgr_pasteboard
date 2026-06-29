@@ -90,11 +90,6 @@ struct PasteDateResult {
     int32_t errorCode = 0;
 };
 
-struct PasteP2pEstablishInfo {
-    std::string networkId;
-    std::shared_ptr<BlockObject<int32_t>> pasteBlock;
-};
-
 struct FocusedAppInfo {
     int32_t left = 0;
     int32_t top = 0;
@@ -132,6 +127,17 @@ private:
 
 class PasteboardService final : public SystemAbility, public PasteboardServiceStub {
     DECLARE_SYSTEM_ABILITY(PasteboardService)
+
+    friend class PasteboardDistributedManager;
+    friend class PasteboardP2PManager;
+    friend class PasteboardUriHandler;
+    friend class PasteboardObserverManager;
+    friend class PasteboardEntityRecognizer;
+    friend class PasteboardPermissionChecker;
+    friend class PasteboardAppInfoHelper;
+    friend class PasteboardDelayDataHandler;
+    friend class PasteboardSystemEventListener;
+    friend class PasteboardDumpHelper;
 
 public:
     API_EXPORT PasteboardService();
@@ -195,8 +201,6 @@ public:
     void NotifyDelayGetterDied(int32_t userId);
     void NotifyEntryGetterDied(int32_t userId);
     virtual int32_t GetChangeCount(uint32_t &changeCount) override;
-    void CloseDistributedStore(int32_t user, bool isNeedClear);
-    void ChangeStoreStatus(int32_t userId);
     void PreSyncRemotePasteboardData();
     bool ShouldRegisterPreSyncMonitor(int32_t userId) const;
     bool HasActivePasteboardWork();
@@ -211,9 +215,7 @@ public:
     int32_t ClearByEventUser(int32_t userId);
     void ClearUriOnUninstall(int32_t userId, int32_t tokenId);
     void ClearUriOnUninstall(std::shared_ptr<PasteData> pasteData);
-    void CleanDistributedData(int32_t user);
     void HandleWifiOffAndClearDistributedEvent(int32_t userId);
-    bool IsValidCurrentEvent();
 
     static std::shared_mutex pasteDataMutex_;
 
@@ -396,26 +398,8 @@ private:
     bool IsBundleOwnUriPermission(const std::string &bundleName, Uri &uri);
     std::string GetAppLabel(uint32_t tokenId);
     sptr<OHOS::AppExecFwk::IBundleMgr> GetAppBundleManager();
-    void OpenP2PLink(const std::string &networkId);
-    std::shared_ptr<BlockObject<int32_t>> CheckAndReuseP2PLink(const std::string &networkId,
-        const std::string &pasteId);
-    void EstablishP2PLink(const std::string &networkId, const std::string &pasteId);
-    bool IsContainUri(const Event &evt);
-    std::shared_ptr<BlockObject<int32_t>> EstablishP2PLinkTask(
-        const std::string &pasteId, const ClipPlugin::GlobalEvent &event);
-    void OnEstablishP2PLinkTask(const std::string &networkId, std::shared_ptr<BlockObject<int32_t>> pasteBlock);
-    void ClearP2PEstablishTaskInfo();
-    void CloseP2PLink(const std::string &networkId);
     bool HasDistributedDataType(const std::string &mimeType);
 
-    std::pair<std::shared_ptr<PasteData>, PasteDateResult> GetDistributedData(const Event &event, int32_t user);
-    int32_t GetDistributedDelayData(const Event &evt, uint8_t version, std::vector<uint8_t> &rawData);
-    int32_t GetDistributedDelayEntry(const Event &evt, uint32_t recordId, const std::string &utdId,
-        std::vector<uint8_t> &rawData);
-    int32_t ProcessDistributedDelayUri(int32_t userId, PasteData &data, PasteDataEntry &entry,
-        std::vector<uint8_t> &rawData);
-    int32_t ProcessDistributedDelayHtml(PasteData &data, PasteDataEntry &entry, std::vector<uint8_t> &rawData);
-    int32_t ProcessDistributedDelayEntry(PasteDataEntry &entry, std::vector<uint8_t> &rawData);
     int32_t GetRemoteEntryValue(const AppInfo &appInfo, PasteData &data, PasteDataRecord &record,
         PasteDataEntry &entry);
     int32_t ProcessRemoteDelayUri(const std::string &deviceId, const AppInfo &appInfo,
@@ -426,14 +410,8 @@ private:
         PasteData &tmpData, PasteData &data, PasteDataEntry &entry);
     int32_t GetLocalEntryValue(int32_t userId, PasteData &data, PasteDataRecord &record, PasteDataEntry &entry);
     int32_t GetFullDelayPasteData(int32_t userId, PasteData &data);
-    bool IsDisallowDistributed();
-    bool IsNeedLink(PasteData &data);
-    bool SetDistributedData(int32_t user, PasteData &data);
-    bool SetCurrentDistributedData(PasteData &data, Event event);
-    bool SetCurrentData();
     void OnConfigChange(bool isOn);
     void OnConfigChangeInner(bool isOn);
-    std::shared_ptr<ClipPlugin> GetClipPlugin();
     void IncreaseChangeCount(int32_t userId);
 
     static std::string GetTime();
@@ -477,16 +455,7 @@ private:
     std::vector<uint8_t> EncodeMimeTypes(const std::vector<std::string> &mimeTypes);
     std::vector<std::string> DecodeMimeTypes(const std::vector<uint8_t> &rawData);
 
-    void InitPlugin(std::shared_ptr<ClipPlugin> clipPlugin);
-    bool OpenP2PLinkForPreEstablish(const std::string &networkId, ClipPlugin *clipPlugin);
-    void PreEstablishP2PLink(const std::string &networkId, ClipPlugin *clipPlugin);
-    void PreEstablishP2PLinkCallback(const std::string &networkId, ClipPlugin *clipPlugin);
     void PreSyncSwitchMonitorCallback();
-    void RegisterPreSyncMonitor();
-    void UnRegisterPreSyncMonitor();
-    void DeletePreSyncP2pFromP2pMap(const std::string &networkId);
-    void DeletePreSyncP2pMap(const std::string &networkId);
-    void AddPreSyncP2pTimeoutTask(const std::string &networkId);
 
     static inline ServiceRunningState state_ = ServiceRunningState::STATE_NOT_START;
     std::shared_ptr<AppExecFwk::EventHandler> serviceHandler_;
@@ -524,16 +493,7 @@ private:
     static std::shared_ptr<Command> copyData;
     std::atomic<bool> setting_ = false;
 
-    struct PasteboardP2pInfo {
-        pid_t callPid;
-        bool isSuccess;
-    };
     std::shared_ptr<FFRTTimer> ffrtTimer_;
-    std::mutex p2pMapMutex_;
-    PasteP2pEstablishInfo p2pEstablishInfo_;
-    ConcurrentMap<std::string, ConcurrentMap<std::string, PasteboardP2pInfo>> p2pMap_;
-    std::map<std::string, std::shared_ptr<BlockObject<int32_t>>> preSyncP2pMap_;
-    int32_t subscribeActiveId_ = INVALID_SUBSCRIBE_ID;
     enum GlobalShareOptionSource {
         MDM = 0,
         APP = 1,
@@ -557,7 +517,6 @@ private:
     bool HasRemoteDataType(const std::string &mimeType, const Event &event);
     void AddPermissionRecord(uint32_t tokenId, bool isReadGrant, bool isSecureGrant);
     bool SubscribeKeyboardEvent();
-    bool IsConstraintEnabled(int32_t user);
     void UpdateShareOption(PasteData &pasteData);
     bool CheckMdmShareOption(PasteData &pasteData);
     void PasteboardEventSubscriber();

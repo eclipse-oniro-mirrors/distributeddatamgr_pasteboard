@@ -16,11 +16,28 @@
 #ifndef PASTEBOARD_P2P_MANAGER_H
 #define PASTEBOARD_P2P_MANAGER_H
 
-#include "pasteboard_service.h"
+#include "common/block_object.h"
+#include "clip/clip_plugin.h"
+#include "concurrent_map.h"
+#include "eventcenter/event.h"
 #include "ffrt/ffrt_utils.h"
+#include "input_manager.h"
+#include "paste_data.h"
 
 namespace OHOS {
 namespace MiscServices {
+
+class PasteboardService;
+
+struct PasteP2pEstablishInfo {
+    std::string networkid;
+    std::shared_ptr<BlockObject<int32_t>> pasteBlock;
+};
+
+struct PasteboardP2pInfo {
+    pid_t callPid;
+    bool isSuccess;
+};
 
 class PasteboardP2PManager {
 public:
@@ -38,6 +55,7 @@ public:
     bool OpenP2PLinkForPreEstablish(const std::string& networkId, ClipPlugin* clipPlugin);
     
     void PreSyncRemotePasteboardData();
+    void PreSyncSwitchMonitorCallback();
     void RegisterPreSyncMonitor();
     void UnRegisterPreSyncMonitor();
     void DeletePreSyncP2pFromP2pMap(const std::string& networkId);
@@ -51,6 +69,10 @@ public:
     std::shared_ptr<BlockObject<int32_t>> EstablishP2PLinkTask(
         const std::string& pasteId, const ClipPlugin::GlobalEvent& event);
     void OnEstablishP2PLinkTask(const std::string& networkId, std::shared_ptr<BlockObject<int32_t>> pasteBlock);
+    int32_t OnPasteComplete(const std::string& deviceId, const std::string& pasteId);
+    void ClearAllP2PLinks();
+    void RemoveP2PLinkByNetworkId(const std::string& networkId);
+    void RemoveP2PLinksByPid(pid_t pid, std::vector<std::string>& networkIds);
     
 private:
     PasteboardService& service_;
