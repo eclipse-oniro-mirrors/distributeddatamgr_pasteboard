@@ -37,7 +37,7 @@ declare_args() {
   pasteboard_device_manager_part_enabled = true
   pasteboard_screenlock_mgr_part_enabled = true
   pasteboard_dataclassification_enabled = true
-  pasteboard_cockpit_platform_enabled = true  # 新增：座舱平台编译开关，默认启用
+  pasteboard_cockpit_platform_enabled = false  # 新增：座舱平台编译开关，默认关闭
 
   if (defined(global_parts_info) &&
       !defined(global_parts_info.security_dlp_permission_service)) {
