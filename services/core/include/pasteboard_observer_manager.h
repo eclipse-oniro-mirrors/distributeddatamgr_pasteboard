@@ -43,7 +43,14 @@ public:
         int32_t targetWindowId, DisposableType type, uint32_t maxLength);
     
     void NotifyObservers(std::string bundleName, int32_t userId, PasteboardEventStatus status);
+    void NotifyRemoteObservers();
     void RemoveObserverByPid(int32_t userId, pid_t pid, ObserverMap& observerMap);
+    
+    void RemoveAllObserversByPid(int32_t userId, pid_t pid);
+    void RemoveEntityObserverByPid(pid_t pid);
+    
+    bool HasEntityObservers();
+    bool HasEventObservers();
     
     uint32_t GetObserversSize(int32_t userId, pid_t pid, ObserverMap& observerMap);
     uint32_t GetAllObserversSize(int32_t userId, pid_t pid);

@@ -51,6 +51,7 @@
 #include "pasteboard_app_info_helper.h"
 #include "pasteboard_delay_data_handler.h"
 #include "pasteboard_system_event_listener.h"
+#include "pasteboard_dump_manager.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -134,10 +135,11 @@ class PasteboardService final : public SystemAbility, public PasteboardServiceSt
     friend class PasteboardObserverManager;
     friend class PasteboardEntityRecognizer;
     friend class PasteboardPermissionChecker;
+    friend class PasteboardDelayDataHandler;
     friend class PasteboardAppInfoHelper;
     friend class PasteboardDelayDataHandler;
     friend class PasteboardSystemEventListener;
-    friend class PasteboardDumpHelper;
+    friend class PasteboardDumpManager;
 
 public:
     API_EXPORT PasteboardService();
@@ -257,27 +259,6 @@ private:
     bool IsSystemAppByFullTokenID(uint64_t tokenId);
     FocusedAppInfo GetFocusedAppInfo() const;
     int32_t GetDataTokenId(PasteData &pasteData);
-    class DelayGetterDeathRecipient final : public IRemoteObject::DeathRecipient {
-    public:
-        explicit DelayGetterDeathRecipient(int32_t userId, PasteboardService &service);
-        virtual ~DelayGetterDeathRecipient() = default;
-        void OnRemoteDied(const wptr<IRemoteObject> &remote) override;
-
-    private:
-        int32_t userId_ = ERROR_USERID;
-        PasteboardService &service_;
-    };
-
-    class EntryGetterDeathRecipient final : public IRemoteObject::DeathRecipient {
-    public:
-        explicit EntryGetterDeathRecipient(int32_t userId, PasteboardService &service);
-        virtual ~EntryGetterDeathRecipient() = default;
-        void OnRemoteDied(const wptr<IRemoteObject> &remote) override;
-
-    private:
-        int32_t userId_ = ERROR_USERID;
-        PasteboardService &service_;
-    };
 
     class RemoteDataTaskManager {
     public:
@@ -459,17 +440,10 @@ private:
 
     static inline ServiceRunningState state_ = ServiceRunningState::STATE_NOT_START;
     std::shared_ptr<AppExecFwk::EventHandler> serviceHandler_;
-    std::mutex observerMutex_;
-    ObserverMap observerLocalChangedMap_;
-    ObserverMap observerRemoteChangedMap_;
-    ObserverMap observerEventMap_;
     ClipPlugin::GlobalEvent currentEvent_;
     ClipPlugin::GlobalEvent remoteEvent_;
     ConcurrentMap<int32_t, std::shared_ptr<PasteData>> clips_;
     ConcurrentMap<int32_t, uint32_t> clipChangeCount_;
-    ConcurrentMap<pid_t, std::vector<EntityObserverInfo>> entityObserverMap_;
-    ConcurrentMap<int32_t, std::pair<sptr<IPasteboardEntryGetter>, sptr<EntryGetterDeathRecipient>>> entryGetters_;
-    ConcurrentMap<int32_t, std::pair<sptr<IPasteboardDelayGetter>, sptr<DelayGetterDeathRecipient>>> delayGetters_;
     ConcurrentMap<int32_t, uint64_t> copyTime_;
     std::set<uint32_t> readBundles_;
     std::shared_ptr<PasteBoardCommonEventSubscriber> commonEventSubscriber_ = nullptr;
@@ -548,6 +522,7 @@ private:
     std::unique_ptr<PasteboardAppInfoHelper> appInfoHelper_;
     std::unique_ptr<PasteboardDelayDataHandler> delayDataHandler_;
     std::unique_ptr<PasteboardSystemEventListener> systemEventListener_;
+    std::unique_ptr<PasteboardDumpManager> dumpManager_;
     
     class PasteboardDeathRecipient final : public IRemoteObject::DeathRecipient {
     public:

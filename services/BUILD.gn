@@ -97,7 +97,7 @@ ohos_shared_library("pasteboard_service") {
     "core/src/pasteboard_app_info_helper.cpp",
     "core/src/pasteboard_delay_data_handler.cpp",
     "core/src/pasteboard_system_event_listener.cpp",
-    "core/src/pasteboard_dump_helper.cpp",
+    "core/src/pasteboard_dump_manager.cpp",
     "core/src/pasteboard_user_context.cpp",
     "core/src/pasteboard_window_manager.cpp",
     "core/src/pasteboard_distributed_account_subscriber.cpp",
