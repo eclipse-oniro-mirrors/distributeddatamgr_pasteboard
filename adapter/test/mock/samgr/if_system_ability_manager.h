@@ -23,6 +23,7 @@ namespace OHOS {
 class ISystemAbilityManager : public IRemoteBroker {
 public:
     virtual sptr<IRemoteObject> CheckSystemAbility(int32_t systemAbilityId) = 0;
+    virtual sptr<IRemoteObject> GetSystemAbility(int32_t systemAbilityId) = 0;
     virtual int32_t LoadSystemAbility(int32_t systemAbilityId, const sptr<ISystemAbilityLoadCallback> &callback) = 0;
 
     sptr<IRemoteObject> AsObject() override

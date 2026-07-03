@@ -110,6 +110,12 @@ ohos_shared_library("pasteboard_service") {
     "zidl/src/pasteboard_observer_proxy.cpp",
   ]
 
+  if (pasteboard_cockpit_platform_enabled) {
+    sources += [
+      "core/src/pasteboard_subprofile_subscriber.cpp",
+    ]
+  }
+
   public_configs = [ ":pasteboard_service_config" ]
   cflags_cc = [
     "-fdata-sections",
@@ -197,6 +203,10 @@ ohos_shared_library("pasteboard_service") {
     sources += [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
   } else {
     sources += [ "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp" ]
+  }
+
+  if (pasteboard_cockpit_platform_enabled) {
+    defines += [ "PB_COCKPIT_PLATFORM_ENABLE" ]
   }
 
   subsystem_name = "distributeddatamgr"

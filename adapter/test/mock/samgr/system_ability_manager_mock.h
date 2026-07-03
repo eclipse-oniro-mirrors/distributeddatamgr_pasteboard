@@ -29,6 +29,7 @@ public:
     static SystemAbilityManagerMock *GetMock();
 
     MOCK_METHOD(sptr<IRemoteObject>, CheckSystemAbility, (int32_t systemAbilityId), (override));
+    MOCK_METHOD(sptr<IRemoteObject>, GetSystemAbility, (int32_t systemAbilityId), (override));
     MOCK_METHOD(int32_t, LoadSystemAbility, (int32_t systemAbilityId, const sptr<ISystemAbilityLoadCallback> &callback),
         (override));
 
@@ -39,6 +40,7 @@ private:
 class SystemAbilityManager : public ISystemAbilityManager {
 public:
     sptr<IRemoteObject> CheckSystemAbility(int32_t systemAbilityId) override;
+    sptr<IRemoteObject> GetSystemAbility(int32_t systemAbilityId) override;
     int32_t LoadSystemAbility(int32_t systemAbilityId, const sptr<ISystemAbilityLoadCallback> &callback) override;
 };
 } // namespace OHOS
