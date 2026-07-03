@@ -70,6 +70,10 @@
 #else
 #include "window_manager.h"
 #endif // SCENE_BOARD_ENABLE
+#ifdef PB_COCKPIT_PLATFORM_ENABLE
+#include "pasteboard_subprofile_subscriber.h"
+#include "os_account_subprofile_client.h"
+#endif // PB_COCKPIT_PLATFORM_ENABLE
 
 namespace OHOS {
 namespace MiscServices {
@@ -255,6 +259,9 @@ void PasteboardService::InitializeDumpCommands()
     PasteboardDumpHelper::GetInstance().RegisterCommand(copyData);
     CommonEventSubscriber();
     AccountStateSubscriber();
+#ifdef PB_COCKPIT_PLATFORM_ENABLE
+    SubProfileSubscriber();
+#endif // PB_COCKPIT_PLATFORM_ENABLE
     PasteboardEventSubscriber();
 }
 
@@ -265,6 +272,11 @@ void PasteboardService::OnStop()
     if (PasteboardService::state_ != ServiceRunningState::STATE_RUNNING) {
         return;
     }
+
+#ifdef PB_COCKPIT_PLATFORM_ENABLE
+    SubProfileUnsubscriber();
+#endif
+
     serviceHandler_ = nullptr;
     PasteboardService::state_ = ServiceRunningState::STATE_NOT_START;
     DMAdapter::GetInstance().DeInitialize();
@@ -694,7 +706,7 @@ void PasteboardService::OnRecognizePasteDataInner(const std::string &primaryText
     int32_t result = processor.Process(primaryText, entity);
     PASTEBOARD_CHECK_AND_RETURN_LOGE(
         result == ERR_OK, PASTEBOARD_MODULE_SERVICE, "AI Process failed, result=%{public}d", result);
-    
+
     std::string location = "";
     int32_t ret = ExtractEntity(entity, location);
     PASTEBOARD_CHECK_AND_RETURN_LOGE(ret == static_cast<int32_t>(PasteboardError::E_OK),
@@ -1520,7 +1532,7 @@ int32_t PasteboardService::GetData(uint32_t tokenId, PasteData &data, int32_t &s
     }
     HandleNotificationsAndStatusChecks(appInfo, data, peerNetId, isPeerOnline);
     PublishServiceState(data, syncTime, peerNetId, pasteBlock);
-    
+
     if (result != static_cast<int32_t>(PasteboardError::E_OK)) {
         HandleGetDataError(result, pasteBlock, distEvt.deviceId, pasteId);
         return result;
@@ -4908,7 +4920,7 @@ void PasteBoardCommonEventSubscriber::OnReceiveEventInner(const EventFwk::Common
     std::string action = want.GetAction();
     int32_t eventState = data.GetCode();
     int32_t userId = data.GetCode();
-    
+
     if (action == EventFwk::CommonEventSupport::COMMON_EVENT_USER_SWITCHED) {
         HandleUserSwitched(data);
     } else if (action == EventFwk::CommonEventSupport::COMMON_EVENT_USER_STOPPING) {
@@ -5146,6 +5158,52 @@ void PasteboardService::AccountStateSubscriber()
     accountStateSubscriber_ = std::make_shared<PasteBoardAccountStateSubscriber>(subscribeInfo, this);
     AccountSA::OsAccountManager::SubscribeOsAccount(accountStateSubscriber_);
 }
+
+#ifdef PB_COCKPIT_PLATFORM_ENABLE
+void PasteboardService::SubProfileSubscriber()
+{
+    if (subProfileSubscriber_ != nullptr) {
+        PASTEBOARD_HILOGW(PASTEBOARD_MODULE_SERVICE, "subProfileSubscriber_ already exists, skip subscribe");
+        return;
+    }
+
+    std::set<AccountSA::DistributedAccountSubProfileEventType> types = {
+        AccountSA::DistributedAccountSubProfileEventType::CREATED,
+        AccountSA::DistributedAccountSubProfileEventType::DELETED,
+        AccountSA::DistributedAccountSubProfileEventType::SWITCHING,
+        AccountSA::DistributedAccountSubProfileEventType::SWITCHED
+    };
+
+    subProfileSubscriber_ = std::make_shared<PasteboardSubProfileSubscriber>(this);
+    ErrCode err = AccountSA::OsAccountSubProfileClient::GetInstance().SubscribeOsAccountSubProfileEvents(
+        types, subProfileSubscriber_);
+    if (err != ERR_OK) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "SubscribeOsAccountSubProfileEvents failed, err=%{public}d", err);
+        subProfileSubscriber_ = nullptr;
+        return;
+    }
+
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SubProfileSubscriber initialized successfully");
+}
+
+void PasteboardService::SubProfileUnsubscriber()
+{
+    if (subProfileSubscriber_ == nullptr) {
+        PASTEBOARD_HILOGW(PASTEBOARD_MODULE_SERVICE, "subProfileSubscriber_ is nullptr, skip unsubscribe");
+        return;
+    }
+    
+    ErrCode err = AccountSA::OsAccountSubProfileClient::GetInstance().UnsubscribeOsAccountSubProfileEvents(
+        subProfileSubscriber_);
+    if (err != ERR_OK) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE,
+            "UnsubscribeOsAccountSubProfileEvents failed, err=%{public}d", err);
+    }
+    
+    subProfileSubscriber_ = nullptr;
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "Unsubscribed sub profile events");
+}
+#endif // PB_COCKPIT_PLATFORM_ENABLE
 
 void PasteboardService::RemoveObserverByPid(int32_t userId, pid_t pid, ObserverMap &observerMap)
 {

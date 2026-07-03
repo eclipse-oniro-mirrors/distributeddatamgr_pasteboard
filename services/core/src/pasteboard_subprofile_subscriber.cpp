@@ -1,0 +1,59 @@
+/*
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include "pasteboard_subprofile_subscriber.h"
+#include "pasteboard_hilog.h"
+#include "pasteboard_service.h"
+#include "common/pasteboard_common_utils.h"
+
+namespace OHOS::MiscServices {
+
+void PasteboardSubProfileSubscriber::OnSubProfileAccountsChanged(
+    const AccountSA::DistributedAccountSubProfileEventData &eventData)
+{
+    std::thread thread([this,
+        type = eventData.type_,
+        osAccountId = eventData.osAccountId_]() {
+        OnSubProfileAccountsChangedInner(type, osAccountId);
+    });
+    PasteBoardCommonUtils::SetThreadTaskName(thread, "OnSubProfileChanged");
+    thread.detach();
+}
+
+void PasteboardSubProfileSubscriber::OnSubProfileAccountsChangedInner(
+    AccountSA::DistributedAccountSubProfileEventType type, int32_t osAccountId)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "Event received: type=%{public}d, osAccountId=%{public}d",
+        static_cast<int32_t>(type), osAccountId);
+
+    PASTEBOARD_CHECK_AND_RETURN_LOGE(pasteboardService_ != nullptr,
+        PASTEBOARD_MODULE_SERVICE, "pasteboardService_ is nullptr");
+
+    PASTEBOARD_CHECK_AND_RETURN_LOGE(type != AccountSA::DistributedAccountSubProfileEventType::INVALID_TYPE,
+        PASTEBOARD_MODULE_SERVICE, "Invalid event type");
+
+    PASTEBOARD_CHECK_AND_RETURN_LOGE(osAccountId >= 0,
+        PASTEBOARD_MODULE_SERVICE, "Invalid osAccountId=%{public}d", osAccountId);
+
+    int32_t result = pasteboardService_->ClearByUser(osAccountId);
+    if (result != ERR_OK) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "ClearByUser failed, osAccountId=%{public}d, result=%{public}d",
+            osAccountId, result);
+    } else {
+        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ClearByUser successful, osAccountId=%{public}d", osAccountId);
+    }
+}
+
+} // namespace OHOS::MiscServices

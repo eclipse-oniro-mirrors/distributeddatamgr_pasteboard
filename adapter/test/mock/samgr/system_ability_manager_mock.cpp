@@ -36,6 +36,11 @@ sptr<IRemoteObject> SystemAbilityManager::CheckSystemAbility(int32_t systemAbili
     return SystemAbilityManagerMock::GetMock()->CheckSystemAbility(systemAbilityId);
 }
 
+sptr<IRemoteObject> SystemAbilityManager::GetSystemAbility(int32_t systemAbilityId)
+{
+    return SystemAbilityManagerMock::GetMock()->GetSystemAbility(systemAbilityId);
+}
+
 int32_t SystemAbilityManager::LoadSystemAbility(int32_t systemAbilityId,
     const sptr<ISystemAbilityLoadCallback> &callback)
 {
