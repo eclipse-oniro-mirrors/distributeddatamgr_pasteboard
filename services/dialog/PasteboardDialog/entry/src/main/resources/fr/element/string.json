@@ -43,13 +43,6 @@
             }
         },
         {
-            "name":"learn_more",
-            "value":"En savoir plus",
-            "attr":{
-                "priority":"LT"
-            }
-        },
-        {
             "name":"prompttext_udmf_import_error",
             "value":"L'importation a échoué. Veuillez réessayer ultérieurement.",
             "attr":{

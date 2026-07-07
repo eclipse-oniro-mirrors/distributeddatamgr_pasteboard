@@ -71,13 +71,6 @@
             }
         },
         {
-            "name":"learn_more",
-            "value":"معرفة المزيد",
-            "attr":{
-                "priority":"LT"
-            }
-        },
-        {
             "name":"prompttext_udmf_import_error",
             "value":"تعذر الاستيراد. يُرجى إعادة المحاولة لاحقًا.",
             "attr":{

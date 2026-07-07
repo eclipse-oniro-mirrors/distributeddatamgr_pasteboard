@@ -71,13 +71,6 @@
             }
         },
         {
-            "name":"learn_more",
-            "value":"Tìm hiểu thêm",
-            "attr":{
-                "priority":"LT"
-            }
-        },
-        {
             "name":"prompttext_udmf_import_error",
             "value":"Nhập không thành công. Hãy thử lại sau.",
             "attr":{

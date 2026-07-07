@@ -8,13 +8,6 @@
             }
         },
         {
-            "name":"learn_more",
-            "value":"了解詳細資訊",
-            "attr":{
-                "priority":"translate"
-            }
-        },
-        {
             "name":"progress_cancel_btn",
             "value":"取消",
             "attr":{

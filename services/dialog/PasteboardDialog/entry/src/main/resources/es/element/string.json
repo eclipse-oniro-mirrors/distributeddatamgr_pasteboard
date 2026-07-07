@@ -43,13 +43,6 @@
             }
         },
         {
-            "name":"learn_more",
-            "value":"Conocer más detalles",
-            "attr":{
-                "priority":"LT"
-            }
-        },
-        {
             "name":"prompttext_udmf_download_error",
             "value":"No se puede descargar. Vuelve a intentarlo más tarde.",
             "attr":{

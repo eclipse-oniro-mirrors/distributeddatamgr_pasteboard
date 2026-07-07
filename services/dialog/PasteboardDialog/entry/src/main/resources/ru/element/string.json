@@ -71,13 +71,6 @@
             }
         },
         {
-            "name":"learn_more",
-            "value":"Подробнее",
-            "attr":{
-                "priority":"LT"
-            }
-        },
-        {
             "name":"prompttext_udmf_import_error",
             "value":"Сбой импорта. Повторите попытку позже.",
             "attr":{

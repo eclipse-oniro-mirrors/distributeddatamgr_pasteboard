@@ -36,13 +36,6 @@
             "value":"More connectivity options"
         },
         {
-            "name":"learn_more",
-            "value":"Learn more",
-            "attr":{
-                "priority":"translate"
-            }
-        },
-        {
             "name":"PasteboardProgressAbility_desc",
             "value":"Pasteboard progress dilog"
         },

@@ -8,13 +8,6 @@
             }
         },
         {
-            "name":"learn_more",
-            "value":"ཞིབ་ཕྲའི་གནས་ཚུལ་ལ་རྒྱུས་ལོན།",
-            "attr":{
-                "priority":"translate"
-            }
-        },
-        {
             "name":"progress_cancel_btn",
             "value":"འདོར་བ།",
             "attr":{
