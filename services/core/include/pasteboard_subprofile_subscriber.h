@@ -15,20 +15,20 @@
 #ifndef PASTEBOARD_SUBPROFILE_SUBSCRIBER_H
 #define PASTEBOARD_SUBPROFILE_SUBSCRIBER_H
 
-#include "distributed_account_subscribe_callback.h"
+#include "os_account_sub_profile_subscribe_callback.h"
 
 namespace OHOS::MiscServices {
 class PasteboardService;
-class PasteboardSubProfileSubscriber final : public AccountSA::DistributedAccountSubscribeCallback {
+class PasteboardSubProfileSubscriber final : public AccountSA::OsAccountSubProfileSubscribeCallback {
 public:
     explicit PasteboardSubProfileSubscriber(const sptr<PasteboardService>& service)
         : pasteboardService_(service) {}
     ~PasteboardSubProfileSubscriber() = default;
 
-    void OnSubProfileAccountsChanged(const AccountSA::DistributedAccountSubProfileEventData &eventData) override;
+    void OnSubProfileChanged(const AccountSA::SubProfileEventData &eventData) override;
 
 private:
-    void OnSubProfileAccountsChangedInner(AccountSA::DistributedAccountSubProfileEventType type, int32_t osAccountId);
+    void OnSubProfileAccountsChangedInner(AccountSA::OsAccountSubProfileEventType type, int32_t osAccountId);
     sptr<PasteboardService> pasteboardService_ = nullptr;
 };
 } // namespace OHOS::MiscServices

@@ -5167,11 +5167,11 @@ void PasteboardService::SubProfileSubscriber()
         return;
     }
 
-    std::set<AccountSA::DistributedAccountSubProfileEventType> types = {
-        AccountSA::DistributedAccountSubProfileEventType::CREATED,
-        AccountSA::DistributedAccountSubProfileEventType::DELETED,
-        AccountSA::DistributedAccountSubProfileEventType::SWITCHING,
-        AccountSA::DistributedAccountSubProfileEventType::SWITCHED
+    std::set<AccountSA::OsAccountSubProfileEventType> types = {
+        AccountSA::OsAccountSubProfileEventType::CREATED,
+        AccountSA::OsAccountSubProfileEventType::DELETED,
+        AccountSA::OsAccountSubProfileEventType::SWITCHING,
+        AccountSA::OsAccountSubProfileEventType::SWITCHED
     };
 
     subProfileSubscriber_ = std::make_shared<PasteboardSubProfileSubscriber>(this);
