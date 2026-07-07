@@ -78,13 +78,6 @@
             }
         },
         {
-            "name":"learn_more",
-            "value":"Daha fazla bilgi",
-            "attr":{
-                "priority":"LT"
-            }
-        },
-        {
             "name":"prompttext_udmf_import_error",
             "value":"İçe aktarma başarısız. Daha sonra tekrar deneyin.",
             "attr":{

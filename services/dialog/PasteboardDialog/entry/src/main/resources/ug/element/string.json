@@ -8,13 +8,6 @@
             }
         },
         {
-            "name":"learn_more",
-            "value":"تەپسىلات",
-            "attr":{
-                "priority":"translate"
-            }
-        },
-        {
             "name":"progress_cancel_btn",
             "value":"بىكار قىلىش",
             "attr":{

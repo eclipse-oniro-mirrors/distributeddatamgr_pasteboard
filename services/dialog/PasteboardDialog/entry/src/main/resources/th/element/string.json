@@ -78,13 +78,6 @@
             }
         },
         {
-            "name":"learn_more",
-            "value":"เรียนรู้เพิ่มเติม",
-            "attr":{
-                "priority":"LT"
-            }
-        },
-        {
             "name":"prompttext_udmf_import_error",
             "value":"การนำเข้าล้มเหลว ลองอีกครั้งในภายหลัง",
             "attr":{

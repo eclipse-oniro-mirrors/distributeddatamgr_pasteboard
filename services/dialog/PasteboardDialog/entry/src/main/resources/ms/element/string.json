@@ -78,13 +78,6 @@
             }
         },
         {
-            "name":"learn_more",
-            "value":"Ketahui lebih lanjut",
-            "attr":{
-                "priority":"LT"
-            }
-        },
-        {
             "name":"prompttext_udmf_import_error",
             "value":"Import gagal. Cuba sebentar lagi.",
             "attr":{

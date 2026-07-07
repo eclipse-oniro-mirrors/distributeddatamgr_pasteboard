@@ -71,13 +71,6 @@
             }
         },
         {
-            "name":"learn_more",
-            "value":"Learn more",
-            "attr":{
-                "priority":"translate"
-            }
-        },
-        {
             "name":"prompttext_udmf_import_error",
             "value":"Import failed. Try again later.",
             "attr":{

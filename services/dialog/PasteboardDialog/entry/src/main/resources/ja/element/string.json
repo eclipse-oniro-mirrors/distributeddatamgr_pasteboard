@@ -43,13 +43,6 @@
             }
         },
         {
-            "name":"learn_more",
-            "value":"詳細を確認",
-            "attr":{
-                "priority":"LT"
-            }
-        },
-        {
             "name":"prompttext_udmf_download_error",
             "value":"ダウンロードできません。後で再試行してください。",
             "attr":{

@@ -78,13 +78,6 @@
             }
         },
         {
-            "name":"learn_more",
-            "value":"ຮຽນຮູ້ເພີ່ມເຕີມ",
-            "attr":{
-                "priority":"LT"
-            }
-        },
-        {
             "name":"prompttext_udmf_import_error",
             "value":"ນຳ​ເຂົ້າບໍ່​ສຳ​ເລັດ. ລອງ​ໃໝ່​ອີກໃນ​ພາຍຫຼັງ.",
             "attr":{
