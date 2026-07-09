@@ -1859,69 +1859,20 @@ HWTEST_F(PasteDataTest, IsValidShareOptionTest005, TestSize.Level0)
 }
 
 /**
- * @tc.name: IsValidPasteIdTest001
- * @tc.desc: IsValidPasteId
+ * @tc.name: CreatePasteIdWithPidTest001
+ * @tc.desc: CreatePasteId with explicit pid
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(PasteDataTest, IsValidPasteIdTest001, TestSize.Level0)
+HWTEST_F(PasteDataTest, CreatePasteIdWithPidTest001, TestSize.Level0)
 {
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "IsValidPasteIdTest001 start");
-    std::string pasteId = "";
-    auto isValid = PasteData::IsValidPasteId(pasteId);
-    EXPECT_FALSE(isValid);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "IsValidPasteIdTest001 end");
-}
-
-/**
- * @tc.name: IsValidPasteIdTest002
- * @tc.desc: IsValidPasteId
- * @tc.type: FUNC
- * @tc.require:
- * @tc.author:
- */
-HWTEST_F(PasteDataTest, IsValidPasteIdTest002, TestSize.Level0)
-{
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "IsValidPasteIdTest002 start");
-    std::string pasteId = "test";
-    auto isValid = PasteData::IsValidPasteId(pasteId);
-    EXPECT_FALSE(isValid);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "IsValidPasteIdTest002 end");
-}
-
-/**
- * @tc.name: IsValidPasteIdTest003
- * @tc.desc: IsValidPasteId
- * @tc.type: FUNC
- * @tc.require:
- * @tc.author:
- */
-HWTEST_F(PasteDataTest, IsValidPasteIdTest003, TestSize.Level0)
-{
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "IsValidPasteIdTest003 start");
-    std::string pasteId = "test_test_test";
-    auto isValid = PasteData::IsValidPasteId(pasteId);
-    EXPECT_FALSE(isValid);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "IsValidPasteIdTest003 end");
-}
-
-/**
- * @tc.name: IsValidPasteIdTest004
- * @tc.desc: IsValidPasteId
- * @tc.type: FUNC
- * @tc.require:
- * @tc.author:
- */
-HWTEST_F(PasteDataTest, IsValidPasteIdTest004, TestSize.Level0)
-{
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "IsValidPasteIdTest004 start");
-    pid_t pid = getpid();
-    std::string currentPid = std::to_string(pid);
-    std::string pasteId = "test_" + currentPid + "_001";
-    auto isValid = PasteData::IsValidPasteId(pasteId);
-    EXPECT_TRUE(isValid);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "IsValidPasteIdTest004 end");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "CreatePasteIdWithPidTest001 start");
+    pid_t pid = 12345;
+    std::string pasteId = PasteData::CreatePasteId("Test", 0, pid);
+    std::string expected = "Test_12345_0";
+    EXPECT_EQ(pasteId, expected);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "CreatePasteIdWithPidTest001 end");
 }
 
 /**

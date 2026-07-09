@@ -131,7 +131,7 @@ public:
     virtual int32_t GetRecordValueByType(uint32_t dataId, uint32_t recordId, int64_t &rawDataSize,
         std::vector<uint8_t> &buffer, int &fd) override;
     virtual int32_t GetPasteData(int &fd, int64_t &size, std::vector<uint8_t> &rawData,
-        const std::string &pasteId, int32_t &syncTime, int32_t &realErrCode) override;
+        uint32_t pasteSeqId, int32_t &syncTime, int32_t &realErrCode) override;
     virtual int32_t HasPasteData(bool &funcResult) override;
     virtual int32_t HasRemoteData(bool &funcResult) override;
     virtual int32_t SetPasteData(int fd, int64_t memSize, const std::vector<uint8_t> &buffer,

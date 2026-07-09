@@ -138,8 +138,7 @@ public:
     void SetUserId(int32_t userId);
 
     static void ShareOptionToString(ShareOption shareOption, std::string &out);
-    static std::string CreatePasteId(const std::string &name, uint32_t sequence);
-    static bool IsValidPasteId(const std::string &pasteId);
+    static std::string CreatePasteId(const std::string &name, uint32_t sequence, pid_t pid);
     static bool IsValidShareOption(int32_t shareOption);
     static std::string WEBVIEW_PASTEDATA_TAG;
     static constexpr const char *DISTRIBUTEDFILES_TAG = "distributedfiles";

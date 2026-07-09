@@ -1299,12 +1299,10 @@ void PasteboardService::SetUeEvent(const AppInfo &appInfo, PasteData &data, bool
 }
 
 int32_t PasteboardService::GetPasteData(int &fd, int64_t &size, std::vector<uint8_t> &rawData,
-    const std::string &pasteId, int32_t &syncTime, int32_t &realErrCode)
+    uint32_t pasteSeqId, int32_t &syncTime, int32_t &realErrCode)
 {
     fd = -1;
-    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(PasteData::IsValidPasteId(pasteId),
-        static_cast<int32_t>(PasteboardError::INVALID_PARAM_ERROR), PASTEBOARD_MODULE_SERVICE,
-        "Parameter error. invalid pasteId=%{public}s", pasteId.c_str());
+    std::string pasteId = PasteData::CreatePasteId("GetPasteData", pasteSeqId, IPCSkeleton::GetCallingPid());
     UeReportInfo ueReportInfo;
     int32_t ret = GetPasteDataInner(fd, size, rawData, pasteId, syncTime, ueReportInfo);
     if (fd == -1) {

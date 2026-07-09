@@ -276,20 +276,20 @@ void FuzzGetPasteData(FuzzedDataProvider &fdp)
     int64_t size = 0;
     int32_t syncTime = 0;
     int32_t realErrCode = 0;
-    std::string pasteId;
+    uint32_t pasteSeqId;
     std::vector<uint8_t> rawData;
     {
         std::lock_guard lock(g_fdpMutex);
         size = fdp.ConsumeIntegral<int64_t>();
         syncTime = fdp.ConsumeIntegral<int32_t>();
         realErrCode = fdp.ConsumeIntegral<int32_t>();
-        pasteId = fdp.ConsumeRandomLengthString();
+        pasteSeqId = fdp.ConsumeIntegral<uint32_t>();
         rawData = fdp.ConsumeRemainingBytes<uint8_t>();
     }
 
     MessageParcelWarp mpw;
     int fd = mpw.CreateTmpFd();
-    g_pasteboardService->GetPasteData(fd, size, rawData, pasteId, syncTime, realErrCode);
+    g_pasteboardService->GetPasteData(fd, size, rawData, pasteSeqId, syncTime, realErrCode);
 }
 
 void FuzzClear(FuzzedDataProvider &fdp)

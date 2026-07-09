@@ -50,7 +50,7 @@ enum ProgressIndicator {
 struct PasteDataFromServiceInfo {
     pid_t pid;
     std::string currentPid;
-    std::string currentId;
+    uint32_t currentSeqId;
 };
 
 struct ProgressReportListener {
@@ -600,7 +600,7 @@ private:
         const std::vector<uint8_t> &recvTLV);
     int32_t ProcessPasteDataFromService(PasteData &pasteData, int64_t rawDataSize, int fd,
         const std::vector<uint8_t> &recvTLV);
-    void GetDataReport(PasteData &pasteData, int32_t syncTime, const std::string &currentId,
+    void GetDataReport(PasteData &pasteData, int32_t syncTime, uint32_t currentSeqId,
         const std::string &currentPid, int32_t ret);
     void SubscribePasteboardSA();
     void UnSubscribePasteboardSA();

@@ -58,10 +58,12 @@ void TestPasteDataEntry(FuzzedDataProvider &fdp)
     entry.Encode(buffer, isRemote);
 }
 
-void TestPasteDataId(FuzzedDataProvider &fdp)
+void TestCreatePasteIdWithPid(FuzzedDataProvider &fdp)
 {
-    std::string pasteId = fdp.ConsumeRandomLengthString();
-    PasteData::IsValidPasteId(pasteId);
+    std::string name = fdp.ConsumeRandomLengthString();
+    uint32_t sequence = fdp.ConsumeIntegral<uint32_t>();
+    pid_t pid = fdp.ConsumeIntegral<pid_t>();
+    PasteData::CreatePasteId(name, sequence, pid);
 }
 
 using DoFunc = void (*)(FuzzedDataProvider &);
@@ -69,7 +71,7 @@ constexpr DoFunc FUNC_LIST[] = {
     TestPasteData,
     TestPasteDataRecord,
     TestPasteDataEntry,
-    TestPasteDataId,
+    TestCreatePasteIdWithPid,
 };
 constexpr uint8_t FUNC_COUNT = sizeof(FUNC_LIST) / sizeof(FUNC_LIST[0]);
 } // anonymous namespace

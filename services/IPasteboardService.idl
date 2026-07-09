@@ -47,7 +47,7 @@ interface OHOS.MiscServices.IPasteboardService {
     [ipccode 106] void ClearByUser([in] int userId);
 
     [ipccode 200] void GetPasteData([out] FileDescriptorSan fd, [out] long memSize, [out] unsigned char[] buffer,
-        [in] String pasteId, [out] int syncTime, [out] int realErrCode);
+        [in] unsigned int pasteSeqId, [out] int syncTime, [out] int realErrCode);
     [ipccode 201] void GetRecordValueByType([in] unsigned int dataId, [in] unsigned int recordId,
         [inout] long rawDataSize, [inout] unsigned char[] buffer, [inout] FileDescriptorSan fd);
     [ipccode 202] void PasteStart([in] String pasteId);
