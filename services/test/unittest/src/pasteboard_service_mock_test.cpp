@@ -1017,7 +1017,7 @@ HWTEST_F(PasteboardServiceMockTest, GetPasteDataTest001, TestSize.Level1)
     std::vector<uint8_t> rawData;
     int32_t syncTime;
     int32_t realErrCode;
-    int32_t result = service.GetPasteData(fd, size, rawData, "", syncTime, realErrCode);
+    int32_t result = service.GetPasteData(fd, size, rawData, 0, syncTime, realErrCode);
     if (fd >= 0) {
         close(fd);
     }
@@ -1042,7 +1042,7 @@ HWTEST_F(PasteboardServiceMockTest, GetPasteDataTest002, TestSize.Level1)
     std::vector<uint8_t> rawData;
     int32_t syncTime;
     int32_t realErrCode;
-    int32_t result = service.GetPasteData(fd, size, rawData, "", syncTime, realErrCode);
+    int32_t result = service.GetPasteData(fd, size, rawData, 0, syncTime, realErrCode);
     if (fd >= 0) {
         close(fd);
     }
@@ -1068,7 +1068,7 @@ HWTEST_F(PasteboardServiceMockTest, GetPasteDataTest003, TestSize.Level1)
     std::vector<uint8_t> rawData;
     int32_t syncTime;
     int32_t realErrCode;
-    int32_t result = service.GetPasteData(fd, size, rawData, "", syncTime, realErrCode);
+    int32_t result = service.GetPasteData(fd, size, rawData, 0, syncTime, realErrCode);
     if (fd >= 0) {
         close(fd);
     }

@@ -117,12 +117,12 @@ public:
     }
 
     int32_t GetPasteData(int &fd, int64_t &memSize, std::vector<uint8_t> &buffer,
-        const std::string &pasteId, int32_t &syncTime, int32_t &realErrCode) override
+        uint32_t pasteSeqId, int32_t &syncTime, int32_t &realErrCode) override
     {
         (void)fd;
         (void)memSize;
         (void)buffer;
-        (void)pasteId;
+        (void)pasteSeqId;
         (void)syncTime;
         (void)realErrCode;
         return 0;

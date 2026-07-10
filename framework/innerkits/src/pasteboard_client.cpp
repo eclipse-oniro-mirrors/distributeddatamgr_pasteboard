@@ -291,7 +291,8 @@ int32_t PasteboardClient::GetPasteData(PasteData &pasteData)
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "enter");
     pid_t pid = getpid();
     std::string currentPid = std::to_string(pid);
-    std::string currentId = PasteData::CreatePasteId("GetPasteData", getSequenceId_++);
+    uint32_t seqId = getSequenceId_++;
+    std::string currentId = std::to_string(seqId);
     RADAR_REPORT(RadarReporter::DFX_GET_PASTEBOARD, RadarReporter::DFX_GET_BIZ_SCENE, RadarReporter::DFX_SUCCESS,
         RadarReporter::BIZ_STATE, RadarReporter::DFX_BEGIN, RadarReporter::CONCURRENT_ID, currentId,
         PACKAGE_NAME, currentPid);
@@ -308,7 +309,7 @@ int32_t PasteboardClient::GetPasteData(PasteData &pasteData)
     int fd = -1;
     int64_t rawDataSize = 0;
     std::vector<uint8_t> recvTLV;
-    int32_t ret = proxyService->GetPasteData(fd, rawDataSize, recvTLV, currentId, syncTime, realErrCode);
+    int32_t ret = proxyService->GetPasteData(fd, rawDataSize, recvTLV, seqId, syncTime, realErrCode);
     int32_t bizStage = (syncTime == 0) ? RadarReporter::DFX_LOCAL_PASTE_END : RadarReporter::DFX_DISTRIBUTED_PASTE_END;
     ret = ConvertErrCode(realErrCode);
     int32_t result = ProcessPasteData<PasteData>(pasteData, rawDataSize, fd, recvTLV);
@@ -316,23 +317,24 @@ int32_t PasteboardClient::GetPasteData(PasteData &pasteData)
     PasteboardWebController::GetInstance().RemoveInvalidUri(pasteData);
     PasteboardWebController::GetInstance().RebuildWebviewPasteData(pasteData);
     if (ret != static_cast<int32_t>(PasteboardError::E_OK)) {
-        GetDataReport(pasteData, syncTime, currentId, currentPid, ret);
+        GetDataReport(pasteData, syncTime, seqId, currentPid, ret);
         return ret;
     } else if (result == static_cast<int32_t>(PasteboardError::SERIALIZATION_ERROR)) {
-        GetDataReport(pasteData, syncTime, currentId, currentPid, result);
+        GetDataReport(pasteData, syncTime, seqId, currentPid, result);
         return result;
     }
-    GetDataReport(pasteData, syncTime, currentId, currentPid, ret);
+    GetDataReport(pasteData, syncTime, seqId, currentPid, ret);
     return static_cast<int32_t>(PasteboardError::E_OK);
 }
 
-void PasteboardClient::GetDataReport(PasteData &pasteData, int32_t syncTime, const std::string &currentId,
+void PasteboardClient::GetDataReport(PasteData &pasteData, int32_t syncTime, uint32_t currentSeqId,
     const std::string &currentPid, int32_t ret)
 {
     static DeduplicateMemory<RadarReportIdentity> reportMemory(REPORT_DUPLICATE_TIMEOUT);
     int32_t bizStage = (syncTime == 0) ? RadarReporter::DFX_LOCAL_PASTE_END : RadarReporter::DFX_DISTRIBUTED_PASTE_END;
     FinishAsyncTrace(HITRACE_TAG_MISC, "PasteboardClient::GetPasteData", HITRACE_GETPASTEDATA);
     std::string pasteDataInfoSummary = GetPasteDataInfoSummary(pasteData);
+    std::string currentId = std::to_string(currentSeqId);
     if (ret == static_cast<int32_t>(PasteboardError::E_OK)) {
         if (pasteData.deviceId_.empty()) {
             RADAR_REPORT(RadarReporter::DFX_GET_PASTEBOARD, bizStage, RadarReporter::DFX_SUCCESS,
@@ -449,7 +451,7 @@ int32_t PasteboardClient::GetPasteDataFromService(PasteData &pasteData,
     if (proxyService == nullptr) {
         RADAR_REPORT(RadarReporter::DFX_GET_PASTEBOARD, RadarReporter::DFX_CHECK_GET_SERVER, RadarReporter::DFX_FAILED,
             RadarReporter::BIZ_STATE, RadarReporter::DFX_END, RadarReporter::CONCURRENT_ID,
-            pasteDataFromServiceInfo.currentId, PACKAGE_NAME, pasteDataFromServiceInfo.currentPid,
+            std::to_string(pasteDataFromServiceInfo.currentSeqId), PACKAGE_NAME, pasteDataFromServiceInfo.currentPid,
             ERROR_CODE, static_cast<int32_t>(PasteboardError::OBTAIN_SERVER_SA_ERROR),
             PASTEDATA_SUMMARY, pasteDataInfoSummary);
         return static_cast<int32_t>(PasteboardError::OBTAIN_SERVER_SA_ERROR);
@@ -459,8 +461,8 @@ int32_t PasteboardClient::GetPasteDataFromService(PasteData &pasteData,
     int fd = -1;
     int64_t rawDataSize = 0;
     std::vector<uint8_t> recvTLV(0);
-    std::string pasteId = pasteDataFromServiceInfo.currentId;
-    int32_t ret = proxyService->GetPasteData(fd, rawDataSize, recvTLV, pasteId, syncTime, realErrCode);
+    uint32_t pasteSeqId = pasteDataFromServiceInfo.currentSeqId;
+    int32_t ret = proxyService->GetPasteData(fd, rawDataSize, recvTLV, pasteSeqId, syncTime, realErrCode);
     int32_t bizStage = (syncTime == 0) ? RadarReporter::DFX_LOCAL_PASTE_END : RadarReporter::DFX_DISTRIBUTED_PASTE_END;
     ret = ConvertErrCode(realErrCode);
     int32_t result = ProcessPasteData<PasteData>(pasteData, rawDataSize, fd, recvTLV);
@@ -525,29 +527,30 @@ void PasteboardClient::ProcessRadarReport(int32_t ret, PasteData &pasteData,
     int32_t bizStage = (syncTime == 0) ? RadarReporter::DFX_LOCAL_PASTE_END : RadarReporter::DFX_DISTRIBUTED_PASTE_END;
     static DeduplicateMemory<RadarReportIdentity> reportMemory(REPORT_DUPLICATE_TIMEOUT);
     std::string pasteDataInfoSummary = GetPasteDataInfoSummary(pasteData);
+    std::string currentIdStr = std::to_string(pasteDataFromServiceInfo.currentSeqId);
     if (ret == static_cast<int32_t>(PasteboardError::E_OK)) {
         if (pasteData.deviceId_.empty()) {
             RADAR_REPORT(RadarReporter::DFX_GET_PASTEBOARD, bizStage, RadarReporter::DFX_SUCCESS,
                 RadarReporter::BIZ_STATE, RadarReporter::DFX_END, RadarReporter::CONCURRENT_ID,
-                pasteDataFromServiceInfo.currentId, PACKAGE_NAME, pasteDataFromServiceInfo.currentPid,
+                currentIdStr, PACKAGE_NAME, pasteDataFromServiceInfo.currentPid,
                 DIS_SYNC_TIME, syncTime, PASTEDATA_SUMMARY,
                 pasteDataInfoSummary);
         } else {
             RADAR_REPORT(RadarReporter::DFX_GET_PASTEBOARD, bizStage, RadarReporter::DFX_SUCCESS,
-                RadarReporter::CONCURRENT_ID, pasteDataFromServiceInfo.currentId, PACKAGE_NAME,
+                RadarReporter::CONCURRENT_ID, currentIdStr, PACKAGE_NAME,
                 pasteDataFromServiceInfo.currentPid, DIS_SYNC_TIME, syncTime,
                 PASTEDATA_SUMMARY, pasteDataInfoSummary);
         }
     } else if (ret != static_cast<int32_t>(PasteboardError::TASK_PROCESSING) &&
                !reportMemory.IsDuplicate({.pid = pasteDataFromServiceInfo.pid, .errorCode = ret})) {
         RADAR_REPORT(RadarReporter::DFX_GET_PASTEBOARD, bizStage, RadarReporter::DFX_FAILED, RadarReporter::BIZ_STATE,
-            RadarReporter::DFX_END, RadarReporter::CONCURRENT_ID, pasteDataFromServiceInfo.currentId,
+            RadarReporter::DFX_END, RadarReporter::CONCURRENT_ID, currentIdStr,
             PACKAGE_NAME, pasteDataFromServiceInfo.currentPid, DIS_SYNC_TIME, syncTime,
             ERROR_CODE, ret, PASTEDATA_SUMMARY, pasteDataInfoSummary);
     } else {
         RADAR_REPORT(RadarReporter::DFX_GET_PASTEBOARD, bizStage, RadarReporter::DFX_CANCELLED,
             RadarReporter::BIZ_STATE, RadarReporter::DFX_END, RadarReporter::CONCURRENT_ID,
-            pasteDataFromServiceInfo.currentId, PACKAGE_NAME, pasteDataFromServiceInfo.currentPid,
+            currentIdStr, PACKAGE_NAME, pasteDataFromServiceInfo.currentPid,
             DIS_SYNC_TIME, syncTime, ERROR_CODE, ret, PASTEDATA_SUMMARY,
             pasteDataInfoSummary);
     }
@@ -557,11 +560,10 @@ void PasteboardClient::ProgressRadarReport(PasteData &pasteData, PasteDataFromSe
 {
     pasteDataFromServiceInfo.pid = getpid();
     pasteDataFromServiceInfo.currentPid = std::to_string(pasteDataFromServiceInfo.pid);
-    pasteDataFromServiceInfo.currentId = PasteData::CreatePasteId("GetDataWithProgress", getSequenceId_++);
-    pasteData.SetPasteId(pasteDataFromServiceInfo.currentId);
+    pasteDataFromServiceInfo.currentSeqId = getSequenceId_++;
     RADAR_REPORT(RadarReporter::DFX_GET_PASTEBOARD, RadarReporter::DFX_GET_BIZ_SCENE, RadarReporter::DFX_SUCCESS,
         RadarReporter::BIZ_STATE, RadarReporter::DFX_BEGIN,
-        RadarReporter::CONCURRENT_ID, pasteDataFromServiceInfo.currentId,
+        RadarReporter::CONCURRENT_ID, std::to_string(pasteDataFromServiceInfo.currentSeqId),
         PACKAGE_NAME, pasteDataFromServiceInfo.currentPid);
 }
 
