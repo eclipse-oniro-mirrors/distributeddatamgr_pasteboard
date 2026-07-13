@@ -377,6 +377,12 @@ void FuzzGetMimeTypes(FuzzedDataProvider &fdp)
     g_pasteboardService->GetMimeTypes(mimeTypes);
 }
 
+void FuzzGetPasteDataInfo(FuzzedDataProvider &fdp)
+{
+    PasteDataInfo pasteDataInfo;
+    g_pasteboardService->GetPasteDataInfo(pasteDataInfo);
+}
+
 void FuzzHasDataType(FuzzedDataProvider &fdp)
 {
     std::string mimeType;
@@ -672,6 +678,7 @@ const std::function<void(FuzzedDataProvider&)> FUNC_LIST[] = {
     FuzzIsRemoteData,
     FuzzSyncDelayedData,
     FuzzGetMimeTypes,
+    FuzzGetPasteDataInfo,
     FuzzGetChangeCount,
     FuzzHasDataType,
     FuzzHasUtdType,

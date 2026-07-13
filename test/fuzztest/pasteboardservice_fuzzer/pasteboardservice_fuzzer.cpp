@@ -56,6 +56,7 @@ const std::vector<IPasteboardServiceIpcCode> CODE_LIST = {
     IPasteboardServiceIpcCode::COMMAND_DETECT_PATTERNS,
     IPasteboardServiceIpcCode::COMMAND_GET_RECORD_VALUE_BY_TYPE,
     IPasteboardServiceIpcCode::COMMAND_GET_MIME_TYPES,
+    IPasteboardServiceIpcCode::COMMAND_GET_PASTE_DATA_INFO,
     IPasteboardServiceIpcCode::COMMAND_SHOW_PROGRESS,
     IPasteboardServiceIpcCode::COMMAND_GET_CHANGE_COUNT,
     IPasteboardServiceIpcCode::COMMAND_SUBSCRIBE_ENTITY_OBSERVER,
@@ -216,6 +217,12 @@ public:
     int32_t GetMimeTypes(std::vector<std::string>& funcResult) override
     {
         (void)funcResult;
+        return 0;
+    }
+
+    int32_t GetPasteDataInfo(PasteDataInfo &pasteDataInfo) override
+    {
+        (void)pasteDataInfo;
         return 0;
     }
 

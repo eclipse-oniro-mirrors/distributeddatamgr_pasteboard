@@ -369,6 +369,7 @@ ohos_unittest("PasteboardAbilityManagerTest") {
   deps = [
     "${pasteboard_innerkits_path}:pasteboard_client",
     "${pasteboard_service_path}:pasteboard_client_idl",
+    "${pasteboard_innerkits_path}:pasteboard_data",
   ]
   external_deps = [
     "ability_base:want",

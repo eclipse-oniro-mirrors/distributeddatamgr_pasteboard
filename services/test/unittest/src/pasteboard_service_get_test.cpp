@@ -954,5 +954,96 @@ HWTEST_F(PasteboardServiceGetTest, HasLocalDataTypeTest004, TestSize.Level1)
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "HasLocalDataTypeTest004 end");
 }
 
+/**
+ * @tc.name: GetPasteDataInfoTest001
+ * @tc.desc: test Func GetPasteDataInfo, return no data error when user has no data
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceGetTest, GetPasteDataInfoTest001, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetPasteDataInfoTest001 start");
+    auto service = std::make_shared<PasteboardService>();
+    EXPECT_NE(service, nullptr);
+
+    service->currentUserId_.store(ACCOUNT_IDS_RANDOM);
+    PasteDataInfo pasteDataInfo;
+    int32_t result = service->GetPasteDataInfo(pasteDataInfo);
+    EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::NO_DATA_ERROR));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetPasteDataInfoTest001 end");
+}
+
+/**
+ * @tc.name: GetPasteDataInfoTest002
+ * @tc.desc: test Func GetPasteDataInfo, return E_OK when has data
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceGetTest, GetPasteDataInfoTest001, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetPasteDataInfoTest002 start");
+    auto service = std::make_shared<PasteboardService>();
+    EXPECT_NE(service, nullptr);
+
+    service->currentUserId_.store(ACCOUNT_IDS_RANDOM);
+    service->copyTime_.InsertOrAssign(ACCOUNT_IDS_RANDOM, 0);
+    std::shared_ptr<PasteData> pasteData = std::make_shared<PasteData>();
+    pasteData->AddTextRecord("hello");
+    service->clips_.InsertOrAssign(ACCOUNT_IDS_RANDOM, pasteData);
+
+    PasteDataInfo pasteDataInfo;
+    int32_t result = service->GetPasteDataInfo(pasteDataInfo);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(pasteDataInfo.isDelayedData, false);
+    EXPECT_EQ(pasteDataInfo.isDelayedRecord, false);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetPasteDataInfoTest002 end");
+}
+
+/**
+ * @tc.name: GetPasteDataInfoTest003
+ * @tc.desc: test Func GetPasteDataInfo, return DATA_EXPIRED_ERROR when data is aged
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceGetTest, GetPasteDataInfoTest003, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetPasteDataInfoTest003 start");
+    auto service = std::make_shared<PasteboardService>();
+    EXPECT_NE(service, nullptr);
+
+    service->currentUserId_.store(ACCOUNT_IDS_RANDOM);
+    std::shared_ptr<PasteData> pasteData = std::make_shared<PasteData>();
+    pasteData->AddTextRecord("hello");
+    service->clips_.InsertOrAssign(ACCOUNT_IDS_RANDOM, pasteData);
+
+    PasteDataInfo pasteDataInfo;
+    int32_t result = service->GetPasteDataInfo(pasteDataInfo);
+    EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::DATA_EXPIRED_ERROR));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetPasteDataInfoTest003 end");
+}
+
+/**
+ * @tc.name: GetPasteDataInfoTest004
+ * @tc.desc: test Func GetPasteDataInfo with HtmlText record
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceGetTest, GetPasteDataInfoTest004, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetPasteDataInfoTest004 start");
+    auto service = std::make_shared<PasteboardService>();
+    EXPECT_NE(service, nullptr);
+
+    service->currentUserId_.store(ACCOUNT_IDS_RANDOM);
+    service->copyTime_.InsertOrAssign(ACCOUNT_IDS_RANDOM, 0);
+    std::shared_ptr<PasteData> pasteData = std::make_shared<PasteData>();
+    pasteData->AddTextRecord("hello");
+    pasteData->AddHtmlRecord("<html>test</html>");
+    service->clips_.InsertOrAssign(ACCOUNT_IDS_RANDOM, pasteData);
+
+    PasteDataInfo pasteDataInfo;
+    int32_t result = service->GetPasteDataInfo(pasteDataInfo);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(pasteDataInfo.textDataSize > 0, true);
+    EXPECT_EQ(pasteDataInfo.htmlDataSize > 0, true);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetPasteDataInfoTest004 end");
+}
+
 } // namespace MiscServices
 } // namespace OHOS
