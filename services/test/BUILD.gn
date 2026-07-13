@@ -2131,35 +2131,6 @@ ohos_unittest("SecurityLevelTest") {
   deps = [ "${pasteboard_framework_path}:pasteboard_framework" ]
 }
 
-group("unittest") {
-  testonly = true
-  deps = [
-    ":EntityRecognitionObserverStubTest",
-    ":HiViewAdapterTest",
-    ":PasteboardAbilityManagerTest",
-    ":PasteboardDeduplicateMemoryTest",
-    ":PasteboardDelayManagerTest",
-    ":PasteboardDelayProxyTest",
-    ":PasteboardDelayStubTest",
-    ":PasteboardDialogTest",
-    ":PasteboardDisposableManagerTest",
-    ":PasteboardEntryGetterProxyTest",
-    ":PasteboardEntryGetterStubTest",
-    ":PasteboardLinkedListTest",
-    ":PasteboardLoadTest",
-    ":PasteboardPatternTest",
-    ":PasteboardServiceTest",
-  ]
-
-  if (pasteboard_dataclassification_enabled) {
-    deps += [ ":SecurityLevelTest" ]
-  }
-
-  if (pasteboard_cockpit_platform_enabled) {
-    deps += [ ":PasteboardSubProfileSubscriberTest" ]
-  }
-}
-
 ohos_unittest("PasteboardSubProfileSubscriberTest") {
   module_out_path = module_output_path
   use_exceptions = true
@@ -2298,5 +2269,31 @@ ohos_unittest("PasteboardSubProfileSubscriberTest") {
   } else {
     sources += [ "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp",
     ]
+  }
+}
+
+group("unittest") {
+  testonly = true
+  deps = [
+    ":EntityRecognitionObserverStubTest",
+    ":HiViewAdapterTest",
+    ":PasteboardAbilityManagerTest",
+    ":PasteboardDeduplicateMemoryTest",
+    ":PasteboardDelayManagerTest",
+    ":PasteboardDelayProxyTest",
+    ":PasteboardDelayStubTest",
+    ":PasteboardDialogTest",
+    ":PasteboardDisposableManagerTest",
+    ":PasteboardEntryGetterProxyTest",
+    ":PasteboardEntryGetterStubTest",
+    ":PasteboardLinkedListTest",
+    ":PasteboardLoadTest",
+    ":PasteboardPatternTest",
+    ":PasteboardServiceTest",
+    ":PasteboardSubProfileSubscriberTest",
+  ]
+
+  if (pasteboard_dataclassification_enabled) {
+    deps += [ ":SecurityLevelTest" ]
   }
 }
