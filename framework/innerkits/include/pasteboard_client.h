@@ -266,6 +266,13 @@ public:
     std::vector<std::string> GetMimeTypes();
 
     /**
+     * GetPasteDataInfo
+     * @description get pasteboard data info from pasteboard.
+     * @return Returns PasteDataInfo
+     */
+    int32_t GetPasteDataInfo(PasteDataInfo &pasteDataInfo);
+
+    /**
      * HasPasteData
      * @description check paste data exist in the pasteboard.
      * @return bool. True exists, false does not exist
