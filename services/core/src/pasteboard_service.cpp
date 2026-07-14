@@ -4278,7 +4278,7 @@ int32_t PasteboardService::GetDistributedDelayEntry(const Event &evt, uint32_t r
 
     std::string mimeType = entry.GetMimeType();
     if (mimeType == MIMETYPE_TEXT_URI) {
-        ret = ProcessDistributedDelayUri(evt.user, *data, entry, rawData);
+        ret = ProcessDistributedDelayUri(evt.user, *data, entry, recordId, rawData);
     } else if (mimeType == MIMETYPE_TEXT_HTML) {
         ret = ProcessDistributedDelayHtml(*data, entry, rawData);
     } else {
