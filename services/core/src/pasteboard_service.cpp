@@ -4293,7 +4293,7 @@ int32_t PasteboardService::GetDistributedDelayEntry(const Event &evt, uint32_t r
 }
 
 int32_t PasteboardService::ProcessDistributedDelayUri(int32_t userId, PasteData &data, PasteDataEntry &entry,
-    std::vector<uint8_t> &rawData)
+    uint32_t recordId, std::vector<uint8_t> &rawData)
 {
     auto uri = entry.ConvertToUri();
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(uri != nullptr, static_cast<int32_t>(PasteboardError::GET_ENTRY_VALUE_FAILED),
@@ -4302,6 +4302,12 @@ int32_t PasteboardService::ProcessDistributedDelayUri(int32_t userId, PasteData 
     {
         std::unique_lock<std::shared_mutex> write(pasteDataMutex_);
         PasteboardWebController::GetInstance().CheckAppUriPermission(data);
+        auto item = data.GetRecordById(recordId);
+        PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(item != nullptr, static_cast<int32_t>(PasteboardError::INVALID_RECORD_ID),
+            PASTEBOARD_MODULE_SERVICE, "record[%{public}u]invalid, max=%{public}zu", recordId, data.GetRecordCount());
+        bool hasUriPerm = item->HasGrantUriPermission();
+        PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(hasUriPerm, static_cast<int32_t>(PasteboardError::INVALID_URI_ERROR),
+            PASTEBOARD_MODULE_SERVICE, "no permission, uri=%{private}s", uri->ToString().c_str());
     }
     std::string localUri = uri->ToString();
     std::vector<std::string> localUris = { localUri };
