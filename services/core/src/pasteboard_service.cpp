@@ -2532,7 +2532,7 @@ int32_t PasteboardService::GetMimeTypes(std::vector<std::string> &funcResult)
 int32_t PasteboardService::GetPasteDataInfo(PasteDataInfo &pasteDataInfo)
 {
     auto userId = GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
-    PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "GetDataInfo userId: %{public}d, clips_ find: %{public}d",
+    PASTEBOARD_HILOGD(PASTEBOARD_MODULE_SERVICE, "GetDataInfo userId: %{public}d, clips_ find: %{public}d",
         userId, clips_.Find(userId).first);
     auto it = clips_.Find(userId);
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(it.first, static_cast<int32_t>(PasteboardError::NO_DATA_ERROR),

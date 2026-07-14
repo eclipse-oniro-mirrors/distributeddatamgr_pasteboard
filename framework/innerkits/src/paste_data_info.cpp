@@ -75,7 +75,7 @@ bool PasteDataInfo::Marshalling(Parcel &parcel) const
     if (!parcel.WriteUint32(mimeTypesSize)) {
         return false;
     }
-    for (const auto &mimeType ： mimeTypes) {
+    for (const auto &mimeType : mimeTypes) {
         if (!parcel.WriteString(mimeType)) {
             return false;
         }

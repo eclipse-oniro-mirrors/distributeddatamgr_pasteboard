@@ -1096,7 +1096,8 @@ int32_t PasteboardClient::GetPasteDataInfo(PasteDataInfo &pasteDataInfo)
 {
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_CLIENT, "GetPasteDataInfo start.");
     auto proxyService = GetPasteboardService();
-    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(proxyService != nullptr, false,
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(proxyService != nullptr,
+        static_cast<int32_t>(PasteboardError::OBTAIN_SERVER_SA_ERROR),
         PASTEBOARD_MODULE_CLIENT, "proxyService is nullptr");
     int32_t ret = proxyService->GetPasteDataInfo(pasteDataInfo);
     if (ret != ERR_OK) {

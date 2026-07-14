@@ -977,7 +977,7 @@ HWTEST_F(PasteboardServiceGetTest, GetPasteDataInfoTest001, TestSize.Level1)
  * @tc.desc: test Func GetPasteDataInfo, return E_OK when has data
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceGetTest, GetPasteDataInfoTest001, TestSize.Level1)
+HWTEST_F(PasteboardServiceGetTest, GetPasteDataInfoTest002, TestSize.Level1)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetPasteDataInfoTest002 start");
     auto service = std::make_shared<PasteboardService>();

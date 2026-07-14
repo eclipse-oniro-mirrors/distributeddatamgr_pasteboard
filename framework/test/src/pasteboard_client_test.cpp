@@ -1239,8 +1239,8 @@ HWTEST_F(PasteboardClientTest, GetPasteDataInfoTest002, TestSize.Level0)
 {
     PasteboardClient::GetInstance()->Clear();
     std::string plainText = "helloWorld";
-    auto newData = PasteDataClient::GetInstance()->CreatePlainTextData(plainText);
-    int32_t ret = PasteDataClient::GetInstance()->SetPasteData(*newData);
+    auto newData = PasteboardClient::GetInstance()->CreatePlainTextData(plainText);
+    int32_t ret = PasteboardClient::GetInstance()->SetPasteData(*newData);
     ASSERT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
 
     PasteDataInfo pasteDataInfo;
