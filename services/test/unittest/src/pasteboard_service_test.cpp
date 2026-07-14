@@ -1136,7 +1136,7 @@ HWTEST_F(PasteboardServiceTest, ProcessDistributedDelayUriTest001, TestSize.Leve
     std::vector<uint8_t> rawData;
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
-    tempPasteboard->ProcessDistributedDelayUri(userId, data, entry, rawData);
+    tempPasteboard->ProcessDistributedDelayUri(userId, data, entry, 0, rawData);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ProcessDistributedDelayUriTest001 end");
 }
 
