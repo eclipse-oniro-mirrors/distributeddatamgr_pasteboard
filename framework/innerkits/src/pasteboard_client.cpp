@@ -1103,7 +1103,7 @@ int32_t PasteboardClient::GetPasteDataInfo(PasteDataInfo &pasteDataInfo)
         PASTEBOARD_HILOGD(PASTEBOARD_MODULE_CLIENT, "GetPasteDataInfo failed, ret=%{public}d", ret);
         return ret;
     }
-    return static_cast<int32_t>(PasteboarError::E_OK);
+    return ConvertErrCode(ret);
 }
 
 bool PasteboardClient::HasDataType(const std::string &mimeType, uint32_t timeout)

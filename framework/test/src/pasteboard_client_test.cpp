@@ -1249,5 +1249,6 @@ HWTEST_F(PasteboardClientTest, GetPasteDataInfoTest002, TestSize.Level0)
     ASSERT_EQ(pasteDataInfo.isDelayedData, false);
     ASSERT_EQ(pasteDataInfo.isDelayedRecord, false);
     ASSERT_FALSE(pasteDataInfo.mimeTypes.empty());
+    ASSERT_EQ(pasteDataInfo.mimeTypes[0], "text/plain");
 }
 } // namespace OHOS::MiscServices
