@@ -31,7 +31,7 @@ public:
     PasteDataInfo &operator=(const PasteDataInfo &dataInfo);
 
     bool Marshalling(Parcel &parcel) const override;
-    static PasteDataInfo * Unmarshalling(Parcel &parcel);
+    static PasteDataInfo *Unmarshalling(Parcel &parcel);
 
     std::vector<std::string> mimeTypes;
     int32_t rawDataSize;
