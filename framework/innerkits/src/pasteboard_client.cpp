@@ -1100,11 +1100,12 @@ int32_t PasteboardClient::GetPasteDataInfo(PasteDataInfo &pasteDataInfo)
         static_cast<int32_t>(PasteboardError::OBTAIN_SERVER_SA_ERROR),
         PASTEBOARD_MODULE_CLIENT, "proxyService is nullptr");
     int32_t ret = proxyService->GetPasteDataInfo(pasteDataInfo);
+    ret = ConvertErrCode(ret);
     if (ret != ERR_OK) {
-        PASTEBOARD_HILOGD(PASTEBOARD_MODULE_CLIENT, "GetPasteDataInfo failed, ret=%{public}d", ret);
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CLIENT, "GetPasteDataInfo failed, ret=%{public}d", ret);
         return ret;
     }
-    return ConvertErrCode(ret);
+    return ret;
 }
 
 bool PasteboardClient::HasDataType(const std::string &mimeType, uint32_t timeout)
