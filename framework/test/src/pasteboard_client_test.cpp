@@ -1216,4 +1216,39 @@ HWTEST_F(PasteboardClientTest, ClearByUserTest001, TestSize.Level0)
     client->ClearByUser(0);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ClearByUserTest001 end");
 }
+
+/**
+ * @tc.name: GetPasteDataInfoTest001
+ * @tc.desc: GetPasteDataInfo return no data error when pasteboard is empty
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardClientTest, GetPasteDataInfoTest001, TestSize.Level0)
+{
+    PasteboardClient::GetInstance()->Clear();
+    PasteDataInfo pasteDataInfo;
+    int32_t ret = PasteboardClient::GetInstance()->GetPasteDataInfo(pasteDataInfo);
+    ASSERT_EQ(ret, static_cast<int32_t>(PasteboardError::NO_DATA_ERROR));
+}
+
+/**
+ * @tc.name: GetPasteDataInfoTest002
+ * @tc.desc: GetPasteDataInfo return E_OK when pasteboard has data
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardClientTest, GetPasteDataInfoTest002, TestSize.Level0)
+{
+    PasteboardClient::GetInstance()->Clear();
+    std::string plainText = "helloWorld";
+    auto newData = PasteboardClient::GetInstance()->CreatePlainTextData(plainText);
+    int32_t ret = PasteboardClient::GetInstance()->SetPasteData(*newData);
+    ASSERT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
+
+    PasteDataInfo pasteDataInfo;
+    ret = PasteboardClient::GetInstance()->GetPasteDataInfo(pasteDataInfo);
+    ASSERT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
+    ASSERT_EQ(pasteDataInfo.isDelayedData, false);
+    ASSERT_EQ(pasteDataInfo.isDelayedRecord, false);
+    ASSERT_FALSE(pasteDataInfo.mimeTypes.empty());
+    ASSERT_EQ(pasteDataInfo.mimeTypes[0], "text/plain");
+}
 } // namespace OHOS::MiscServices

@@ -47,6 +47,7 @@
 #include "pasteboard_disposable_manager.h"
 #include "pasteboard_error.h"
 #include "pasteboard_hilog.h"
+#include "paste_data_info.h"
 #include "pasteboard_event_dfx.h"
 #include "pasteboard_event_ue.h"
 #include "pasteboard_img_extractor.h"
@@ -2525,6 +2526,50 @@ int32_t PasteboardService::GetMimeTypes(std::vector<std::string> &funcResult)
         }
     }
     funcResult = GetLocalMimeTypes();
+    return ERR_OK;
+}
+
+int32_t PasteboardService::GetPasteDataInfo(PasteDataInfo &pasteDataInfo)
+{
+    auto userId = GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
+    PASTEBOARD_HILOGD(PASTEBOARD_MODULE_SERVICE, "GetDataInfo userId: %{public}d, clips_ find: %{public}d",
+        userId, clips_.Find(userId).first);
+    auto it = clips_.Find(userId);
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(it.first, static_cast<int32_t>(PasteboardError::NO_DATA_ERROR),
+        PASTEBOARD_MODULE_SERVICE, "Can not find data. userId: %{public}d", userId);
+    if (it.second == nullptr) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "data is nullptr. userId: %{public}d", userId);
+        return static_cast<int32_t>(PasteboardError::NO_DATA_ERROR);
+    }
+    auto &pasteData = *(it.second);
+    auto ret = IsDataValid(pasteData, IPCSkeleton::GetCallingTokenID(), userId);
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(ret == static_cast<int32_t>(PasteboardError::E_OK), ret,
+        PASTEBOARD_MODULE_SERVICE, "pasteData is invalid, ret is %{public}d", ret);
+    
+    pasteDataInfo.isDelayedData = pasteData.IsDelayData();
+    pasteDataInfo.isDelayedRecord = pasteData.IsDelayRecord();
+    pasteDataInfo.mimeTypes = pasteData.GetMimeTypes();
+    pasteDataInfo.rawDataSize = pasteData.rawDataSize_;
+
+    int32_t textSize = 0;
+    int32_t htmlSize = 0;
+    for (size_t i = 0; i < pasteData.GetRecordCount(); ++i) {
+        auto record = pasteData.GetRecordAt(i);
+        if (record == nullptr) {
+            continue;
+        }
+        auto plainText = record->GetPlainTextV0();
+        if (plainText != nullptr) {
+            textSize += static_cast<int32_t>(plainText->size());
+        }
+        auto htmlText = record->GetHtmlTextV0();
+        if (htmlText != nullptr) {
+            htmlSize += static_cast<int32_t>(htmlText->size());
+        }
+    }
+    pasteDataInfo.textDataSize = textSize;
+    pasteDataInfo.htmlDataSize = htmlSize;
+
     return ERR_OK;
 }
 

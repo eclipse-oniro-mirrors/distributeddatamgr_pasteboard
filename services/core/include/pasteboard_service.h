@@ -36,6 +36,7 @@
 #endif
 #include "pasteboard_dump_helper.h"
 #include "pasteboard_event_common.h"
+#include "paste_data_info.h"
 #include "pasteboard_service_stub.h"
 #include "pasteboard_switch.h"
 #include "pasteboard_user_context.h"
@@ -147,6 +148,7 @@ public:
     virtual int32_t SyncDelayedData() override;
     virtual int32_t IsRemoteData(bool &funcResult) override;
     virtual int32_t GetMimeTypes(std::vector<std::string> &funcResult) override;
+    virtual int32_t GetPasteDataInfo(PasteDataInfo &pasteDataInfo) override;
     virtual int32_t HasDataType(const std::string &mimeType, bool &funcResult) override;
     virtual int32_t HasUtdType(const std::string &utdType, bool &funcResult) override;
     virtual int32_t DetectPatterns(

@@ -46,6 +46,7 @@ ohos_fuzztest("PasteboardServiceFuzzTest") {
   sources = [ "pasteboardservice_fuzzer.cpp" ]
   sources += [
     "${pasteboard_innerkits_path}/src/paste_data.cpp",
+    "${pasteboard_innerkits_path}/src/paste_data_info.cpp",
     "${pasteboard_innerkits_path}/src/paste_data_entry.cpp",
     "${pasteboard_innerkits_path}/src/paste_data_record.cpp",
     "${pasteboard_tlv_path}/tlv_readable.cpp",
