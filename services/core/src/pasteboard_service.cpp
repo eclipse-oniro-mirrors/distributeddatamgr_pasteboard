@@ -2538,7 +2538,7 @@ int32_t PasteboardService::GetPasteDataInfo(PasteDataInfo &pasteDataInfo)
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(it.first, static_cast<int32_t>(PasteboardError::NO_DATA_ERROR),
         PASTEBOARD_MODULE_SERVICE, "Can not find data. userId: %{public}d", userId);
     if (it.second == nullptr) {
-        PASTEBOARD_HILOG(PASTEBOARD_MODULE_SERVICE, "data is nullptr. userId: %{public}d", userId);
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "data is nullptr. userId: %{public}d", userId);
         return static_cast<int32_t>(PasteboardError::NO_DATA_ERROR);
     }
     auto &pasteData = *(it.second);
@@ -2560,11 +2560,11 @@ int32_t PasteboardService::GetPasteDataInfo(PasteDataInfo &pasteDataInfo)
         }
         auto plainText = record->GetPlainTextV0();
         if (plainText != nullptr) {
-            textSize += static_cast<int32_t>(plainText->Size());
+            textSize += static_cast<int32_t>(plainText->size());
         }
         auto htmlText = record->GetHtmlTextV0();
         if (htmlText != nullptr) {
-            htmlSize += static_cast<int32_t>(htmlText->Size());
+            htmlSize += static_cast<int32_t>(htmlText->size());
         }
     }
     pasteDataInfo.textDataSize = textSize;
