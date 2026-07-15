@@ -213,7 +213,7 @@ HWTEST_F(PasteboardServiceGetDataTest, GetPasteDataTest001, TestSize.Level1)
     int fd = -1;
     int64_t rawDataSize = 0;
     std::vector<uint8_t> recvTLV;
-    std::string pasteId = "GetPasteData_001";
+    uint32_t pasteId = 1;
     auto ret = tempPasteboard->GetPasteData(fd, rawDataSize, recvTLV, pasteId, syncTime, realErrCode);
     if (fd >= 0) {
         close(fd);
@@ -241,7 +241,7 @@ HWTEST_F(PasteboardServiceGetDataTest, GetPasteDataTest002, TestSize.Level1)
     int fd = -1;
     int64_t rawDataSize = 0;
     std::vector<uint8_t> recvTLV;
-    std::string pasteId = "GetPasteData_test_002";
+    uint32_t pasteId = 2;
     auto ret = tempPasteboard->GetPasteData(fd, rawDataSize, recvTLV, pasteId, syncTime, realErrCode);
     if (fd >= 0) {
         close(fd);

@@ -404,7 +404,7 @@ private:
     int32_t GetDistributedDelayEntry(const Event &evt, uint32_t recordId, const std::string &utdId,
         std::vector<uint8_t> &rawData);
     int32_t ProcessDistributedDelayUri(int32_t userId, PasteData &data, PasteDataEntry &entry,
-        std::vector<uint8_t> &rawData);
+        uint32_t recordId, std::vector<uint8_t> &rawData);
     int32_t ProcessDistributedDelayHtml(PasteData &data, PasteDataEntry &entry, std::vector<uint8_t> &rawData);
     int32_t ProcessDistributedDelayEntry(PasteDataEntry &entry, std::vector<uint8_t> &rawData);
     int32_t GetRemoteEntryValue(const AppInfo &appInfo, PasteData &data, PasteDataRecord &record,

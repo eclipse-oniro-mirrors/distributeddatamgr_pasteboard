@@ -2618,7 +2618,7 @@ HWTEST_F(PasteboardServiceMockTest, ProcessDistributedDelayUriTest003, TestSize.
             return 0;
         });
     EXPECT_CALL(mock, Encode(testing::_)).WillOnce(Return(true));
-    int32_t ret = service.ProcessDistributedDelayUri(ACCOUNT_IDS_RANDOM, data, *entry, rawData);
+    int32_t ret = service.ProcessDistributedDelayUri(ACCOUNT_IDS_RANDOM, data, *entry, 1, rawData);
     EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
 }
 
