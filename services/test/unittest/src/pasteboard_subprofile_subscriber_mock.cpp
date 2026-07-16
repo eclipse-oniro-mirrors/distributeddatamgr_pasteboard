@@ -16,7 +16,7 @@
 #include "pasteboard_subprofile_subscriber_test.h"
 
 #include "pasteboard_subprofile_subscriber.h"
-#include "distributed_account_subscribe_callback.h"
+#include "os_account_sub_profile_subscribe_callback.h"
 #include "pasteboard_hilog.h"
 
 namespace OHOS::MiscServices {

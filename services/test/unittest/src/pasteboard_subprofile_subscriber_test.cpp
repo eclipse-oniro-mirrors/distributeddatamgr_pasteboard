@@ -18,7 +18,7 @@
 #include <chrono>
 #include "pasteboard_subprofile_subscriber.h"
 #include "pasteboard_service.h"
-#include "distributed_account_subscribe_callback.h"
+#include "os_account_sub_profile_subscribe_callback.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -35,22 +35,22 @@ namespace {
 }
 
 namespace OHOS::AccountSA {
-bool DistributedAccountSubProfileEventData::Marshalling(Parcel &parcel) const
+bool SubProfileEventData::Marshalling(Parcel &parcel) const
 {
     return false;
 }
 
-DistributedAccountSubProfileEventData *DistributedAccountSubProfileEventData::Unmarshalling(Parcel &parcel)
+SubProfileEventData *SubProfileEventData::Unmarshalling(Parcel &parcel)
 {
     return nullptr;
 }
 
-bool DistributedAccountSubProfileEventData::operator==(const DistributedAccountSubProfileEventData &eventData) const
+bool SubProfileEventData::operator==(const SubProfileEventData &eventData) const
 {
     return false;
 }
 
-bool DistributedAccountSubProfileEventData::ReadFromParcel(Parcel &parcel)
+bool SubProfileEventData::ReadFromParcel(Parcel &parcel)
 {
     return false;
 }
@@ -81,13 +81,13 @@ HWTEST_F(PasteboardSubProfileSubscriberTest, SpaceSwitchingTest001, TestSize.Lev
     auto subscriber = std::make_shared<PasteboardSubProfileSubscriber>(service);
     ASSERT_NE(subscriber, nullptr);
 
-    AccountSA::DistributedAccountSubProfileEventData eventData;
-    eventData.type_ = AccountSA::DistributedAccountSubProfileEventType::SWITCHED;
+    AccountSA::SubProfileEventData eventData;
+    eventData.type_ = AccountSA::OsAccountSubProfileEventType::SWITCHED;
     eventData.osAccountId_ = TEST_USER_ID;
-    eventData.subspaceId_ = TEST_SUBSPACE_ID_B;
-    eventData.previousSubspaceId_ = TEST_SUBSPACE_ID_A;
+    eventData.subProfileId_ = TEST_SUBSPACE_ID_B;
+    eventData.previousSubProfileId_ = TEST_SUBSPACE_ID_A;
 
-    subscriber->OnSubProfileAccountsChanged(eventData);
+    subscriber->OnSubProfileChanged(eventData);
 
     std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_TIMEOUT_MS));
 }
@@ -102,13 +102,13 @@ HWTEST_F(PasteboardSubProfileSubscriberTest, SpaceSwitchingTest002, TestSize.Lev
     auto subscriber = std::make_shared<PasteboardSubProfileSubscriber>(nullptr);
     ASSERT_NE(subscriber, nullptr);
 
-    AccountSA::DistributedAccountSubProfileEventData eventData;
-    eventData.type_ = AccountSA::DistributedAccountSubProfileEventType::SWITCHED;
+    AccountSA::SubProfileEventData eventData;
+    eventData.type_ = AccountSA::OsAccountSubProfileEventType::SWITCHED;
     eventData.osAccountId_ = TEST_USER_ID;
-    eventData.subspaceId_ = TEST_SUBSPACE_ID_A;
-    eventData.previousSubspaceId_ = TEST_SUBSPACE_ID_B;
+    eventData.subProfileId_ = TEST_SUBSPACE_ID_A;
+    eventData.previousSubProfileId_ = TEST_SUBSPACE_ID_B;
 
-    subscriber->OnSubProfileAccountsChanged(eventData);
+    subscriber->OnSubProfileChanged(eventData);
 
     std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_TIMEOUT_MS));
 }
@@ -126,13 +126,13 @@ HWTEST_F(PasteboardSubProfileSubscriberTest, SpaceSwitchingTest003, TestSize.Lev
     auto subscriber = std::make_shared<PasteboardSubProfileSubscriber>(service);
     ASSERT_NE(subscriber, nullptr);
 
-    AccountSA::DistributedAccountSubProfileEventData eventData;
-    eventData.type_ = AccountSA::DistributedAccountSubProfileEventType::SWITCHED;
+    AccountSA::SubProfileEventData eventData;
+    eventData.type_ = AccountSA::OsAccountSubProfileEventType::SWITCHED;
     eventData.osAccountId_ = INVALID_USER_ID;
-    eventData.subspaceId_ = TEST_SUBSPACE_ID_A;
-    eventData.previousSubspaceId_ = TEST_SUBSPACE_ID_B;
+    eventData.subProfileId_ = TEST_SUBSPACE_ID_A;
+    eventData.previousSubProfileId_ = TEST_SUBSPACE_ID_B;
 
-    subscriber->OnSubProfileAccountsChanged(eventData);
+    subscriber->OnSubProfileChanged(eventData);
 
     std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_TIMEOUT_MS));
 }
@@ -150,13 +150,13 @@ HWTEST_F(PasteboardSubProfileSubscriberTest, SpaceSwitchingTest004, TestSize.Lev
     auto subscriber = std::make_shared<PasteboardSubProfileSubscriber>(service);
     ASSERT_NE(subscriber, nullptr);
 
-    AccountSA::DistributedAccountSubProfileEventData eventData;
-    eventData.type_ = AccountSA::DistributedAccountSubProfileEventType::INVALID_TYPE;
+    AccountSA::SubProfileEventData eventData;
+    eventData.type_ = AccountSA::OsAccountSubProfileEventType::INVALID_TYPE;
     eventData.osAccountId_ = TEST_USER_ID;
-    eventData.subspaceId_ = TEST_SUBSPACE_ID_A;
-    eventData.previousSubspaceId_ = TEST_SUBSPACE_ID_B;
+    eventData.subProfileId_ = TEST_SUBSPACE_ID_A;
+    eventData.previousSubProfileId_ = TEST_SUBSPACE_ID_B;
 
-    subscriber->OnSubProfileAccountsChanged(eventData);
+    subscriber->OnSubProfileChanged(eventData);
 
     std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_TIMEOUT_MS));
 }
@@ -174,21 +174,21 @@ HWTEST_F(PasteboardSubProfileSubscriberTest, SpaceSwitchingTest005, TestSize.Lev
     auto subscriber = std::make_shared<PasteboardSubProfileSubscriber>(service);
     ASSERT_NE(subscriber, nullptr);
 
-    AccountSA::DistributedAccountSubProfileEventData eventData1;
-    eventData1.type_ = AccountSA::DistributedAccountSubProfileEventType::SWITCHED;
+    AccountSA::SubProfileEventData eventData1;
+    eventData1.type_ = AccountSA::OsAccountSubProfileEventType::SWITCHED;
     eventData1.osAccountId_ = TEST_USER_ID;
-    eventData1.subspaceId_ = TEST_SUBSPACE_ID_A;
-    eventData1.previousSubspaceId_ = TEST_SUBSPACE_ID_B;
+    eventData1.subProfileId_ = TEST_SUBSPACE_ID_A;
+    eventData1.previousSubProfileId_ = TEST_SUBSPACE_ID_B;
 
-    subscriber->OnSubProfileAccountsChanged(eventData1);
+    subscriber->OnSubProfileChanged(eventData1);
 
-    AccountSA::DistributedAccountSubProfileEventData eventData2;
-    eventData2.type_ = AccountSA::DistributedAccountSubProfileEventType::SWITCHED;
+    AccountSA::SubProfileEventData eventData2;
+    eventData2.type_ = AccountSA::OsAccountSubProfileEventType::SWITCHED;
     eventData2.osAccountId_ = TEST_USER_ID_2;
-    eventData2.subspaceId_ = TEST_SUBSPACE_ID_B;
-    eventData2.previousSubspaceId_ = TEST_SUBSPACE_ID_A;
+    eventData2.subProfileId_ = TEST_SUBSPACE_ID_B;
+    eventData2.previousSubProfileId_ = TEST_SUBSPACE_ID_A;
 
-    subscriber->OnSubProfileAccountsChanged(eventData2);
+    subscriber->OnSubProfileChanged(eventData2);
 
     std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_TIMEOUT_MS));
 }

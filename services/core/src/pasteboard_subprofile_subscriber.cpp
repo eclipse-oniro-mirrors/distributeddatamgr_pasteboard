@@ -20,8 +20,8 @@
 
 namespace OHOS::MiscServices {
 
-void PasteboardSubProfileSubscriber::OnSubProfileAccountsChanged(
-    const AccountSA::DistributedAccountSubProfileEventData &eventData)
+void PasteboardSubProfileSubscriber::OnSubProfileChanged(
+    const AccountSA::SubProfileEventData &eventData)
 {
     std::thread thread([this,
         type = eventData.type_,
@@ -33,7 +33,7 @@ void PasteboardSubProfileSubscriber::OnSubProfileAccountsChanged(
 }
 
 void PasteboardSubProfileSubscriber::OnSubProfileAccountsChangedInner(
-    AccountSA::DistributedAccountSubProfileEventType type, int32_t osAccountId)
+    AccountSA::OsAccountSubProfileEventType type, int32_t osAccountId)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "Event received: type=%{public}d, osAccountId=%{public}d",
         static_cast<int32_t>(type), osAccountId);
@@ -41,7 +41,7 @@ void PasteboardSubProfileSubscriber::OnSubProfileAccountsChangedInner(
     PASTEBOARD_CHECK_AND_RETURN_LOGE(pasteboardService_ != nullptr,
         PASTEBOARD_MODULE_SERVICE, "pasteboardService_ is nullptr");
 
-    PASTEBOARD_CHECK_AND_RETURN_LOGE(type != AccountSA::DistributedAccountSubProfileEventType::INVALID_TYPE,
+    PASTEBOARD_CHECK_AND_RETURN_LOGE(type != AccountSA::OsAccountSubProfileEventType::INVALID_TYPE,
         PASTEBOARD_MODULE_SERVICE, "Invalid event type");
 
     PASTEBOARD_CHECK_AND_RETURN_LOGE(osAccountId >= 0,
