@@ -4199,9 +4199,7 @@ bool PasteboardService::SetCurrentDistributedData(PasteData &data, Event event)
             std::lock_guard<std::mutex> lock(setDistributedMemory_.mutex);
             setDistributedMemory_.latestEvent = event;
             setDistributedMemory_.latestData = std::make_shared<PasteData>(data);
-            if (setDistributedMemory_.isRunning) {
-                return;
-            }
+            PASTEBOARD_CHECK_AND_RETURN_LOGD(!setDistributedMemory_.isRunning, PASTEBOARD_MODULE_SERVICE, "running");
             setDistributedMemory_.isRunning = true;
         }
         bool isNeedCheck = false;
@@ -4226,7 +4224,9 @@ bool PasteboardService::SetCurrentDistributedData(PasteData &data, Event event)
             PasteBoardCommonUtils::SetThreadTaskName(innerThread, "SetCurrentData");
             innerThread.detach();
             bool ret = block->GetValue();
-            PASTEBOARD_CHECK_AND_RETURN_LOGE(ret, PASTEBOARD_MODULE_SERVICE, "timeout,seqId:%{public}hu", event.seqId);
+            if (!ret) {
+                PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "SetCurrentData timeout,seqId:%{public}hu", event.seqId);
+            }
         }
     });
     PasteBoardCommonUtils::SetThreadTaskName(thread, "SetDistributeDa");
