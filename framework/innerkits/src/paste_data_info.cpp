@@ -56,7 +56,7 @@ PasteDataInfo &PasteDataInfo::operator=(const PasteDataInfo &dataInfo)
 
 bool PasteDataInfo::Marshalling(Parcel &parcel) const
 {
-    if (!parcel.WriteInt32(rawDataSize)) {
+    if (!parcel.WriteInt64(rawDataSize)) {
         return false;
     }
     if (!parcel.WriteInt32(textDataSize)) {
@@ -89,7 +89,7 @@ PasteDataInfo *PasteDataInfo::Unmarshalling(Parcel &parcel)
     if (info == nullptr) {
         return nullptr;
     }
-    if (!parcel.ReadInt32(info->rawDataSize)) {
+    if (!parcel.ReadInt64(info->rawDataSize)) {
         delete info;
         return nullptr;
     }

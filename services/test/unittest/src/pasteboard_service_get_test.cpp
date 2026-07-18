@@ -1045,5 +1045,83 @@ HWTEST_F(PasteboardServiceGetTest, GetPasteDataInfoTest004, TestSize.Level1)
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetPasteDataInfoTest004 end");
 }
 
+/**
+ * @tc.name: GetPasteDataInfoTest005
+ * @tc.desc: test Func GetPasteDataInfo, return NO_DATA_ERROR when data is nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceGetTest, GetPasteDataInfoTest005, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetPasteDataInfoTest005 start");
+    auto service = std::make_shared<PasteboardService>();
+    EXPECT_NE(service, nullptr);
+
+    service->currentUserId_.store(ACCOUNT_IDS_RANDOM);
+    service->clips_.InsertOrAssign(ACCOUNT_IDS_RANDOM, nullptr);
+
+    PasteDataInfo pasteDataInfo;
+    int32_t result = service->GetPasteDataInfo(pasteDataInfo);
+    EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::NO_DATA_ERROR));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetPasteDataInfoTest005 end");
+}
+
+/**
+ * @tc.name: GetPasteDataInfoTest006
+ * @tc.desc: test Func GetPasteDataInfo with kv record, text and html size should be 0
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceGetTest, GetPasteDataInfoTest006, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetPasteDataInfoTest006 start");
+    auto service = std::make_shared<PasteboardService>();
+    EXPECT_NE(service, nullptr);
+
+    service->currentUserId_.store(ACCOUNT_IDS_RANDOM);
+    service->copyTime_.InsertOrAssign(ACCOUNT_IDS_RANDOM, 0);
+    std::shared_ptr<PasteData> pasteData = std::make_shared<PasteData>();
+    std::vector<uint8_t> arrayBuffer = { 0x01, 0x02, 0x03 };
+    pasteData->AddKvRecord("custom/kv-type", arrayBuffer);
+    pasteData->rawDataSize_ = static_cast<int64_t>(arrayBuffer.size());
+    service->clips_.InsertOrAssign(ACCOUNT_IDS_RANDOM, pasteData);
+
+    PasteDataInfo pasteDataInfo;
+    int32_t result = service->GetPasteDataInfo(pasteDataInfo);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(pasteDataInfo.textDataSize, 0);
+    EXPECT_EQ(pasteDataInfo.htmlDataSize, 0);
+    EXPECT_EQ(pasteDataInfo.rawDataSize, static_cast<int64_t>(arrayBuffer.size()));
+    EXPECT_FALSE(pasteDataInfo.mimeTypes.empty());
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetPasteDataInfoTest006 end");
+}
+
+/**
+ * @tc.name: GetPasteDataInfoTest007
+ * @tc.desc: test Func GetPasteDataInfo with delay data and delay record
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceGetTest, GetPasteDataInfoTest007, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetPasteDataInfoTest007 start");
+    auto service = std::make_shared<PasteboardService>();
+    EXPECT_NE(service, nullptr);
+
+    service->currentUserId_.store(ACCOUNT_IDS_RANDOM);
+    service->copyTime_.InsertOrAssign(ACCOUNT_IDS_RANDOM, 0);
+    std::shared_ptr<PasteData> pasteData = std::make_shared<PasteData>();
+    pasteData->AddTextRecord("hello");
+    pasteData->SetDelayData(true);
+    pasteData->SetDelayRecord(true);
+    pasteData->rawDataSize_ = INT_THREETHREETHREE;
+    service->clips_.InsertOrAssign(ACCOUNT_IDS_RANDOM, pasteData);
+
+    PasteDataInfo pasteDataInfo;
+    int32_t result = service->GetPasteDataInfo(pasteDataInfo);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(pasteDataInfo.isDelayedData, true);
+    EXPECT_EQ(pasteDataInfo.isDelayedRecord, true);
+    EXPECT_EQ(pasteDataInfo.rawDataSize, INT_THREETHREETHREE);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetPasteDataInfoTest007 end");
+}
+
 } // namespace MiscServices
 } // namespace OHOS
