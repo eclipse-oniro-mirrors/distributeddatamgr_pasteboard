@@ -61,6 +61,7 @@
           "libxml2",
           "memmgr",
           "napi",
+          "node",
           "os_account",
           "resource_schedule_service",
           "safwk",
