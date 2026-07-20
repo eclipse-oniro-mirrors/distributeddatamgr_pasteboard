@@ -64,6 +64,7 @@ ohos_unittest("PasteboardFrameworkTest") {
     "src/event_center_test.cpp",
     "src/event_test.cpp",
     "src/paste_data_entry_test.cpp",
+    "src/paste_data_info_test.cpp",
     "src/paste_data_record_test.cpp",
     "src/paste_data_test.cpp",
     "src/pasteboard_client_test.cpp",

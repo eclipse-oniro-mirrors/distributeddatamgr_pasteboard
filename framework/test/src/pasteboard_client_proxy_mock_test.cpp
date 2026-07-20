@@ -125,6 +125,25 @@ HWTEST_F(PasteboardClientMockTest, SetPasteData001, TestSize.Level0)
 }
 
 /**
+ * @tc.name: GetPasteDataInfo001
+ * @tc.desc: GetPasteDataInfo return OBTAIN_SERVER_SA_ERROR when proxy is nullptr.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(PasteboardClientMockTest, GetPasteDataInfo001, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "GetPasteDataInfo001 start");
+    EXPECT_CALL(*systemAbilityManagerClientMock_, GetSystemAbilityManager()).WillRepeatedly(testing::Return(nullptr));
+    PasteboardServiceLoader::GetInstance().pasteboardServiceProxy_ = nullptr;
+    PasteboardServiceLoader::GetInstance().constructing_ = false;
+    PasteDataInfo pasteDataInfo;
+    int32_t status = PasteboardClient::GetInstance()->GetPasteDataInfo(pasteDataInfo);
+    ASSERT_EQ(status, static_cast<int32_t>(PasteboardError::OBTAIN_SERVER_SA_ERROR));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "GetPasteDataInfo001 end");
+}
+
+/**
  * @tc.name: SubscribeTest001
  * @tc.desc: SubscribeTest.
  * @tc.type: FUNC

@@ -34,7 +34,7 @@ public:
     static PasteDataInfo *Unmarshalling(Parcel &parcel);
 
     std::vector<std::string> mimeTypes;
-    int32_t rawDataSize;
+    int64_t rawDataSize;
     int32_t textDataSize;
     int32_t htmlDataSize;
     bool isDelayedData;
