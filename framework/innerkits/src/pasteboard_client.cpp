@@ -84,7 +84,10 @@ bool operator==(const RadarReportIdentity &lhs, const RadarReportIdentity &rhs)
 
 PasteboardClient::PasteboardClient()
 {
-    PASTEBOARD_HILOGD(PASTEBOARD_MODULE_CLIENT, "PasteboardClient created (lazy init)");
+    auto proxyService = GetPasteboardService();
+    if (proxyService == nullptr) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CLIENT, "proxyService is null");
+    }
 }
 
 PasteboardClient::~PasteboardClient()
