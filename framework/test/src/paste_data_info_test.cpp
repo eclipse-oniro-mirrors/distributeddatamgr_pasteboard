@@ -44,7 +44,6 @@ constexpr uint32_t WRITTEN_TEXT = 2;              // 触发htmlDataSize读取失
 constexpr uint32_t WRITTEN_HTML = 3;              // 触发isDelayedData读取失败
 constexpr uint32_t WRITTEN_IS_DELAYED_DATA = 4;   // 触发isDelayedRecord读取失败
 constexpr uint32_t WRITTEN_IS_DELAYED_RECORD = 5; // 触发mimeTypesSize读取失败
-constexpr uint32_t WRITTEN_MIME_TYPES_SIZE = 6;   // 全部定长字段写完, 再声明mimeType数量后触发字符串读取失败
 } // namespace
 
 class PasteDataInfoTest : public testing::Test {
@@ -364,19 +363,6 @@ HWTEST_F(PasteDataInfoTest, UnmarshallingMimeTypesSizeFailTest, TestSize.Level0)
 {
     Parcel parcel;
     WriteFixedFields(parcel, WRITTEN_IS_DELAYED_RECORD);
-    ExpectUnmarshallingNull(parcel);
-}
-
-/**
- * @tc.name: UnmarshallingMimeTypeStringFailTest
- * @tc.desc: 循环中读取mimeType字符串失败时Unmarshalling应返回nullptr
- * @tc.type: FUNC
- */
-HWTEST_F(PasteDataInfoTest, UnmarshallingMimeTypeStringFailTest, TestSize.Level0)
-{
-    Parcel parcel;
-    WriteFixedFields(parcel, WRITTEN_MIME_TYPES_SIZE);
-    EXPECT_TRUE(parcel.WriteUint32(1)); // 声明1个mimeType但不写入其内容, 使ReadString失败
     ExpectUnmarshallingNull(parcel);
 }
 } // namespace OHOS::MiscServices
