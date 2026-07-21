@@ -16,6 +16,7 @@
 #ifndef UDMF_LAZY_LOADER_H
 #define UDMF_LAZY_LOADER_H
 
+#include <vector>
 #include <memory>
 #include <mutex>
 #include "unified_data.h"
@@ -43,12 +44,12 @@ public:
         
         auto data = dataPool_.back();
         dataPool_.pop_back();
-        PASTEBOARD_HILOGD(PASTEBOARD_MODULE_CLIENT, "Reuse UnifiedData from pool, pool size: %{public}zu", 
-                          dataPool_.size());
+        PASTEBOARD_HILOGD(PASTEBOARD_MODULE_CLIENT, 
+            "Reuse UnifiedData from pool, pool size: %{public}zu", dataPool_.size());
         return data;
     }
 
-    void ReleaseUnifiedData(std::shared_ptr<UDMF::UnifiedData>& data)
+    void ReleaseUnifiedData(const std::shared_ptr<UDMF::UnifiedData>& data)
     {
         if (!data) {
             return;
@@ -58,10 +59,12 @@ public:
         
         constexpr size_t MAX_POOL_SIZE = 10;
         if (dataPool_.size() < MAX_POOL_SIZE) {
-            data->Reset();
-            dataPool_.push_back(data);
-            PASTEBOARD_HILOGD(PASTEBOARD_MODULE_CLIENT, "Return UnifiedData to pool, pool size: %{public}zu", 
-                              dataPool_.size());
+            // 创建副本添加到池中，避免修改传入的 shared_ptr
+            auto pooled = std::make_shared<UDMF::UnifiedData>(*data);
+            pooled->Reset();
+            dataPool_.push_back(pooled);
+            PASTEBOARD_HILOGD(PASTEBOARD_MODULE_CLIENT, 
+                "Return UnifiedData to pool, pool size: %{public}zu", dataPool_.size());
         } else {
             PASTEBOARD_HILOGD(PASTEBOARD_MODULE_CLIENT, "Pool full, discard UnifiedData");
         }
@@ -74,7 +77,7 @@ public:
         PASTEBOARD_HILOGD(PASTEBOARD_MODULE_CLIENT, "Clear UnifiedData pool");
     }
 
-    size_t GetPoolSize()
+    size_t GetPoolSize() const
     {
         std::lock_guard<std::mutex> lock(poolMutex_);
         return dataPool_.size();
@@ -87,7 +90,7 @@ private:
     UdmfLazyLoader& operator=(const UdmfLazyLoader&) = delete;
 
     std::vector<std::shared_ptr<UDMF::UnifiedData>> dataPool_;
-    std::mutex poolMutex_;
+    mutable std::mutex poolMutex_;
 };
 
 class ScopedUnifiedData {
@@ -102,10 +105,12 @@ public:
     }
 
     UDMF::UnifiedData* operator->() { return data_.get(); }
+    const UDMF::UnifiedData* operator->() const { return data_.get(); }
     UDMF::UnifiedData& operator*() { return *data_; }
+    const UDMF::UnifiedData& operator*() const { return *data_; }
     operator bool() const { return data_ != nullptr; }
 
-    std::shared_ptr<UDMF::UnifiedData> Get() { return data_; }
+    std::shared_ptr<UDMF::UnifiedData> Get() const { return data_; }
 
 private:
     std::shared_ptr<UDMF::UnifiedData> data_;
