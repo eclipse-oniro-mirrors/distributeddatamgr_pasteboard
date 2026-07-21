@@ -58,7 +58,7 @@ ohos_shared_library("libpasteboard") {
     "ipc:ipc_single",
     "image_framework:image",
     "udmf:libudmf",
-    "udmf:udmf_core",
+    "udmf:udmf_client",
   ]
 
   relative_install_dir = "ndk"
