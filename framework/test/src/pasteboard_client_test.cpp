@@ -1280,7 +1280,7 @@ HWTEST_F(PasteboardClientTest, GetPasteDataInfoTest002, TestSize.Level0)
 
 /**
  * @tc.name: GetPasteDataInfoTest003
- * @tc.desc: GetPasteDataInfo textDataSize equals UTF-8 byte length of half-width English
+ * @tc.desc: GetPasteDataInfo的textDataSize应等于半角英文的UTF-8字节长度
  * @tc.type: FUNC
  */
 HWTEST_F(PasteboardClientTest, GetPasteDataInfoTest003, TestSize.Level0)
@@ -1303,7 +1303,7 @@ HWTEST_F(PasteboardClientTest, GetPasteDataInfoTest003, TestSize.Level0)
 
 /**
  * @tc.name: GetPasteDataInfoTest004
- * @tc.desc: GetPasteDataInfo textDataSize equals UTF-8 byte length of Chinese characters
+ * @tc.desc: GetPasteDataInfo的textDataSize应等于中文字符的UTF-8字节长度
  * @tc.type: FUNC
  */
 HWTEST_F(PasteboardClientTest, GetPasteDataInfoTest004, TestSize.Level0)
@@ -1326,7 +1326,7 @@ HWTEST_F(PasteboardClientTest, GetPasteDataInfoTest004, TestSize.Level0)
 
 /**
  * @tc.name: GetPasteDataInfoTest005
- * @tc.desc: GetPasteDataInfo textDataSize equals UTF-8 byte length of full-width characters
+ * @tc.desc: GetPasteDataInfo的textDataSize应等于全角字符的UTF-8字节长度
  * @tc.type: FUNC
  */
 HWTEST_F(PasteboardClientTest, GetPasteDataInfoTest005, TestSize.Level0)
@@ -1349,7 +1349,7 @@ HWTEST_F(PasteboardClientTest, GetPasteDataInfoTest005, TestSize.Level0)
 
 /**
  * @tc.name: GetPasteDataInfoTest006
- * @tc.desc: GetPasteDataInfo textDataSize equals UTF-8 byte length of emoji
+ * @tc.desc: GetPasteDataInfo的textDataSize应等于emoji的UTF-8字节长度
  * @tc.type: FUNC
  */
 HWTEST_F(PasteboardClientTest, GetPasteDataInfoTest006, TestSize.Level0)
@@ -1372,7 +1372,7 @@ HWTEST_F(PasteboardClientTest, GetPasteDataInfoTest006, TestSize.Level0)
 
 /**
  * @tc.name: GetPasteDataInfoTest007
- * @tc.desc: GetPasteDataInfo reports isDelayedData and isDelayedRecord for delayed data
+ * @tc.desc: 延迟数据场景下GetPasteDataInfo应正确返回isDelayedData和isDelayedRecord
  * @tc.type: FUNC
  */
 HWTEST_F(PasteboardClientTest, GetPasteDataInfoTest007, TestSize.Level0)
@@ -1398,8 +1398,8 @@ HWTEST_F(PasteboardClientTest, GetPasteDataInfoTest007, TestSize.Level0)
 
 /**
  * @tc.name: GetPasteDataInfoTest008
- * @tc.desc: GetPasteDataInfo textDataSize equals UTF-8 byte length of mixed characters
- *           (half-width English + Chinese + full-width + emoji combined)
+ * @tc.desc: GetPasteDataInfo的textDataSize应等于混合字符的UTF-8字节长度
+ *           (半角英文+中文+全角+emoji拼接)
  * @tc.type: FUNC
  */
 HWTEST_F(PasteboardClientTest, GetPasteDataInfoTest008, TestSize.Level0)

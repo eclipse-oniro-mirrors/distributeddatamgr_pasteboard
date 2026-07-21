@@ -1125,7 +1125,7 @@ HWTEST_F(PasteboardServiceGetTest, GetPasteDataInfoTest007, TestSize.Level1)
 
 /**
  * @tc.name: GetPasteDataInfoTest008
- * @tc.desc: test Func GetPasteDataInfo skips null record, text and html size should be 0
+ * @tc.desc: GetPasteDataInfo应跳过空record, text和html长度应为0
  * @tc.type: FUNC
  */
 HWTEST_F(PasteboardServiceGetTest, GetPasteDataInfoTest008, TestSize.Level1)
