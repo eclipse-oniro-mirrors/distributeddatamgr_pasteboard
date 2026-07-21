@@ -22,6 +22,7 @@
 #include "unistd.h"
 #include "pasteboard_hilog.h"
 #include "entry_getter.h"
+#include "plain_text.h"
 
 namespace OHOS::MiscServices {
 using namespace testing::ext;
@@ -35,24 +36,25 @@ using Patterns = std::set<Pattern>;
 
 class DataInfoDelayGetterImpl : public PasteboardDelayGetter {
 public:
+    // produce real delayed paste data keyed by the requested type so the getter is a valid implementation
     void GetPasteData(const std::string &type, PasteData &data) override
     {
-        (void)type;
-        (void)data;
+        data = *PasteboardClient::GetInstance()->CreatePlainTextData("delayed_" + type);
     }
     void GetUnifiedData(const std::string &type, UDMF::UnifiedData &data) override
     {
-        (void)type;
-        (void)data;
+        auto plainText = std::make_shared<UDMF::PlainText>();
+        plainText->SetContent(type);
+        data.AddRecord(plainText);
     }
 };
 
 class DataInfoEntryGetterImpl : public UDMF::EntryGetter {
 public:
+    // return a real value keyed by the requested utdId instead of an empty placeholder
     UDMF::ValueType GetValueByType(const std::string &utdId) override
     {
-        (void)utdId;
-        return nullptr;
+        return "value_" + utdId;
     }
 };
 
