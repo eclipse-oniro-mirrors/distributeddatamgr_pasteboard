@@ -21,6 +21,7 @@
 #include "pixel_map.h"
 #include "unistd.h"
 #include "pasteboard_hilog.h"
+#include "entry_getter.h"
 
 namespace OHOS::MiscServices {
 using namespace testing::ext;
@@ -31,6 +32,29 @@ constexpr int32_t PERCENTAGE = 70;
 constexpr uint32_t HAS_DATA_TYPE_TIMEOUT = 5000; // 5s
 constexpr uint32_t HAS_DATA_TYPE_WAIT = 100; // 100ms
 using Patterns = std::set<Pattern>;
+
+class DataInfoDelayGetterImpl : public PasteboardDelayGetter {
+public:
+    void GetPasteData(const std::string &type, PasteData &data) override
+    {
+        (void)type;
+        (void)data;
+    }
+    void GetUnifiedData(const std::string &type, UDMF::UnifiedData &data) override
+    {
+        (void)type;
+        (void)data;
+    }
+};
+
+class DataInfoEntryGetterImpl : public UDMF::EntryGetter {
+public:
+    UDMF::ValueType GetValueByType(const std::string &utdId) override
+    {
+        (void)utdId;
+        return nullptr;
+    }
+};
 
 class PasteboardClientTest : public testing::Test {
 public:
@@ -1250,5 +1274,123 @@ HWTEST_F(PasteboardClientTest, GetPasteDataInfoTest002, TestSize.Level0)
     ASSERT_EQ(pasteDataInfo.isDelayedRecord, false);
     ASSERT_FALSE(pasteDataInfo.mimeTypes.empty());
     ASSERT_EQ(pasteDataInfo.mimeTypes[0], "text/plain");
+}
+
+/**
+ * @tc.name: GetPasteDataInfoTest003
+ * @tc.desc: GetPasteDataInfo textDataSize equals UTF-8 byte length of half-width English
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardClientTest, GetPasteDataInfoTest003, TestSize.Level0)
+{
+    // half-width English: 1 byte per char -> 2 bytes
+    const std::string plainText = "Ab";
+    ASSERT_EQ(plainText.size(), 2U);
+
+    PasteboardClient::GetInstance()->Clear();
+    auto newData = PasteboardClient::GetInstance()->CreatePlainTextData(plainText);
+    int32_t ret = PasteboardClient::GetInstance()->SetPasteData(*newData);
+    ASSERT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
+
+    PasteDataInfo pasteDataInfo;
+    ret = PasteboardClient::GetInstance()->GetPasteDataInfo(pasteDataInfo);
+    ASSERT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
+    ASSERT_EQ(pasteDataInfo.textDataSize, 2);
+    ASSERT_EQ(pasteDataInfo.htmlDataSize, 0);
+}
+
+/**
+ * @tc.name: GetPasteDataInfoTest004
+ * @tc.desc: GetPasteDataInfo textDataSize equals UTF-8 byte length of Chinese characters
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardClientTest, GetPasteDataInfoTest004, TestSize.Level0)
+{
+    // Chinese (CJK): 3 bytes per char -> 6 bytes
+    const std::string plainText = "中文";
+    ASSERT_EQ(plainText.size(), 6U);
+
+    PasteboardClient::GetInstance()->Clear();
+    auto newData = PasteboardClient::GetInstance()->CreatePlainTextData(plainText);
+    int32_t ret = PasteboardClient::GetInstance()->SetPasteData(*newData);
+    ASSERT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
+
+    PasteDataInfo pasteDataInfo;
+    ret = PasteboardClient::GetInstance()->GetPasteDataInfo(pasteDataInfo);
+    ASSERT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
+    ASSERT_EQ(pasteDataInfo.textDataSize, 6);
+    ASSERT_EQ(pasteDataInfo.htmlDataSize, 0);
+}
+
+/**
+ * @tc.name: GetPasteDataInfoTest005
+ * @tc.desc: GetPasteDataInfo textDataSize equals UTF-8 byte length of full-width characters
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardClientTest, GetPasteDataInfoTest005, TestSize.Level0)
+{
+    // full-width latin: 3 bytes per char -> 6 bytes
+    const std::string plainText = "ＡＢ";
+    ASSERT_EQ(plainText.size(), 6U);
+
+    PasteboardClient::GetInstance()->Clear();
+    auto newData = PasteboardClient::GetInstance()->CreatePlainTextData(plainText);
+    int32_t ret = PasteboardClient::GetInstance()->SetPasteData(*newData);
+    ASSERT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
+
+    PasteDataInfo pasteDataInfo;
+    ret = PasteboardClient::GetInstance()->GetPasteDataInfo(pasteDataInfo);
+    ASSERT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
+    ASSERT_EQ(pasteDataInfo.textDataSize, 6);
+    ASSERT_EQ(pasteDataInfo.htmlDataSize, 0);
+}
+
+/**
+ * @tc.name: GetPasteDataInfoTest006
+ * @tc.desc: GetPasteDataInfo textDataSize equals UTF-8 byte length of emoji
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardClientTest, GetPasteDataInfoTest006, TestSize.Level0)
+{
+    // emoji: 4 bytes per code point -> 8 bytes
+    const std::string plainText = "😀🎉";
+    ASSERT_EQ(plainText.size(), 8U);
+
+    PasteboardClient::GetInstance()->Clear();
+    auto newData = PasteboardClient::GetInstance()->CreatePlainTextData(plainText);
+    int32_t ret = PasteboardClient::GetInstance()->SetPasteData(*newData);
+    ASSERT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
+
+    PasteDataInfo pasteDataInfo;
+    ret = PasteboardClient::GetInstance()->GetPasteDataInfo(pasteDataInfo);
+    ASSERT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
+    ASSERT_EQ(pasteDataInfo.textDataSize, 8);
+    ASSERT_EQ(pasteDataInfo.htmlDataSize, 0);
+}
+
+/**
+ * @tc.name: GetPasteDataInfoTest007
+ * @tc.desc: GetPasteDataInfo reports isDelayedData and isDelayedRecord for delayed data
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardClientTest, GetPasteDataInfoTest007, TestSize.Level0)
+{
+    PasteboardClient::GetInstance()->Clear();
+    auto newData = PasteboardClient::GetInstance()->CreatePlainTextData("helloWorld");
+    ASSERT_NE(newData, nullptr);
+
+    // a non-null delayGetter marks the data as delayed data,
+    // a non-empty entryGetters map marks it as delayed record
+    std::shared_ptr<PasteboardDelayGetter> delayGetter = std::make_shared<DataInfoDelayGetterImpl>();
+    std::map<uint32_t, std::shared_ptr<UDMF::EntryGetter>> entryGetters;
+    entryGetters.emplace(0, std::make_shared<DataInfoEntryGetterImpl>());
+    int32_t ret = PasteboardClient::GetInstance()->SetPasteData(*newData, delayGetter, entryGetters);
+    ASSERT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
+
+    PasteDataInfo pasteDataInfo;
+    ret = PasteboardClient::GetInstance()->GetPasteDataInfo(pasteDataInfo);
+    ASSERT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
+    ASSERT_TRUE(pasteDataInfo.isDelayedData);
+    ASSERT_TRUE(pasteDataInfo.isDelayedRecord);
 }
 } // namespace OHOS::MiscServices
