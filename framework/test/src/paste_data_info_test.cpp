@@ -13,8 +13,6 @@
  * limitations under the License.
  */
 
-#include <functional>
-
 #include <gtest/gtest.h>
 
 #include "parcel.h"
@@ -29,8 +27,44 @@ constexpr int64_t TEST_RAW_DATA_SIZE = 0x100000000; // 4GB, 超过INT32_MAX, 用
 constexpr int32_t TEST_TEXT_DATA_SIZE = 200;
 constexpr int32_t TEST_HTML_DATA_SIZE = 300;
 
-// 构造一个各字段均已填充的PasteDataInfo
-PasteDataInfo BuildPasteDataInfo()
+// 序列化时parcel预留的剩余可写字节数, 使目标字段写入时空间不足而失败;
+// rawDataSize为int64(8字节), 其后textDataSize/htmlDataSize/isDelayedData/isDelayedRecord/mimeTypesSize各占4字节
+constexpr size_t FREE_FOR_RAW_DATA_SIZE = 0;
+constexpr size_t FREE_FOR_TEXT_DATA_SIZE = 8;
+constexpr size_t FREE_FOR_HTML_DATA_SIZE = 12;
+constexpr size_t FREE_FOR_IS_DELAYED_DATA = 16;
+constexpr size_t FREE_FOR_IS_DELAYED_RECORD = 20;
+constexpr size_t FREE_FOR_MIME_TYPES_SIZE = 24;
+constexpr size_t FREE_FOR_MIME_TYPE_STRING = 28;
+
+// 反序列化前需成功写入的定长字段个数, 使紧随其后的目标字段读取时数据不足而失败
+constexpr uint32_t WRITTEN_NONE = 0;              // 触发rawDataSize读取失败
+constexpr uint32_t WRITTEN_RAW = 1;               // 触发textDataSize读取失败
+constexpr uint32_t WRITTEN_TEXT = 2;              // 触发htmlDataSize读取失败
+constexpr uint32_t WRITTEN_HTML = 3;              // 触发isDelayedData读取失败
+constexpr uint32_t WRITTEN_IS_DELAYED_DATA = 4;   // 触发isDelayedRecord读取失败
+constexpr uint32_t WRITTEN_IS_DELAYED_RECORD = 5; // 触发mimeTypesSize读取失败
+constexpr uint32_t WRITTEN_MIME_TYPES_SIZE = 6;   // 全部定长字段写完, 再声明mimeType数量后触发字符串读取失败
+} // namespace
+
+class PasteDataInfoTest : public testing::Test {
+public:
+    static void SetUpTestCase(void) { }
+    static void TearDownTestCase(void) { }
+    void SetUp() { }
+    void TearDown() { }
+
+    // 构造一个各字段均已填充的PasteDataInfo
+    static PasteDataInfo BuildPasteDataInfo();
+    // 序列化: 预留freeSize字节使目标字段写入失败, 断言Marshalling返回false
+    static void ExpectMarshallingFail(size_t freeSize);
+    // 反序列化: 向parcel成功写入前fixedFieldCount个定长字段(rawDataSize为int64, 其余按4字节写入)
+    static void WriteFixedFields(Parcel &parcel, uint32_t fixedFieldCount);
+    // 反序列化: 断言Unmarshalling返回nullptr
+    static void ExpectUnmarshallingNull(Parcel &parcel);
+};
+
+PasteDataInfo PasteDataInfoTest::BuildPasteDataInfo()
 {
     PasteDataInfo info;
     info.rawDataSize = TEST_RAW_DATA_SIZE;
@@ -42,26 +76,30 @@ PasteDataInfo BuildPasteDataInfo()
     return info;
 }
 
-// Marshalling失败用例参数: 序列化前在parcel中预留freeSize字节, 使目标字段写入时空间不足而失败
-struct MarshallingFailParam {
-    std::string caseName; // 目标失败字段, 同时作为用例名
-    size_t freeSize;      // parcel剩余可写字节数
-};
+void PasteDataInfoTest::ExpectMarshallingFail(size_t freeSize)
+{
+    PasteDataInfo info = BuildPasteDataInfo();
+    Parcel parcel;
+    std::vector<uint8_t> filler(parcel.GetMaxCapacity() - freeSize, 0);
+    EXPECT_TRUE(parcel.WriteBuffer(filler.data(), filler.size()));
+    EXPECT_FALSE(info.Marshalling(parcel));
+}
 
-// Unmarshalling失败用例参数: prepare向parcel写入目标字段之前的所有字段, 使目标字段读取时数据不足而失败
-struct UnmarshallingFailParam {
-    std::string caseName;                  // 目标失败字段, 同时作为用例名
-    std::function<void(Parcel &)> prepare; // 预写parcel数据
-};
-} // namespace
+void PasteDataInfoTest::WriteFixedFields(Parcel &parcel, uint32_t fixedFieldCount)
+{
+    if (fixedFieldCount >= WRITTEN_RAW) {
+        EXPECT_TRUE(parcel.WriteInt64(0)); // rawDataSize
+    }
+    for (uint32_t i = WRITTEN_RAW; i < fixedFieldCount; ++i) {
+        EXPECT_TRUE(parcel.WriteInt32(0)); // textDataSize/htmlDataSize/isDelayedData/isDelayedRecord/mimeTypesSize
+    }
+}
 
-class PasteDataInfoTest : public testing::Test {
-public:
-    static void SetUpTestCase(void) { }
-    static void TearDownTestCase(void) { }
-    void SetUp() { }
-    void TearDown() { }
-};
+void PasteDataInfoTest::ExpectUnmarshallingNull(Parcel &parcel)
+{
+    PasteDataInfo *info = PasteDataInfo::Unmarshalling(parcel);
+    EXPECT_EQ(info, nullptr);
+}
 
 /**
  * @tc.name: DefaultConstructTest001
@@ -187,93 +225,158 @@ HWTEST_F(PasteDataInfoTest, MarshallingTest002, TestSize.Level0)
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "MarshallingTest002 end");
 }
 
-class PasteDataInfoMarshallingFailTest : public testing::TestWithParam<MarshallingFailParam> {};
-
 /**
- * @tc.name: MarshallingFail
- * @tc.desc: 参数化覆盖Marshalling中每个字段写入失败时返回false的分支
- *           (rawDataSize/textDataSize/htmlDataSize/isDelayedData/isDelayedRecord/mimeTypesSize/mimeType字符串)
+ * @tc.name: MarshallingRawDataSizeFailTest
+ * @tc.desc: 写入rawDataSize空间不足时Marshalling应返回false
  * @tc.type: FUNC
  */
-HWTEST_P(PasteDataInfoMarshallingFailTest, MarshallingFail, TestSize.Level0)
+HWTEST_F(PasteDataInfoTest, MarshallingRawDataSizeFailTest, TestSize.Level0)
 {
-    MarshallingFailParam param = GetParam();
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "MarshallingFail_%{public}s start", param.caseName.c_str());
-    PasteDataInfo info = BuildPasteDataInfo();
-    Parcel parcel;
-    // 填充parcel使其仅剩freeSize字节可写, 令目标字段写入时空间不足
-    std::vector<uint8_t> filler(parcel.GetMaxCapacity() - param.freeSize, 0);
-    EXPECT_TRUE(parcel.WriteBuffer(filler.data(), filler.size()));
-    EXPECT_FALSE(info.Marshalling(parcel));
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "MarshallingFail_%{public}s end", param.caseName.c_str());
+    ExpectMarshallingFail(FREE_FOR_RAW_DATA_SIZE);
 }
-
-// rawDataSize为int64(8字节), 其后textDataSize/htmlDataSize/isDelayedData/isDelayedRecord/mimeTypesSize各占4字节
-INSTANTIATE_TEST_SUITE_P(PasteDataInfo, PasteDataInfoMarshallingFailTest,
-    testing::Values(MarshallingFailParam { "RawDataSize", 0 }, MarshallingFailParam { "TextDataSize", 8 },
-        MarshallingFailParam { "HtmlDataSize", 12 }, MarshallingFailParam { "IsDelayedData", 16 },
-        MarshallingFailParam { "IsDelayedRecord", 20 }, MarshallingFailParam { "MimeTypesSize", 24 },
-        MarshallingFailParam { "MimeTypeString", 28 }),
-    [](const testing::TestParamInfo<MarshallingFailParam> &info) { return info.param.caseName; });
-
-class PasteDataInfoUnmarshallingFailTest : public testing::TestWithParam<UnmarshallingFailParam> {};
 
 /**
- * @tc.name: UnmarshallingFail
- * @tc.desc: 参数化覆盖Unmarshalling中每个字段读取失败时返回nullptr的分支
- *           (rawDataSize/textDataSize/htmlDataSize/isDelayedData/isDelayedRecord/mimeTypesSize/mimeType字符串)
+ * @tc.name: MarshallingTextDataSizeFailTest
+ * @tc.desc: 写入textDataSize空间不足时Marshalling应返回false
  * @tc.type: FUNC
  */
-HWTEST_P(PasteDataInfoUnmarshallingFailTest, UnmarshallingFail, TestSize.Level0)
+HWTEST_F(PasteDataInfoTest, MarshallingTextDataSizeFailTest, TestSize.Level0)
 {
-    UnmarshallingFailParam param = GetParam();
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "UnmarshallingFail_%{public}s start", param.caseName.c_str());
-    Parcel parcel;
-    param.prepare(parcel);
-    PasteDataInfo *info = PasteDataInfo::Unmarshalling(parcel);
-    EXPECT_EQ(info, nullptr);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "UnmarshallingFail_%{public}s end", param.caseName.c_str());
+    ExpectMarshallingFail(FREE_FOR_TEXT_DATA_SIZE);
 }
 
-// 每条prepare只写入目标字段之前的字段, 使目标字段读取时数据不足; MimeTypeString额外声明1个mimeType但不写入其内容
-INSTANTIATE_TEST_SUITE_P(PasteDataInfo, PasteDataInfoUnmarshallingFailTest,
-    testing::Values(
-        UnmarshallingFailParam { "RawDataSize", [](Parcel &) { } },
-        UnmarshallingFailParam { "TextDataSize", [](Parcel &parcel) { EXPECT_TRUE(parcel.WriteInt64(0)); } },
-        UnmarshallingFailParam { "HtmlDataSize",
-            [](Parcel &parcel) {
-                EXPECT_TRUE(parcel.WriteInt64(0));
-                EXPECT_TRUE(parcel.WriteInt32(0));
-            } },
-        UnmarshallingFailParam { "IsDelayedData",
-            [](Parcel &parcel) {
-                EXPECT_TRUE(parcel.WriteInt64(0));
-                EXPECT_TRUE(parcel.WriteInt32(0));
-                EXPECT_TRUE(parcel.WriteInt32(0));
-            } },
-        UnmarshallingFailParam { "IsDelayedRecord",
-            [](Parcel &parcel) {
-                EXPECT_TRUE(parcel.WriteInt64(0));
-                EXPECT_TRUE(parcel.WriteInt32(0));
-                EXPECT_TRUE(parcel.WriteInt32(0));
-                EXPECT_TRUE(parcel.WriteBool(false));
-            } },
-        UnmarshallingFailParam { "MimeTypesSize",
-            [](Parcel &parcel) {
-                EXPECT_TRUE(parcel.WriteInt64(0));
-                EXPECT_TRUE(parcel.WriteInt32(0));
-                EXPECT_TRUE(parcel.WriteInt32(0));
-                EXPECT_TRUE(parcel.WriteBool(false));
-                EXPECT_TRUE(parcel.WriteBool(false));
-            } },
-        UnmarshallingFailParam { "MimeTypeString",
-            [](Parcel &parcel) {
-                EXPECT_TRUE(parcel.WriteInt64(0));
-                EXPECT_TRUE(parcel.WriteInt32(0));
-                EXPECT_TRUE(parcel.WriteInt32(0));
-                EXPECT_TRUE(parcel.WriteBool(false));
-                EXPECT_TRUE(parcel.WriteBool(false));
-                EXPECT_TRUE(parcel.WriteUint32(1));
-            } }),
-    [](const testing::TestParamInfo<UnmarshallingFailParam> &info) { return info.param.caseName; });
+/**
+ * @tc.name: MarshallingHtmlDataSizeFailTest
+ * @tc.desc: 写入htmlDataSize空间不足时Marshalling应返回false
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteDataInfoTest, MarshallingHtmlDataSizeFailTest, TestSize.Level0)
+{
+    ExpectMarshallingFail(FREE_FOR_HTML_DATA_SIZE);
+}
+
+/**
+ * @tc.name: MarshallingIsDelayedDataFailTest
+ * @tc.desc: 写入isDelayedData空间不足时Marshalling应返回false
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteDataInfoTest, MarshallingIsDelayedDataFailTest, TestSize.Level0)
+{
+    ExpectMarshallingFail(FREE_FOR_IS_DELAYED_DATA);
+}
+
+/**
+ * @tc.name: MarshallingIsDelayedRecordFailTest
+ * @tc.desc: 写入isDelayedRecord空间不足时Marshalling应返回false
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteDataInfoTest, MarshallingIsDelayedRecordFailTest, TestSize.Level0)
+{
+    ExpectMarshallingFail(FREE_FOR_IS_DELAYED_RECORD);
+}
+
+/**
+ * @tc.name: MarshallingMimeTypesSizeFailTest
+ * @tc.desc: 写入mimeTypesSize空间不足时Marshalling应返回false
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteDataInfoTest, MarshallingMimeTypesSizeFailTest, TestSize.Level0)
+{
+    ExpectMarshallingFail(FREE_FOR_MIME_TYPES_SIZE);
+}
+
+/**
+ * @tc.name: MarshallingMimeTypeStringFailTest
+ * @tc.desc: 循环中写入mimeType字符串空间不足时Marshalling应返回false
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteDataInfoTest, MarshallingMimeTypeStringFailTest, TestSize.Level0)
+{
+    ExpectMarshallingFail(FREE_FOR_MIME_TYPE_STRING);
+}
+
+/**
+ * @tc.name: UnmarshallingRawDataSizeFailTest
+ * @tc.desc: 读取rawDataSize失败时Unmarshalling应返回nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteDataInfoTest, UnmarshallingRawDataSizeFailTest, TestSize.Level0)
+{
+    Parcel parcel;
+    WriteFixedFields(parcel, WRITTEN_NONE);
+    ExpectUnmarshallingNull(parcel);
+}
+
+/**
+ * @tc.name: UnmarshallingTextDataSizeFailTest
+ * @tc.desc: 读取textDataSize失败时Unmarshalling应返回nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteDataInfoTest, UnmarshallingTextDataSizeFailTest, TestSize.Level0)
+{
+    Parcel parcel;
+    WriteFixedFields(parcel, WRITTEN_RAW);
+    ExpectUnmarshallingNull(parcel);
+}
+
+/**
+ * @tc.name: UnmarshallingHtmlDataSizeFailTest
+ * @tc.desc: 读取htmlDataSize失败时Unmarshalling应返回nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteDataInfoTest, UnmarshallingHtmlDataSizeFailTest, TestSize.Level0)
+{
+    Parcel parcel;
+    WriteFixedFields(parcel, WRITTEN_TEXT);
+    ExpectUnmarshallingNull(parcel);
+}
+
+/**
+ * @tc.name: UnmarshallingIsDelayedDataFailTest
+ * @tc.desc: 读取isDelayedData失败时Unmarshalling应返回nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteDataInfoTest, UnmarshallingIsDelayedDataFailTest, TestSize.Level0)
+{
+    Parcel parcel;
+    WriteFixedFields(parcel, WRITTEN_HTML);
+    ExpectUnmarshallingNull(parcel);
+}
+
+/**
+ * @tc.name: UnmarshallingIsDelayedRecordFailTest
+ * @tc.desc: 读取isDelayedRecord失败时Unmarshalling应返回nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteDataInfoTest, UnmarshallingIsDelayedRecordFailTest, TestSize.Level0)
+{
+    Parcel parcel;
+    WriteFixedFields(parcel, WRITTEN_IS_DELAYED_DATA);
+    ExpectUnmarshallingNull(parcel);
+}
+
+/**
+ * @tc.name: UnmarshallingMimeTypesSizeFailTest
+ * @tc.desc: 读取mimeTypesSize失败时Unmarshalling应返回nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteDataInfoTest, UnmarshallingMimeTypesSizeFailTest, TestSize.Level0)
+{
+    Parcel parcel;
+    WriteFixedFields(parcel, WRITTEN_IS_DELAYED_RECORD);
+    ExpectUnmarshallingNull(parcel);
+}
+
+/**
+ * @tc.name: UnmarshallingMimeTypeStringFailTest
+ * @tc.desc: 循环中读取mimeType字符串失败时Unmarshalling应返回nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteDataInfoTest, UnmarshallingMimeTypeStringFailTest, TestSize.Level0)
+{
+    Parcel parcel;
+    WriteFixedFields(parcel, WRITTEN_MIME_TYPES_SIZE);
+    EXPECT_TRUE(parcel.WriteUint32(1)); // 声明1个mimeType但不写入其内容, 使ReadString失败
+    ExpectUnmarshallingNull(parcel);
+}
 } // namespace OHOS::MiscServices
