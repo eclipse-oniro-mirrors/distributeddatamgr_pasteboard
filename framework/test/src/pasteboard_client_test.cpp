@@ -1393,4 +1393,32 @@ HWTEST_F(PasteboardClientTest, GetPasteDataInfoTest007, TestSize.Level0)
     ASSERT_TRUE(pasteDataInfo.isDelayedData);
     ASSERT_TRUE(pasteDataInfo.isDelayedRecord);
 }
+
+/**
+ * @tc.name: GetPasteDataInfoTest008
+ * @tc.desc: GetPasteDataInfo textDataSize equals UTF-8 byte length of mixed characters
+ *           (half-width English + Chinese + full-width + emoji combined)
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardClientTest, GetPasteDataInfoTest008, TestSize.Level0)
+{
+    const std::string englishHalfWidth = "Ab";  // 2 bytes
+    const std::string chinese = "中文";          // 6 bytes
+    const std::string fullWidth = "ＡＢ";        // 6 bytes
+    const std::string emoji = "😀🎉";            // 8 bytes
+    const std::string plainText = englishHalfWidth + chinese + fullWidth + emoji;
+    // combined UTF-8 byte length: 2 + 6 + 6 + 8 = 22
+    ASSERT_EQ(plainText.size(), 22U);
+
+    PasteboardClient::GetInstance()->Clear();
+    auto newData = PasteboardClient::GetInstance()->CreatePlainTextData(plainText);
+    int32_t ret = PasteboardClient::GetInstance()->SetPasteData(*newData);
+    ASSERT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
+
+    PasteDataInfo pasteDataInfo;
+    ret = PasteboardClient::GetInstance()->GetPasteDataInfo(pasteDataInfo);
+    ASSERT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
+    ASSERT_EQ(pasteDataInfo.textDataSize, static_cast<int32_t>(plainText.size()));
+    ASSERT_EQ(pasteDataInfo.htmlDataSize, 0);
+}
 } // namespace OHOS::MiscServices
