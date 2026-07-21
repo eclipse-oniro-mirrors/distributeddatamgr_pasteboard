@@ -87,21 +87,35 @@ public:
     
     std::shared_ptr<V> GetOrLoad(const K& key)
     {
-        auto cached = Get(key);
-        if (cached) {
-            return cached;
+        std::lock_guard<std::mutex> lock(mutex_);
+        
+        auto it = cache_.find(key);
+        if (it != cache_.end() && !IsExpired(it->second)) {
+            it->second.accessCount++;
+            stats_.hits++;
+            PASTEBOARD_HILOGD(PASTEBOARD_MODULE_CLIENT,
+                "Cache hit in GetOrLoad: key=%{public}s", ToString(key).c_str());
+            return it->second.value;
         }
         
-        // Load from factory
-        if (factory_) {
-            auto value = factory_(key);
-            if (value) {
-                Put(key, value);
-            }
-            return value;
+        if (it != cache_.end()) {
+            cache_.erase(it);
         }
         
-        return nullptr;
+        stats_.misses++;
+        PASTEBOARD_HILOGD(PASTEBOARD_MODULE_CLIENT,
+            "Cache miss in GetOrLoad: key=%{public}s", ToString(key).c_str());
+        
+        if (!factory_) {
+            return nullptr;
+        }
+        
+        auto value = factory_(key);
+        if (value) {
+            PutInternal(key, value);
+        }
+        
+        return value;
     }
     
     void Put(const K& key, std::shared_ptr<V> value)
@@ -192,9 +206,31 @@ private:
     
     bool IsMemoryPressure() const
     {
-        // In real implementation, check system memory usage
-        // For now, return false
         return false;
+    }
+    
+    void PutInternal(const K& key, std::shared_ptr<V> value)
+    {
+        if (!value) {
+            return;
+        }
+        
+        if (config_.enableEviction && 
+            (cache_.size() >= config_.maxSize || IsMemoryPressure())) {
+            Evict();
+        }
+        
+        CacheEntry entry;
+        entry.value = value;
+        entry.timestamp = std::time(nullptr);
+        entry.accessCount = 0;
+        
+        cache_[key] = entry;
+        stats_.currentSize = cache_.size();
+        
+        PASTEBOARD_HILOGD(PASTEBOARD_MODULE_CLIENT,
+            "Cache put internal: key=%{public}s, size=%{public}zu",
+            ToString(key).c_str(), cache_.size());
     }
     
     void Evict()
@@ -203,8 +239,10 @@ private:
             return;
         }
         
-        // Evict multiple entries based on memory pressure
-        size_t evictCount = std::max(size_t(1), cache_.size() / 10);
+        size_t evictCount = std::min(
+            std::max(size_t(1), cache_.size() / 10),
+            size_t(5)
+        );
         
         for (size_t i = 0; i < evictCount && !cache_.empty(); i++) {
             EvictOne();

@@ -196,15 +196,23 @@ private:
     void MonitorLoop()
     {
         while (running_) {
-            MemoryPressureLevel level = CheckMemoryPressure();
-            
-            if (level != MemoryPressureLevel::NONE) {
-                Cleanup(level);
-            }
-            
-            // 定期报告
-            if (stats_.totalChecks % 12 == 0) { // 每分钟报告一次
-                ReportStats();
+            try {
+                MemoryPressureLevel level = CheckMemoryPressure();
+                
+                if (level != MemoryPressureLevel::NONE) {
+                    Cleanup(level);
+                }
+                
+                if (stats_.totalChecks % 12 == 0) {
+                    ReportStats();
+                }
+                
+            } catch (const std::exception& e) {
+                PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CLIENT,
+                    "Exception in monitor loop: %{public}s", e.what());
+            } catch (...) {
+                PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CLIENT,
+                    "Unknown exception in monitor loop");
             }
             
             std::this_thread::sleep_for(std::chrono::seconds(config_.checkInterval));
@@ -213,33 +221,37 @@ private:
     
     size_t GetSystemMemoryUsage() const
     {
-        // 读取 /proc/meminfo
         FILE* fp = fopen("/proc/meminfo", "r");
         if (!fp) {
+            PASTEBOARD_HILOGW(PASTEBOARD_MODULE_CLIENT, "Failed to open /proc/meminfo");
             return 0;
         }
         
         char line[256];
         size_t total = 0;
         size_t available = 0;
+        size_t value = 0;
         
         while (fgets(line, sizeof(line), fp)) {
-            if (sscanf(line, "MemTotal: %zu kB", &total) == 1) {
-                continue;
-            }
-            if (sscanf(line, "MemAvailable: %zu kB", &available) == 1) {
-                break;
+            if (sscanf(line, "MemTotal: %zu kB", &value) == 1) {
+                total = value;
+            } else if (sscanf(line, "MemAvailable: %zu kB", &value) == 1) {
+                available = value;
             }
         }
         
         fclose(fp);
         
         if (total == 0) {
+            PASTEBOARD_HILOGW(PASTEBOARD_MODULE_CLIENT, 
+                "Failed to parse MemTotal from /proc/meminfo");
             return 0;
         }
         
         size_t used = total - available;
-        return (used * 100) / total; // 百分比
+        size_t percentage = (used * 100) / total;
+        
+        return percentage;
     }
     
     size_t CalculateTargetReduction(MemoryPressureLevel level) const

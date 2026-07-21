@@ -226,9 +226,33 @@ private:
     
     size_t GetAvailableMemory() const
     {
-        // 在实际实现中，读取 /proc/meminfo
-        // 这里返回一个示例值
-        return 100 * 1024; // 100 MB
+        FILE* fp = fopen("/proc/meminfo", "r");
+        if (!fp) {
+            PASTEBOARD_HILOGW(PASTEBOARD_MODULE_CLIENT, 
+                "Failed to open /proc/meminfo, using fallback value");
+            return 100 * 1024;
+        }
+        
+        char line[256];
+        size_t memAvailable = 0;
+        size_t value = 0;
+        
+        while (fgets(line, sizeof(line), fp)) {
+            if (sscanf(line, "MemAvailable: %zu kB", &value) == 1) {
+                memAvailable = value;
+                break;
+            }
+        }
+        
+        fclose(fp);
+        
+        if (memAvailable == 0) {
+            PASTEBOARD_HILOGW(PASTEBOARD_MODULE_CLIENT,
+                "Failed to parse MemAvailable, using fallback value");
+            return 100 * 1024;
+        }
+        
+        return memAvailable;
     }
     
     std::map<Module, void*> loadedModules_;
