@@ -109,7 +109,7 @@ ohos_shared_library("pasteboard_data") {
     "ipc:ipc_single",
     "libxml2:libxml2",
     "samgr:samgr_proxy",
-    "udmf:udmf_core",
+    "udmf:udmf_client",
   ]
   subsystem_name = "distributeddatamgr"
   innerapi_tags = [ "platformsdk" ]

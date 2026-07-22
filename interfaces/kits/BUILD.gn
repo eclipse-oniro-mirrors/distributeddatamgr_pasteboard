@@ -77,7 +77,7 @@ ohos_shared_library("pasteboard_napi") {
     "libuv:uv",
     "napi:ace_napi",
     "node:node_header_notice",
-    "udmf:udmf_core",
+    "udmf:udmf_client",
     "udmf:udmf_data_napi",
   ]
 
