@@ -94,6 +94,7 @@ ohos_unittest("PasteServInterfaceTest") {
     "${pasteboard_service_path}/core/src/pasteboard_delay_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_dialog.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_disposable_manager.cpp",
+    "${pasteboard_service_path}/core/src/pasteboard_hml_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_pattern.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_service.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_user_context.cpp",
@@ -230,6 +231,7 @@ ohos_unittest("PasteServInterfaceMockTest") {
     "${pasteboard_service_path}/core/src/pasteboard_delay_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_dialog.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_disposable_manager.cpp",
+    "${pasteboard_service_path}/core/src/pasteboard_hml_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_pattern.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_service.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_user_context.cpp",
@@ -704,6 +706,43 @@ ohos_unittest("PasteboardDelayManagerTest") {
   }
 }
 
+ohos_unittest("PasteboardHmlManagerTest") {
+  module_out_path = module_output_path
+
+  cflags = [ "-fno-access-control" ]
+
+  include_dirs = [
+    "${pasteboard_framework_path}/include",
+    "${pasteboard_root_path}/adapter/security_level",
+    "${pasteboard_service_path}/core/include",
+    "${pasteboard_utils_path}/native/include",
+  ]
+
+  sources = [
+    "${pasteboard_service_path}/core/src/pasteboard_hml_manager.cpp",
+    "unittest/src/pasteboard_hml_manager_test.cpp",
+  ]
+  defines = []
+  deps = [
+    "${pasteboard_framework_path}:pasteboard_framework",
+    "${pasteboard_innerkits_path}:pasteboard_data",
+  ]
+
+  external_deps = [
+    "ability_base:base",
+    "ability_base:want",
+    "c_utils:utils",
+    "cJSON:cjson",
+    "ffrt:libffrt",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+    "hisysevent:libhisysevent",
+    "ipc:ipc_single",
+    "safwk:system_ability_fwk",
+    "samgr:samgr_proxy",
+  ]
+}
+
 ohos_unittest("PasteServGetLocalDataTest") {
   use_exceptions = true
   module_out_path = module_output_path
@@ -714,6 +753,7 @@ ohos_unittest("PasteServGetLocalDataTest") {
     "${pasteboard_service_path}/core/src/pasteboard_delay_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_dialog.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_disposable_manager.cpp",
+    "${pasteboard_service_path}/core/src/pasteboard_hml_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_pattern.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_service.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_user_context.cpp",
@@ -848,6 +888,7 @@ ohos_unittest("PasteServSubscribeTest") {
     "${pasteboard_service_path}/core/src/pasteboard_delay_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_dialog.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_disposable_manager.cpp",
+    "${pasteboard_service_path}/core/src/pasteboard_hml_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_pattern.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_service.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_user_context.cpp",
@@ -982,6 +1023,7 @@ ohos_unittest("PasteServNotifyTest") {
     "${pasteboard_service_path}/core/src/pasteboard_delay_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_dialog.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_disposable_manager.cpp",
+    "${pasteboard_service_path}/core/src/pasteboard_hml_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_pattern.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_service.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_user_context.cpp",
@@ -1116,6 +1158,7 @@ ohos_unittest("PasteServSetDataTest") {
     "${pasteboard_service_path}/core/src/pasteboard_delay_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_dialog.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_disposable_manager.cpp",
+    "${pasteboard_service_path}/core/src/pasteboard_hml_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_pattern.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_service.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_user_context.cpp",
@@ -1250,6 +1293,7 @@ ohos_unittest("PasteServGetDataTest") {
     "${pasteboard_service_path}/core/src/pasteboard_delay_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_dialog.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_disposable_manager.cpp",
+    "${pasteboard_service_path}/core/src/pasteboard_hml_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_pattern.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_service.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_user_context.cpp",
@@ -1384,6 +1428,7 @@ ohos_unittest("PasteServEventTest") {
     "${pasteboard_service_path}/core/src/pasteboard_delay_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_dialog.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_disposable_manager.cpp",
+    "${pasteboard_service_path}/core/src/pasteboard_hml_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_pattern.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_service.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_user_context.cpp",
@@ -1520,6 +1565,7 @@ ohos_unittest("PasteServGetTest") {
     "${pasteboard_service_path}/core/src/pasteboard_delay_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_dialog.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_disposable_manager.cpp",
+    "${pasteboard_service_path}/core/src/pasteboard_hml_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_pattern.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_service.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_user_context.cpp",
@@ -1655,6 +1701,7 @@ ohos_unittest("PasteServCheckTest") {
     "${pasteboard_service_path}/core/src/pasteboard_delay_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_dialog.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_disposable_manager.cpp",
+    "${pasteboard_service_path}/core/src/pasteboard_hml_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_pattern.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_service.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_user_context.cpp",
@@ -1790,6 +1837,7 @@ ohos_unittest("PasteServCleanTest") {
     "${pasteboard_service_path}/core/src/pasteboard_delay_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_dialog.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_disposable_manager.cpp",
+    "${pasteboard_service_path}/core/src/pasteboard_hml_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_pattern.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_service.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_user_context.cpp",
@@ -1925,6 +1973,7 @@ ohos_unittest("PasteServRemoteTest") {
     "${pasteboard_service_path}/core/src/pasteboard_delay_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_dialog.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_disposable_manager.cpp",
+    "${pasteboard_service_path}/core/src/pasteboard_hml_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_pattern.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_service.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_user_context.cpp",
@@ -2143,6 +2192,7 @@ ohos_unittest("PasteboardSubProfileSubscriberTest") {
     "${pasteboard_service_path}/core/src/pasteboard_delay_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_dialog.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_disposable_manager.cpp",
+    "${pasteboard_service_path}/core/src/pasteboard_hml_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_pattern.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_service.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_subprofile_subscriber.cpp",
@@ -2287,6 +2337,7 @@ group("unittest") {
     ":PasteboardDisposableManagerTest",
     ":PasteboardEntryGetterProxyTest",
     ":PasteboardEntryGetterStubTest",
+    ":PasteboardHmlManagerTest",
     ":PasteboardLinkedListTest",
     ":PasteboardLoadTest",
     ":PasteboardPatternTest",
