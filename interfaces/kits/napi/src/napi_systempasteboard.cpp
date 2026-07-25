@@ -1233,7 +1233,10 @@ bool SystemPasteboardNapi::ParseJsGetDataWithProgress(napi_env env, napi_value i
             return false;
         }
         std::string uri;
-        PASTEBOARD_CALL_BASE(GetValue(env, destUri, uri), false);
+        if (!GetValue(env, destUri, uri)) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "GetValue destUri failed!");
+            return false;
+        }
         getDataParam->destUri = uri;
     }
     napi_value fileConflictOption;
