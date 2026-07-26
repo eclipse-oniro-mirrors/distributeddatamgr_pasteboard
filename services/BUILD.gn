@@ -140,6 +140,7 @@ ohos_shared_library("pasteboard_service") {
     "ability_base:base",
     "ability_base:want",
     "ability_base:zuri",
+    "ability_runtime:dataobs_manager",
     "ability_runtime:uri_permission_mgr",
     "ability_runtime:wantagent_innerkits",
     "access_token:libaccesstoken_sdk",
