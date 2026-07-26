@@ -120,6 +120,7 @@
           },
           {
             "name": "//foundation/distributeddatamgr/pasteboard/framework/framework:pasteboard_framework",
+            "visibility": [ "distributed_pasteboard" ],
             "header": {
               "header_files": [
                 "clip/clip_plugin.h",
