@@ -72,8 +72,7 @@
           "window_manager",
           "ffrt",
           "runtime_core",
-          "api_metrics",
-          "taihe_ffi_gen"
+          "api_metrics"
         ]
         },
       "build": {
