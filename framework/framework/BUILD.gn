@@ -14,9 +14,6 @@ import("//build/ohos.gni")
 import("//build/ohos_var.gni")
 import("//foundation/distributeddatamgr/pasteboard/pasteboard.gni")
 
-group("build_module") {
-  deps = [ ":pasteboard_framework" ]
-}
 config("module_public_config") {
   visibility = [ ":*" ]
   include_dirs = [

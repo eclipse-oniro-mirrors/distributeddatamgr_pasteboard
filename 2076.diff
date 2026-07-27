@@ -1,0 +1,491 @@
+diff --git a/framework/framework/BUILD.gn b/framework/framework/BUILD.gn
+index 1f33bd484482873c8299d57415811d5f05b73ba4..01357b51f51b2c62151e3aa1a8d81d6dbd3382eb 100644
+--- a/framework/framework/BUILD.gn
++++ b/framework/framework/BUILD.gn
+@@ -14,9 +14,6 @@ import("//build/ohos.gni")
+ import("//build/ohos_var.gni")
+ import("//foundation/distributeddatamgr/pasteboard/pasteboard.gni")
+ 
+-group("build_module") {
+-  deps = [ ":pasteboard_framework" ]
+-}
+ config("module_public_config") {
+   visibility = [ ":*" ]
+   include_dirs = [
+diff --git a/services/BUILD.gn b/services/BUILD.gn
+index 1b381c0a00dfcc075e67b29d6ce4187c2b09745b..55af5d1a441f10fcc757a7397946dc7f4a4ef09c 100644
+--- a/services/BUILD.gn
++++ b/services/BUILD.gn
+@@ -86,6 +86,7 @@ ohos_shared_library("pasteboard_service") {
+     "core/src/pasteboard_dialog.cpp",
+     "core/src/pasteboard_delay_manager.cpp",
+     "core/src/pasteboard_disposable_manager.cpp",
++    "core/src/pasteboard_hml_manager.cpp",
+     "core/src/pasteboard_pattern.cpp",
+     "core/src/pasteboard_service.cpp",
+     "core/src/pasteboard_user_context.cpp",
+diff --git a/services/core/include/pasteboard_hml_manager.h b/services/core/include/pasteboard_hml_manager.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..132f2d44799be8e5245626bd145a4924dac32a77
+--- /dev/null
++++ b/services/core/include/pasteboard_hml_manager.h
+@@ -0,0 +1,31 @@
++/*
++ * Copyright (C) 2026 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#ifndef PASTEBOARD_HML_MANAGER_H
++#define PASTEBOARD_HML_MANAGER_H
++
++#include <iremote_object.h>
++
++namespace OHOS::MiscServices {
++class PasteboardHmlManager {
++public:
++    static bool IsHmlSupported();
++
++private:
++    static int32_t GetSystemAbility(sptr<IRemoteObject> &remoteObject);
++    static int32_t IsWlansupported(bool &isSupported);
++};
++} // namespace OHOS::MiscServices
++#endif // PASTEBOARD_HML_MANAGER_H
+\ No newline at end of file
+diff --git a/services/core/src/pasteboard_hml_manager.cpp b/services/core/src/pasteboard_hml_manager.cpp
+new file mode 100644
+index 0000000000000000000000000000000000000000..8f509428c93ec7bb06e91f83eebfb361c702cc14
+--- /dev/null
++++ b/services/core/src/pasteboard_hml_manager.cpp
+@@ -0,0 +1,111 @@
++/*
++ * Copyright (C) 2026 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#include "if_system_ability_manager.h"
++#include "iservice_registry.h"
++#include "pasteboard_hilog.h"
++#include "pasteboard_hml_manager.h"
++#include "system_ability_definition.h"
++
++namespace OHOS::MiscServices {
++
++constexpr int32_t WIFI_SUCCESS = 0;
++constexpr int32_t WIFI_FAILED = -1;
++constexpr int32_t RETRY_INTERVAL_SEC = 10;
++constexpr int32_t MAX_RETRY_COUNT = 3;
++constexpr int32_t LOADSA_TIMEOUT_MS = 4000;
++constexpr int32_t WIFI_OPT_SUCCESS = 0;
++constexpr uint32_t WIFI_MGR_GET_DEVICE_SERVICE = 0;
++constexpr uint32_t WIFI_SVR_CMD_IS_WLAN_SUPPORTED = 4192;
++
++int32_t PasteboardHmlManager::GetSystemAbility(sptr<IRemoteObject> &remoteObject)
++{
++    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
++    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(samgr != nullptr, WIFI_FAILED,
++        PASTEBOARD_MODULE_SERVICE, "Get samgr failed.");
++
++    remoteObject = samgr->CheckSystemAbility(WIFI_DEVICE_SYS_ABILITY_ID);
++    if (remoteObject != nullptr) {
++        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "Get wifi SA succeed.");
++        return WIFI_SUCCESS;
++    }
++
++    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "remoteObject is null.");
++    remoteObject = samgr->LoadSystemAbility(WIFI_DEVICE_SYS_ABILITY_ID, LOADSA_TIMEOUT_MS);
++    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(remoteObject != nullptr, WIFI_FAILED,
++        PASTEBOARD_MODULE_SERVICE, "Load wifi SA failed.");
++    return WIFI_SUCCESS;
++}
++
++int32_t PasteboardHmlManager::IsWlansupported(bool &isSupported)
++{
++    sptr<IRemoteObject> mgrProxy = nullptr;
++    int32_t ret = PasteboardHmlManager::GetSystemAbility(mgrProxy);
++    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(ret == 0, WIFI_FAILED,
++        PASTEBOARD_MODULE_SERVICE, "Load wifi SA failed.");
++
++    MessageParcel data;
++    MessageParcel reply;
++    data.WriteInterfaceToken(u"ohos.wifi.IWifiDeviceMgr");
++    data.WriteInt32(0);
++
++    MessageOption option;
++    int error = mgrProxy->SendRequest(WIFI_MGR_GET_DEVICE_SERVICE, data, reply, option);
++    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(error == ERR_NONE, WIFI_FAILED,
++        PASTEBOARD_MODULE_SERVICE, "SendRequest to get device service failed, error:%{public}d", error);
++
++    sptr<IRemoteObject> deviceProxy = reply.ReadRemoteObject();
++    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(deviceProxy != nullptr, WIFI_FAILED,
++        PASTEBOARD_MODULE_SERVICE, "get device proxy from reply failed.");
++
++    MessageParcel data2;
++    MessageParcel reply2;
++    data2.WriteInterfaceToken(u"ohos.wifi.IWifiDeviceService");
++    data2.WriteInt32(0);
++
++    error = deviceProxy->SendRequest(WIFI_SVR_CMD_IS_WLAN_SUPPORTED, data2, reply2, option);
++    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(error == ERR_NONE, WIFI_FAILED,
++        PASTEBOARD_MODULE_SERVICE, "SendRequest to check wlan supported failed, error:%{public}d", error);
++
++    int32_t retCode = reply2.ReadInt32();
++    if (retCode == WIFI_OPT_SUCCESS) {
++        isSupported = reply2.ReadBool();
++    } else {
++        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "IsWlansupported failed, ret:%{public}d", retCode);
++    }
++    return retCode;
++}
++
++bool PasteboardHmlManager::IsHmlSupported()
++{
++    bool isWlanSupported = false;
++    int32_t ret = 0;
++
++    for (int32_t i = 0; i < MAX_RETRY_COUNT; ++i) {
++        ret = IsWlansupported(isWlanSupported);
++        if (ret == WIFI_SUCCESS) {
++            break;
++        }
++        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "IsWlanSupported failed, retry %{public}d", i);
++        if (i < MAX_RETRY_COUNT - 1) {
++            sleep(RETRY_INTERVAL_SEC);
++        }
++    }
++    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(ret == WIFI_SUCCESS, false,
++        PASTEBOARD_MODULE_SERVICE, "IsWlanSupported failed");
++
++    return isWlanSupported;
++}
++} // namespace OHOS::MiscServices
+\ No newline at end of file
+diff --git a/services/core/src/pasteboard_service.cpp b/services/core/src/pasteboard_service.cpp
+index f8d553611035928e0a625b93ae945bbba8de48d0..8c8c4cbc7d62af994f934415353b6d674e20aa39 100644
+--- a/services/core/src/pasteboard_service.cpp
++++ b/services/core/src/pasteboard_service.cpp
+@@ -218,15 +218,13 @@ void PasteboardService::OnStart()
+         HandleInitFailure();
+         return;
+     }
+-    auto callback = [this]() {
++    std::thread thread([this]() {
+         auto userId = ResolveMainDisplayUserId();
+         if (userId != ERROR_USERID) {
+             switch_.Init(userId);
+         }
+-    };
+-    if (serviceHandler_ != nullptr) {
+-        serviceHandler_->PostTask(callback);
+-    }
++    });
++    PasteBoardCommonUtils::SetThreadTaskName(thread, "SwitchInit");
+     InitializeDumpCommands();
+     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "Start PasteboardService success.");
+     EventCenter::GetInstance().Subscribe(OHOS::MiscServices::Event::EVT_REMOTE_CHANGE, RemotePasteboardChange());
+@@ -5519,4 +5517,4 @@ void InputEventCallback::Clear()
+     blockMap_.clear();
+ }
+ } // namespace MiscServices
+-} // namespace OHOS
++} // namespace OHOS
+\ No newline at end of file
+diff --git a/services/switch/pasteboard_switch.cpp b/services/switch/pasteboard_switch.cpp
+index 47ea1f4b630f3f8e69ded3074ddad8a903fd2885..0d3382651a4664dfba646ebeec26b88a9275a6c9 100644
+--- a/services/switch/pasteboard_switch.cpp
++++ b/services/switch/pasteboard_switch.cpp
+@@ -21,6 +21,7 @@
+ #include "common/pasteboard_common_utils.h"
+ #include "pasteboard_event_ue.h"
+ #include "pasteboard_hilog.h"
++#include "pasteboard_hml_manager.h"
+ 
+ namespace OHOS::MiscServices {
+ using namespace UeReporter;
+@@ -51,6 +52,9 @@ void PastedSwitch::Init(int32_t userId)
+         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "userId invalid.");
+         return;
+     }
++    PASTEBOARD_CHECK_AND_RETURN_LOGE(PasteboardHmlManager::IsHmlSupported(),
++        PASTEBOARD_MODULE_SERVICE, "HML not supported");
++
+     this->userId_ = userId;
+     DataShareDelegate::GetInstance().SetUserId(userId_);
+     DataShareDelegate::GetInstance().RegisterObserver(DISTRIBUTED_PASTEBOARD_SWITCH, switchObserver_);
+diff --git a/services/test/BUILD.gn b/services/test/BUILD.gn
+index 51810cb1b837c502417c8f96969b2495b774ca3e..af8eace43004c95b0c3b34789c01df1ddbf9c135 100644
+--- a/services/test/BUILD.gn
++++ b/services/test/BUILD.gn
+@@ -94,6 +94,7 @@ ohos_unittest("PasteServInterfaceTest") {
+     "${pasteboard_service_path}/core/src/pasteboard_delay_manager.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_dialog.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_disposable_manager.cpp",
++    "${pasteboard_service_path}/core/src/pasteboard_hml_manager.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_pattern.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_service.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_user_context.cpp",
+@@ -230,6 +231,7 @@ ohos_unittest("PasteServInterfaceMockTest") {
+     "${pasteboard_service_path}/core/src/pasteboard_delay_manager.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_dialog.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_disposable_manager.cpp",
++    "${pasteboard_service_path}/core/src/pasteboard_hml_manager.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_pattern.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_service.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_user_context.cpp",
+@@ -704,6 +706,43 @@ ohos_unittest("PasteboardDelayManagerTest") {
+   }
+ }
+ 
++ohos_unittest("PasteboardHmlManagerTest") {
++  module_out_path = module_output_path
++
++  cflags = [ "-fno-access-control" ]
++
++  include_dirs = [
++    "${pasteboard_framework_path}/include",
++    "${pasteboard_root_path}/adapter/security_level",
++    "${pasteboard_service_path}/core/include",
++    "${pasteboard_utils_path}/native/include",
++  ]
++
++  sources = [
++    "${pasteboard_service_path}/core/src/pasteboard_hml_manager.cpp",
++    "unittest/src/pasteboard_hml_manager_test.cpp",
++  ]
++  defines = []
++  deps = [
++    "${pasteboard_framework_path}:pasteboard_framework",
++    "${pasteboard_innerkits_path}:pasteboard_data",
++  ]
++
++  external_deps = [
++    "ability_base:base",
++    "ability_base:want",
++    "c_utils:utils",
++    "cJSON:cjson",
++    "ffrt:libffrt",
++    "googletest:gtest_main",
++    "hilog:libhilog",
++    "hisysevent:libhisysevent",
++    "ipc:ipc_single",
++    "safwk:system_ability_fwk",
++    "samgr:samgr_proxy",
++  ]
++}
++
+ ohos_unittest("PasteServGetLocalDataTest") {
+   use_exceptions = true
+   module_out_path = module_output_path
+@@ -714,6 +753,7 @@ ohos_unittest("PasteServGetLocalDataTest") {
+     "${pasteboard_service_path}/core/src/pasteboard_delay_manager.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_dialog.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_disposable_manager.cpp",
++    "${pasteboard_service_path}/core/src/pasteboard_hml_manager.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_pattern.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_service.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_user_context.cpp",
+@@ -848,6 +888,7 @@ ohos_unittest("PasteServSubscribeTest") {
+     "${pasteboard_service_path}/core/src/pasteboard_delay_manager.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_dialog.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_disposable_manager.cpp",
++    "${pasteboard_service_path}/core/src/pasteboard_hml_manager.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_pattern.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_service.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_user_context.cpp",
+@@ -982,6 +1023,7 @@ ohos_unittest("PasteServNotifyTest") {
+     "${pasteboard_service_path}/core/src/pasteboard_delay_manager.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_dialog.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_disposable_manager.cpp",
++    "${pasteboard_service_path}/core/src/pasteboard_hml_manager.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_pattern.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_service.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_user_context.cpp",
+@@ -1116,6 +1158,7 @@ ohos_unittest("PasteServSetDataTest") {
+     "${pasteboard_service_path}/core/src/pasteboard_delay_manager.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_dialog.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_disposable_manager.cpp",
++    "${pasteboard_service_path}/core/src/pasteboard_hml_manager.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_pattern.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_service.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_user_context.cpp",
+@@ -1250,6 +1293,7 @@ ohos_unittest("PasteServGetDataTest") {
+     "${pasteboard_service_path}/core/src/pasteboard_delay_manager.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_dialog.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_disposable_manager.cpp",
++    "${pasteboard_service_path}/core/src/pasteboard_hml_manager.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_pattern.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_service.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_user_context.cpp",
+@@ -1384,6 +1428,7 @@ ohos_unittest("PasteServEventTest") {
+     "${pasteboard_service_path}/core/src/pasteboard_delay_manager.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_dialog.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_disposable_manager.cpp",
++    "${pasteboard_service_path}/core/src/pasteboard_hml_manager.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_pattern.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_service.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_user_context.cpp",
+@@ -1520,6 +1565,7 @@ ohos_unittest("PasteServGetTest") {
+     "${pasteboard_service_path}/core/src/pasteboard_delay_manager.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_dialog.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_disposable_manager.cpp",
++    "${pasteboard_service_path}/core/src/pasteboard_hml_manager.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_pattern.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_service.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_user_context.cpp",
+@@ -1655,6 +1701,7 @@ ohos_unittest("PasteServCheckTest") {
+     "${pasteboard_service_path}/core/src/pasteboard_delay_manager.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_dialog.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_disposable_manager.cpp",
++    "${pasteboard_service_path}/core/src/pasteboard_hml_manager.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_pattern.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_service.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_user_context.cpp",
+@@ -1790,6 +1837,7 @@ ohos_unittest("PasteServCleanTest") {
+     "${pasteboard_service_path}/core/src/pasteboard_delay_manager.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_dialog.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_disposable_manager.cpp",
++    "${pasteboard_service_path}/core/src/pasteboard_hml_manager.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_pattern.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_service.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_user_context.cpp",
+@@ -1925,6 +1973,7 @@ ohos_unittest("PasteServRemoteTest") {
+     "${pasteboard_service_path}/core/src/pasteboard_delay_manager.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_dialog.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_disposable_manager.cpp",
++    "${pasteboard_service_path}/core/src/pasteboard_hml_manager.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_pattern.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_service.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_user_context.cpp",
+@@ -2143,6 +2192,7 @@ ohos_unittest("PasteboardSubProfileSubscriberTest") {
+     "${pasteboard_service_path}/core/src/pasteboard_delay_manager.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_dialog.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_disposable_manager.cpp",
++    "${pasteboard_service_path}/core/src/pasteboard_hml_manager.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_pattern.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_service.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_subprofile_subscriber.cpp",
+@@ -2287,6 +2337,7 @@ group("unittest") {
+     ":PasteboardDisposableManagerTest",
+     ":PasteboardEntryGetterProxyTest",
+     ":PasteboardEntryGetterStubTest",
++    ":PasteboardHmlManagerTest",
+     ":PasteboardLinkedListTest",
+     ":PasteboardLoadTest",
+     ":PasteboardPatternTest",
+diff --git a/services/test/unittest/src/pasteboard_hml_manager_test.cpp b/services/test/unittest/src/pasteboard_hml_manager_test.cpp
+new file mode 100644
+index 0000000000000000000000000000000000000000..b9bba56600baef331722c8700921ffdf30a3d305
+--- /dev/null
++++ b/services/test/unittest/src/pasteboard_hml_manager_test.cpp
+@@ -0,0 +1,78 @@
++/*
++ * Copyright (C) 2026 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#include <gtest/gtest.h>
++
++#include "pasteboard_hml_manager.h"
++#include "pasteboard_hilog.h"
++
++namespace OHOS::MiscServices {
++using namespace testing::ext;
++
++class PasteboardHmlManagerTest : public testing::Test {
++public:
++    static void SetUpTestCase(void);
++    static void TearDownTestCase(void);
++    void SetUp();
++    void TearDown();
++};
++
++void PasteboardHmlManagerTest::SetUpTestCase()
++{
++}
++
++void PasteboardHmlManagerTest::TearDownTestCase()
++{
++}
++
++void PasteboardHmlManagerTest::SetUp()
++{
++}
++
++void PasteboardHmlManagerTest::TearDown()
++{
++}
++
++HWTEST_F(PasteboardHmlManagerTest, IsHmlSupported_001, TestSize.Level1)
++{
++    bool isWlanSupported = false;
++    int32_t wlanRet = PasteboardHmlManager::IsWlansupported(isWlanSupported);
++
++    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE,
++        "IsWlansupported ret: %{public}d, isSupported: %{public}d", wlanRet, isWlanSupported);
++
++    bool hmlResult = PasteboardHmlManager::IsHmlSupported();
++    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "IsHmlSupported result: %{public}d", hmlResult);
++
++    EXPECT_EQ(hmlResult, isWlanSupported);
++}
++
++HWTEST_F(PasteboardHmlManagerTest, IsWlansupported_001, TestSize.Level1)
++{
++    bool isSupported = false;
++    int32_t ret = PasteboardHmlManager::IsWlansupported(isSupported);
++    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE,
++        "IsWlansupported ret: %{public}d, isSupported: %{public}d", ret, isSupported);
++    EXPECT_TRUE(ret == 0);
++}
++
++HWTEST_F(PasteboardHmlManagerTest, GetSystemAbility_001, TestSize.Level1)
++{
++    sptr<IRemoteObject> remoteObject = nullptr;
++    int32_t ret = PasteboardHmlManager::GetSystemAbility(remoteObject);
++    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetSystemAbility ret: %{public}d", ret);
++    EXPECT_TRUE(ret == 0);
++}
++}
+\ No newline at end of file
+diff --git a/test/fuzztest/pasteboardconcurrent_fuzzer/BUILD.gn b/test/fuzztest/pasteboardconcurrent_fuzzer/BUILD.gn
+index 530f53985de780b7052b037144493956216a1c8b..bf33cab49d00c2ad3fe8053adeb7c57a45922f14 100644
+--- a/test/fuzztest/pasteboardconcurrent_fuzzer/BUILD.gn
++++ b/test/fuzztest/pasteboardconcurrent_fuzzer/BUILD.gn
+@@ -73,6 +73,7 @@ ohos_fuzztest("PasteboardConcurrentFuzzTest") {
+     "${pasteboard_service_path}/core/src/pasteboard_dialog.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_delay_manager.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_disposable_manager.cpp",
++    "${pasteboard_service_path}/core/src/pasteboard_hml_manager.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_pattern.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_service.cpp",
+     "${pasteboard_service_path}/core/src/pasteboard_user_context.cpp",

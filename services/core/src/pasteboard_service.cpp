@@ -217,15 +217,14 @@ void PasteboardService::OnStart()
         HandleInitFailure();
         return;
     }
-    auto callback = [this]() {
+    std::thread thread([this]() {
         auto userId = ResolveMainDisplayUserId();
         if (userId != ERROR_USERID) {
             switch_.Init(userId);
         }
-    };
-    if (serviceHandler_ != nullptr) {
-        serviceHandler_->PostTask(callback);
-    }
+    });
+    PasteBoardCommonUtils::SetThreadTaskName(thread, "SwitchInit");
+    thread.detach();
     InitializeDumpCommands();
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "Start PasteboardService success.");
     EventCenter::GetInstance().Subscribe(OHOS::MiscServices::Event::EVT_REMOTE_CHANGE, RemotePasteboardChange());

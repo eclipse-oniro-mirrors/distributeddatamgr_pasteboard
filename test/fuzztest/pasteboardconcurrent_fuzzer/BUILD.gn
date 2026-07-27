@@ -73,6 +73,7 @@ ohos_fuzztest("PasteboardConcurrentFuzzTest") {
     "${pasteboard_service_path}/core/src/pasteboard_dialog.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_delay_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_disposable_manager.cpp",
+    "${pasteboard_service_path}/core/src/pasteboard_hml_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_pattern.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_service.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_user_context.cpp",
