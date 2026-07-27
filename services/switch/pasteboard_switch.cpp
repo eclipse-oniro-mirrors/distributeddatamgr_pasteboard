@@ -21,6 +21,7 @@
 #include "common/pasteboard_common_utils.h"
 #include "pasteboard_event_ue.h"
 #include "pasteboard_hilog.h"
+#include "pasteboard_hml_manager.h"
 
 namespace OHOS::MiscServices {
 using namespace UeReporter;
@@ -51,6 +52,9 @@ void PastedSwitch::Init(int32_t userId)
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "userId invalid.");
         return;
     }
+    PASTEBOARD_CHECK_AND_RETURN_LOGE(PasteboardHmlManager::IsHmlSupported(),
+        PASTEBOARD_MODULE_SERVICE, "HML not supported");
+
     this->userId_ = userId;
     DataShareDelegate::GetInstance().SetUserId(userId_);
     DataShareDelegate::GetInstance().RegisterObserver(DISTRIBUTED_PASTEBOARD_SWITCH, switchObserver_);
