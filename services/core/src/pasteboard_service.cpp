@@ -225,6 +225,7 @@ void PasteboardService::OnStart()
         }
     });
     PasteBoardCommonUtils::SetThreadTaskName(thread, "SwitchInit");
+    thread.detach();
     InitializeDumpCommands();
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "Start PasteboardService success.");
     EventCenter::GetInstance().Subscribe(OHOS::MiscServices::Event::EVT_REMOTE_CHANGE, RemotePasteboardChange());
