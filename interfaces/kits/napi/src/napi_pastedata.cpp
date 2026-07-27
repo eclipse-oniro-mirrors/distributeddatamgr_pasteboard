@@ -15,6 +15,7 @@
 
 #include "napi_pasteboard_common.h"
 #include "pasteboard_hilog.h"
+#include "common/histogram_wrapper.h"
 using namespace OHOS::MiscServices;
 using namespace OHOS::Media;
 
@@ -40,6 +41,7 @@ PasteDataNapi::~PasteDataNapi() {}
 
 napi_value PasteDataNapi::AddHtmlRecord(napi_env env, napi_callback_info info)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.addHtmlRecord", true);
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "AddHtmlRecord is called!");
     size_t argc = ARGC_TYPE_SET1;
     napi_value argv[ARGC_TYPE_SET1] = {0};
@@ -97,6 +99,7 @@ napi_value PasteDataNapi::AddPixelMapRecord(napi_env env, napi_callback_info inf
 
 napi_value PasteDataNapi::AddTextRecord(napi_env env, napi_callback_info info)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.addTextRecord", true);
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "AddTextRecord is called!");
     size_t argc = ARGC_TYPE_SET1;
     napi_value argv[ARGC_TYPE_SET1] = { 0 };
@@ -124,6 +127,7 @@ napi_value PasteDataNapi::AddTextRecord(napi_env env, napi_callback_info info)
 
 napi_value PasteDataNapi::AddUriRecord(napi_env env, napi_callback_info info)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.addUriRecord", true);
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "AddUriRecord is called!");
     size_t argc = ARGC_TYPE_SET1;
     napi_value argv[ARGC_TYPE_SET1] = { 0 };
@@ -151,6 +155,7 @@ napi_value PasteDataNapi::AddUriRecord(napi_env env, napi_callback_info info)
 
 napi_value PasteDataNapi::GetPrimaryHtml(napi_env env, napi_callback_info info)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.getPrimaryHtml", true);
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "GetPrimaryHtml is called!");
     size_t argc = ARGC_TYPE_SET1;
     napi_value argv[ARGC_TYPE_SET1] = { 0 };
@@ -178,6 +183,7 @@ napi_value PasteDataNapi::GetPrimaryHtml(napi_env env, napi_callback_info info)
 
 napi_value PasteDataNapi::GetPrimaryPixelMap(napi_env env, napi_callback_info info)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.getPrimaryPixelMap", true);
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "GetPrimaryPixelMap is called!");
     size_t argc = ARGC_TYPE_SET1;
     napi_value argv[ARGC_TYPE_SET1] = { 0 };
@@ -204,6 +210,7 @@ napi_value PasteDataNapi::GetPrimaryPixelMap(napi_env env, napi_callback_info in
 
 napi_value PasteDataNapi::GetPrimaryText(napi_env env, napi_callback_info info)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.getPrimaryText", true);
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "GetPrimaryText is called!");
     size_t argc = ARGC_TYPE_SET1;
     napi_value argv[ARGC_TYPE_SET1] = { 0 };
@@ -231,6 +238,7 @@ napi_value PasteDataNapi::GetPrimaryText(napi_env env, napi_callback_info info)
 
 napi_value PasteDataNapi::GetPrimaryUri(napi_env env, napi_callback_info info)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.getPrimaryUri", true);
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "GetPrimaryUri is called!");
     size_t argc = ARGC_TYPE_SET1;
     napi_value argv[ARGC_TYPE_SET1] = { 0 };
@@ -259,6 +267,7 @@ napi_value PasteDataNapi::GetPrimaryUri(napi_env env, napi_callback_info info)
 
 napi_value PasteDataNapi::HasMimeType(napi_env env, napi_callback_info info)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.hasMimeType", true);
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "HasMimeType is called!");
     size_t argc = ARGC_TYPE_SET1;
     napi_value argv[ARGC_TYPE_SET1] = { 0 };
@@ -276,6 +285,9 @@ napi_value PasteDataNapi::HasMimeType(napi_env env, napi_callback_info info)
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "Failed to GetValue!");
         return nullptr;
     }
+    int32_t mimeTypeEnum = MiscServices::GetHistogramMimeTypeEnum(mimeType);
+    HISTOGRAM_ENUMERATION_SAMPLED(
+        "Pasteboard.MimeType.hasMimeType", mimeTypeEnum, MiscServices::HISTOGRAM_MIMETYPE_BOUNDARY);
 
     PasteDataNapi *obj = nullptr;
     napi_status status = napi_unwrap(env, thisVar, reinterpret_cast<void **>(&obj));
@@ -292,6 +304,7 @@ napi_value PasteDataNapi::HasMimeType(napi_env env, napi_callback_info info)
 
 napi_value PasteDataNapi::HasType(napi_env env, napi_callback_info info)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.hasType", true);
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "HasType is called!");
     return HasMimeType(env, info);
 }
@@ -320,6 +333,7 @@ PasteDataNapi *PasteDataNapi::RemoveAndGetRecordCommon(napi_env env, napi_callba
 
 napi_value PasteDataNapi::RemoveRecordAt(napi_env env, napi_callback_info info)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.removeRecordAt", true);
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "RemoveRecordAt is called!");
     uint32_t index = 0;
     PasteDataNapi *obj = RemoveAndGetRecordCommon(env, info, index);
@@ -335,6 +349,7 @@ napi_value PasteDataNapi::RemoveRecordAt(napi_env env, napi_callback_info info)
 
 napi_value PasteDataNapi::RemoveRecord(napi_env env, napi_callback_info info)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.removeRecord", true);
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "RemoveRecord is called!");
     uint32_t index = 0;
     PasteDataNapi *obj = RemoveAndGetRecordCommon(env, info, index);
@@ -348,6 +363,7 @@ napi_value PasteDataNapi::RemoveRecord(napi_env env, napi_callback_info info)
 
 napi_value PasteDataNapi::GetPrimaryMimeType(napi_env env, napi_callback_info info)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.getPrimaryMimeType", true);
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "GetPrimaryMimeType is called!");
     size_t argc = ARGC_TYPE_SET1;
     napi_value argv[ARGC_TYPE_SET1] = { 0 };
@@ -397,6 +413,7 @@ napi_value PasteDataNapi::GetRecordCount(napi_env env, napi_callback_info info)
 
 napi_value PasteDataNapi::GetTag(napi_env env, napi_callback_info info)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.getTag", true);
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "GetTag is called!");
     size_t argc = ARGC_TYPE_SET1;
     napi_value argv[ARGC_TYPE_SET1] = { 0 };
@@ -419,6 +436,7 @@ napi_value PasteDataNapi::GetTag(napi_env env, napi_callback_info info)
 
 napi_value PasteDataNapi::GetMimeTypes(napi_env env, napi_callback_info info)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.PasteData.getMimeTypes", true);
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "GetMimeTypes is called!");
     size_t argc = ARGC_TYPE_SET1;
     napi_value argv[ARGC_TYPE_SET1] = { 0 };
@@ -461,6 +479,9 @@ void PasteDataNapi::AddRecord(napi_env env, napi_value *argv, size_t argc, Paste
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "AddRecord Parameters invalid");
         return;
     }
+    int32_t mimeTypeEnum = MiscServices::GetHistogramMimeTypeEnum(mimeType);
+    HISTOGRAM_ENUMERATION_SAMPLED(
+        "Pasteboard.MimeType.addRecord", mimeTypeEnum, MiscServices::HISTOGRAM_MIMETYPE_BOUNDARY);
     if (obj == nullptr || obj->value_ == nullptr) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "AddRecord obj invalid");
         return;
@@ -610,11 +631,16 @@ void PasteDataNapi::AddRecord(napi_env env, napi_value argv, PasteDataNapi *obj)
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "ParseRecord failed!");
         return;
     }
+    std::string mimeType = pasteDataRecord->GetMimeType();
+    int32_t mimeTypeEnum = MiscServices::GetHistogramMimeTypeEnum(mimeType);
+    HISTOGRAM_ENUMERATION_SAMPLED(
+        "Pasteboard.MimeType.addRecord", mimeTypeEnum, MiscServices::HISTOGRAM_MIMETYPE_BOUNDARY);
     obj->value_->AddRecord(*pasteDataRecord);
 }
 
 napi_value PasteDataNapi::AddRecord(napi_env env, napi_callback_info info)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.addRecord", true);
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "AddRecord is called!");
     size_t argc = ARGC_TYPE_SET2;
     napi_value argv[ARGC_TYPE_SET2] = { 0 };
@@ -639,6 +665,7 @@ napi_value PasteDataNapi::AddRecord(napi_env env, napi_callback_info info)
 
 napi_value PasteDataNapi::ReplaceRecordAt(napi_env env, napi_callback_info info)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.replaceRecordAt", true);
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "ReplaceRecordAt is called!");
     size_t argc = ARGC_TYPE_SET2;
     napi_value argv[ARGC_TYPE_SET2] = { 0 };
@@ -677,6 +704,7 @@ napi_value PasteDataNapi::ReplaceRecordAt(napi_env env, napi_callback_info info)
 
 napi_value PasteDataNapi::ReplaceRecord(napi_env env, napi_callback_info info)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.replaceRecord", true);
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "ReplaceRecord is called!");
     size_t argc = ARGC_TYPE_SET2;
     napi_value argv[ARGC_TYPE_SET2] = { 0 };
@@ -716,6 +744,7 @@ napi_value PasteDataNapi::ReplaceRecord(napi_env env, napi_callback_info info)
 
 napi_value PasteDataNapi::AddWantRecord(napi_env env, napi_callback_info info)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.addWantRecord", true);
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "AddWantRecord is called!");
     size_t argc = ARGC_TYPE_SET1;
     napi_value argv[ARGC_TYPE_SET1] = { 0 };
@@ -746,6 +775,7 @@ napi_value PasteDataNapi::AddWantRecord(napi_env env, napi_callback_info info)
 
 napi_value PasteDataNapi::GetPrimaryWant(napi_env env, napi_callback_info info)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.getPrimaryWant", true);
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "GetPrimaryWant is called!");
     size_t argc = ARGC_TYPE_SET1;
     napi_value argv[ARGC_TYPE_SET1] = { 0 };
@@ -810,6 +840,7 @@ bool PasteDataNapi::SetNapiProperty(napi_env env, const PasteDataProperty &prope
 
 napi_value PasteDataNapi::GetProperty(napi_env env, napi_callback_info info)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.getProperty", true);
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "GetProperty is called!");
     size_t argc = ARGC_TYPE_SET1;
     napi_value argv[ARGC_TYPE_SET1] = { 0 };
@@ -963,6 +994,7 @@ bool PasteDataNapi::IsProperty(napi_env env, napi_value in)
 
 napi_value PasteDataNapi::SetProperty(napi_env env, napi_callback_info info)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.setProperty", true);
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "SetProperty is called!");
     size_t argc = ARGC_TYPE_SET1;
     napi_value argv[ARGC_TYPE_SET1] = { 0 };
@@ -1097,6 +1129,7 @@ bool PasteDataNapi::IsPasteData(napi_env env, napi_value in)
 
 napi_value PasteDataNapi::PasteStart(napi_env env, napi_callback_info info)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.pasteStart", true);
     napi_value thisVar = nullptr;
     PasteDataNapi *obj = nullptr;
     size_t argc = ARGC_TYPE_SET1;
@@ -1114,6 +1147,7 @@ napi_value PasteDataNapi::PasteStart(napi_env env, napi_callback_info info)
 
 napi_value PasteDataNapi::PasteComplete(napi_env env, napi_callback_info info)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.pasteComplete", true);
     napi_value thisVar = nullptr;
     PasteDataNapi *obj = nullptr;
     size_t argc = ARGC_TYPE_SET1;

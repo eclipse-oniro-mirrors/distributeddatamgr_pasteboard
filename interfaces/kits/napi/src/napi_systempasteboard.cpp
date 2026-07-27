@@ -19,6 +19,7 @@
 #include "pasteboard_app_event_dfx.h"
 #include "common/pasteboard_common_utils.h"
 #include "pasteboard_hilog.h"
+#include "common/histogram_wrapper.h"
 using namespace OHOS::MiscServices;
 using namespace OHOS::Media;
 
@@ -187,6 +188,7 @@ bool SystemPasteboardNapi::CheckArgsOfOnAndOff(napi_env env, bool checkArgsCount
 
 napi_value SystemPasteboardNapi::On(napi_env env, napi_callback_info info)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.on_update", true);
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "SystemPasteboardNapi on() is called!");
     napi_value result = nullptr;
     napi_get_undefined(env, &result);
@@ -213,6 +215,7 @@ napi_value SystemPasteboardNapi::On(napi_env env, napi_callback_info info)
 
 napi_value SystemPasteboardNapi::Off(napi_env env, napi_callback_info info)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.off_update", true);
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "SystemPasteboardNapi off () is called!");
     napi_value result = nullptr;
     napi_get_undefined(env, &result);
@@ -245,6 +248,7 @@ napi_value SystemPasteboardNapi::Off(napi_env env, napi_callback_info info)
 
 napi_value SystemPasteboardNapi::OnRemoteUpdate(napi_env env, napi_callback_info info)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.onRemoteUpdate", true);
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "SystemPasteboardNapi OnRemoteUpdate() is called!");
     napi_value result = nullptr;
     napi_get_undefined(env, &result);
@@ -269,6 +273,7 @@ napi_value SystemPasteboardNapi::OnRemoteUpdate(napi_env env, napi_callback_info
 
 napi_value SystemPasteboardNapi::OffRemoteUpdate(napi_env env, napi_callback_info info)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.offRemoteUpdate", true);
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "SystemPasteboardNapi OffRemoteUpdate () is called!");
     napi_value result = nullptr;
     napi_get_undefined(env, &result);
@@ -296,6 +301,7 @@ napi_value SystemPasteboardNapi::OffRemoteUpdate(napi_env env, napi_callback_inf
 
 napi_value SystemPasteboardNapi::Clear(napi_env env, napi_callback_info info)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.clear", true);
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "Clear is called!");
     auto context = std::make_shared<AsyncCall::Context>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
@@ -318,12 +324,14 @@ napi_value SystemPasteboardNapi::Clear(napi_env env, napi_callback_info info)
 
 napi_value SystemPasteboardNapi::ClearData(napi_env env, napi_callback_info info)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.clearData", true);
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "ClearData is called!");
     return Clear(env, info);
 }
 
 napi_value SystemPasteboardNapi::HasPasteData(napi_env env, napi_callback_info info)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.hasPasteData", true);
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "HasPasteData is called!");
     auto context = std::make_shared<HasContextInfo>();
     auto input = [context](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
@@ -353,6 +361,7 @@ napi_value SystemPasteboardNapi::HasPasteData(napi_env env, napi_callback_info i
 
 napi_value SystemPasteboardNapi::HasRemoteData(napi_env env, napi_callback_info info)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.hasRemoteData", true);
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "SystemPasteboardNapi HasRemoteData() is called!");
     auto block = std::make_shared<BlockObject<std::shared_ptr<bool>>>(SYNC_TIMEOUT);
     std::thread thread([block]() {
@@ -375,6 +384,7 @@ napi_value SystemPasteboardNapi::HasRemoteData(napi_env env, napi_callback_info 
 
 napi_value SystemPasteboardNapi::HasData(napi_env env, napi_callback_info info)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.hasData", true);
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "HasData is called!");
     return HasPasteData(env, info);
 }
@@ -413,6 +423,7 @@ void SystemPasteboardNapi::GetDataCommon(std::shared_ptr<GetContextInfo> &contex
 
 napi_value SystemPasteboardNapi::GetPasteData(napi_env env, napi_callback_info info)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.getPasteData", true);
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "GetPasteData is called!");
 
     auto context = std::make_shared<GetContextInfo>();
@@ -433,6 +444,7 @@ napi_value SystemPasteboardNapi::GetPasteData(napi_env env, napi_callback_info i
 
 napi_value SystemPasteboardNapi::GetData(napi_env env, napi_callback_info info)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.SystemPasteboard.getData", true);
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "GetData is called!");
     std::shared_ptr<DfxAppEvent> processorEvent = std::make_shared<DfxAppEvent>();
 
@@ -486,6 +498,7 @@ void SystemPasteboardNapi::SetDataCommon(std::shared_ptr<SetContextInfo> &contex
 
 napi_value SystemPasteboardNapi::SetPasteData(napi_env env, napi_callback_info info)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.setPasteData", true);
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "SetPasteData is called!");
     auto context = std::make_shared<SetContextInfo>();
     SetDataCommon(context);
@@ -505,6 +518,7 @@ napi_value SystemPasteboardNapi::SetPasteData(napi_env env, napi_callback_info i
 
 napi_value SystemPasteboardNapi::SetData(napi_env env, napi_callback_info info)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.setData", true);
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "SetData is called!");
     std::shared_ptr<DfxAppEvent> processorEvent = std::make_shared<DfxAppEvent>();
     auto context = std::make_shared<SetContextInfo>();
@@ -543,6 +557,7 @@ napi_value SystemPasteboardNapi::SetData(napi_env env, napi_callback_info info)
 
 napi_value SystemPasteboardNapi::SetUnifiedData(napi_env env, napi_callback_info info)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.setUnifiedData", true);
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "SetUnifiedData is called!");
     std::shared_ptr<DfxAppEvent> processorEvent = std::make_shared<DfxAppEvent>();
     auto context = std::make_shared<SetUnifiedContextInfo>();
@@ -579,6 +594,7 @@ napi_value SystemPasteboardNapi::SetUnifiedData(napi_env env, napi_callback_info
 
 napi_value SystemPasteboardNapi::GetUnifiedData(napi_env env, napi_callback_info info)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.getUnifiedData", true);
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "GetUnifiedData is called!");
     std::shared_ptr<DfxAppEvent> processorEvent = std::make_shared<DfxAppEvent>();
 
@@ -607,6 +623,7 @@ napi_value SystemPasteboardNapi::GetUnifiedData(napi_env env, napi_callback_info
 
 napi_value SystemPasteboardNapi::GetUnifiedDataSync(napi_env env, napi_callback_info info)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.getUnifiedDataSync", true);
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "SystemPasteboardNapi GetUnifiedDataSync is called!");
     std::shared_ptr<DfxAppEvent> processorEvent = std::make_shared<DfxAppEvent>();
     napi_value instance = nullptr;
@@ -642,6 +659,7 @@ napi_value SystemPasteboardNapi::GetUnifiedDataSync(napi_env env, napi_callback_
 
 napi_value SystemPasteboardNapi::SetUnifiedDataSync(napi_env env, napi_callback_info info)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.setUnifiedDataSync", true);
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "SystemPasteboardNapi SetUnifiedDataSync is called!");
     std::shared_ptr<DfxAppEvent> processorEvent = std::make_shared<DfxAppEvent>();
     size_t argc = ARGC_TYPE_SET1;
@@ -707,6 +725,7 @@ napi_value SystemPasteboardNapi::SetUnifiedDataSync(napi_env env, napi_callback_
 
 napi_value SystemPasteboardNapi::SetAppShareOptions(napi_env env, napi_callback_info info)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.setAppShareOptions", true);
     size_t argc = ARGC_TYPE_SET1;
     napi_value argv[ARGC_TYPE_SET1] = {0};
     napi_value thisArg = nullptr;
@@ -723,6 +742,8 @@ napi_value SystemPasteboardNapi::SetAppShareOptions(napi_env env, napi_callback_
         return nullptr;
     }
     auto result = PasteboardClient::GetInstance()->SetAppShareOptions(static_cast<ShareOption>(shareOptions));
+    HISTOGRAM_ENUMERATION_SAMPLED("Pasteboard.ShareOption.setAppShareOptions",
+        shareOptions, MiscServices::HISTOGRAM_SHAREOPTION_BOUNDARY);
     if (!CheckExpression(env, result != static_cast<int32_t>(PasteboardError::INVALID_PARAM_ERROR),
         JSErrorCode::INVALID_PARAMETERS, "Parameter error. Parameter verification failed.")) {
         return nullptr;
@@ -741,6 +762,7 @@ napi_value SystemPasteboardNapi::SetAppShareOptions(napi_env env, napi_callback_
 
 napi_value SystemPasteboardNapi::RemoveAppShareOptions(napi_env env, napi_callback_info info)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.removeAppShareOptions", true);
     auto result = PasteboardClient::GetInstance()->RemoveAppShareOptions();
     CheckExpression(env, result != static_cast<int32_t>(PasteboardError::PERMISSION_VERIFICATION_ERROR),
         JSErrorCode::NO_PERMISSION,
@@ -820,6 +842,7 @@ void SystemPasteboardNapi::GetDataCommon(std::shared_ptr<GetUnifiedContextInfo>&
 
 napi_value SystemPasteboardNapi::IsRemoteData(napi_env env, napi_callback_info info)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.isRemoteData", true);
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "SystemPasteboardNapi IsRemoteData() is called!");
     auto block = std::make_shared<BlockObject<std::shared_ptr<int32_t>>>(SYNC_TIMEOUT);
     std::thread thread([block]() {
@@ -843,6 +866,7 @@ napi_value SystemPasteboardNapi::IsRemoteData(napi_env env, napi_callback_info i
 
 napi_value SystemPasteboardNapi::GetDataSource(napi_env env, napi_callback_info info)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.getDataSource", true);
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "SystemPasteboardNapi GetDataSource() is called!");
     auto block = std::make_shared<BlockObject<std::shared_ptr<std::pair<int32_t, std::string>>>>(SYNC_TIMEOUT);
     std::thread thread([block]() mutable {
@@ -871,6 +895,7 @@ napi_value SystemPasteboardNapi::GetDataSource(napi_env env, napi_callback_info 
 
 napi_value SystemPasteboardNapi::GetMimeTypes(napi_env env, napi_callback_info info)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.SystemPasteboard.getMimeTypes", true);
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "SystemPasteboardNapi GetMimeTypes() is called!");
     auto context = std::make_shared<GetMimeTypesContextInfo>();
     auto input = [](napi_env env, size_t argc, napi_value *argv, napi_value self) -> napi_status {
@@ -895,6 +920,7 @@ napi_value SystemPasteboardNapi::GetMimeTypes(napi_env env, napi_callback_info i
 
 napi_value SystemPasteboardNapi::GetChangeCount(napi_env env, napi_callback_info info)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.getChangeCount", true);
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "SystemPasteboardNapi GetChangeCount() is called!");
     uint32_t changeCount = 0;
     PasteboardClient::GetInstance()->GetChangeCount(changeCount);
@@ -905,6 +931,7 @@ napi_value SystemPasteboardNapi::GetChangeCount(napi_env env, napi_callback_info
 
 napi_value SystemPasteboardNapi::HasDataType(napi_env env, napi_callback_info info)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.hasDataType", true);
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "SystemPasteboardNapi HasDataType() is called!");
     size_t argc = ARGC_TYPE_SET1;
     napi_value argv[ARGC_TYPE_SET1] = {0};
@@ -922,6 +949,9 @@ napi_value SystemPasteboardNapi::HasDataType(napi_env env, napi_callback_info in
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "Failed to GetValue!");
         return nullptr;
     }
+    int32_t mimeTypeEnum = MiscServices::GetHistogramMimeTypeEnum(mimeType);
+    HISTOGRAM_ENUMERATION_SAMPLED(
+        "Pasteboard.MimeType.hasDataType", mimeTypeEnum, MiscServices::HISTOGRAM_MIMETYPE_BOUNDARY);
     auto block = std::make_shared<BlockObject<std::shared_ptr<int32_t>>>(SYNC_TIMEOUT);
     ffrt::submit([block, mimeType]() {
         PasteBoardCommonUtils::SetTaskName("NHasDataType");
@@ -973,6 +1003,7 @@ napi_value SystemPasteboardNapi::DetectPatterns(napi_env env, napi_callback_info
 
 napi_value SystemPasteboardNapi::ClearDataSync(napi_env env, napi_callback_info info)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.clearDataSync", true);
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "SystemPasteboardNapi ClearDataSync() is called!");
     auto block = std::make_shared<BlockObject<std::shared_ptr<int32_t>>>(SYNC_TIMEOUT);
     std::thread thread([block]() {
@@ -992,6 +1023,7 @@ napi_value SystemPasteboardNapi::ClearDataSync(napi_env env, napi_callback_info 
 
 napi_value SystemPasteboardNapi::GetDataSync(napi_env env, napi_callback_info info)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.getDataSync", true);
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "SystemPasteboardNapi GetDataSync() is called!");
     std::shared_ptr<DfxAppEvent> processorEvent = std::make_shared<DfxAppEvent>();
     napi_value instance = nullptr;
@@ -1025,6 +1057,7 @@ napi_value SystemPasteboardNapi::GetDataSync(napi_env env, napi_callback_info in
 
 napi_value SystemPasteboardNapi::SetDataSync(napi_env env, napi_callback_info info)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.setDataSync", true);
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "SystemPasteboardNapi SetDataSync() is called!");
     std::shared_ptr<DfxAppEvent> processorEvent = std::make_shared<DfxAppEvent>();
     size_t argc = ARGC_TYPE_SET1;
@@ -1078,6 +1111,7 @@ napi_value SystemPasteboardNapi::SetDataSync(napi_env env, napi_callback_info in
 
 napi_value SystemPasteboardNapi::HasDataSync(napi_env env, napi_callback_info info)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.hasDataSync", true);
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "SystemPasteboardNapi HasDataSync() is called!");
     auto block = std::make_shared<BlockObject<std::shared_ptr<int32_t>>>(SYNC_TIMEOUT);
     std::thread thread([block]() {
@@ -1299,6 +1333,7 @@ void SystemPasteboardNapi::GetDataWithProgressParam(std::shared_ptr<GetDataParam
 
 napi_value SystemPasteboardNapi::GetDataWithProgress(napi_env env, napi_callback_info info)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.getDataWithProgress", true);
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "GetDataWithProgress is called!");
     std::shared_ptr<DfxAppEvent> processorEvent = std::make_shared<DfxAppEvent>();
 

@@ -16,6 +16,7 @@
 #include "distributed_file_daemon_manager.h"
 #include "pasteboard_hilog.h"
 #include "pasteboard_progress_signal.h"
+#include "common/histogram_wrapper.h"
 
 namespace OHOS {
 namespace MiscServices {
@@ -33,6 +34,7 @@ void ProgressSignalClient::Init()
 
 void ProgressSignalClient::Cancel()
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.cancel", true);
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_CLIENT, "ProgressSignalClient Cancel in!");
     needCancel_.store(true);
 }

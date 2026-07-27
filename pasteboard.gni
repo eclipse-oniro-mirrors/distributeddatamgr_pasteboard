@@ -37,6 +37,7 @@ declare_args() {
   pasteboard_device_manager_part_enabled = true
   pasteboard_screenlock_mgr_part_enabled = true
   pasteboard_dataclassification_enabled = true
+  pasteboard_api_metrics_enabled = true
   pasteboard_cockpit_platform_enabled = false
 
   if (defined(global_parts_info) &&
@@ -58,5 +59,9 @@ declare_args() {
   if (defined(global_parts_info) &&
       !defined(global_parts_info.security_dataclassification)) {
     pasteboard_dataclassification_enabled = false
+  }
+  if (defined(global_parts_info) &&
+      !defined(global_parts_info.hiviewdfx_api_metrics)) {
+    pasteboard_api_metrics_enabled = false
   }
 }

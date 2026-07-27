@@ -61,6 +61,11 @@ ohos_shared_library("libpasteboard") {
     "udmf:udmf_core",
   ]
 
+  if (pasteboard_api_metrics_enabled) {
+    external_deps += [ "api_metrics:histogrammanager" ]
+    defines += [ "PASTEBOARD_API_METRICS_ENABLED" ]
+  }
+
   relative_install_dir = "ndk"
   part_name = "pasteboard"
   subsystem_name = "distributeddatamgr"
