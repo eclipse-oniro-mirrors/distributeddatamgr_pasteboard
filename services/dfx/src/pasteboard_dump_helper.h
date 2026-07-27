@@ -17,6 +17,7 @@
 #define MISCSERVICES_PASTEBOARD_DUMP_HELPER_H
 
 #include <map>
+#include <memory>
 
 #include "command.h"
 
