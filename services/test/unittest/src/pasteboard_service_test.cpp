@@ -1158,6 +1158,80 @@ HWTEST_F(PasteboardServiceTest, ProcessDistributedDelayHtmlTest001, TestSize.Lev
 }
 
 /**
+ * @tc.name: ProcessDistributedDelayHtmlTest002
+ * @tc.desc: Test ProcessDistributedDelayHtml with Object type entry value
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceTest, ProcessDistributedDelayHtmlTest002, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ProcessDistributedDelayHtmlTest002 start");
+    PasteData data;
+    PasteDataEntry entry;
+    std::vector<uint8_t> rawData;
+
+    // Setup entry with Object value (New Branch)
+    auto object = std::make_shared<Object>();
+    object->value_[UDMF::HTML_CONTENT] = "<html>Object Content</html>";
+    std::string htmlUtdId = UDMF::UtdUtils::GetUtdIdFromUtdEnum(UDMF::HTML);
+    entry.SetUtdId(htmlUtdId);
+    entry.SetMimeType(MIMETYPE_TEXT_HTML);
+    entry.SetValue(object);
+
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+
+    int32_t ret = tempPasteboard->ProcessDistributedDelayHtml(data, entry, rawData);
+    EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
+    EXPECT_FALSE(rawData.empty());
+
+    // Verify: Decode rawData and check if entry value type is preserved
+    PasteData decodedData;
+    bool decodeRet = decodedData.Decode(rawData);
+    EXPECT_TRUE(decodeRet);
+
+    auto record = decodedData.GetRecordAt(0);
+    ASSERT_NE(record, nullptr);
+
+    auto entries = record->GetEntries();
+    if (!entries.empty()) {
+        // Local format: Entry is stored in entries_
+        auto decodedEntry = entries[0];
+        auto value = decodedEntry->GetValue();
+        // Check if the value is still an Object (not converted to String)
+        EXPECT_TRUE(std::holds_alternative<std::shared_ptr<Object>>(value));
+    }
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ProcessDistributedDelayHtmlTest002 end");
+}
+
+/**
+ * @tc.name: ProcessDistributedDelayHtmlTest003
+ * @tc.desc: Test ProcessDistributedDelayHtml with String type entry value
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceTest, ProcessDistributedDelayHtmlTest003, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ProcessDistributedDelayHtmlTest003 start");
+    PasteData data;
+    PasteDataEntry entry;
+    std::vector<uint8_t> rawData;
+
+    // Setup entry with String value (Original Branch)
+    std::string htmlContent = "<html>String Content</html>";
+    std::string htmlUtdId = UDMF::UtdUtils::GetUtdIdFromUtdEnum(UDMF::HTML);
+    entry.SetUtdId(htmlUtdId);
+    entry.SetMimeType(MIMETYPE_TEXT_HTML);
+    entry.SetValue(htmlContent);
+
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+
+    int32_t ret = tempPasteboard->ProcessDistributedDelayHtml(data, entry, rawData);
+    EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
+    EXPECT_FALSE(rawData.empty());
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ProcessDistributedDelayHtmlTest003 end");
+}
+
+/**
  * @tc.name: ProcessDistributedDelayEntryTest001
  * @tc.desc: test Func ProcessDistributedDelayEntry
  * @tc.type: FUNC
