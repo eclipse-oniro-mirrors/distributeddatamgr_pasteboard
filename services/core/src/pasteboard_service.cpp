@@ -4399,11 +4399,23 @@ int32_t PasteboardService::ProcessDistributedDelayHtml(PasteData &data, PasteDat
     }
 
     PasteData tmp;
-    std::shared_ptr<std::string> html = entry.ConvertToHtml();
-    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(html != nullptr, static_cast<int32_t>(PasteboardError::GET_ENTRY_VALUE_FAILED),
-        PASTEBOARD_MODULE_SERVICE, "convert to html failed");
 
-    tmp.AddHtmlRecord(*html);
+    auto entryValue = entry.GetValue();
+    if (std::holds_alternative<std::shared_ptr<Object>>(entryValue)) {
+        auto object = std::get<std::shared_ptr<Object>>(entryValue);
+        auto newObject = std::make_shared<Object>();
+        newObject->value_ = object->value_;
+        auto newEntry = std::make_shared<PasteDataEntry>(entry.GetUtdId(), entry.GetMimeType(), EntryValue(newObject));
+        auto record = std::make_shared<PasteDataRecord>();
+        record->AddEntryByMimeType(MIMETYPE_TEXT_HTML, newEntry);
+        tmp.AddRecord(record);
+    } else {
+        std::shared_ptr<std::string> html = entry.ConvertToHtml();
+        PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(html != nullptr,
+            static_cast<int32_t>(PasteboardError::GET_ENTRY_VALUE_FAILED),
+            PASTEBOARD_MODULE_SERVICE, "convert to html failed");
+        tmp.AddHtmlRecord(*html);
+    }
     tmp.SetBundleInfo(data.GetBundleName(), data.GetAppIndex());
     tmp.SetOriginAuthority(data.GetOriginAuthority());
     tmp.SetTokenId(data.GetTokenId());
