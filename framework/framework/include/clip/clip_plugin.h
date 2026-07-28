@@ -15,7 +15,10 @@
 
 #ifndef OHOS_DISTRIBUTED_DATA_PASTEBOARD_SERVICES_FRAMEWORK_CLIPS_PLUGIN_H
 #define OHOS_DISTRIBUTED_DATA_PASTEBOARD_SERVICES_FRAMEWORK_CLIPS_PLUGIN_H
+#include <functional>
 #include <map>
+#include <utility>
+#include <vector>
 
 #include "serializable/serializable.h"
 

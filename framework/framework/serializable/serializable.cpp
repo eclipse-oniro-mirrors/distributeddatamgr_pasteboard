@@ -29,7 +29,7 @@ bool Serializable::Unmarshall(const std::string &jsonStr)
 
 std::string Serializable::Marshall() const
 {
-    json node;
+    json node = nullptr;
     Marshal(node);
     char *value = cJSON_PrintUnformatted(node);
     std::string result;
