@@ -15,8 +15,11 @@
 
 #ifndef OHOS_DISTRIBUTED_DATA_PASTEBOARD_SERVICES_FRAMEWORK_EVENTCENTER_EVENT_CENTER_H
 #define OHOS_DISTRIBUTED_DATA_PASTEBOARD_SERVICES_FRAMEWORK_EVENTCENTER_EVENT_CENTER_H
+#include <deque>
+#include <functional>
 #include <list>
 #include <queue>
+#include <unordered_map>
 
 #include "common/concurrent_map.h"
 #include "eventcenter/event.h"

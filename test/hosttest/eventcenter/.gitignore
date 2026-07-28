@@ -1,0 +1,5 @@
+.build/
+*.gcno
+*.gcda
+*.gcov
+*_host_test*.xml
