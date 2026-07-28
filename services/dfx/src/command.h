@@ -16,7 +16,9 @@
 #ifndef MISCSERVICES_PASTEBOARD_COMMAND_H
 #define MISCSERVICES_PASTEBOARD_COMMAND_H
 
+#include <functional>
 #include <string>
+#include <vector>
 
 namespace OHOS {
 namespace MiscServices {
