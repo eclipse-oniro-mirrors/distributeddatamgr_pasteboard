@@ -846,7 +846,7 @@ int32_t FfiOHOSPasteDataReplaceRecord(int64_t id, int64_t recordId, int32_t inde
 
 RetDataI64 FfiOHOSGetSystemPasteboard()
 {
-    RetDataI64 ret;
+    RetDataI64 ret = { .code = ERR_INVALID_INSTANCE_CODE, .data = 0 };
     LOGI("[SystemPasteboard] FfiOHOSGetSystemPasteboard start");
     ret.code = SystemPasteboardImpl::GetSystemPasteboardImpl(ret.data);
     LOGI("[SystemPasteboard] FfiOHOSGetSystemPasteboard success");

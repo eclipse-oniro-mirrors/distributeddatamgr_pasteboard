@@ -44,6 +44,10 @@ int NewInstance(sptr<SystemPasteboardImpl> &instance)
         return 0;
     }
     g_systemPasteboard_instance = FFI::FFIData::Create<SystemPasteboardImpl>();
+    if (g_systemPasteboard_instance == nullptr) {
+        LOGE("[SystemPasteboardImpl] NewInstance create instance failed");
+        return ERR_INVALID_INSTANCE_CODE;
+    }
     instance = g_systemPasteboard_instance;
     return 0;
 }
