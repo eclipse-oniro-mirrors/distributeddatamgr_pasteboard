@@ -1,0 +1,98 @@
+# Copyright (C) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/config/components/ets_frontend/ets2abc_config.gni")
+import("//build/ohos.gni")
+import("//foundation/distributeddatamgr/pasteboard/pasteboard.gni")
+
+config("ani_config") {
+  include_dirs = [
+    "${pasteboard_innerkits_path}/include",
+    "${pasteboard_utils_path}/native/include",
+    "${pasteboard_interfaces_path}/ani/include",
+  ]
+}
+
+group("pasteboard_ani_package") {
+  deps = [
+    ":pasteboard_abc_etc",
+    ":pasteboard_ani",
+  ]
+}
+
+ohos_shared_library("pasteboard_ani") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    ubsan = true
+    integer_overflow = true
+    boundary_sanitize = true
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  public_configs = [ ":ani_config" ]
+
+  cflags = [
+    "-fPIC",
+    "-g3",
+  ]
+
+  cflags_cc = [
+    "-D_FORTIFY_SOURCE=2",
+    "-O2",
+  ]
+
+  sources = [
+    "src/pasteboard_ani.cpp",
+    "src/pasteboard_ani_observer.cpp",
+    "src/pasteboard_ani_record.cpp",
+  ]
+  part_name = "pasteboard"
+  subsystem_name = "distributeddatamgr"
+  output_extension = "so"
+  external_deps = [
+    "ability_base:want",
+    "ability_base:zuri",
+    "ability_runtime:ani_common",
+    "ability_runtime:runtime",
+    "ability_runtime:ets_environment",
+    "c_utils:utils",
+    "hilog:libhilog",
+    "image_framework:image",
+    "image_framework:image_ani",
+    "ipc:ipc_single",
+    "runtime_core:ani",
+    "udmf:udmf_client",
+  ]
+  deps = [
+    "${pasteboard_innerkits_path}:pasteboard_client",
+    "${pasteboard_innerkits_path}:pasteboard_data",
+  ]
+}
+
+generate_static_abc("pasteboard_abc") {
+  base_url = "./ets"
+  files = [ "./ets/@ohos.pasteboard.ets" ]
+  dst_file = "$target_out_dir/pasteboard_ani.abc"
+  out_puts = [ "$target_out_dir/pasteboard_ani.abc" ]
+  is_boot_abc = "True"
+  device_dst_file = "/system/framework/pasteboard_ani.abc"
+}
+
+ohos_prebuilt_etc("pasteboard_abc_etc") {
+  source = "$target_out_dir/pasteboard_ani.abc"
+  module_install_dir = "framework"
+  subsystem_name = "distributeddatamgr"
+  part_name = "pasteboard"
+  deps = [ ":pasteboard_abc" ]
+}
