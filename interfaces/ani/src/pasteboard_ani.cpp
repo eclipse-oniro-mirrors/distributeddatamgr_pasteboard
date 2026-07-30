@@ -28,6 +28,8 @@
 #include "common/block_object.h"
 #include "ani_common_want.h"
 #include "image_ani_utils.h"
+#include "pasteboard_ani_observer.h"
+#include "pasteboard_ani_record.h"
 #include "pasteboard_ani_utils.h"
 #include "unified_meta.h"
 
@@ -1007,6 +1009,178 @@ static ani_string GetDataSource([[maybe_unused]] ani_env *env, [[maybe_unused]] 
     return aniStr;
 }
 
+static ani_object CreateRecord([[maybe_unused]] ani_env *env, ani_string type, ani_object union_obj)
+{
+    if (env == nullptr) {
+        return nullptr;
+    }
+    return PasteboardAniDataAdapter::CreateRecordFromMimeTypeValue(env, type, union_obj);
+}
+
+static void OnUpdate([[maybe_unused]] ani_env *env, [[maybe_unused]] ani_object object, ani_object callback)
+{
+    if (env == nullptr) {
+        return;
+    }
+    PasteboardAniObserverManager::GetInstance().AddLocalObserver(env, callback);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_JS_ANI, "OnUpdate registered.");
+}
+
+static void OffUpdate([[maybe_unused]] ani_env *env, [[maybe_unused]] ani_object object, ani_object callback)
+{
+    if (env == nullptr) {
+        return;
+    }
+    PasteboardAniObserverManager::GetInstance().RemoveLocalObserver(env, callback);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_JS_ANI, "OffUpdate unregistered.");
+}
+
+static void OnRemoteUpdate([[maybe_unused]] ani_env *env, [[maybe_unused]] ani_object object, ani_object callback)
+{
+    if (env == nullptr) {
+        return;
+    }
+    PasteboardAniObserverManager::GetInstance().AddRemoteObserver(env, callback);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_JS_ANI, "OnRemoteUpdate registered.");
+}
+
+static void OffRemoteUpdate([[maybe_unused]] ani_env *env, [[maybe_unused]] ani_object object, ani_object callback)
+{
+    if (env == nullptr) {
+        return;
+    }
+    PasteboardAniObserverManager::GetInstance().RemoveRemoteObserver(env, callback);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_JS_ANI, "OffRemoteUpdate unregistered.");
+}
+
+static ani_boolean HasData([[maybe_unused]] ani_env *env)
+{
+    return PasteboardAniSystemAdapter::HasData(env);
+}
+
+static ani_boolean HasDataSync([[maybe_unused]] ani_env *env)
+{
+    return PasteboardAniSystemAdapter::HasDataSync(env);
+}
+
+static ani_boolean HasRemoteData([[maybe_unused]] ani_env *env)
+{
+    return PasteboardAniSystemAdapter::HasRemoteData(env);
+}
+
+static ani_boolean IsRemoteData([[maybe_unused]] ani_env *env)
+{
+    return PasteboardAniSystemAdapter::IsRemoteData(env);
+}
+
+static void ClearDataSync([[maybe_unused]] ani_env *env)
+{
+    PasteboardAniSystemAdapter::ClearDataSync(env);
+}
+
+static void SetDataSync([[maybe_unused]] ani_env *env, [[maybe_unused]] ani_object object, ani_object pasteData)
+{
+    PasteboardAniSystemAdapter::SetDataSync(env, pasteData);
+}
+
+static ani_long GetChangeCount([[maybe_unused]] ani_env *env)
+{
+    return PasteboardAniSystemAdapter::GetChangeCount(env);
+}
+
+static ani_array GetMimeTypes([[maybe_unused]] ani_env *env)
+{
+    return PasteboardAniSystemAdapter::GetMimeTypes(env);
+}
+
+static ani_array DetectPatterns([[maybe_unused]] ani_env *env, [[maybe_unused]] ani_object object, ani_array patterns)
+{
+    return PasteboardAniSystemAdapter::DetectPatterns(env, patterns);
+}
+
+static void SetAppShareOptions([[maybe_unused]] ani_env *env, [[maybe_unused]] ani_object object,
+    ani_int shareOption)
+{
+    PasteboardAniSystemAdapter::SetAppShareOptions(env, shareOption);
+}
+
+static void RemoveAppShareOptions([[maybe_unused]] ani_env *env, [[maybe_unused]] ani_object object)
+{
+    PasteboardAniSystemAdapter::RemoveAppShareOptions(env);
+}
+
+static ani_object GetDataWithProgress([[maybe_unused]] ani_env *env, [[maybe_unused]] ani_object object,
+    ani_object params)
+{
+    return PasteboardAniSystemAdapter::GetDataWithProgress(env, params);
+}
+
+static ani_array GetMimeTypesFromPasteData([[maybe_unused]] ani_env *env, [[maybe_unused]] ani_object object)
+{
+    return PasteboardAniDataAdapter::GetMimeTypes(env, object);
+}
+
+static ani_object GetPrimaryHtml([[maybe_unused]] ani_env *env, [[maybe_unused]] ani_object object)
+{
+    return PasteboardAniDataAdapter::GetPrimaryHtml(env, object);
+}
+
+static ani_object GetPrimaryText([[maybe_unused]] ani_env *env, [[maybe_unused]] ani_object object)
+{
+    return PasteboardAniDataAdapter::GetPrimaryText(env, object);
+}
+
+static ani_object GetPrimaryUri([[maybe_unused]] ani_env *env, [[maybe_unused]] ani_object object)
+{
+    return PasteboardAniDataAdapter::GetPrimaryUri(env, object);
+}
+
+static ani_object GetPrimaryMimeType([[maybe_unused]] ani_env *env, [[maybe_unused]] ani_object object)
+{
+    return PasteboardAniDataAdapter::GetPrimaryMimeType(env, object);
+}
+
+static ani_object GetPrimaryWant([[maybe_unused]] ani_env *env, [[maybe_unused]] ani_object object)
+{
+    return PasteboardAniDataAdapter::GetPrimaryWant(env, object);
+}
+
+static ani_object GetPrimaryPixelMap([[maybe_unused]] ani_env *env, [[maybe_unused]] ani_object object)
+{
+    return PasteboardAniDataAdapter::GetPrimaryPixelMap(env, object);
+}
+
+static ani_string GetTag([[maybe_unused]] ani_env *env, [[maybe_unused]] ani_object object)
+{
+    return PasteboardAniDataAdapter::GetTag(env, object);
+}
+
+static ani_boolean HasType([[maybe_unused]] ani_env *env, [[maybe_unused]] ani_object object, ani_string type)
+{
+    return PasteboardAniDataAdapter::HasType(env, object, type);
+}
+
+static void RemoveRecordAt([[maybe_unused]] ani_env *env, [[maybe_unused]] ani_object object, ani_int index)
+{
+    PasteboardAniDataAdapter::RemoveRecord(env, object, index);
+}
+
+static void ReplaceRecordAt([[maybe_unused]] ani_env *env, [[maybe_unused]] ani_object object,
+    ani_int index, ani_object record)
+{
+    PasteboardAniDataAdapter::ReplaceRecord(env, object, index, record);
+}
+
+static void PasteDataStart([[maybe_unused]] ani_env *env, [[maybe_unused]] ani_object object)
+{
+    PasteboardAniDataAdapter::PasteStart(env, object);
+}
+
+static void PasteDataComplete([[maybe_unused]] ani_env *env, [[maybe_unused]] ani_object object)
+{
+    PasteboardAniDataAdapter::PasteComplete(env, object);
+}
+
 ANI_EXPORT ani_status ANI_Constructor_Namespace(ani_env *env)
 {
     if (env == nullptr) {
@@ -1024,6 +1198,7 @@ ANI_EXPORT ani_status ANI_Constructor_Namespace(ani_env *env)
         ani_native_function {"createDataTypeValue", nullptr, reinterpret_cast<void *>(CreateDataTypeValue)},
         ani_native_function {"createDataRecord", nullptr, reinterpret_cast<void *>(CreateDataRecord)},
         ani_native_function {"getSystemPasteboard", nullptr, reinterpret_cast<void *>(GetSystemPasteboard)},
+        ani_native_function {"createRecord", nullptr, reinterpret_cast<void *>(CreateRecord)},
     };
 
     if (ANI_OK != env->Namespace_BindNativeFunctions(ns, methods.data(), methods.size())) {
@@ -1055,6 +1230,19 @@ ANI_EXPORT ani_status ANI_Constructor_PasteData(ani_env *env)
         ani_native_function {"getRecord", nullptr, reinterpret_cast<void *>(GetRecord)},
         ani_native_function {"setProperty", nullptr, reinterpret_cast<void *>(SetProperty)},
         ani_native_function {"getProperty", nullptr, reinterpret_cast<void *>(GetProperty)},
+        ani_native_function {"getMimeTypes", nullptr, reinterpret_cast<void *>(GetMimeTypesFromPasteData)},
+        ani_native_function {"getPrimaryHtml", nullptr, reinterpret_cast<void *>(GetPrimaryHtml)},
+        ani_native_function {"getPrimaryText", nullptr, reinterpret_cast<void *>(GetPrimaryText)},
+        ani_native_function {"getPrimaryUri", nullptr, reinterpret_cast<void *>(GetPrimaryUri)},
+        ani_native_function {"getPrimaryMimeType", nullptr, reinterpret_cast<void *>(GetPrimaryMimeType)},
+        ani_native_function {"getPrimaryWant", nullptr, reinterpret_cast<void *>(GetPrimaryWant)},
+        ani_native_function {"getPrimaryPixelMap", nullptr, reinterpret_cast<void *>(GetPrimaryPixelMap)},
+        ani_native_function {"getTag", nullptr, reinterpret_cast<void *>(GetTag)},
+        ani_native_function {"hasType", nullptr, reinterpret_cast<void *>(HasType)},
+        ani_native_function {"removeRecordAt", nullptr, reinterpret_cast<void *>(RemoveRecordAt)},
+        ani_native_function {"replaceRecordAt", nullptr, reinterpret_cast<void *>(ReplaceRecordAt)},
+        ani_native_function {"pasteStart", nullptr, reinterpret_cast<void *>(PasteDataStart)},
+        ani_native_function {"pasteComplete", nullptr, reinterpret_cast<void *>(PasteDataComplete)},
     };
 
     if (ANI_OK != env->Class_BindNativeMethods(cls, methods.data(), methods.size())) {
@@ -1084,6 +1272,22 @@ ANI_EXPORT ani_status ANI_Constructor_SystemPasteboard(ani_env *env)
         ani_native_function {"nativeClearData", nullptr, reinterpret_cast<void *>(ClearData)},
         ani_native_function {"getDataSync", nullptr, reinterpret_cast<void *>(GetDataSync)},
         ani_native_function {"getDataSource", nullptr, reinterpret_cast<void *>(GetDataSource)},
+        ani_native_function {"onUpdate", nullptr, reinterpret_cast<void *>(OnUpdate)},
+        ani_native_function {"offUpdate", nullptr, reinterpret_cast<void *>(OffUpdate)},
+        ani_native_function {"onRemoteUpdate", nullptr, reinterpret_cast<void *>(OnRemoteUpdate)},
+        ani_native_function {"offRemoteUpdate", nullptr, reinterpret_cast<void *>(OffRemoteUpdate)},
+        ani_native_function {"hasData", nullptr, reinterpret_cast<void *>(HasData)},
+        ani_native_function {"hasDataSync", nullptr, reinterpret_cast<void *>(HasDataSync)},
+        ani_native_function {"hasRemoteData", nullptr, reinterpret_cast<void *>(HasRemoteData)},
+        ani_native_function {"isRemoteData", nullptr, reinterpret_cast<void *>(IsRemoteData)},
+        ani_native_function {"clearDataSync", nullptr, reinterpret_cast<void *>(ClearDataSync)},
+        ani_native_function {"setDataSync", nullptr, reinterpret_cast<void *>(SetDataSync)},
+        ani_native_function {"getChangeCount", nullptr, reinterpret_cast<void *>(GetChangeCount)},
+        ani_native_function {"getMimeTypes", nullptr, reinterpret_cast<void *>(GetMimeTypes)},
+        ani_native_function {"detectPatterns", nullptr, reinterpret_cast<void *>(DetectPatterns)},
+        ani_native_function {"setAppShareOptions", nullptr, reinterpret_cast<void *>(SetAppShareOptions)},
+        ani_native_function {"removeAppShareOptions", nullptr, reinterpret_cast<void *>(RemoveAppShareOptions)},
+        ani_native_function {"getDataWithProgress", nullptr, reinterpret_cast<void *>(GetDataWithProgress)},
     };
 
     if (ANI_OK != env->Class_BindNativeMethods(cls, methods.data(), methods.size())) {

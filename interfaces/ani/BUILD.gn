@@ -52,7 +52,11 @@ ohos_shared_library("pasteboard_ani") {
     "-O2",
   ]
 
-  sources = [ "src/pasteboard_ani.cpp" ]
+  sources = [
+    "src/pasteboard_ani.cpp",
+    "src/pasteboard_ani_observer.cpp",
+    "src/pasteboard_ani_record.cpp",
+  ]
   part_name = "pasteboard"
   subsystem_name = "distributeddatamgr"
   output_extension = "so"
