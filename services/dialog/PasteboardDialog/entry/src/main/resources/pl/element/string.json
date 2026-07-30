@@ -29,13 +29,6 @@
             }
         },
         {
-            "name":"pasteboard_desc_text",
-            "value":"Skopiuj na jednym urządzeniu i wklej na innym. Urządzenia muszą się znajdować blisko siebie, być zalogowane do tego samego ID oraz mieć włączoną sieć WLAN, Bluetooth i tę funkcję. %s",
-            "attr":{
-                "priority":"LT"
-            }
-        },
-        {
             "name":"prompttext_udmf_format_error",
             "value":"Nie udało się przekonwertować formatu. Spróbuj ponownie później.",
             "attr":{

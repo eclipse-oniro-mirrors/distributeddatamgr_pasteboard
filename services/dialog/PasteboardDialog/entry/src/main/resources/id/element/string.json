@@ -29,13 +29,6 @@
             }
         },
         {
-            "name":"pasteboard_desc_text",
-            "value":"Salin di satu perangkat, tempelkan di perangkat lain. Perangkat tersebut harus saling berdekatan, masuk ke ID yang sama, serta telah mengaktifkan WLAN, Bluetooth, dan fitur ini. %s",
-            "attr":{
-                "priority":"LT"
-            }
-        },
-        {
             "name":"prompttext_udmf_format_error",
             "value":"Konversi format gagal. Coba lagi nanti.",
             "attr":{

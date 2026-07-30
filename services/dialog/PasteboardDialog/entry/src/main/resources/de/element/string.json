@@ -29,13 +29,6 @@
             }
         },
         {
-            "name":"pasteboard_desc_text",
-            "value":"Daten von Gerät zu Gerät kopieren und einfügen. Die Geräte müssen nahe beieinander und bei derselben ID angemeldet sein. WLAN, Bluetooth und die hier angezeigte Funktion müssen aktiviert sein. %s",
-            "attr":{
-                "priority":"LT"
-            }
-        },
-        {
             "name":"prompttext_udmf_format_error",
             "value":"Formatkonvertierung fehlgeschlagen, versuchen Sie es später erneut.",
             "attr":{

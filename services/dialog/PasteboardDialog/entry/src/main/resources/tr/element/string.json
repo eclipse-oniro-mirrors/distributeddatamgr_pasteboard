@@ -29,13 +29,6 @@
             }
         },
         {
-            "name":"pasteboard_desc_text",
-            "value":"Bir cihazda kopyalayın, diğerine yapıştırın. Cihazların birbirine yakın olması, aynı Kimliğine giriş yapmış olması ve WLAN, Bluetooth ve bu özelliğin etkinleştirilmiş olması gerekir. %s",
-            "attr":{
-                "priority":"LT"
-            }
-        },
-        {
             "name":"prompttext_udmf_format_error",
             "value":"Format dönüştürme başarısız. Daha sonra tekrar deneyin.",
             "attr":{
