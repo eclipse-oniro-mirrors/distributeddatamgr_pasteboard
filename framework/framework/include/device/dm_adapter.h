@@ -16,7 +16,7 @@
 #ifndef OHOS_PASTEBOARD_SERVICES_DEVICE_DM_ADAPTER_H
 #define OHOS_PASTEBOARD_SERVICES_DEVICE_DM_ADAPTER_H
 #include <shared_mutex>
-#include <unordered_set>
+#include <unordered_map>
 
 #include "api/visibility.h"
 #include "common/concurrent_map.h"
@@ -107,7 +107,7 @@ private:
     std::shared_ptr<DmDeath> dmDeathObserver_ = nullptr;
     std::shared_mutex dmMutex_;
     std::mutex observerMutex_;
-    std::unordered_set<std::string> devices_;
+    std::unordered_map<std::string, DmDeviceInfo> devices_;
     std::atomic<int32_t> deviceType_ = DmDeviceType::DEVICE_TYPE_UNKNOWN;
 #endif
 };

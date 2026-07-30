@@ -110,7 +110,7 @@ HWTEST_F(DistributedModuleConfigMockTest, GetEnabledStatusTest002, TestSize.Leve
     info.authForm = IDENTICAL_ACCOUNT;
     std::copy(networkId.begin(), networkId.end(), info.networkId);
     std::copy(testName.begin(), testName.end(), info.deviceName);
-    DMAdapter::GetInstance().devices_.emplace("invalidUdid");
+    DMAdapter::GetInstance().devices_["invalidUdid"] = info;
     DistributedModuleConfig config;
     int32_t ret = config.GetEnabledStatus();
     ASSERT_EQ(static_cast<int32_t>(PasteboardError::NO_TRUST_DEVICE_ERROR), ret);
@@ -149,7 +149,7 @@ HWTEST_F(DistributedModuleConfigMockTest, GetEnabledStatusTest003, TestSize.Leve
     info.authForm = IDENTICAL_ACCOUNT;
     std::copy(networkId.begin(), networkId.end(), info.networkId);
     std::copy(testName.begin(), testName.end(), info.deviceName);
-    DMAdapter::GetInstance().devices_.emplace("testUdid");
+    DMAdapter::GetInstance().devices_["testUdid"] = info;
     DistributedModuleConfig config;
     int32_t ret = config.GetEnabledStatus();
     ASSERT_EQ(static_cast<int32_t>(PasteboardError::E_OK), ret);
@@ -187,7 +187,7 @@ HWTEST_F(DistributedModuleConfigMockTest, Notify001, TestSize.Level0)
     info.authForm = IDENTICAL_ACCOUNT;
     std::copy(networkId.begin(), networkId.end(), info.networkId);
     std::copy(testName.begin(), testName.end(), info.deviceName);
-    DMAdapter::GetInstance().devices_.emplace("testUdid");
+    DMAdapter::GetInstance().devices_["testUdid"] = info;
     DistributedModuleConfig config;
     config.status_ = false;
     config.Notify();
@@ -226,7 +226,7 @@ HWTEST_F(DistributedModuleConfigMockTest, Notify002, TestSize.Level0)
     info.authForm = IDENTICAL_ACCOUNT;
     std::copy(networkId.begin(), networkId.end(), info.networkId);
     std::copy(testName.begin(), testName.end(), info.deviceName);
-    DMAdapter::GetInstance().devices_.emplace("testUdid");
+    DMAdapter::GetInstance().devices_["testUdid"] = info;
     DistributedModuleConfig config;
     config.status_ = false;
     std::function<void(bool isOn)> func = [](bool isOn) {
@@ -269,7 +269,7 @@ HWTEST_F(DistributedModuleConfigMockTest, GetRemoteDeviceMinVersion001, TestSize
     info.authForm = IDENTICAL_ACCOUNT;
     std::copy(networkId.begin(), networkId.end(), info.networkId);
     std::copy(testName.begin(), testName.end(), info.deviceName);
-    DMAdapter::GetInstance().devices_.emplace("testUdid");
+    DMAdapter::GetInstance().devices_["testUdid"] = info;
     DistributedModuleConfig config;
     uint32_t minVersion = config.GetRemoteDeviceMinVersion();
     ASSERT_EQ(UINT_MAX, minVersion);
@@ -307,7 +307,7 @@ HWTEST_F(DistributedModuleConfigMockTest, GetRemoteDeviceMinVersion002, TestSize
     info.authForm = IDENTICAL_ACCOUNT;
     std::copy(networkId.begin(), networkId.end(), info.networkId);
     std::copy(testName.begin(), testName.end(), info.deviceName);
-    DMAdapter::GetInstance().devices_.emplace("testUdid");
+    DMAdapter::GetInstance().devices_["testUdid"] = info;
     DistributedModuleConfig config;
     uint32_t minVersion = config.GetRemoteDeviceMinVersion();
     ASSERT_EQ(UINT_MAX, minVersion);
@@ -345,7 +345,7 @@ HWTEST_F(DistributedModuleConfigMockTest, GetRemoteDeviceMinVersion003, TestSize
     info.authForm = IDENTICAL_ACCOUNT;
     std::copy(networkId.begin(), networkId.end(), info.networkId);
     std::copy(testName.begin(), testName.end(), info.deviceName);
-    DMAdapter::GetInstance().devices_.emplace("testUdid");
+    DMAdapter::GetInstance().devices_["testUdid"] = info;
     DistributedModuleConfig config;
     uint32_t minVersion = config.GetRemoteDeviceMinVersion();
     ASSERT_EQ(UINT_MAX, minVersion);
@@ -383,7 +383,7 @@ HWTEST_F(DistributedModuleConfigMockTest, GetRemoteDeviceMinVersion004, TestSize
     info.authForm = IDENTICAL_ACCOUNT;
     std::copy(networkId.begin(), networkId.end(), info.networkId);
     std::copy(testName.begin(), testName.end(), info.deviceName);
-    DMAdapter::GetInstance().devices_.emplace("testUdid");
+    DMAdapter::GetInstance().devices_["testUdid"] = info;
     DistributedModuleConfig config;
     uint32_t minVersion = config.GetRemoteDeviceMinVersion();
     ASSERT_EQ(UINT_MAX, minVersion);

@@ -13,8 +13,6 @@
  * limitations under the License.
  */
 
-#include <algorithm>
-#include <cstring>
 #include <thread>
 
 #include "common/pasteboard_common_utils.h"
@@ -105,9 +103,6 @@ DMAdapter::DMAdapter() {}
 
 DMAdapter::~DMAdapter()
 {
-#ifdef PB_DEVICE_MANAGER_ENABLE
-    devices_.clear();
-#endif
 }
 
 DMAdapter &DMAdapter::GetInstance()
@@ -224,16 +219,17 @@ const std::string DMAdapter::GetLocalNetworkId()
 int32_t DMAdapter::GetRemoteDeviceInfo(const std::string &networkId, DmDeviceInfo &remoteDevice)
 {
     remoteDevice = {};
-    if (IsDeviceOnline(networkId)) {
-        PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(networkId.size() < sizeof(remoteDevice.networkId),
-            static_cast<int32_t>(PasteboardError::INVALID_PARAM_ERROR), PASTEBOARD_MODULE_SERVICE,
-            "networkId too long");
-        std::copy(networkId.begin(), networkId.end(), remoteDevice.networkId);
-        std::copy_n(DEVICE_INVALID_NAME, strlen(DEVICE_INVALID_NAME), remoteDevice.deviceName);
-        remoteDevice.authForm = IDENTICAL_ACCOUNT;
-        return static_cast<int32_t>(PasteboardError::E_OK);
+    auto udid = GetUdidByNetworkId(networkId);
+    if (udid.empty()) {
+        return static_cast<int32_t>(PasteboardError::NO_TRUST_DEVICE_ERROR);
     }
-    return static_cast<int32_t>(PasteboardError::NO_TRUST_DEVICE_ERROR);
+    std::shared_lock<std::shared_mutex> lock(dmMutex_);
+    auto it = devices_.find(udid);
+    if (it == devices_.end()) {
+        return static_cast<int32_t>(PasteboardError::NO_TRUST_DEVICE_ERROR);
+    }
+    remoteDevice = it->second;
+    return static_cast<int32_t>(PasteboardError::E_OK);
 }
 #endif
 
@@ -263,7 +259,12 @@ std::vector<std::string> DMAdapter::GetUdidList()
 {
 #ifdef PB_DEVICE_MANAGER_ENABLE
     std::shared_lock<std::shared_mutex> lock(dmMutex_);
-    return { devices_.begin(), devices_.end() };
+    std::vector<std::string> udids;
+    udids.reserve(devices_.size());
+    for (const auto &entry : devices_) {
+        udids.push_back(entry.first);
+    }
+    return udids;
 #else
     return {};
 #endif
@@ -323,7 +324,7 @@ std::string DMAdapter::AddDevice(const DmDeviceInfo &deviceInfo)
         return {};
     }
     std::unique_lock<std::shared_mutex> lock(dmMutex_);
-    devices_.emplace(udid);
+    devices_[udid] = deviceInfo;
     return udid;
 }
 
