@@ -29,13 +29,6 @@
             }
         },
         {
-            "name":"pasteboard_desc_text",
-            "value":"Salin pada sebuah peranti, tampal pada yang lain. Peranti-peranti mestilah didekatkan, dilog masuk ke ID yang sama, dan didayakan WLAN, Bluetooth, dan ciri ini. %s",
-            "attr":{
-                "priority":"LT"
-            }
-        },
-        {
             "name":"prompttext_udmf_format_error",
             "value":"Pertukaran format gagal. Cuba sebentar lagi.",
             "attr":{

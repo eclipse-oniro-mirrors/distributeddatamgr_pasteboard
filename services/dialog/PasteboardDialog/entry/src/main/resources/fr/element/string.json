@@ -85,13 +85,6 @@
             }
         },
         {
-            "name":"pasteboard_desc_text",
-            "value":"Copier sur un appareil, coller sur un autre. Les appareils doivent être proches les uns des autres et connectés au même Compte. De plus, le WLAN, le Bluetooth et cette fonctionnalité doivent être activés sur ces appareils. %s",
-            "attr":{
-                "priority":"LT"
-            }
-        },
-        {
             "name":"prompttext_udmf_format_error",
             "value":"La conversion du format a échoué. Veuillez réessayer ultérieurement.",
             "attr":{

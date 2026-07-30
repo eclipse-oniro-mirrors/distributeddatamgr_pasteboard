@@ -22,13 +22,6 @@
             }
         },
         {
-            "name":"pasteboard_desc_text",
-            "value":"Copy on one device, paste on another. Devices must be near each other, logged in to the same ID, and have WLAN, Bluetooth, and this feature enabled. %s",
-            "attr":{
-                "priority":"translate"
-            }
-        },
-        {
             "name":"prompttext_udmf_format_error",
             "value":"Format conversion failed. Try again later.",
             "attr":{
