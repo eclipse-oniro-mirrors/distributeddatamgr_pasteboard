@@ -509,7 +509,7 @@ PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "GetRemoteDeviceInfo002 start");
     info.authForm = IDENTICAL_ACCOUNT;
     std::copy(networkId.begin(), networkId.end(), info.networkId);
     std::copy(testName.begin(), testName.end(), info.deviceName);
-    DMAdapter::GetInstance().devices_[networkId] = info;
+    DMAdapter::GetInstance().devices_.emplace(networkId);
     DmDeviceInfo remoteDevice;
     int32_t result = DMAdapter::GetInstance().GetRemoteDeviceInfo("testNetworkId", remoteDevice);
     ASSERT_EQ(static_cast<int32_t>(PasteboardError::NO_TRUST_DEVICE_ERROR), result);
@@ -608,7 +608,7 @@ PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "GetDeviceName003 start");
     info.authForm = IDENTICAL_ACCOUNT;
     std::copy(networkId.begin(), networkId.end(), info.networkId);
     std::copy(expectedDeviceName.begin(), expectedDeviceName.end(), info.deviceName);
-    DMAdapter::GetInstance().devices_[networkId] = info;
+    DMAdapter::GetInstance().devices_.emplace(networkId);
     std::string actualDeviceName = DMAdapter::GetInstance().GetDeviceName(networkId);
     EXPECT_EQ(expectedDeviceName, actualDeviceName);
 #else
@@ -635,7 +635,7 @@ PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "GetDeviceName004 start");
     info.authForm = IDENTICAL_ACCOUNT;
     std::copy(networkId.begin(), networkId.end(), info.networkId);
     std::copy(testName.begin(), testName.end(), info.deviceName);
-    DMAdapter::GetInstance().devices_[networkId] = info;
+    DMAdapter::GetInstance().devices_.emplace(networkId);
     std::string actualDeviceName = DMAdapter::GetInstance().GetDeviceName("testNetworkId");
     EXPECT_EQ("unknown", actualDeviceName);
 #else

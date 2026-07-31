@@ -316,8 +316,7 @@ PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "GetUdidByNetworkId004 start");
     constexpr const char *ONLINE_UDID = "onlineUdid";
     constexpr const char *RESOLVED_UDID = "resolvedUdid";
     DMAdapter::GetInstance().devices_.clear();
-    DmDeviceInfo info;
-    DMAdapter::GetInstance().devices_[ONLINE_UDID] = info;
+    DMAdapter::GetInstance().devices_.emplace(ONLINE_UDID);
 
     EXPECT_CALL(*deviceManagerMock_, GetUdidByNetworkId(testing::_, testing::_, testing::_))
         .Times(1)
@@ -400,15 +399,15 @@ PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "OnDeviceOnlineMaintainsUdidCache001
 }
 
 /**
- * @tc.name: GetRemoteDeviceInfoReturnsCachedName001
- * @tc.desc: GetRemoteDeviceInfo should return the cached real device name instead of "unknown".
+ * @tc.name: GetRemoteDeviceInfoByDeviceManager001
+ * @tc.desc: GetRemoteDeviceInfo should query DeviceManager for the real device name on demand.
  * @tc.type: FUNC
  * @tc.require:
  * @tc.author:
  */
-HWTEST_F(DMAdapterMockTest, GetRemoteDeviceInfoReturnsCachedName001, TestSize.Level0)
+HWTEST_F(DMAdapterMockTest, GetRemoteDeviceInfoByDeviceManager001, TestSize.Level0)
 {
-PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "GetRemoteDeviceInfoReturnsCachedName001 start");
+PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "GetRemoteDeviceInfoByDeviceManager001 start");
 #ifdef PB_DEVICE_MANAGER_ENABLE
     constexpr const char *NETWORK_ID = "testNetworkId";
     constexpr const char *UDID = "testUdid";
@@ -420,13 +419,18 @@ PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "GetRemoteDeviceInfoReturnsCachedNam
             udid = UDID;
             return 0;
         });
-    DmDeviceInfo info;
-    info.authForm = IDENTICAL_ACCOUNT;
-    std::string networkId = NETWORK_ID;
-    std::copy(networkId.begin(), networkId.end(), info.networkId);
-    std::string deviceName = DEVICE_NAME;
-    std::copy(deviceName.begin(), deviceName.end(), info.deviceName);
-    DMAdapter::GetInstance().devices_[UDID] = info;
+    EXPECT_CALL(*deviceManagerMock_, GetDeviceInfo(testing::_, testing::_, testing::_))
+        .Times(1)
+        .WillRepeatedly([](auto, auto, DmDeviceInfo &deviceInfo) {
+            deviceInfo = {};
+            deviceInfo.authForm = IDENTICAL_ACCOUNT;
+            std::string networkId = NETWORK_ID;
+            std::copy(networkId.begin(), networkId.end(), deviceInfo.networkId);
+            std::string deviceName = DEVICE_NAME;
+            std::copy(deviceName.begin(), deviceName.end(), deviceInfo.deviceName);
+            return 0;
+        });
+    DMAdapter::GetInstance().devices_.emplace(UDID);
 
     DmDeviceInfo remoteDevice;
     int32_t ret = DMAdapter::GetInstance().GetRemoteDeviceInfo(NETWORK_ID, remoteDevice);
@@ -437,7 +441,7 @@ PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "GetRemoteDeviceInfoReturnsCachedNam
 #else
     ASSERT_TRUE(true);
 #endif
-PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "GetRemoteDeviceInfoReturnsCachedName001 end");
+PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "GetRemoteDeviceInfoByDeviceManager001 end");
 }
 
 } // namespace MiscServices

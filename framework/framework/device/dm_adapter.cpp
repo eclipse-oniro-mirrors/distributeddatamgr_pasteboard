@@ -219,16 +219,14 @@ const std::string DMAdapter::GetLocalNetworkId()
 int32_t DMAdapter::GetRemoteDeviceInfo(const std::string &networkId, DmDeviceInfo &remoteDevice)
 {
     remoteDevice = {};
-    auto udid = GetUdidByNetworkId(networkId);
-    if (udid.empty()) {
+    if (!IsDeviceOnline(networkId)) {
         return static_cast<int32_t>(PasteboardError::NO_TRUST_DEVICE_ERROR);
     }
-    std::shared_lock<std::shared_mutex> lock(dmMutex_);
-    auto it = devices_.find(udid);
-    if (it == devices_.end()) {
+    int32_t ret = DeviceManager::GetInstance().GetDeviceInfo(PKG_NAME, networkId, remoteDevice);
+    if (ret != 0) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "GetDeviceInfo failed, ret:%{public}d", ret);
         return static_cast<int32_t>(PasteboardError::NO_TRUST_DEVICE_ERROR);
     }
-    remoteDevice = it->second;
     return static_cast<int32_t>(PasteboardError::E_OK);
 }
 #endif
@@ -259,12 +257,7 @@ std::vector<std::string> DMAdapter::GetUdidList()
 {
 #ifdef PB_DEVICE_MANAGER_ENABLE
     std::shared_lock<std::shared_mutex> lock(dmMutex_);
-    std::vector<std::string> udids;
-    udids.reserve(devices_.size());
-    for (const auto &entry : devices_) {
-        udids.push_back(entry.first);
-    }
-    return udids;
+    return { devices_.begin(), devices_.end() };
 #else
     return {};
 #endif
@@ -324,7 +317,7 @@ std::string DMAdapter::AddDevice(const DmDeviceInfo &deviceInfo)
         return {};
     }
     std::unique_lock<std::shared_mutex> lock(dmMutex_);
-    devices_[udid] = deviceInfo;
+    devices_.emplace(udid);
     return udid;
 }
 

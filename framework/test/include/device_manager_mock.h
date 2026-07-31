@@ -30,6 +30,7 @@ public:
 
 public:
     virtual int32_t GetLocalDeviceInfo(const std::string &pkgName, DmDeviceInfo &deviceInfo) = 0;
+    virtual int32_t GetDeviceInfo(const std::string &pkgName, const std::string &networkId, DmDeviceInfo &deviceInfo) = 0;
     virtual int32_t GetUdidByNetworkId(const std::string &pkgName, const std::string &networkId, std::string &udid) = 0;
     virtual bool IsSameAccount(const std::string &networkId) = 0;
     virtual int32_t GetLocalDeviceType(const std::string &pkgName, int32_t &deviceType) = 0;
@@ -43,6 +44,7 @@ public:
 class DeviceManagerMock : public PasteDeviceManager {
 public:
     MOCK_METHOD(int32_t, GetLocalDeviceInfo, (const std::string &, DmDeviceInfo &));
+    MOCK_METHOD(int32_t, GetDeviceInfo, (const std::string &, const std::string &, DmDeviceInfo &));
     MOCK_METHOD(int32_t, GetUdidByNetworkId, (const std::string &, const std::string &, std::string &));
     MOCK_METHOD(bool, IsSameAccount, (const std::string &));
     MOCK_METHOD(int32_t, GetLocalDeviceType, (const std::string &, int32_t &));
