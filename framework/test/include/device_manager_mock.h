@@ -30,7 +30,8 @@ public:
 
 public:
     virtual int32_t GetLocalDeviceInfo(const std::string &pkgName, DmDeviceInfo &deviceInfo) = 0;
-    virtual int32_t GetDeviceInfo(const std::string &pkgName, const std::string &networkId, DmDeviceInfo &deviceInfo) = 0;
+    virtual int32_t GetDeviceInfo(
+        const std::string &pkgName, const std::string &networkId, DmDeviceInfo &deviceInfo) = 0;
     virtual int32_t GetUdidByNetworkId(const std::string &pkgName, const std::string &networkId, std::string &udid) = 0;
     virtual bool IsSameAccount(const std::string &networkId) = 0;
     virtual int32_t GetLocalDeviceType(const std::string &pkgName, int32_t &deviceType) = 0;

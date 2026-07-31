@@ -220,6 +220,7 @@ int32_t DMAdapter::GetRemoteDeviceInfo(const std::string &networkId, DmDeviceInf
 {
     remoteDevice = {};
     if (!IsDeviceOnline(networkId)) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "device not online, networkId:%{public}.6s", networkId.c_str());
         return static_cast<int32_t>(PasteboardError::NO_TRUST_DEVICE_ERROR);
     }
     int32_t ret = DeviceManager::GetInstance().GetDeviceInfo(PKG_NAME, networkId, remoteDevice);
