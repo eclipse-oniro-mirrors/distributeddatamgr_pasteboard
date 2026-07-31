@@ -2099,4 +2099,115 @@ HWTEST_F(PasteDataTest, SetUserId003, TestSize.Level0)
     EXPECT_EQ(data.GetUserId(), userId);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SetUserId003 end");
 }
+/**
+ * @tc.name: SetPasteIdTest001
+ * @tc.desc: SetPasteId with valid string
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(PasteDataTest, SetPasteIdTest001, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SetPasteIdTest001 start");
+    PasteData pasteData;
+    std::string pasteId = "test_paste_id_123";
+    pasteData.SetPasteId(pasteId);
+    EXPECT_EQ(pasteId, pasteData.GetPasteId());
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SetPasteIdTest001 end");
+}
+
+/**
+ * @tc.name: SetPasteIdTest002
+ * @tc.desc: SetPasteId with empty string
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(PasteDataTest, SetPasteIdTest002, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SetPasteIdTest002 start");
+    PasteData pasteData;
+    std::string pasteId = "";
+    pasteData.SetPasteId(pasteId);
+    EXPECT_EQ(pasteId, pasteData.GetPasteId());
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SetPasteIdTest002 end");
+}
+
+/**
+ * @tc.name: SetPasteIdTest003
+ * @tc.desc: SetPasteId multiple times
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(PasteDataTest, SetPasteIdTest003, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SetPasteIdTest003 start");
+    PasteData pasteData;
+    std::string pasteId1 = "paste_id_1";
+    std::string pasteId2 = "paste_id_2";
+    std::string pasteId3 = "paste_id_3";
+    
+    pasteData.SetPasteId(pasteId1);
+    EXPECT_EQ(pasteId1, pasteData.GetPasteId());
+    
+    pasteData.SetPasteId(pasteId2);
+    EXPECT_EQ(pasteId2, pasteData.GetPasteId());
+    
+    pasteData.SetPasteId(pasteId3);
+    EXPECT_EQ(pasteId3, pasteData.GetPasteId());
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SetPasteIdTest003 end");
+}
+
+/**
+ * @tc.name: SetPasteIdTest004
+ * @tc.desc: SetPasteId after adding records
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(PasteDataTest, SetPasteIdTest004, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SetPasteIdTest004 start");
+    PasteData pasteData;
+    pasteData.AddTextRecord("test text");
+    
+    std::string pasteId = "paste_id_after_record";
+    pasteData.SetPasteId(pasteId);
+    EXPECT_EQ(pasteId, pasteData.GetPasteId());
+    EXPECT_EQ(pasteData.GetRecordCount(), 1);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SetPasteIdTest004 end");
+}
+
+/**
+ * @tc.name: SetPasteIdTest005
+ * @tc.desc: SetPasteId with special characters
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(PasteDataTest, SetPasteIdTest005, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SetPasteIdTest005 start");
+    PasteData pasteData;
+    std::string pasteId = "paste_id_with_special_chars_!@#$%^&*()";
+    pasteData.SetPasteId(pasteId);
+    EXPECT_EQ(pasteId, pasteData.GetPasteId());
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SetPasteIdTest005 end");
+}
+
+/**
+ * @tc.name: GetPasteIdDefaultTest001
+ * @tc.desc: GetPasteId default value test
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(PasteDataTest, GetPasteIdDefaultTest001, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "GetPasteIdDefaultTest001 start");
+    PasteData pasteData;
+    EXPECT_EQ("", pasteData.GetPasteId());
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "GetPasteIdDefaultTest001 end");
+}
 } // namespace OHOS::MiscServices
