@@ -380,6 +380,17 @@ void FuzzGetMimeTypes(FuzzedDataProvider &fdp)
 void FuzzGetPasteDataInfo(FuzzedDataProvider &fdp)
 {
     PasteDataInfo pasteDataInfo;
+    {
+        std::lock_guard lock(g_fdpMutex);
+        std::string mimeType = fdp.ConsumeRandomLengthString();
+        pasteDataInfo.mimeTypes.push_back(mimeType);
+        pasteDataInfo.rawDataSize = fdp.ConsumeIntegral<int64_t>();
+        pasteDataInfo.textDataSize = fdp.ConsumeIntegral<int32_t>();
+        pasteDataInfo.htmlDataSize = fdp.ConsumeIntegral<int32_t>();
+        pasteDataInfo.isDelayedData = fdp.ConsumeBool();
+        pasteDataInfo.isDelayedRecord = fdp.ConsumeBool();
+    }
+
     g_pasteboardService->GetPasteDataInfo(pasteDataInfo);
 }
 
