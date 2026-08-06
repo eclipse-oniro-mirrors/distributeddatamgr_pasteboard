@@ -53,11 +53,19 @@ PasteboardDelayGetterInstance::~PasteboardDelayGetterInstance()
 void UvQueueWorkGetDelayPasteData(uv_work_t *work, int status)
 {
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "UvQueueWorkGetDelayPasteData start");
-    if (UV_ECANCELED == status || work == nullptr || work->data == nullptr) {
+    if (work == nullptr || work->data == nullptr) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "invalid parameter");
         return;
     }
     PasteboardDelayWorker *pasteboardDelayWorker = (PasteboardDelayWorker *)work->data;
+    if (UV_ECANCELED == status) {
+        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_JS_NAPI,"work canceled");
+        delete pasteboardDelayWorker;
+        pasteboardDelayWorker = nullptr;
+        delete work;
+        work = nullptr;
+        return;
+    }
     if (pasteboardDelayWorker == nullptr || pasteboardDelayWorker->delayGetter == nullptr) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "pasteboardDataWorker or delayGetter is null");
         delete work;

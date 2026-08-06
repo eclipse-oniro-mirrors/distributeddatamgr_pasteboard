@@ -559,11 +559,19 @@ PastedataRecordEntryGetterInstance::~PastedataRecordEntryGetterInstance()
 
 void UvWorkGetRecordByEntryGetter(uv_work_t *work, int status)
 {
-    if (UV_ECANCELED == status || work == nullptr || work->data == nullptr) {
+    if (work == nullptr || work->data == nullptr) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "invalid parameter");
         return;
     }
     PasteboardEntryGetterWorker *entryGetterWork = reinterpret_cast<PasteboardEntryGetterWorker *>(work->data);
+    if (UV_ECANCELED == status) {
+        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_JS_NAPI,"work canceled");
+        delete entryGetterWork;
+        entryGetterWork = nullptr;
+        delete work;
+        work = nullptr;
+        return;
+    }
     if (entryGetterWork == nullptr || entryGetterWork->entryGetter == nullptr) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "pasteboardDataWorker or delayGetter is null");
         delete work;
@@ -647,8 +655,10 @@ UDMF::ValueType PastedataRecordEntryGetterInstance::GetValueByType(const std::st
             [entryGetterWork] { return entryGetterWork->complete; }) && entryGetterWork->entryValue != nullptr) {
             return *(entryGetterWork->entryValue);
         }
-        if (!entryGetterWork->complete && uv_cancel((uv_req_t*)work) != 0) {
-            entryGetterWork->clean = true;
+        if (!entryGetterWork->complete) {
+            if (uv_cancel((uv_req_t*)work) != 0) {
+                entryGetterWork->clean = true;
+            }
             noNeedClean = true;
         }
     }
