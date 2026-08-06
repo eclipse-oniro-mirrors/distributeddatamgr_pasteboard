@@ -59,7 +59,7 @@ void UvQueueWorkGetDelayPasteData(uv_work_t *work, int status)
     }
     PasteboardDelayWorker *pasteboardDelayWorker = (PasteboardDelayWorker *)work->data;
     if (UV_ECANCELED == status) {
-        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_JS_NAPI,"work canceled");
+        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_JS_NAPI, "work canceled");
         delete pasteboardDelayWorker;
         pasteboardDelayWorker = nullptr;
         delete work;
