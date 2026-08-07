@@ -164,8 +164,10 @@ void PasteboardDelayGetterInstance::GetUnifiedData(const std::string &type, UDMF
             pasteboardDelayWorker->unifiedData != nullptr) {
             data = *(pasteboardDelayWorker->unifiedData);
         }
-        if (!pasteboardDelayWorker->complete && uv_cancel((uv_req_t*)work) != 0) {
-            pasteboardDelayWorker->clean = true;
+        if (!pasteboardDelayWorker->complete) {
+            if (uv_cancel((uv_req_t*)work) != 0) {
+                pasteboardDelayWorker->clean = true;
+            }
             noNeedClean = true;
         }
     }
