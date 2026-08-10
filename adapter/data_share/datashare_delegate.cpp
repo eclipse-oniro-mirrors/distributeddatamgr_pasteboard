@@ -43,12 +43,12 @@ sptr<IRemoteObject> GetSystemAbilitySafe(int32_t saId)
 
 std::shared_ptr<DataShare::DataShareHelper> DataShareDelegate::CreateDataShareHelper(const std::string &key)
 {
-    std::string SETTING_URI_PROXY;
+    std::string settingUriProxy;
     if (key == DEVICE_COLLAB_SWITCH) {
-        SETTING_URI_PROXY = std::string(SETTING_URI_WIFI_PROXY);
+        settingUriProxy = std::string(SETTING_URI_WIFI_PROXY);
     } else {
         std::lock_guard<std::mutex> lock(userIdMutex_);
-        SETTING_URI_PROXY = std::string(SETTING_URI_PROXY_PREFIX) + userId_ + std::string(SETTING_URI_PROXY_SUFFIX);
+        settingUriProxy = std::string(SETTING_URI_PROXY_PREFIX) + userId_ + std::string(SETTING_URI_PROXY_SUFFIX);
     }
     auto remoteObj = GetSystemAbilitySafe(PASTEBOARD_SA_ID);
     if (!remoteObj) {
@@ -56,7 +56,7 @@ std::shared_ptr<DataShare::DataShareHelper> DataShareDelegate::CreateDataShareHe
         return nullptr;
     }
     
-    auto [ret, helper] = DataShare::DataShareHelper::Create(remoteObj, SETTING_URI_PROXY, SETTINGS_DATA_EXT_URI);
+    auto [ret, helper] = DataShare::DataShareHelper::Create(remoteObj, settingUriProxy, SETTINGS_DATA_EXT_URI);
     remoteObj = nullptr;
     return helper;
 }
