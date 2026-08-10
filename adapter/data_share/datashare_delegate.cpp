@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2026-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -99,23 +99,13 @@ int32_t DataShareDelegate::GetValue(const std::string &key, std::string &value)
     }
     int32_t count = 0;
     int32_t ret = resultSet->GetRowCount(count);
-    if (ret != DataShare::E_OK) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "GetRowCount failed, ret=%{public}d", ret);
-        resultSet->Close();
-        return ret;
-    }
     if (count == 0) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "no value, key=%{public}s", key.c_str());
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "no value, key=%{public}s, ret=%{public}d", key.c_str(), ret);
         resultSet->Close();
         return static_cast<int32_t>(PasteboardError::QUERY_SETTING_NO_DATA_ERROR);
     }
     int32_t index = 0;
-    ret = resultSet->GoToRow(index);
-    if (ret != DataShare::E_OK) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "GoToRow failed, ret=%{public}d", ret);
-        resultSet->Close();
-        return ret;
-    }
+    resultSet->GoToRow(index);
     ret = resultSet->GetString(index, value);
     if (ret != DataShare::E_OK) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "get value failed, ret=%{public}d", ret);

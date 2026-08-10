@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2026-2025 Huawei Device Co., Ltd.
+ * Copyright (C) 2022-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -160,8 +160,7 @@ void DevProfile::SubscribeProfileEvent(const std::string &udid)
         "register dp update callback failed, ret=%{public}d", ret);
 
     ret = adapter->SubscribeProfileEvent(udid);
-    PASTEBOARD_CHECK_AND_RETURN_LOGE(ret == static_cast<int32_t>(PasteboardError::E_OK), PASTEBOARD_MODULE_SERVICE,
-        "subscribe dp event failed, udid=%{public}.5s, ret=%{public}d", udid.c_str(), ret);
+    PASTEBOARD_HILOGD(PASTEBOARD_MODULE_SERVICE, "udid=%{public}.5s, ret=%{public}d", udid.c_str(), ret);
 
     subscribeUdidList_.emplace(udid);
 }
