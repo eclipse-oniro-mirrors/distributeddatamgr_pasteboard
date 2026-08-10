@@ -16,6 +16,7 @@
 #define LOG_TAG "Pasteboard_Capi"
 
 #include <thread>
+#include <vector>
 
 #include "oh_pasteboard_observer_impl.h"
 #include "pasteboard_client.h"
@@ -31,7 +32,8 @@ using namespace OHOS::MiscServices;
 
 static bool IsPasteboardValid(OH_Pasteboard *pasteboard)
 {
-    return pasteboard != nullptr && pasteboard->cid == PASTEBOARD_STRUCT_ID;
+    return pasteboard != nullptr && pasteboard->cid == PASTEBOARD_STRUCT_ID
+        && !pasteboard->destroyed.load(std::memory_order_acquire);
 }
 
 static bool IsSubscriberValid(OH_PasteboardObserver *observer)
@@ -120,17 +122,30 @@ void OH_Pasteboard_Destroy(OH_Pasteboard *pasteboard)
     if (!IsPasteboardValid(pasteboard)) {
         return;
     }
-    std::unique_lock<std::mutex> lock(pasteboard->mutex);
-    for (auto iter : pasteboard->observers_) {
-        if (iter.second != nullptr) {
+    std::vector<OHOS::sptr<OHOS::MiscServices::PasteboardObserverCapiImpl>> observers;
+    {
+        std::lock_guard<std::mutex> lock(pasteboard->mutex);
+        if (!IsPasteboardValid(pasteboard)) {
+            return;
+        }
+        pasteboard->destroyed.store(true, std::memory_order_release);
+        for (auto &iter : pasteboard->observers_) {
+            if (iter.second != nullptr) {
+                observers.push_back(iter.second);
+            }
+        }
+        pasteboard->observers_.clear();
+        pasteboard->mimeTypes_.clear();
+        delete[] pasteboard->mimeTypesPtr;
+        pasteboard->mimeTypesPtr = nullptr;
+    }
+    for (auto &observer : observers) {
+        if (observer != nullptr) {
             PasteboardClient::GetInstance()->Unsubscribe(
-                static_cast<PasteboardObserverType>(iter.second->GetType()), iter.second);
+                static_cast<PasteboardObserverType>(observer->GetType()), observer);
         }
     }
-    pasteboard->observers_.clear();
-    pasteboard->mimeTypes_.clear();
-    delete[] pasteboard->mimeTypesPtr;
-    pasteboard->mimeTypesPtr = nullptr;
+    std::unique_lock<std::mutex> lock(pasteboard->mutex);
     lock.release();
     delete pasteboard;
 }

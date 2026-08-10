@@ -15,6 +15,8 @@
 #ifndef OH_PASTEBOARD_COMMON_H
 #define OH_PASTEBOARD_COMMON_H
 
+#include <atomic>
+
 #include "oh_pasteboard.h"
 #include "oh_pasteboard_err_code.h"
 #include "pasteboard_error.h"
@@ -45,6 +47,7 @@ enum PasteboardNdkStructId : std::int64_t {
 
 struct OH_Pasteboard {
     const int64_t cid = PASTEBOARD_STRUCT_ID;
+    std::atomic<bool> destroyed{false};
     std::mutex mutex;
     std::map<const OH_PasteboardObserver *, OHOS::sptr<OHOS::MiscServices::PasteboardObserverCapiImpl>> observers_;
     std::vector<std::string> mimeTypes_;
