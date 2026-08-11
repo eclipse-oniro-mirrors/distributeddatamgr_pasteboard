@@ -28,7 +28,7 @@ public:
     void OnSubProfileChanged(const AccountSA::SubProfileEventData &eventData) override;
 
 private:
-    void OnSubProfileAccountsChangedInner(const sptr<PasteboardService>& service,
+    static void OnSubProfileAccountsChangedInner(const sptr<PasteboardService>& service,
         AccountSA::OsAccountSubProfileEventType type, int32_t osAccountId);
     sptr<PasteboardService> pasteboardService_ = nullptr;
 };

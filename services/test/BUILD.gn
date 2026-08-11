@@ -242,7 +242,6 @@ ohos_unittest("PasteServInterfaceMockTest") {
     "${pasteboard_service_path}/dfx/src/command.cpp",
     "${pasteboard_service_path}/dfx/src/fault/pasteboard_fault_impl.cpp",
     "${pasteboard_service_path}/dfx/src/hiview_adapter.cpp",
-    "${pasteboard_service_path}/dfx/src/pasteboard_dump_helper.cpp",
     "${pasteboard_service_path}/dfx/src/pasteboard_event_dfx.cpp",
     "${pasteboard_service_path}/dfx/src/pasteboard_trace.cpp",
     "${pasteboard_service_path}/dfx/src/reporter.cpp",
@@ -777,6 +776,7 @@ ohos_unittest("PasteServGetLocalDataTest") {
     "${pasteboard_service_path}/zidl/src/pasteboard_entry_getter_proxy.cpp",
     "${pasteboard_utils_path}/native/src/pasteboard_common.cpp",
     "${pasteboard_utils_path}/native/src/pasteboard_time.cpp",
+    "${pasteboard_service_path}/core/src/pasteboard_window_manager.cpp",
     "unittest/src/pasteboard_service_getlocaldata_test.cpp",
   ]
   defines = []
@@ -913,6 +913,7 @@ ohos_unittest("PasteServSubscribeTest") {
     "${pasteboard_service_path}/zidl/src/pasteboard_entry_getter_proxy.cpp",
     "${pasteboard_utils_path}/native/src/pasteboard_common.cpp",
     "${pasteboard_utils_path}/native/src/pasteboard_time.cpp",
+    "${pasteboard_service_path}/core/src/pasteboard_window_manager.cpp",
     "unittest/src/pasteboard_service_subscribe_test.cpp",
   ]
   defines = []
@@ -1049,6 +1050,7 @@ ohos_unittest("PasteServNotifyTest") {
     "${pasteboard_service_path}/zidl/src/pasteboard_entry_getter_proxy.cpp",
     "${pasteboard_utils_path}/native/src/pasteboard_common.cpp",
     "${pasteboard_utils_path}/native/src/pasteboard_time.cpp",
+    "${pasteboard_service_path}/core/src/pasteboard_window_manager.cpp",
     "unittest/src/pasteboard_service_notify_test.cpp",
   ]
   defines = []
@@ -1185,6 +1187,7 @@ ohos_unittest("PasteServSetDataTest") {
     "${pasteboard_service_path}/zidl/src/pasteboard_entry_getter_proxy.cpp",
     "${pasteboard_utils_path}/native/src/pasteboard_common.cpp",
     "${pasteboard_utils_path}/native/src/pasteboard_time.cpp",
+    "${pasteboard_service_path}/core/src/pasteboard_window_manager.cpp",
     "unittest/src/pasteboard_service_setdata_test.cpp",
   ]
   defines = []
@@ -1321,6 +1324,7 @@ ohos_unittest("PasteServGetDataTest") {
     "${pasteboard_service_path}/zidl/src/pasteboard_entry_getter_proxy.cpp",
     "${pasteboard_utils_path}/native/src/pasteboard_common.cpp",
     "${pasteboard_utils_path}/native/src/pasteboard_time.cpp",
+    "${pasteboard_service_path}/core/src/pasteboard_window_manager.cpp",
     "unittest/src/pasteboard_service_getdata_test.cpp",
   ]
   defines = []

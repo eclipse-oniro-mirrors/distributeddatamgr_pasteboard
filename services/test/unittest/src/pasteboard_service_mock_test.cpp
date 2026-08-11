@@ -215,8 +215,9 @@ static PasteboardServiceInterface *GetPasteboardServiceInterface()
 }
 
 extern "C" {
-int32_t InputMethodController::GetDefaultInputMethod(std::shared_ptr<Property> &property)
+int32_t InputMethodController::GetDefaultInputMethod(std::shared_ptr<Property> &property, int32_t userId)
 {
+    (void)userId;
     PasteboardServiceInterface *interface = GetPasteboardServiceInterface();
     if (interface == nullptr) {
         return 0;
@@ -432,16 +433,6 @@ uint32_t DistributedModuleConfig::GetRemoteDeviceMinVersion()
     return interface->GetRemoteDeviceMinVersion();
 }
 
-int32_t RemoteFileShare::GetDfsUriFromLocal(
-    const std::string &uriStr, const int32_t &userId, struct HmdfsUriInfo &hui)
-{
-    PasteboardServiceInterface *interface = GetPasteboardServiceInterface();
-    if (interface == nullptr) {
-        return UINT_MAX;
-    }
-    return interface->GetDfsUriFromLocal(uriStr, userId, hui);
-}
-
 std::vector<std::shared_ptr<PasteDataRecord>> PasteData::AllRecords() const
 {
     PasteboardServiceInterface *interface = GetPasteboardServiceInterface();
@@ -463,8 +454,9 @@ bool OHOS::system::GetBoolParameter(const std::string &key, bool defaultValue)
 
 namespace MiscServices {
     int32_t InputMethodController::SendPrivateCommand(
-        const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
+        const std::unordered_map<std::string, PrivateDataValue> &privateCommand, bool validateDefaultIme)
     {
+        (void)validateDefaultIme;
         return 0;
     }
 
@@ -2623,7 +2615,9 @@ HWTEST_F(PasteboardServiceMockTest, SetCurrentDataTest001, TestSize.Level1)
     service.securityLevel_.securityLevel_ = DATA_SEC_LEVEL1;
     TestEvent event;
     PasteData data;
-    bool result = service.SetCurrentData(event, data);
+    service.setDistributedMemory_.latestData = std::make_shared<PasteData>(data);
+    service.setDistributedMemory_.latestEvent = event;
+    bool result = service.SetCurrentData();
     EXPECT_EQ(result, false);
 }
 
@@ -2652,7 +2646,9 @@ HWTEST_F(PasteboardServiceMockTest, SetCurrentDataTest002, TestSize.Level1)
     EXPECT_CALL(mock, GetRemoteDeviceMinVersion())
         .WillRepeatedly(testing::Return(DistributedModuleConfig::FIRST_VERSION));
 
-    bool result = service.SetCurrentData(event, data);
+    service.setDistributedMemory_.latestData = std::make_shared<PasteData>(data);
+    service.setDistributedMemory_.latestEvent = event;
+    bool result = service.SetCurrentData();
     EXPECT_EQ(result, false);
 }
 
@@ -2681,7 +2677,9 @@ HWTEST_F(PasteboardServiceMockTest, SetCurrentDataTest003, TestSize.Level1)
     EXPECT_CALL(mock, GetRemoteDeviceMinVersion())
         .WillRepeatedly(testing::Return(DistributedModuleConfig::FIRST_VERSION + 1));
     EXPECT_CALL(mock, Encode(testing::_)).WillOnce(Return(true));
-    bool result = service.SetCurrentData(event, data);
+    service.setDistributedMemory_.latestData = std::make_shared<PasteData>(data);
+    service.setDistributedMemory_.latestEvent = event;
+    bool result = service.SetCurrentData();
     EXPECT_EQ(result, true);
 }
 
