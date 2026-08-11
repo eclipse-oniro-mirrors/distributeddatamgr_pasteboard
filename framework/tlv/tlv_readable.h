@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,6 +17,7 @@
 #define DISTRIBUTEDDATAMGR_PASTEBOARD_TLV_READABLE_H
 
 #include "endian_converter.h"
+#include "pasteboard_hilog.h"
 #include "tlv_buffer.h"
 #include "tlv_utils.h"
 #include "uri.h"
@@ -105,14 +106,50 @@ public:
 
     template<typename _OutTp>
     bool ReadVariant(
-        uint32_t step, uint32_t index, _OutTp &output, const TLVHead &head);
+        uint32_t step, uint32_t index, _OutTp &output, const TLVHead &head)
+    {
+        (void)step;
+        (void)index;
+        (void)output;
+        (void)head;
+        return true;
+    }
 
     template<typename _OutTp, typename _First, typename... _Rest>
     bool ReadVariant(
-        uint32_t step, uint32_t index, _OutTp &value, const TLVHead &head);
+        uint32_t step, uint32_t index, _OutTp &value, const TLVHead &head)
+    {
+        if (step == index) {
+            TLVHead valueHead{};
+            if (!ReadHead(valueHead)) {
+                return false;
+            }
+            _First output{};
+            auto success = ReadValue(output, valueHead);
+            value = output;
+            return success;
+        }
+        return ReadVariant<_OutTp, _Rest...>(step + 1, index, value, head);
+    }
 
     template<typename... _Types>
-    bool ReadValue(std::variant<_Types...> &value, const TLVHead &head);
+    bool ReadValue(std::variant<_Types...> &value, const TLVHead &head)
+    {
+        TLVHead valueHead{};
+        if (!ReadHead(valueHead)) {
+            return false;
+        }
+        uint32_t index = 0;
+        if (!ReadValue(index, valueHead)) {
+            return false;
+        }
+        if (index >= sizeof...(_Types)) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_COMMON, "invalid variant index=%{public}u, max=%{public}zu",
+                index, sizeof...(_Types));
+            return false;
+        }
+        return ReadVariant<decltype(value), _Types...>(0, index, value, valueHead);
+    }
 
     template<>
     bool ReadValue(EntryValue &value, const TLVHead &head);

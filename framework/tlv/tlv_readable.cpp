@@ -155,52 +155,6 @@ bool ReadOnlyBuffer::ReadValue(std::map<std::string, std::vector<uint8_t>> &valu
     return true;
 }
 
-template<typename _OutTp>
-bool ReadOnlyBuffer::ReadVariant(
-    uint32_t step, uint32_t index, _OutTp &output, const TLVHead &head)
-{
-    (void)step;
-    (void)index;
-    (void)output;
-    (void)head;
-    return true;
-}
-
-template<typename _OutTp, typename _First, typename... _Rest>
-bool ReadOnlyBuffer::ReadVariant(uint32_t step, uint32_t index, _OutTp &value, const TLVHead &head)
-{
-    if (step == index) {
-        TLVHead valueHead{};
-        if (!ReadHead(valueHead)) {
-            return false;
-        }
-        _First output{};
-        auto success = ReadValue(output, valueHead);
-        value = output;
-        return success;
-    }
-    return ReadVariant<_OutTp, _Rest...>(step + 1, index, value, head);
-}
-
-template<typename... _Types>
-bool ReadOnlyBuffer::ReadValue(std::variant<_Types...> &value, const TLVHead &head)
-{
-    TLVHead valueHead{};
-    if (!ReadHead(valueHead)) {
-        return false;
-    }
-    uint32_t index = 0;
-    if (!ReadValue(index, valueHead)) {
-        return false;
-    }
-    if (index >= sizeof...(_Types)) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_COMMON, "invalid variant index=%{public}u, max=%{public}zu",
-            index, sizeof...(_Types));
-        return false;
-    }
-    return ReadVariant<decltype(value), _Types...>(0, index, value, valueHead);
-}
-
 template<>
 bool ReadOnlyBuffer::ReadValue(EntryValue &value, const TLVHead &head)
 {

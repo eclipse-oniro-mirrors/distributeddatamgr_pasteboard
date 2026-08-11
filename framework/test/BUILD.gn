@@ -773,7 +773,7 @@ ohos_unittest("TLVReadableTest") {
     "ffrt:libffrt",
     "googletest:gtest_main",
     "hilog:libhilog",
-    "image_framework:image",
+    "image_framework:image_native",
     "ipc:ipc_core",
     "udmf:udmf_client",
   ]
