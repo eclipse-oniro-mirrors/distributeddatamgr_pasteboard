@@ -160,8 +160,9 @@ void DevProfile::SubscribeProfileEvent(const std::string &udid)
         "register dp update callback failed, ret=%{public}d", ret);
 
     ret = adapter->SubscribeProfileEvent(udid);
+    PASTEBOARD_CHECK_AND_RETURN_LOGE(ret == static_cast<int32_t>(PasteboardError::E_OK), PASTEBOARD_MODULE_SERVICE,
+        "subscribe dp event failed, udid=%{public}.5s, ret=%{public}d", udid.c_str(), ret);
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_SERVICE, "udid=%{public}.5s, ret=%{public}d", udid.c_str(), ret);
-
     subscribeUdidList_.emplace(udid);
 }
 
@@ -179,8 +180,9 @@ void DevProfile::UnSubscribeProfileEvent(const std::string &udid)
     PASTEBOARD_CHECK_AND_RETURN_LOGE(adapter != nullptr, PASTEBOARD_MODULE_SERVICE, "adapter is null");
 
     int32_t ret = adapter->UnSubscribeProfileEvent(udid);
+    PASTEBOARD_CHECK_AND_RETURN_LOGE(ret == static_cast<int32_t>(PasteboardError::E_OK), PASTEBOARD_MODULE_SERVICE,
+        "unsubscribe dp event failed, udid=%{public}.5s, ret=%{public}d", udid.c_str(), ret);
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_SERVICE, "udid=%{public}.5s, ret=%{public}d", udid.c_str(), ret);
-
     subscribeUdidList_.erase(udid);
 }
 
@@ -199,6 +201,11 @@ void DevProfile::UnSubscribeAllProfileEvents()
     int32_t ret = static_cast<int32_t>(PasteboardError::E_OK);
     for (const std::string &udid : subscribeUdidList_) {
         ret = adapter->UnSubscribeProfileEvent(udid);
+        if (ret != static_cast<int32_t>(PasteboardError::E_OK)) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE,
+                "unsubscribe dp event failed, udid=%{public}.5s, ret=%{public}d", udid.c_str(), ret);
+            continue;
+        }
         PASTEBOARD_HILOGD(PASTEBOARD_MODULE_SERVICE, "udid=%{public}.5s, ret=%{public}d", udid.c_str(), ret);
     }
 

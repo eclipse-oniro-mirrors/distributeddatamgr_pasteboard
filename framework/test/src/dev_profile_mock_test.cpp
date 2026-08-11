@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -386,6 +386,32 @@ HWTEST_F(DevProfileMockTest, SubscribeProfileEventTest001, TestSize.Level0)
     DevProfile::GetInstance().UnSubscribeProfileEvent(bundleName);
     EXPECT_TRUE(true);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SubscribeProfileEventTest001 end");
+}
+
+/**
+ * @tc.name: SubscribeProfileEventFailureTest001
+ * @tc.desc: failed subscribe must not add udid to subscribeUdidList_
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(DevProfileMockTest, SubscribeProfileEventFailureTest001, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SubscribeProfileEventFailureTest001 start");
+    NiceMock<DistributedDeviceProfile::DeviceProfileClientMock> dpMock;
+    EXPECT_CALL(dpMock, SubscribeDeviceProfile(_))
+        .WillRepeatedly(Return(static_cast<int32_t>(DistributedDeviceProfile::DP_SUBSCRIBE_FAILED)));
+
+    DevProfile::GetInstance().proxy_ = nullptr;
+    DevProfile::GetInstance().subscribeUdidList_.clear();
+    std::string udid = "SubscribeFailUdid";
+    DevProfile::GetInstance().SubscribeProfileEvent(udid);
+    EXPECT_TRUE(DevProfile::GetInstance().subscribeUdidList_.find(udid) ==
+        DevProfile::GetInstance().subscribeUdidList_.end());
+    EXPECT_TRUE(DevProfile::GetInstance().subscribeUdidList_.empty());
+    DevProfile::GetInstance().UnSubscribeProfileEvent(udid);
+    DevProfile::GetInstance().subscribeUdidList_.clear();
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SubscribeProfileEventFailureTest001 end");
 }
 
 /**
