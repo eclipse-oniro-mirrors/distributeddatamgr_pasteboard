@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2026-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,6 +19,7 @@
 #include "dev_profile.h"
 #include "parameters.h"
 #include "common/pasteboard_common_utils.h"
+#include "pasteboard_error.h"
 #include "pasteboard_event_ue.h"
 #include "pasteboard_hilog.h"
 #include "pasteboard_hml_manager.h"
@@ -80,11 +81,11 @@ void PastedSwitch::SetSwitch(int32_t userId)
 bool PastedSwitch::GetDeviceCollabSwitch(int32_t userId)
 {
     std::string value;
-    DataShareDelegate::GetInstance().SetUserId(userId);
-    DataShareDelegate::GetInstance().GetValue(DEVICE_COLLAB_SWITCH, value);
-    if (value.empty()) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "empty wifi switch, userId=%{public}d", userId);
-        return true;
+    int32_t ret = DataShareDelegate::GetInstance().GetValue(DEVICE_COLLAB_SWITCH, value);
+    if (ret != static_cast<int32_t>(PasteboardError::E_OK) || value.empty()) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE,
+            "get device collab switch failed, ret=%{public}d, userId=%{public}d", ret, userId);
+        return false;
     }
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "device collab switch status=%{public}s, userId=%{public}d",
         value.c_str(), userId);

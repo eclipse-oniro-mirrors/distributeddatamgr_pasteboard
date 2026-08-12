@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2026 Huawei Device Co., Ltd.
+ * Copyright (c) 2026-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -29,7 +29,7 @@ namespace MiscServices {
 namespace {
 bool IsValidUserId(int32_t userId)
 {
-    return userId != ERROR_USERID;
+    return userId > 0;
 }
 } // namespace
 
@@ -130,7 +130,7 @@ UserContext UserContextResolver::ResolveInteractionUser(int32_t userId) const
     UserContext context;
     context.userId = userId;
     context.source = UserContextSource::INTERACTION;
-    context.isValid = userId != ERROR_USERID;
+    context.isValid = IsValidUserId(userId);
     return context;
 }
 

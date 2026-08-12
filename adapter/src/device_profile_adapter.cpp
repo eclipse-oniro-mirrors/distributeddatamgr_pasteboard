@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Huawei Device Co., Ltd.
+ * Copyright (C) 2026-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,6 +16,8 @@
 #include "device_profile_adapter.h"
 
 #include <thread>
+
+#include <mutex>
 
 #include "cJSON.h"
 #include "device_profile_client.h"
@@ -43,6 +45,7 @@ constexpr const char *SWITCH_ID = "SwitchStatus_Key_Distributed_Pasteboard";
 constexpr const char *CHARACTER_ID = "SwitchStatus";
 
 static IDeviceProfileAdapter::OnProfileUpdateCallback g_onProfileUpdateCallback = nullptr;
+static std::mutex g_callbackMutex;
 
 static inline std::string Bool2Str(bool value)
 {
@@ -134,8 +137,13 @@ public:
     {
         std::string udid = newProfile.GetDeviceId();
         std::string status = newProfile.GetCharacteristicValue();
-        if (g_onProfileUpdateCallback != nullptr) {
-            std::thread thread(g_onProfileUpdateCallback, udid, status == STATUS_ENABLE);
+        IDeviceProfileAdapter::OnProfileUpdateCallback callback = nullptr;
+        {
+            std::lock_guard<std::mutex> lock(g_callbackMutex);
+            callback = g_onProfileUpdateCallback;
+        }
+        if (callback != nullptr) {
+            std::thread thread(callback, udid, status == STATUS_ENABLE);
             PasteBoardCommonUtils::SetThreadTaskName(thread, "OnProfileUpdate");
             thread.detach();
         }
@@ -163,6 +171,7 @@ int32_t DeviceProfileAdapter::RegisterUpdateCallback(const OnProfileUpdateCallba
 {
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(callback != nullptr,
         static_cast<int32_t>(PasteboardError::INVALID_PARAM_ERROR), PASTEBOARD_MODULE_COMMON, "callback is null");
+    std::lock_guard<std::mutex> lock(g_callbackMutex);
     g_onProfileUpdateCallback = callback;
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_COMMON, "success");
     return static_cast<int32_t>(PasteboardError::E_OK);
@@ -295,6 +304,7 @@ IDeviceProfileAdapter *GetDeviceProfileAdapter()
 void DeinitDeviceProfileAdapter()
 {
     DeviceProfileClient::GetInstance().ClearDeviceProfileService();
+    std::lock_guard<std::mutex> lock(g_callbackMutex);
     g_onProfileUpdateCallback = nullptr;
 }
 

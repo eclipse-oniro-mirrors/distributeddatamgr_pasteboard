@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2026-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -135,6 +135,7 @@ std::shared_ptr<DmStateObserver> DMAdapter::GetDmStateObserver()
         [this](const DmDeviceInfo &deviceInfo) {
             auto udid = AddDevice(deviceInfo);
             PASTEBOARD_CHECK_AND_RETURN_LOGE(!udid.empty(), PASTEBOARD_MODULE_SERVICE, "add device failed");
+            std::shared_lock<std::shared_mutex> rlock(observerRwMutex_);
             observers_.ForEachCopies([&udid](auto &key, auto &value) {
                 value->Online(udid);
                 return false;
@@ -143,6 +144,7 @@ std::shared_ptr<DmStateObserver> DMAdapter::GetDmStateObserver()
         [this](const DmDeviceInfo &deviceInfo) {
             auto udid = GetUdidByNetworkId(deviceInfo.networkId);
             PASTEBOARD_CHECK_AND_RETURN_LOGE(!udid.empty(), PASTEBOARD_MODULE_SERVICE, "get udid failed");
+            std::shared_lock<std::shared_mutex> rlock(observerRwMutex_);
             observers_.ForEachCopies([&udid](auto &key, auto &value) {
                 value->OnReady(udid);
                 return false;
@@ -151,6 +153,7 @@ std::shared_ptr<DmStateObserver> DMAdapter::GetDmStateObserver()
         [this](const DmDeviceInfo &deviceInfo) {
             auto udid = RemoveDevice(deviceInfo);
             PASTEBOARD_CHECK_AND_RETURN_LOGE(!udid.empty(), PASTEBOARD_MODULE_SERVICE, "remove device failed");
+            std::shared_lock<std::shared_mutex> rlock(observerRwMutex_);
             observers_.ForEachCopies([&udid](auto &key, auto &value) {
                 value->Offline(udid);
                 return false;
@@ -251,6 +254,7 @@ void DMAdapter::Register(DMObserver *observer)
 
 void DMAdapter::Unregister(DMObserver *observer)
 {
+    std::unique_lock<std::shared_mutex> wlock(observerRwMutex_);
     observers_.Erase(observer);
 }
 

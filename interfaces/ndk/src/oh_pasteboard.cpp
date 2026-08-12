@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2026-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -120,19 +120,19 @@ void OH_Pasteboard_Destroy(OH_Pasteboard *pasteboard)
     if (!IsPasteboardValid(pasteboard)) {
         return;
     }
-    {
-        std::lock_guard<std::mutex> lock(pasteboard->mutex);
-        for (auto iter : pasteboard->observers_) {
-            if (iter.second != nullptr) {
-                PasteboardClient::GetInstance()->Unsubscribe(
-                    static_cast<PasteboardObserverType>(iter.second->GetType()), iter.second);
-            }
+    std::unique_lock<std::mutex> lock(pasteboard->mutex);
+    for (auto iter : pasteboard->observers_) {
+        if (iter.second != nullptr) {
+            PasteboardClient::GetInstance()->Unsubscribe(
+                static_cast<PasteboardObserverType>(iter.second->GetType()), iter.second);
         }
-        pasteboard->observers_.clear();
-        pasteboard->mimeTypes_.clear();
-        delete[] pasteboard->mimeTypesPtr;
-        pasteboard->mimeTypesPtr = nullptr;
     }
+    pasteboard->observers_.clear();
+    pasteboard->mimeTypes_.clear();
+    delete[] pasteboard->mimeTypesPtr;
+    pasteboard->mimeTypesPtr = nullptr;
+    pasteboard->cid = 0;
+    lock.release();
     delete pasteboard;
 }
 

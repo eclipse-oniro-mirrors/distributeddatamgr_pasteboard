@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (C) 2026-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -1282,8 +1282,11 @@ bool SystemPasteboardNapi::ParseJsGetDataWithProgress(napi_env env, napi_value i
     }
     napi_value progressIndicator;
     PASTEBOARD_CALL_BASE(napi_get_named_property(env, in, "progressIndicator", &progressIndicator), false);
-    PASTEBOARD_CALL_BASE(napi_get_value_int32(env, progressIndicator,
-        reinterpret_cast<int *>(&getDataParam->progressIndicator)), false);
+    getDataParam->progressIndicator = NONE_PROGRESS_INDICATOR;
+    if (CheckParamsType(env, progressIndicator, napi_number)) {
+        PASTEBOARD_CALL_BASE(napi_get_value_int32(env, progressIndicator,
+            reinterpret_cast<int *>(&getDataParam->progressIndicator)), false);
+    }
 
     std::shared_ptr<ProgressListenerFn> listenerFn = std::make_shared<ProgressListenerFn>();
     PASTEBOARD_CALL_BASE(napi_get_named_property(env, in, "progressListener", &listenerFn->jsCallback), false);

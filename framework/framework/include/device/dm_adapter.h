@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2026-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -98,6 +98,7 @@ private:
     mutable std::mutex mutex_{};
     std::string localDeviceUdid_{};
     ConcurrentMap<DMObserver *, DMObserver *> observers_;
+    mutable std::shared_mutex observerRwMutex_;
 #ifdef PB_DEVICE_MANAGER_ENABLE
     std::shared_ptr<DmStateObserver> GetDmStateObserver();
     std::string AddDevice(const DmDeviceInfo &deviceInfo);

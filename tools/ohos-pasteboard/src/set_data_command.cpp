@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2026 Huawei Device Co., Ltd.
+ * Copyright (c) 2026-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -75,15 +75,10 @@ std::string SetDataCommand::Execute(const std::vector<std::string> &args)
     }
 
     auto client = PasteboardClient::GetInstance();
-    if (client == nullptr) {
-        return OutputPrinter::PrintError("ERR_INTERNAL_ERROR",
-            "Internal error: Failed to get PasteboardClient instance", // 内部错误：获取PasteboardClient实例失败
-            "Check if pasteboard process failed to start"); // 请检查剪贴板进程是否拉起失败
-    }
 
     PasteData pasteData;
     std::shared_ptr<PasteDataRecord> record = nullptr;
-    
+
     if (result.orderedParams[0].first == "html") {
         record = PasteDataRecord::NewHtmlRecord(result.orderedParams[0].second);
     } else if (result.orderedParams[0].first == "uri") {
@@ -91,6 +86,11 @@ std::string SetDataCommand::Execute(const std::vector<std::string> &args)
         record = PasteDataRecord::NewUriRecord(uri);
     } else { // result.orderedParams[0].first == "text"
         record = PasteDataRecord::NewPlainTextRecord(result.orderedParams[0].second);
+    }
+    if (record == nullptr) {
+        return OutputPrinter::PrintError("ERR_DATA_TOO_LARGE",
+            "Data exceeds maximum supported length",
+            "Reduce the data size. Maximum supported length is 100MB.");
     }
 
     for (size_t i = 1; i < result.orderedParams.size(); i++) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2026 Huawei Device Co., Ltd.
+ * Copyright (c) 2026-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -51,11 +51,6 @@ std::vector<std::tuple<std::string, std::string, std::string>> GetDataCommand::G
 std::string GetDataCommand::Execute(const std::vector<std::string> &args)
 {
     auto client = PasteboardClient::GetInstance();
-    if (client == nullptr) {
-        return OutputPrinter::PrintError("ERR_INTERNAL_ERROR",
-            "Internal error: Failed to get PasteboardClient instance", // 内部错误：获取PasteboardClient实例失败
-            "Check if pasteboard process failed to start"); // 请检查剪贴板进程是否拉起失败
-    }
 
     PasteData pasteData;
     int32_t ret = client->GetPasteData(pasteData);
@@ -66,6 +61,9 @@ std::string GetDataCommand::Execute(const std::vector<std::string> &args)
     json recordsArray = json::array();
     auto records = pasteData.AllRecords();
     for (const auto &record : records) {
+        if (record == nullptr) {
+            continue;
+        }
         auto text = record->GetPlainText();
         auto html = record->GetHtmlText();
         auto uri = record->GetUri();
