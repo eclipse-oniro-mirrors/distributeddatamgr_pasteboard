@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -130,8 +130,6 @@ bool ReadOnlyBuffer::ReadValue(std::map<std::string, std::vector<uint8_t>> &valu
 {
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(HasExpectBuffer(head.len), false,
         PASTEBOARD_MODULE_COMMON, "read map failed, tag=%{public}hu", head.tag);
-    auto tmp = total_;
-    total_ = cursor_ + head.len;
     auto mapEnd = cursor_ + head.len;
     for (; cursor_ < mapEnd;) {
         // item key
@@ -146,13 +144,52 @@ bool ReadOnlyBuffer::ReadValue(std::map<std::string, std::vector<uint8_t>> &valu
         std::vector<uint8_t> itemValue(0);
         ret = ret && ReadValue(itemValue, valueHead);
         if (!ret) {
-            total_ = tmp;
             return false;
         }
         value.emplace(itemKey, itemValue);
     }
-    total_ = tmp;
     return true;
+}
+
+template<typename _OutTp>
+bool ReadOnlyBuffer::ReadVariant(
+    uint32_t step, uint32_t index, _OutTp &output, const TLVHead &head)
+{
+    (void)step;
+    (void)index;
+    (void)output;
+    (void)head;
+    return true;
+}
+
+template<typename _OutTp, typename _First, typename... _Rest>
+bool ReadOnlyBuffer::ReadVariant(uint32_t step, uint32_t index, _OutTp &value, const TLVHead &head)
+{
+    if (step == index) {
+        TLVHead valueHead{};
+        if (!ReadHead(valueHead)) {
+            return false;
+        }
+        _First output{};
+        auto success = ReadValue(output, valueHead);
+        value = output;
+        return success;
+    }
+    return ReadVariant<_OutTp, _Rest...>(step + 1, index, value, head);
+}
+
+template<typename... _Types>
+bool ReadOnlyBuffer::ReadValue(std::variant<_Types...> &value, const TLVHead &head)
+{
+    TLVHead valueHead{};
+    if (!ReadHead(valueHead)) {
+        return false;
+    }
+    uint32_t index = 0;
+    if (!ReadValue(index, valueHead)) {
+        return false;
+    }
+    return ReadVariant<decltype(value), _Types...>(0, index, value, valueHead);
 }
 
 template<>
@@ -166,11 +203,6 @@ bool ReadOnlyBuffer::ReadValue(EntryValue &value, const TLVHead &head)
     if (!ReadValue(index, valueHead)) {
         return false;
     }
-    if (index >= std::variant_size_v<EntryValue>) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_COMMON, "invalid entry value index=%{public}u, max=%{public}zu",
-            index, std::variant_size_v<EntryValue>);
-        return false;
-    }
     return ReadVariant<decltype(value), std::monostate, int32_t, int64_t, double, bool, std::string,
         std::vector<uint8_t>, std::shared_ptr<OHOS::AAFwk::Want>, std::shared_ptr<OHOS::Media::PixelMap>,
         std::shared_ptr<Object>, nullptr_t>(0, index, value, valueHead);
@@ -180,33 +212,26 @@ bool ReadOnlyBuffer::ReadValue(Details &value, const TLVHead &head)
 {
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(HasExpectBuffer(head.len), false,
         PASTEBOARD_MODULE_COMMON, "read mapEnd failed, tag=%{public}hu", head.tag);
-    auto tmp = total_;
-    total_ = cursor_ + head.len;
     auto mapEnd = cursor_ + head.len;
     while (cursor_ < mapEnd) {
         TLVHead keyHead{};
         if (!ReadHead(keyHead)) {
-            total_ = tmp;
             return false;
         }
         std::string itemKey = "";
         if (!ReadValue(itemKey, keyHead)) {
-            total_ = tmp;
             return false;
         }
         TLVHead variantHead{};
         if (!ReadHead(variantHead)) {
-            total_ = tmp;
             return false;
         }
         ValueType itemValue;
         if (!ReadValue(itemValue, variantHead)) {
-            total_ = tmp;
             return false;
         }
         value.emplace(itemKey, itemValue);
     }
-    total_ = tmp;
     return true;
 }
 
@@ -217,33 +242,26 @@ bool ReadOnlyBuffer::ReadValue(Object &value, const TLVHead &head)
     RecursiveGuard guard;
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(guard.IsValid(), false,
         PASTEBOARD_MODULE_COMMON, "recursive overflow, tag=%{public}hu", head.tag);
-    auto tmp = total_;
-    total_ = cursor_ + head.len;
     auto mapEnd = cursor_ + head.len;
     while (cursor_ < mapEnd) {
         TLVHead keyHead{};
         if (!ReadHead(keyHead)) {
-            total_ = tmp;
             return false;
         }
         std::string itemKey = "";
         if (!ReadValue(itemKey, keyHead)) {
-            total_ = tmp;
             return false;
         }
         TLVHead valueHead{};
         if (!ReadHead(valueHead)) {
-            total_ = tmp;
             return false;
         }
         EntryValue itemValue;
         if (!ReadValue(itemValue, valueHead)) {
-            total_ = tmp;
             return false;
         }
         value.value_.emplace(itemKey, itemValue);
     }
-    total_ = tmp;
     return true;
 }
 

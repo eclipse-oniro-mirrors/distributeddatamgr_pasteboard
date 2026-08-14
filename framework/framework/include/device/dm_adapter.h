@@ -98,7 +98,6 @@ private:
     mutable std::mutex mutex_{};
     std::string localDeviceUdid_{};
     ConcurrentMap<DMObserver *, DMObserver *> observers_;
-    mutable std::shared_mutex observerRwMutex_;
 #ifdef PB_DEVICE_MANAGER_ENABLE
     std::shared_ptr<DmStateObserver> GetDmStateObserver();
     std::string AddDevice(const DmDeviceInfo &deviceInfo);

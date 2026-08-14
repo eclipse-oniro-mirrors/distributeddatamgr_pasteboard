@@ -92,11 +92,6 @@ std::string SetDataCommand::Execute(const std::vector<std::string> &args)
     } else { // result.orderedParams[0].first == "text"
         record = PasteDataRecord::NewPlainTextRecord(result.orderedParams[0].second);
     }
-    if (record == nullptr) {
-        return OutputPrinter::PrintError("ERR_DATA_TOO_LARGE",
-            "Data exceeds maximum supported length",
-            "Reduce the data size. Maximum supported length is 100MB.");
-    }
 
     for (size_t i = 1; i < result.orderedParams.size(); i++) {
         auto entry = std::make_shared<PasteDataEntry>();

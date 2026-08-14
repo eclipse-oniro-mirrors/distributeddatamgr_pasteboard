@@ -145,8 +145,6 @@ void OH_Pasteboard_Destroy(OH_Pasteboard *pasteboard)
                 static_cast<PasteboardObserverType>(observer->GetType()), observer);
         }
     }
-    std::unique_lock<std::mutex> lock(pasteboard->mutex);
-    lock.release();
     delete pasteboard;
 }
 
