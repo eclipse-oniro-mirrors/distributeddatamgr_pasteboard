@@ -1287,7 +1287,7 @@ bool SystemPasteboardNapi::ParseJsGetDataWithProgress(napi_env env, napi_value i
     }
     napi_value progressIndicator;
     PASTEBOARD_CALL_BASE(napi_get_named_property(env, in, "progressIndicator", &progressIndicator), false);
-    getDataParam->progressIndicator = NONE_PROGRESS_INDICATOR;
+    getDataParam->progressIndicator = DEFAULT_PROGRESS_INDICATOR;
     if (CheckParamsType(env, progressIndicator, napi_number)) {
         int32_t indicator = 0;
         PASTEBOARD_CALL_BASE(napi_get_value_int32(env, progressIndicator, &indicator), false);
