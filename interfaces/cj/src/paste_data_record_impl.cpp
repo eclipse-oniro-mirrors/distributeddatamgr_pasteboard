@@ -23,12 +23,6 @@ namespace MiscServicesCj {
 static std::map<std::shared_ptr<PasteDataRecord>, sptr<PasteDataRecordImpl>> g_cjPasteDataRecordMap;
 std::recursive_mutex g_PasteDataMutex;
 
-OHOS::FFI::RuntimeType *PasteDataRecordImpl::GetClassType()
-{
-    static OHOS::FFI::RuntimeType type = OHOS::FFI::RuntimeType::Create<OHOS::FFI::FFIData>("PasteDataRecordImp" "l");
-    return &type;
-}
-
 int64_t CreateCjPasteDataRecordObject(std::string mimeType, CJValueType value)
 {
     auto pasteDataRecordImpl = FFI::FFIData::Create<PasteDataRecordImpl>(mimeType, value);

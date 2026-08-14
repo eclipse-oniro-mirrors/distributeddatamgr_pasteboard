@@ -30,20 +30,14 @@ struct CJValueType {
 };
 
 class PasteDataRecordImpl : public OHOS::FFI::FFIData {
+    DECL_TYPE(PasteDataRecordImpl, OHOS::FFI::FFIData)
 public:
     PasteDataRecordImpl();
     explicit PasteDataRecordImpl(std::shared_ptr<MiscServices::PasteDataRecord> pasteDataRecord);
     PasteDataRecordImpl(std::string mimeType, CJValueType value);
     std::shared_ptr<MiscServices::PasteDataRecord> GetRealPasteDataRecord();
-    OHOS::FFI::RuntimeType *GetRuntimeType() override
-    {
-        return GetClassType();
-    }
 
 private:
-    friend class OHOS::FFI::RuntimeType;
-    friend class OHOS::FFI::TypeBase;
-    static OHOS::FFI::RuntimeType *GetClassType();
     void CreateHtmlDataRecord(std::string mimeType, CJValueType value);
     void CreatePlainTextDataRecord(std::string mimeType, CJValueType value);
     void CreateUriDataRecord(std::string mimeType, CJValueType value);

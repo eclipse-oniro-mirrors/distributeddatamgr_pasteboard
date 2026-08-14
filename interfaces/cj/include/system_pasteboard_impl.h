@@ -25,6 +25,7 @@ namespace MiscServicesCj {
 #define PASTEBOARD_INVALID_PARAMETERS 401
 
 class SystemPasteboardImpl : public OHOS::FFI::FFIData {
+    DECL_TYPE(SystemPasteboardImpl, OHOS::FFI::FFIData)
 public:
     SystemPasteboardImpl();
     static int32_t GetSystemPasteboardImpl(int64_t &id);
@@ -36,15 +37,8 @@ public:
     bool IsRemoteData();
     bool HasDataType(std::string mimeType);
     std::string GetDataSource();
-    OHOS::FFI::RuntimeType *GetRuntimeType() override
-    {
-        return GetClassType();
-    }
 
 private:
-    friend class OHOS::FFI::RuntimeType;
-    friend class OHOS::FFI::TypeBase;
-    static OHOS::FFI::RuntimeType *GetClassType();
     sptr<PasteDataImpl> value_;
     std::shared_ptr<MiscServices::PasteData> pasteData_;
 };
