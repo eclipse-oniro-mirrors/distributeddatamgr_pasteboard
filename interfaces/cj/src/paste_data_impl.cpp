@@ -24,12 +24,6 @@ using OHOS::Media::PixelMapImpl;
 namespace OHOS {
 namespace MiscServicesCj {
 
-OHOS::FFI::RuntimeType *PasteDataImpl::GetClassType()
-{
-    static OHOS::FFI::RuntimeType runtimeType = OHOS::FFI::RuntimeType::Create<OHOS::FFI::FFIData>("PasteDataImpl");
-    return &runtimeType;
-}
-
 int64_t CreateCjPasteDataObject(std::string mimeType, CJValueType value)
 {
     auto pasteDataImpl = FFI::FFIData::Create<PasteDataImpl>(mimeType, value);

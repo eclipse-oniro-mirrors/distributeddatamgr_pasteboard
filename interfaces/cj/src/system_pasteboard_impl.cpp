@@ -24,13 +24,6 @@ namespace MiscServicesCj {
 
 static sptr<SystemPasteboardImpl> g_systemPasteboard_instance = nullptr;
 
-OHOS::FFI::RuntimeType *SystemPasteboardImpl::GetClassType()
-{
-    static OHOS::FFI::RuntimeType runtimeType = OHOS::FFI::RuntimeType::Create<OHOS::FFI::FFIData>("SystemPasteboardIm"
-                                                                                                   "pl");
-    return &runtimeType;
-}
-
 SystemPasteboardImpl::SystemPasteboardImpl()
 {
     value_ = nullptr;
