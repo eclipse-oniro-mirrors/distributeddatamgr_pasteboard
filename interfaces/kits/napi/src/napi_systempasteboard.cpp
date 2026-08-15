@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021-2026 Huawei Device Co., Ltd.
+ * Copyright (C) 2021-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -1277,27 +1277,13 @@ bool SystemPasteboardNapi::ParseJsGetDataWithProgress(napi_env env, napi_value i
     PASTEBOARD_CALL_BASE(napi_get_named_property(env, in, "fileConflictOptions", &fileConflictOption), false);
     getDataParam->fileConflictOption = FILE_OVERWRITE;
     if (CheckParamsType(env, fileConflictOption, napi_number)) {
-        int32_t option = 0;
-        PASTEBOARD_CALL_BASE(napi_get_value_int32(env, fileConflictOption, &option), false);
-        if (option < static_cast<int32_t>(FILE_OVERWRITE) || option > static_cast<int32_t>(FILE_RENAME)) {
-            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "invalid fileConflictOption=%{public}d", option);
-            return false;
-        }
-        getDataParam->fileConflictOption = static_cast<FileConflictOption>(option);
+        PASTEBOARD_CALL_BASE(napi_get_value_int32(env, fileConflictOption,
+            reinterpret_cast<int *>(&getDataParam->fileConflictOption)), false);
     }
     napi_value progressIndicator;
     PASTEBOARD_CALL_BASE(napi_get_named_property(env, in, "progressIndicator", &progressIndicator), false);
-    getDataParam->progressIndicator = DEFAULT_PROGRESS_INDICATOR;
-    if (CheckParamsType(env, progressIndicator, napi_number)) {
-        int32_t indicator = 0;
-        PASTEBOARD_CALL_BASE(napi_get_value_int32(env, progressIndicator, &indicator), false);
-        if (indicator < static_cast<int32_t>(NONE_PROGRESS_INDICATOR)
-            || indicator > static_cast<int32_t>(DEFAULT_PROGRESS_INDICATOR)) {
-            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "invalid progressIndicator=%{public}d", indicator);
-            return false;
-        }
-        getDataParam->progressIndicator = static_cast<ProgressIndicator>(indicator);
-    }
+    PASTEBOARD_CALL_BASE(napi_get_value_int32(env, progressIndicator,
+        reinterpret_cast<int *>(&getDataParam->progressIndicator)), false);
 
     std::shared_ptr<ProgressListenerFn> listenerFn = std::make_shared<ProgressListenerFn>();
     PASTEBOARD_CALL_BASE(napi_get_named_property(env, in, "progressListener", &listenerFn->jsCallback), false);
