@@ -207,7 +207,7 @@ public:
     void CleanDistributedData(int32_t user);
     void HandleWifiOffAndClearDistributedEvent(int32_t userId);
     bool IsValidCurrentEvent();
-    bool IsFileManagerApp(const std::string &bundleName);
+    int32_t CheckRemoteFileDocsUriLimit(const std::vector<Uri> &grantUris, uint32_t targetTokenId);
 
     static std::shared_mutex pasteDataMutex_;
 
