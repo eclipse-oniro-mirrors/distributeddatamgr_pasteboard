@@ -105,7 +105,8 @@ constexpr const char *COVER_DELAY_DATA = "COVER_DELAY_DATA";
 constexpr const char *UE_COPY = "DISTRIBUTED_PASTEBOARD_COPY";
 constexpr const char *UE_PASTE = "DISTRIBUTED_PASTEBOARD_PASTE";
 constexpr const char *FILE_DOCS_URI_PREFIX = "file://docs/";
-constexpr const char *FILE_MANAGER_APP_ID = "991106822800681664";
+constexpr const char *FILE_MANAGER_KEYWORD = "filemanager";
+constexpr const char *COMMON_UI_KEYWORD = "commonUI";
 constexpr int32_t INVALID_VERSION = -1;
 constexpr int32_t WIFI_DISABLED = 1;
 constexpr int32_t ADD_PERMISSION_CHECK_SDK_VERSION = 12;
@@ -2116,7 +2117,14 @@ void PasteboardService::RemoveInvalidRemoteUri(std::vector<Uri> &grantUris)
     grantUris.erase(newEnd, grantUris.end());
 }
 
-int32_t PasteboardService::CheckRemoteFileDocsUriLimit(const std::vector<Uri> &grantUris, uint32_t targetTokenId)
+bool PasteboardService::IsFileManagerApp(const std::string &bundleName, uint64_t tokenId)
+{
+    return IsSystemAppByFullTokenID(tokenId) && (bundleName.find(FILE_MANAGER_KEYWORD) != std::string::npos ||
+            bundleName.find(COMMON_UI_KEYWORD) != std::string::npos);
+}
+
+int32_t PasteboardService::CheckRemoteFileDocsUriLimit(const std::vector<Uri> &grantUris, uint32_t targetTokenId,
+    const std::string &bundleName)
 {
     bool hasFileDocsUri = false;
     for (const auto &uri : grantUris) {
@@ -2129,8 +2137,7 @@ int32_t PasteboardService::CheckRemoteFileDocsUriLimit(const std::vector<Uri> &g
         return static_cast<int32_t>(PasteboardError::E_OK);
     } else {
         HapTokenInfoExt hapInfoExt;
-        if (AccessTokenKit::GetHapTokenInfoExtension(targetTokenId, hapInfoExt) == 0 &&
-            hapInfoExt.appID.compare(FILE_MANAGER_APP_ID) != 0 &&
+        if (IsFileManagerApp(bundleName, targetTokenId) &&
             grantUris.size() > MAX_REMOTE_FILE_MANAGER_URI_COUNT) {
             PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE,
                         "remote uri count %{public}zu exceeds limit %{public}zu, target appId=%{public}s",
@@ -2161,7 +2168,8 @@ int32_t PasteboardService::GrantPermission(const std::vector<Uri> &grantUris, ui
         }
         auto sendValues = std::vector<Uri>(grantUris.begin() + offset, grantUris.begin() + offset + count);
         if (isRemoteData) {
-            if (CheckRemoteFileDocsUriLimit(grantUris, targetTokenId) != static_cast<int32_t>(PasteboardError::E_OK)) {
+            if (CheckRemoteFileDocsUriLimit(grantUris, targetTokenId, appInfo.bundleName) !=
+                static_cast<int32_t>(PasteboardError::E_OK)) {
                 return ret;
             }
             permissionCode = AAFwk::UriPermissionManagerClient::GetInstance().GrantUriPermissionPrivileged(
