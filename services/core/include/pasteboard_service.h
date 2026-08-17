@@ -220,6 +220,7 @@ private:
     static constexpr const char *PLUGIN_NAME = "distributed_clip";
     static constexpr const char *SET_CRITICAL_ID = "pasteboard_service_set_critical_id";
     static constexpr const pid_t EDM_UID = 3057;
+    static constexpr const pid_t RSS_UID = 1096;
     static constexpr const pid_t ROOT_UID = 0;
     static constexpr uint32_t EXPIRATION_INTERVAL = 2 * 60 * 1000;
     static constexpr int MIN_TRANMISSION_TIME = 30 * 1000; // ms
