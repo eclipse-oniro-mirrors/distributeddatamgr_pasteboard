@@ -1786,16 +1786,16 @@ HWTEST_F(PasteboardServiceMockTest, IsCallerUidValid005, TestSize.Level1)
  * @tc.desc: IsCallerUidValid006 function test
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, IsCallerUidValid001, TestSize.Level1)
+HWTEST_F(PasteboardServiceMockTest, IsCallerUidValid006, TestSize.Level1)
 {
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "IsCallerUidValid001 start.");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "IsCallerUidValid006 start.");
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
     NiceMock<PasteboardServiceInterfaceMock> ipcMock;
     EXPECT_CALL(ipcMock, GetCallingUid()).WillRepeatedly(testing::Return(PasteboardService::RSS_UID));
     auto ret = tempPasteboard->IsCallerUidValid();
     ASSERT_EQ(ret, true);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "IsCallerUidValid001 end.");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "IsCallerUidValid006 end.");
 }
 
 /**
