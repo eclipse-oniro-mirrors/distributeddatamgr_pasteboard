@@ -2140,7 +2140,7 @@ int32_t PasteboardService::CheckRemoteFileDocsUriLimit(const std::vector<Uri> &g
         if (IsFileManagerApp(bundleName, targetTokenId) &&
             grantUris.size() > MAX_REMOTE_FILE_MANAGER_URI_COUNT) {
             PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE,
-                        "remote uri count %{public}zu exceeds limit %{public}zu, target appId=%{public}s",
+                        "remote uri count %{public}zu exceeds limit %{public}d, target appId=%{public}s",
                 grantUris.size(), MAX_REMOTE_FILE_MANAGER_URI_COUNT, hapInfoExt.appID.c_str());
             return static_cast<int32_t>(PasteboardError::REMOTE_DATA_SIZE_EXCEEDED);
         } else {
