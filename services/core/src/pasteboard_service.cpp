@@ -2142,7 +2142,7 @@ int32_t PasteboardService::CheckRemoteFileDocsUriLimit(const std::vector<Uri> &g
                 grantUris.size(), bundleName.c_str(), targetTokenId);
             return static_cast<int32_t>(PasteboardError::REMOTE_DATA_SIZE_EXCEEDED);
         }
-        return static_cast<int32_t>(PasteboardError::E_OK); 
+        return static_cast<int32_t>(PasteboardError::E_OK);
     }
 }
 
