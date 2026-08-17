@@ -3488,7 +3488,7 @@ bool PasteboardService::CheckMdmShareOption(PasteData &pasteData)
 bool PasteboardService::IsCallerUidValid()
 {
     pid_t callingUid = IPCSkeleton::GetCallingUid();
-    if (callingUid == EDM_UID || (uid_ != -1 && callingUid == uid_)) {
+    if (callingUid == EDM_UID || (uid_ != -1 && callingUid == uid_) || callingUid == RSS_UID) {
         return true;
     }
     PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "callingUid error: %{public}d.", callingUid);
