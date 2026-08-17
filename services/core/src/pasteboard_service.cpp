@@ -105,8 +105,7 @@ constexpr const char *COVER_DELAY_DATA = "COVER_DELAY_DATA";
 constexpr const char *UE_COPY = "DISTRIBUTED_PASTEBOARD_COPY";
 constexpr const char *UE_PASTE = "DISTRIBUTED_PASTEBOARD_PASTE";
 constexpr const char *FILE_DOCS_URI_PREFIX = "file://docs/";
-constexpr const char *FILE_MANAGER_KEYWORD = "filemanager";
-constexpr const char *COMMON_UI_KEYWORD = "commonUI";
+constexpr const char *FILEMANAGER_KEY = "persist.kernel.bundle_name.filemanager";
 constexpr int32_t INVALID_VERSION = -1;
 constexpr int32_t WIFI_DISABLED = 1;
 constexpr int32_t ADD_PERMISSION_CHECK_SDK_VERSION = 12;
@@ -2117,10 +2116,11 @@ void PasteboardService::RemoveInvalidRemoteUri(std::vector<Uri> &grantUris)
     grantUris.erase(newEnd, grantUris.end());
 }
 
-bool PasteboardService::IsFileManagerApp(const std::string &bundleName, uint64_t tokenId)
+bool PasteboardService::IsFileManagerApp(const std::string &bundleName)
 {
-    return IsSystemAppByFullTokenID(tokenId) && (bundleName.find(FILE_MANAGER_KEYWORD) != std::string::npos ||
-            bundleName.find(COMMON_UI_KEYWORD) != std::string::npos);
+    auto fileBundle = system::GetParameter(FILEMANAGER_KEY, "");
+    auto fullTokenId = IPCSkeleton::GetCallingFullTokenID();
+    return IsSystemAppByFullTokenID(fullTokenId) && bundleName.find(fileBundle) != std::string::npos;
 }
 
 int32_t PasteboardService::CheckRemoteFileDocsUriLimit(const std::vector<Uri> &grantUris, uint32_t targetTokenId,
@@ -2136,16 +2136,13 @@ int32_t PasteboardService::CheckRemoteFileDocsUriLimit(const std::vector<Uri> &g
     if (!hasFileDocsUri) {
         return static_cast<int32_t>(PasteboardError::E_OK);
     } else {
-        HapTokenInfoExt hapInfoExt;
-        if (IsFileManagerApp(bundleName, targetTokenId) &&
-            grantUris.size() > MAX_REMOTE_FILE_MANAGER_URI_COUNT) {
+        if (!IsFileManagerApp(bundleName) && grantUris.size() > MAX_REMOTE_FILE_MANAGER_URI_COUNT) {
             PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE,
-                        "remote uri count %{public}zu exceeds limit %{public}d, target appId=%{public}s",
-                grantUris.size(), MAX_REMOTE_FILE_MANAGER_URI_COUNT, hapInfoExt.appID.c_str());
+                        "remote uri count %{public}zu bundleName is %{public}s, targetTokenId=%{public}d",
+                grantUris.size(), bundleName.c_str(), targetTokenId);
             return static_cast<int32_t>(PasteboardError::REMOTE_DATA_SIZE_EXCEEDED);
-        } else {
-            return static_cast<int32_t>(PasteboardError::E_OK); 
         }
+        return static_cast<int32_t>(PasteboardError::E_OK); 
     }
 }
 
