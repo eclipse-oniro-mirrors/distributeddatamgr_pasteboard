@@ -208,6 +208,7 @@ public:
     void HandleWifiOffAndClearDistributedEvent(int32_t userId);
     bool IsValidCurrentEvent();
     bool IsFileManagerApp(const std::string &bundleName);
+    bool StartWith(const std::string &str, const std::string &prefix);
     int32_t CheckRemoteFileDocsUriLimit(const std::vector<Uri> &grantUris, uint32_t targetTokenId,
         const std::string &bundleName);
 
