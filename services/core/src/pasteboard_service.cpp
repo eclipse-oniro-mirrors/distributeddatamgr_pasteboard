@@ -2130,23 +2130,17 @@ bool PasteboardService::StartWith(const std::string &str, const std::string &pre
     return str.compare(0, prefix.size(), prefix) == 0;
 }
 
-int32_t PasteboardService::CheckRemoteFileDocsUriLimit(const std::vector<Uri> &grantUris, uint32_t targetTokenId,
-    const std::string &bundleName)
+int32_t PasteboardService::CheckRemoteFileDocsUriLimit(const std::vector<Uri> &grantUris, const std::string &bundleName)
 {
     if (IsFileManagerApp(bundleName) || grantUris.size() <= MAX_REMOTE_FILE_MANAGER_URI_COUNT) {
         return static_cast<int32_t>(PasteboardError::E_OK);
     }
-    bool hasFileDocsUri = false;
     for (const auto &uri : grantUris) {
         if (StartWith(uri.ToString(), FILE_DOCS_URI_PREFIX)) {
-            hasFileDocsUri = true;
-            break;
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE,
+                "remote uri count %{public}zu bundleName is %{public}s", grantUris.size(), bundleName.c_str());
+            return static_cast<int32_t>(PasteboardError::REMOTE_DATA_SIZE_EXCEEDED);
         }
-    }
-    if (hasFileDocsUri) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE,
-            "remote uri count %{public}zu bundleName is %{public}s", grantUris.size(), bundleName.c_str());
-        return static_cast<int32_t>(PasteboardError::REMOTE_DATA_SIZE_EXCEEDED);
     }
     return static_cast<int32_t>(PasteboardError::E_OK);
 }
@@ -2164,8 +2158,8 @@ int32_t PasteboardService::GrantPermission(const std::vector<Uri> &grantUris, ui
     int32_t userId = appInfo.userId;
     auto [hasData, data] = clips_.Find(userId);
     uint32_t srcTokenId = (hasData && data) ? data->GetTokenId() : 0;
-    if (CheckRemoteFileDocsUriLimit(grantUris, targetTokenId, appInfo.bundleName) !=
-        static_cast<int32_t>(PasteboardError::E_OK) && isRemoteData) {
+    if (isRemoteData && CheckRemoteFileDocsUriLimit(grantUris, appInfo.bundleName) !=
+        static_cast<int32_t>(PasteboardError::E_OK)) {
         return ret;
     }
     while (length > offset) {
