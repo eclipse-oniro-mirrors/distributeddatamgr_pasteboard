@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,6 +14,8 @@
  */
 #ifndef OH_PASTEBOARD_COMMON_H
 #define OH_PASTEBOARD_COMMON_H
+
+#include <atomic>
 
 #include "oh_pasteboard.h"
 #include "oh_pasteboard_err_code.h"
@@ -45,6 +47,7 @@ enum PasteboardNdkStructId : std::int64_t {
 
 struct OH_Pasteboard {
     const int64_t cid = PASTEBOARD_STRUCT_ID;
+    std::atomic<bool> destroyed{false};
     std::mutex mutex;
     std::map<const OH_PasteboardObserver *, OHOS::sptr<OHOS::MiscServices::PasteboardObserverCapiImpl>> observers_;
     std::vector<std::string> mimeTypes_;

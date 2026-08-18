@@ -66,6 +66,9 @@ std::string GetDataCommand::Execute(const std::vector<std::string> &args)
     json recordsArray = json::array();
     auto records = pasteData.AllRecords();
     for (const auto &record : records) {
+        if (record == nullptr) {
+            continue;
+        }
         auto text = record->GetPlainText();
         auto html = record->GetHtmlText();
         auto uri = record->GetUri();

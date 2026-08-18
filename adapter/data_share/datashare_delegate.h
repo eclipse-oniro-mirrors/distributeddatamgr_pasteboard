@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,6 +15,8 @@
 
 #ifndef OHOS_DISTRIBUTED_DATA_PASTEBOARD_ADAPTER_DATA_SHARE_DELEGATE_H
 #define OHOS_DISTRIBUTED_DATA_PASTEBOARD_ADAPTER_DATA_SHARE_DELEGATE_H
+
+#include <mutex>
 
 #include "datashare_helper.h"
 
@@ -40,6 +42,7 @@ private:
     Uri MakeUri(const std::string &key);
 
     static DataShareDelegate *instance_;
+    std::mutex userIdMutex_;
     std::string userId_ = "100";
 };
 } // namespace OHOS::MiscServices

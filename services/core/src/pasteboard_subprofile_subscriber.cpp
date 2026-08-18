@@ -23,23 +23,24 @@ namespace OHOS::MiscServices {
 void PasteboardSubProfileSubscriber::OnSubProfileChanged(
     const AccountSA::SubProfileEventData &eventData)
 {
-    std::thread thread([this,
+    std::thread thread([service = pasteboardService_,
         type = eventData.type_,
         osAccountId = eventData.osAccountId_]() {
-        OnSubProfileAccountsChangedInner(type, osAccountId);
+        OnSubProfileAccountsChangedInner(service, type, osAccountId);
     });
     PasteBoardCommonUtils::SetThreadTaskName(thread, "OnSubProfileChanged");
     thread.detach();
 }
 
 void PasteboardSubProfileSubscriber::OnSubProfileAccountsChangedInner(
+    const sptr<PasteboardService>& service,
     AccountSA::OsAccountSubProfileEventType type, int32_t osAccountId)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "Event received: type=%{public}d, osAccountId=%{public}d",
         static_cast<int32_t>(type), osAccountId);
 
-    PASTEBOARD_CHECK_AND_RETURN_LOGE(pasteboardService_ != nullptr,
-        PASTEBOARD_MODULE_SERVICE, "pasteboardService_ is nullptr");
+    PASTEBOARD_CHECK_AND_RETURN_LOGE(service != nullptr,
+        PASTEBOARD_MODULE_SERVICE, "service is nullptr");
 
     PASTEBOARD_CHECK_AND_RETURN_LOGE(type != AccountSA::OsAccountSubProfileEventType::INVALID_TYPE,
         PASTEBOARD_MODULE_SERVICE, "Invalid event type");
@@ -47,7 +48,7 @@ void PasteboardSubProfileSubscriber::OnSubProfileAccountsChangedInner(
     PASTEBOARD_CHECK_AND_RETURN_LOGE(osAccountId >= 0,
         PASTEBOARD_MODULE_SERVICE, "Invalid osAccountId=%{public}d", osAccountId);
 
-    int32_t result = pasteboardService_->ClearByUser(osAccountId);
+    int32_t result = service->ClearByUser(osAccountId);
     if (result != ERR_OK) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "ClearByUser failed, osAccountId=%{public}d, result=%{public}d",
             osAccountId, result);

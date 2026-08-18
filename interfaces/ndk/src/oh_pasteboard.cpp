@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,6 +16,7 @@
 #define LOG_TAG "Pasteboard_Capi"
 
 #include <thread>
+#include <vector>
 
 #include "oh_pasteboard_observer_impl.h"
 #include "pasteboard_client.h"
@@ -31,7 +32,8 @@ using namespace OHOS::MiscServices;
 
 static bool IsPasteboardValid(OH_Pasteboard *pasteboard)
 {
-    return pasteboard != nullptr && pasteboard->cid == PASTEBOARD_STRUCT_ID;
+    return pasteboard != nullptr && pasteboard->cid == PASTEBOARD_STRUCT_ID
+        && !pasteboard->destroyed.load(std::memory_order_acquire);
 }
 
 static bool IsSubscriberValid(OH_PasteboardObserver *observer)
@@ -120,18 +122,28 @@ void OH_Pasteboard_Destroy(OH_Pasteboard *pasteboard)
     if (!IsPasteboardValid(pasteboard)) {
         return;
     }
+    std::vector<OHOS::sptr<OHOS::MiscServices::PasteboardObserverCapiImpl>> observers;
     {
         std::lock_guard<std::mutex> lock(pasteboard->mutex);
-        for (auto iter : pasteboard->observers_) {
+        if (!IsPasteboardValid(pasteboard)) {
+            return;
+        }
+        pasteboard->destroyed.store(true, std::memory_order_release);
+        for (auto &iter : pasteboard->observers_) {
             if (iter.second != nullptr) {
-                PasteboardClient::GetInstance()->Unsubscribe(
-                    static_cast<PasteboardObserverType>(iter.second->GetType()), iter.second);
+                observers.push_back(iter.second);
             }
         }
         pasteboard->observers_.clear();
         pasteboard->mimeTypes_.clear();
         delete[] pasteboard->mimeTypesPtr;
         pasteboard->mimeTypesPtr = nullptr;
+    }
+    for (auto &observer : observers) {
+        if (observer != nullptr) {
+            PasteboardClient::GetInstance()->Unsubscribe(
+                static_cast<PasteboardObserverType>(observer->GetType()), observer);
+        }
     }
     delete pasteboard;
 }
