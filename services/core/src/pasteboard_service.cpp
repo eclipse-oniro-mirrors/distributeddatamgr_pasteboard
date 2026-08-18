@@ -86,6 +86,7 @@ using namespace UeReporter;
 namespace {
 constexpr int32_t COMMON_USERID = 0;
 constexpr int32_t INIT_INTERVAL = 10000L;
+constexpr int32_t MAX_REMOTE_FILE_MANAGER_URI_COUNT = 256;
 constexpr uint32_t MAX_IPC_THREAD_NUM = 32;
 constexpr const char *PASTEBOARD_SERVICE_SA_NAME = "pasteboard_service";
 constexpr const char *PASTEBOARD_SERVICE_NAME = "PasteboardService";
@@ -103,6 +104,8 @@ constexpr const char *NETWORK_DEV_NUM = "NETWORK_DEV_NUM";
 constexpr const char *COVER_DELAY_DATA = "COVER_DELAY_DATA";
 constexpr const char *UE_COPY = "DISTRIBUTED_PASTEBOARD_COPY";
 constexpr const char *UE_PASTE = "DISTRIBUTED_PASTEBOARD_PASTE";
+constexpr const char *FILE_DOCS_URI_PREFIX = "file://docs/";
+constexpr const char *FILEMANAGER_KEY = "filemanager";
 constexpr int32_t INVALID_VERSION = -1;
 constexpr int32_t WIFI_DISABLED = 1;
 constexpr int32_t ADD_PERMISSION_CHECK_SDK_VERSION = 12;
@@ -2113,6 +2116,35 @@ void PasteboardService::RemoveInvalidRemoteUri(std::vector<Uri> &grantUris)
     grantUris.erase(newEnd, grantUris.end());
 }
 
+bool PasteboardService::IsFileManagerApp(const std::string &bundleName)
+{
+    auto fullTokenId = IPCSkeleton::GetCallingFullTokenID();
+    return IsSystemAppByFullTokenID(fullTokenId) && bundleName.find(FILEMANAGER_KEY) != std::string::npos;
+}
+
+bool PasteboardService::StartWith(const std::string &str, const std::string &prefix)
+{
+    if (prefix.size() > str.size()) {
+        return false;
+    }
+    return str.compare(0, prefix.size(), prefix) == 0;
+}
+
+int32_t PasteboardService::CheckRemoteFileDocsUriLimit(const std::vector<Uri> &grantUris, const std::string &bundleName)
+{
+    if (IsFileManagerApp(bundleName) || grantUris.size() <= MAX_REMOTE_FILE_MANAGER_URI_COUNT) {
+        return static_cast<int32_t>(PasteboardError::E_OK);
+    }
+    for (const auto &uri : grantUris) {
+        if (StartWith(uri.ToString(), FILE_DOCS_URI_PREFIX)) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE,
+                "remote uri count %{public}zu bundleName is %{public}s", grantUris.size(), bundleName.c_str());
+            return static_cast<int32_t>(PasteboardError::REMOTE_DATA_SIZE_EXCEEDED);
+        }
+    }
+    return static_cast<int32_t>(PasteboardError::E_OK);
+}
+
 int32_t PasteboardService::GrantPermission(const std::vector<Uri> &grantUris, uint32_t permFlag, bool isRemoteData,
     uint32_t targetTokenId)
 {
@@ -2126,6 +2158,10 @@ int32_t PasteboardService::GrantPermission(const std::vector<Uri> &grantUris, ui
     int32_t userId = appInfo.userId;
     auto [hasData, data] = clips_.Find(userId);
     uint32_t srcTokenId = (hasData && data) ? data->GetTokenId() : 0;
+    if (isRemoteData && CheckRemoteFileDocsUriLimit(grantUris, appInfo.bundleName) !=
+        static_cast<int32_t>(PasteboardError::E_OK)) {
+        return ret;
+    }
     while (length > offset) {
         if (length - offset < PasteData::URI_BATCH_SIZE) {
             count = length - offset;
