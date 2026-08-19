@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -1087,9 +1087,21 @@ public:
 
     int64_t GetChangeCount()
     {
-        uint32_t changeCount = 0;
-        PasteboardClient::GetInstance()->GetChangeCount(changeCount);
-        return static_cast<int64_t>(changeCount);
+        auto block = std::make_shared<OHOS::BlockObject<std::shared_ptr<uint32_t>>>(SYNC_TIMEOUT);
+        std::thread thread([block]() {
+            uint32_t changeCount = 0;
+            PasteboardClient::GetInstance()->GetChangeCount(changeCount);
+            auto ptr = std::make_shared<uint32_t>(changeCount);
+            block->SetValue(ptr);
+        });
+        PasteBoardCommonUtils::SetThreadTaskName(thread, "TGetChangeCount");
+        thread.detach();
+        auto value = block->GetValue();
+        if (value == nullptr) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "time out, GetChangeCount failed.");
+            return 0;
+        }
+        return static_cast<int64_t>(*value);
     }
 
     ohos::pasteboard::pasteboard::PasteData GetDataWithProgressImpl(
