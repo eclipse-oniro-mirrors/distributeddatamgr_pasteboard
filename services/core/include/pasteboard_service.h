@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (C) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -376,6 +376,8 @@ private:
         const std::string &pasteId, int32_t &syncTime, UeReportInfo &ueReportInfo);
     void GetPasteDataDot(PasteData &pasteData, const std::string &bundleName, const int32_t &userId);
     int32_t GetLocalData(const AppInfo &appInfo, PasteData &data);
+    void UpdateClipOnRead(int32_t userId, const PasteData &data,
+        const std::string &originBundleName, uint64_t startTime, uint64_t curTime);
     int32_t GetRemoteData(int32_t userId, const Event &event, PasteData &data, int32_t &syncTime);
     int32_t GetRemotePasteData(int32_t userId, const Event &event, PasteData &data, int32_t &syncTime);
     int32_t GetDelayPasteRecord(int32_t userId, PasteData &data);
