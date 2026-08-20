@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (C) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -1729,19 +1729,27 @@ int32_t PasteboardService::GetLocalData(const AppInfo &appInfo, PasteData &data)
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "no data userId is %{public}d.", appInfo.userId);
         return static_cast<int32_t>(PasteboardError::NO_DATA_ERROR);
     }
-    auto ret = IsDataValid(*(it.second), appInfo.tokenId, appInfo.userId);
-    if (ret != static_cast<int32_t>(PasteboardError::E_OK)) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "paste data is invalid. ret = %{public}d "
-            "appInfo.userId = %{public}d", ret, appInfo.userId);
-        return ret;
+    bool isDelayData = false;
+    bool isDelayRecord = false;
+    std::string originBundleName;
+    {
+        std::shared_lock<std::shared_mutex> read(pasteDataMutex_);
+        auto ret = IsDataValid(*(it.second), appInfo.tokenId, appInfo.userId);
+        if (ret != static_cast<int32_t>(PasteboardError::E_OK)) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "paste data is invalid. ret = %{public}d "
+                "appInfo.userId = %{public}d", ret, appInfo.userId);
+            return ret;
+        }
+        data = *(it.second);
+        originBundleName = it.second->GetBundleName();
+        isDelayData = it.second->IsDelayData();
+        isDelayRecord = it.second->IsDelayRecord();
     }
-    data = *(it.second);
-    auto originBundleName = it.second->GetBundleName();
-    if (it.second->IsDelayData()) {
+    if (isDelayData) {
         GetDelayPasteData(appInfo.userId, data);
         RADAR_REPORT(DFX_GET_PASTEBOARD, DFX_CHECK_GET_DELAY_PASTE, DFX_SUCCESS, CONCURRENT_ID, pasteId);
     }
-    if (it.second->IsDelayRecord()) {
+    if (isDelayRecord) {
         GetDelayPasteRecord(appInfo.userId, data);
     }
     data.SetBundleInfo(appInfo.bundleName, appInfo.appIndex);
@@ -1751,9 +1759,22 @@ int32_t PasteboardService::GetLocalData(const AppInfo &appInfo, PasteData &data)
         return static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR);
     }
     auto curTime = result.second;
-    if (tempTime.second == curTime) {
-        bool isNotify = false;
-        clips_.ComputeIfPresent(appInfo.userId, [&data, &isNotify](auto &key, auto &value) {
+    UpdateClipOnRead(appInfo.userId, data, originBundleName, tempTime.second, curTime);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetPasteData success. appInfo.userId = %{public}d", appInfo.userId);
+    SetLocalPasteFlag(data.IsRemote(), appInfo.tokenId, data);
+    return static_cast<int32_t>(PasteboardError::E_OK);
+}
+
+void PasteboardService::UpdateClipOnRead(int32_t userId, const PasteData &data,
+    const std::string &originBundleName, uint64_t startTime, uint64_t curTime)
+{
+    if (startTime != curTime) {
+        return;
+    }
+    bool isNotify = false;
+    {
+        std::unique_lock<std::shared_mutex> write(pasteDataMutex_);
+        clips_.ComputeIfPresent(userId, [&data, &isNotify](auto &key, auto &value) {
             if (value->IsDelayData()) {
                 value = std::make_shared<PasteData>(data);
                 isNotify = true;
@@ -1763,13 +1784,10 @@ int32_t PasteboardService::GetLocalData(const AppInfo &appInfo, PasteData &data)
             }
             return true;
         });
-        if (isNotify) {
-            NotifyObservers(originBundleName, appInfo.userId, PasteboardEventStatus::PASTEBOARD_WRITE);
-        }
     }
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetPasteData success. appInfo.userId = %{public}d", appInfo.userId);
-    SetLocalPasteFlag(data.IsRemote(), appInfo.tokenId, data);
-    return static_cast<int32_t>(PasteboardError::E_OK);
+    if (isNotify) {
+        NotifyObservers(originBundleName, userId, PasteboardEventStatus::PASTEBOARD_WRITE);
+    }
 }
 
 void PasteboardService::GetDelayPasteData(int32_t userId, PasteData &data)
@@ -4497,10 +4515,10 @@ int32_t PasteboardService::GetDistributedDelayData(const Event &evt, uint8_t ver
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(ret == static_cast<int32_t>(PasteboardError::E_OK), ret,
         PASTEBOARD_MODULE_SERVICE, "get delay data failed, version=%{public}hhu", version);
 
-    auto authorityInfo = data->GetOriginAuthority();
-    data->SetBundleInfo(authorityInfo.first, authorityInfo.second);
     {
         std::unique_lock<std::shared_mutex> write(pasteDataMutex_);
+        auto authorityInfo = data->GetOriginAuthority();
+        data->SetBundleInfo(authorityInfo.first, authorityInfo.second);
         std::string bundleIndex = PasteBoardCommon::GetDirByAuthority(authorityInfo);
         PasteboardWebController::GetInstance().SplitWebviewPasteData(*data, bundleIndex, evt.user);
         PasteboardWebController::GetInstance().SetWebviewPasteData(*data, bundleIndex);
