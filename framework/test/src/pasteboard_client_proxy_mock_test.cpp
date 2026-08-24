@@ -181,5 +181,23 @@ HWTEST_F(PasteboardClientMockTest, SubscribeTest002, TestSize.Level0)
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SubscribeTest002 end");
 }
 
+/**
+ * @tc.name: DetachPasteboard001
+ * @tc.desc: DetachPasteboard with null proxy, should return OBTAIN_SERVER_SA_ERROR.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(PasteboardClientMockTest, DetachPasteboard001, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "DetachPasteboard001 start");
+    EXPECT_CALL(*systemAbilityManagerClientMock_, GetSystemAbilityManager()).WillRepeatedly(testing::Return(nullptr));
+    PasteboardServiceLoader::GetInstance().pasteboardServiceProxy_ = nullptr;
+    PasteboardServiceLoader::GetInstance().constructing_ = false;
+    int32_t ret = PasteboardClient::GetInstance()->DetachPasteboard();
+    ASSERT_EQ(ret, static_cast<int32_t>(PasteboardError::OBTAIN_SERVER_SA_ERROR));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "DetachPasteboard001 end");
+}
+
 } // namespace MiscServices
 } // namespace OHOS
