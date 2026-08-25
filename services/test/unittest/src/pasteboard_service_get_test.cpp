@@ -1123,5 +1123,30 @@ HWTEST_F(PasteboardServiceGetTest, GetPasteDataInfoTest007, TestSize.Level1)
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetPasteDataInfoTest007 end");
 }
 
+/**
+ * @tc.name: GetPasteDataInfoTest008
+ * @tc.desc: GetPasteDataInfo应跳过空record, text和html长度应为0
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceGetTest, GetPasteDataInfoTest008, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetPasteDataInfoTest008 start");
+    auto service = std::make_shared<PasteboardService>();
+    EXPECT_NE(service, nullptr);
+
+    service->currentUserId_.store(ACCOUNT_IDS_RANDOM);
+    service->copyTime_.InsertOrAssign(ACCOUNT_IDS_RANDOM, 0);
+    std::vector<std::shared_ptr<PasteDataRecord>> records = { nullptr };
+    std::shared_ptr<PasteData> pasteData = std::make_shared<PasteData>(records);
+    service->clips_.InsertOrAssign(ACCOUNT_IDS_RANDOM, pasteData);
+
+    PasteDataInfo pasteDataInfo;
+    int32_t result = service->GetPasteDataInfo(pasteDataInfo);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(pasteDataInfo.textDataSize, 0);
+    EXPECT_EQ(pasteDataInfo.htmlDataSize, 0);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetPasteDataInfoTest008 end");
+}
+
 } // namespace MiscServices
 } // namespace OHOS

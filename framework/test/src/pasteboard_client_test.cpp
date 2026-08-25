@@ -21,6 +21,8 @@
 #include "pixel_map.h"
 #include "unistd.h"
 #include "pasteboard_hilog.h"
+#include "entry_getter.h"
+#include "plain_text.h"
 
 namespace OHOS::MiscServices {
 using namespace testing::ext;
@@ -31,6 +33,30 @@ constexpr int32_t PERCENTAGE = 70;
 constexpr uint32_t HAS_DATA_TYPE_TIMEOUT = 5000; // 5s
 constexpr uint32_t HAS_DATA_TYPE_WAIT = 100; // 100ms
 using Patterns = std::set<Pattern>;
+
+class DataInfoDelayGetterImpl : public PasteboardDelayGetter {
+public:
+    // produce real delayed paste data keyed by the requested type so the getter is a valid implementation
+    void GetPasteData(const std::string &type, PasteData &data) override
+    {
+        data = *PasteboardClient::GetInstance()->CreatePlainTextData("delayed_" + type);
+    }
+    void GetUnifiedData(const std::string &type, UDMF::UnifiedData &data) override
+    {
+        auto plainText = std::make_shared<UDMF::PlainText>();
+        plainText->SetContent(type);
+        data.AddRecord(plainText);
+    }
+};
+
+class DataInfoEntryGetterImpl : public UDMF::EntryGetter {
+public:
+    // return a real value keyed by the requested utdId instead of an empty placeholder
+    UDMF::ValueType GetValueByType(const std::string &utdId) override
+    {
+        return "value_" + utdId;
+    }
+};
 
 class PasteboardClientTest : public testing::Test {
 public:
@@ -1250,6 +1276,152 @@ HWTEST_F(PasteboardClientTest, GetPasteDataInfoTest002, TestSize.Level0)
     ASSERT_EQ(pasteDataInfo.isDelayedRecord, false);
     ASSERT_FALSE(pasteDataInfo.mimeTypes.empty());
     ASSERT_EQ(pasteDataInfo.mimeTypes[0], "text/plain");
+}
+
+/**
+ * @tc.name: GetPasteDataInfoTest003
+ * @tc.desc: GetPasteDataInfo的textDataSize应等于半角英文的UTF-8字节长度
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardClientTest, GetPasteDataInfoTest003, TestSize.Level0)
+{
+    // half-width English: 1 byte per char -> 2 bytes
+    const std::string plainText = "Ab";
+    ASSERT_EQ(plainText.size(), 2U);
+
+    PasteboardClient::GetInstance()->Clear();
+    auto newData = PasteboardClient::GetInstance()->CreatePlainTextData(plainText);
+    int32_t ret = PasteboardClient::GetInstance()->SetPasteData(*newData);
+    ASSERT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
+
+    PasteDataInfo pasteDataInfo;
+    ret = PasteboardClient::GetInstance()->GetPasteDataInfo(pasteDataInfo);
+    ASSERT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
+    ASSERT_EQ(pasteDataInfo.textDataSize, 2);
+    ASSERT_EQ(pasteDataInfo.htmlDataSize, 0);
+}
+
+/**
+ * @tc.name: GetPasteDataInfoTest004
+ * @tc.desc: GetPasteDataInfo的textDataSize应等于中文字符的UTF-8字节长度
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardClientTest, GetPasteDataInfoTest004, TestSize.Level0)
+{
+    // Chinese (CJK): 3 bytes per char -> 6 bytes
+    const std::string plainText = "中文";
+    ASSERT_EQ(plainText.size(), 6U);
+
+    PasteboardClient::GetInstance()->Clear();
+    auto newData = PasteboardClient::GetInstance()->CreatePlainTextData(plainText);
+    int32_t ret = PasteboardClient::GetInstance()->SetPasteData(*newData);
+    ASSERT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
+
+    PasteDataInfo pasteDataInfo;
+    ret = PasteboardClient::GetInstance()->GetPasteDataInfo(pasteDataInfo);
+    ASSERT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
+    ASSERT_EQ(pasteDataInfo.textDataSize, 6);
+    ASSERT_EQ(pasteDataInfo.htmlDataSize, 0);
+}
+
+/**
+ * @tc.name: GetPasteDataInfoTest005
+ * @tc.desc: GetPasteDataInfo的textDataSize应等于全角字符的UTF-8字节长度
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardClientTest, GetPasteDataInfoTest005, TestSize.Level0)
+{
+    // full-width latin: 3 bytes per char -> 6 bytes
+    const std::string plainText = "ＡＢ";
+    ASSERT_EQ(plainText.size(), 6U);
+
+    PasteboardClient::GetInstance()->Clear();
+    auto newData = PasteboardClient::GetInstance()->CreatePlainTextData(plainText);
+    int32_t ret = PasteboardClient::GetInstance()->SetPasteData(*newData);
+    ASSERT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
+
+    PasteDataInfo pasteDataInfo;
+    ret = PasteboardClient::GetInstance()->GetPasteDataInfo(pasteDataInfo);
+    ASSERT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
+    ASSERT_EQ(pasteDataInfo.textDataSize, 6);
+    ASSERT_EQ(pasteDataInfo.htmlDataSize, 0);
+}
+
+/**
+ * @tc.name: GetPasteDataInfoTest006
+ * @tc.desc: GetPasteDataInfo的textDataSize应等于emoji的UTF-8字节长度
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardClientTest, GetPasteDataInfoTest006, TestSize.Level0)
+{
+    // emoji: 4 bytes per code point -> 8 bytes
+    const std::string plainText = "😀🎉";
+    ASSERT_EQ(plainText.size(), 8U);
+
+    PasteboardClient::GetInstance()->Clear();
+    auto newData = PasteboardClient::GetInstance()->CreatePlainTextData(plainText);
+    int32_t ret = PasteboardClient::GetInstance()->SetPasteData(*newData);
+    ASSERT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
+
+    PasteDataInfo pasteDataInfo;
+    ret = PasteboardClient::GetInstance()->GetPasteDataInfo(pasteDataInfo);
+    ASSERT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
+    ASSERT_EQ(pasteDataInfo.textDataSize, 8);
+    ASSERT_EQ(pasteDataInfo.htmlDataSize, 0);
+}
+
+/**
+ * @tc.name: GetPasteDataInfoTest007
+ * @tc.desc: 延迟数据场景下GetPasteDataInfo应正确返回isDelayedData和isDelayedRecord
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardClientTest, GetPasteDataInfoTest007, TestSize.Level0)
+{
+    PasteboardClient::GetInstance()->Clear();
+    auto newData = PasteboardClient::GetInstance()->CreatePlainTextData("helloWorld");
+    ASSERT_NE(newData, nullptr);
+
+    // a non-null delayGetter marks the data as delayed data,
+    // a non-empty entryGetters map marks it as delayed record
+    std::shared_ptr<PasteboardDelayGetter> delayGetter = std::make_shared<DataInfoDelayGetterImpl>();
+    std::map<uint32_t, std::shared_ptr<UDMF::EntryGetter>> entryGetters;
+    entryGetters.emplace(0, std::make_shared<DataInfoEntryGetterImpl>());
+    int32_t ret = PasteboardClient::GetInstance()->SetPasteData(*newData, delayGetter, entryGetters);
+    ASSERT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
+
+    PasteDataInfo pasteDataInfo;
+    ret = PasteboardClient::GetInstance()->GetPasteDataInfo(pasteDataInfo);
+    ASSERT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
+    ASSERT_TRUE(pasteDataInfo.isDelayedData);
+    ASSERT_TRUE(pasteDataInfo.isDelayedRecord);
+}
+
+/**
+ * @tc.name: GetPasteDataInfoTest008
+ * @tc.desc: GetPasteDataInfo的textDataSize应等于混合字符的UTF-8字节长度
+ *           (半角英文+中文+全角+emoji拼接)
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardClientTest, GetPasteDataInfoTest008, TestSize.Level0)
+{
+    const std::string englishHalfWidth = "Ab";  // 2 bytes
+    const std::string chinese = "中文";          // 6 bytes
+    const std::string fullWidth = "ＡＢ";        // 6 bytes
+    const std::string emoji = "😀🎉";            // 8 bytes
+    const std::string plainText = englishHalfWidth + chinese + fullWidth + emoji;
+    // combined UTF-8 byte length: 2 + 6 + 6 + 8 = 22
+    ASSERT_EQ(plainText.size(), 22U);
+
+    PasteboardClient::GetInstance()->Clear();
+    auto newData = PasteboardClient::GetInstance()->CreatePlainTextData(plainText);
+    int32_t ret = PasteboardClient::GetInstance()->SetPasteData(*newData);
+    ASSERT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
+
+    PasteDataInfo pasteDataInfo;
+    ret = PasteboardClient::GetInstance()->GetPasteDataInfo(pasteDataInfo);
+    ASSERT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
+    ASSERT_EQ(pasteDataInfo.textDataSize, static_cast<int32_t>(plainText.size()));
+    ASSERT_EQ(pasteDataInfo.htmlDataSize, 0);
 }
 
 /**
