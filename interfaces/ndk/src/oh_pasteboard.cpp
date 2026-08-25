@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,12 +16,14 @@
 #define LOG_TAG "Pasteboard_Capi"
 
 #include <thread>
+#include <vector>
 
 #include "oh_pasteboard_observer_impl.h"
 #include "pasteboard_client.h"
 #include "common/pasteboard_common_utils.h"
 #include "pasteboard_hilog.h"
 #include "udmf_capi_common.h"
+#include "common/histogram_wrapper.h"
 
 using namespace OHOS::MiscServices;
 
@@ -30,7 +32,8 @@ using namespace OHOS::MiscServices;
 
 static bool IsPasteboardValid(OH_Pasteboard *pasteboard)
 {
-    return pasteboard != nullptr && pasteboard->cid == PASTEBOARD_STRUCT_ID;
+    return pasteboard != nullptr && pasteboard->cid == PASTEBOARD_STRUCT_ID
+        && !pasteboard->destroyed.load(std::memory_order_acquire);
 }
 
 static bool IsSubscriberValid(OH_PasteboardObserver *observer)
@@ -119,12 +122,16 @@ void OH_Pasteboard_Destroy(OH_Pasteboard *pasteboard)
     if (!IsPasteboardValid(pasteboard)) {
         return;
     }
+    std::vector<OHOS::sptr<OHOS::MiscServices::PasteboardObserverCapiImpl>> observers;
     {
         std::lock_guard<std::mutex> lock(pasteboard->mutex);
-        for (auto iter : pasteboard->observers_) {
+        if (!IsPasteboardValid(pasteboard)) {
+            return;
+        }
+        pasteboard->destroyed.store(true, std::memory_order_release);
+        for (auto &iter : pasteboard->observers_) {
             if (iter.second != nullptr) {
-                PasteboardClient::GetInstance()->Unsubscribe(
-                    static_cast<PasteboardObserverType>(iter.second->GetType()), iter.second);
+                observers.push_back(iter.second);
             }
         }
         pasteboard->observers_.clear();
@@ -132,15 +139,24 @@ void OH_Pasteboard_Destroy(OH_Pasteboard *pasteboard)
         delete[] pasteboard->mimeTypesPtr;
         pasteboard->mimeTypesPtr = nullptr;
     }
+    for (auto &observer : observers) {
+        if (observer != nullptr) {
+            PasteboardClient::GetInstance()->Unsubscribe(
+                static_cast<PasteboardObserverType>(observer->GetType()), observer);
+        }
+    }
     delete pasteboard;
 }
 
 int OH_Pasteboard_Subscribe(OH_Pasteboard *pasteboard, int type, const OH_PasteboardObserver *observer)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.OH_Pasteboard_Subscribe", true);
     if (!IsPasteboardValid(pasteboard) || observer == nullptr || type < NOTIFY_LOCAL_DATA_CHANGE ||
         type > NOTIFY_REMOTE_DATA_CHANGE) {
         return ERR_INVALID_PARAMETER;
     }
+    HISTOGRAM_ENUMERATION_SAMPLED(
+        "Pasteboard.NotifyType.OH_Pasteboard_Subscribe", type, HISTOGRAM_NOTIFYTYPE_BOUNDARY);
     std::lock_guard<std::mutex> lock(pasteboard->mutex);
     auto iter = pasteboard->observers_.find(observer);
     if (iter != pasteboard->observers_.end()) {
@@ -163,6 +179,7 @@ int OH_Pasteboard_Subscribe(OH_Pasteboard *pasteboard, int type, const OH_Pasteb
 
 int OH_Pasteboard_Unsubscribe(OH_Pasteboard *pasteboard, int type, const OH_PasteboardObserver *observer)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.OH_Pasteboard_Unsubscribe", true);
     if (!IsPasteboardValid(pasteboard) || observer == nullptr || type < NOTIFY_LOCAL_DATA_CHANGE ||
         type > NOTIFY_REMOTE_DATA_CHANGE) {
         return ERR_INVALID_PARAMETER;
@@ -180,6 +197,7 @@ int OH_Pasteboard_Unsubscribe(OH_Pasteboard *pasteboard, int type, const OH_Past
 
 uint32_t OH_Pasteboard_GetChangeCount(OH_Pasteboard *pasteboard)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.OH_Pasteboard_GetChangeCount", true);
     uint32_t changeCount = 0;
     PasteboardClient::GetInstance()->GetChangeCount(changeCount);
     return changeCount;
@@ -187,11 +205,13 @@ uint32_t OH_Pasteboard_GetChangeCount(OH_Pasteboard *pasteboard)
 
 bool OH_Pasteboard_IsRemoteData(OH_Pasteboard *pasteboard)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.OH_Pasteboard_IsRemoteData", true);
     return PasteboardClient::GetInstance()->IsRemoteData();
 }
 
 int OH_Pasteboard_GetDataSource(OH_Pasteboard *pasteboard, char *source, unsigned int len)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.OH_Pasteboard_GetDataSource", true);
     if (!IsPasteboardValid(pasteboard) || source == nullptr || len == 0) {
         return ERR_INVALID_PARAMETER;
     }
@@ -210,6 +230,7 @@ int OH_Pasteboard_GetDataSource(OH_Pasteboard *pasteboard, char *source, unsigne
 
 char **OH_Pasteboard_GetMimeTypes(OH_Pasteboard *pasteboard, unsigned int *count)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.OH_Pasteboard_GetMimeTypes", true);
     if (!IsPasteboardValid(pasteboard) || count == nullptr) {
         return nullptr;
     }
@@ -231,9 +252,14 @@ char **OH_Pasteboard_GetMimeTypes(OH_Pasteboard *pasteboard, unsigned int *count
 
 bool OH_Pasteboard_HasType(OH_Pasteboard *pasteboard, const char *type)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.OH_Pasteboard_HasType", true);
     if (!IsPasteboardValid(pasteboard) || type == nullptr) {
         return false;
     }
+    std::string typeStr(type);
+    int32_t mimeTypeEnum = GetHistogramMimeTypeEnum(typeStr);
+    HISTOGRAM_ENUMERATION_SAMPLED(
+        "Pasteboard.MimeType.OH_Pasteboard_HasType", mimeTypeEnum, HISTOGRAM_MIMETYPE_BOUNDARY);
     if (IsMimeType(type)) {
         return PasteboardClient::GetInstance()->HasDataType(std::string(type));
     }
@@ -242,6 +268,7 @@ bool OH_Pasteboard_HasType(OH_Pasteboard *pasteboard, const char *type)
 
 bool OH_Pasteboard_HasData(OH_Pasteboard *pasteboard)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.OH_Pasteboard_HasData", true);
     if (!IsPasteboardValid(pasteboard)) {
         return false;
     }
@@ -250,6 +277,7 @@ bool OH_Pasteboard_HasData(OH_Pasteboard *pasteboard)
 
 bool OH_Pasteboard_HasRemoteData(OH_Pasteboard *pasteboard)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.OH_Pasteboard_HasRemoteData", true);
     if (!IsPasteboardValid(pasteboard)) {
         return false;
     }
@@ -258,6 +286,7 @@ bool OH_Pasteboard_HasRemoteData(OH_Pasteboard *pasteboard)
 
 OH_UdmfData *OH_Pasteboard_GetData(OH_Pasteboard *pasteboard, int *status)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.OH_Pasteboard_GetData", true);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CAPI, "enter");
     if (!IsPasteboardValid(pasteboard) || status == nullptr) {
         return nullptr;
@@ -381,11 +410,13 @@ void ProgressNotify(std::shared_ptr<GetDataParams> params)
 
 void OH_Pasteboard_ProgressCancel(Pasteboard_GetDataParams* params)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.OH_Pasteboard_ProgressCancel", true);
     ProgressSignalClient::GetInstance().Cancel();
 }
 
 OH_UdmfData* OH_Pasteboard_GetDataWithProgress(OH_Pasteboard* pasteboard, Pasteboard_GetDataParams* params, int* status)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.OH_Pasteboard_GetDataWithProgress", true);
     if (!IsPasteboardValid(pasteboard) || params == nullptr || status == nullptr) {
         if (status != nullptr) {
             *status = ERR_INVALID_PARAMETER;
@@ -438,6 +469,7 @@ OH_UdmfData* OH_Pasteboard_GetDataWithProgress(OH_Pasteboard* pasteboard, Pasteb
 
 int OH_Pasteboard_SetData(OH_Pasteboard *pasteboard, OH_UdmfData *data)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.OH_Pasteboard_SetData", true);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CAPI, "enter");
     if (!IsPasteboardValid(pasteboard) || data == nullptr) {
         return ERR_INVALID_PARAMETER;
@@ -454,6 +486,7 @@ int OH_Pasteboard_SetData(OH_Pasteboard *pasteboard, OH_UdmfData *data)
 
 int OH_Pasteboard_ClearData(OH_Pasteboard *pasteboard)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.OH_Pasteboard_ClearData", true);
     if (!IsPasteboardValid(pasteboard)) {
         return ERR_INVALID_PARAMETER;
     }
@@ -463,6 +496,7 @@ int OH_Pasteboard_ClearData(OH_Pasteboard *pasteboard)
 
 void OH_Pasteboard_SyncDelayedDataAsync(OH_Pasteboard* pasteboard, void (*callback)(int errorCode))
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.OH_Pasteboard_SyncDelayedDataAsync", true);
     if (!IsPasteboardValid(pasteboard)) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CAPI, "invalid pasteboard");
         return;

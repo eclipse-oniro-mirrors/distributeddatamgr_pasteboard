@@ -215,8 +215,9 @@ static PasteboardServiceInterface *GetPasteboardServiceInterface()
 }
 
 extern "C" {
-int32_t InputMethodController::GetDefaultInputMethod(std::shared_ptr<Property> &property)
+int32_t InputMethodController::GetDefaultInputMethod(std::shared_ptr<Property> &property, int32_t userId)
 {
+    (void)userId;
     PasteboardServiceInterface *interface = GetPasteboardServiceInterface();
     if (interface == nullptr) {
         return 0;
@@ -432,16 +433,6 @@ uint32_t DistributedModuleConfig::GetRemoteDeviceMinVersion()
     return interface->GetRemoteDeviceMinVersion();
 }
 
-int32_t RemoteFileShare::GetDfsUriFromLocal(
-    const std::string &uriStr, const int32_t &userId, struct HmdfsUriInfo &hui)
-{
-    PasteboardServiceInterface *interface = GetPasteboardServiceInterface();
-    if (interface == nullptr) {
-        return UINT_MAX;
-    }
-    return interface->GetDfsUriFromLocal(uriStr, userId, hui);
-}
-
 std::vector<std::shared_ptr<PasteDataRecord>> PasteData::AllRecords() const
 {
     PasteboardServiceInterface *interface = GetPasteboardServiceInterface();
@@ -463,8 +454,9 @@ bool OHOS::system::GetBoolParameter(const std::string &key, bool defaultValue)
 
 namespace MiscServices {
     int32_t InputMethodController::SendPrivateCommand(
-        const std::unordered_map<std::string, PrivateDataValue> &privateCommand)
+        const std::unordered_map<std::string, PrivateDataValue> &privateCommand, bool validateDefaultIme)
     {
+        (void)validateDefaultIme;
         return 0;
     }
 
@@ -1782,6 +1774,23 @@ HWTEST_F(PasteboardServiceMockTest, IsCallerUidValid005, TestSize.Level1)
 }
 
 /**
+ * @tc.name: IsCallerUidValid006
+ * @tc.desc: IsCallerUidValid006 function test
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, IsCallerUidValid006, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "IsCallerUidValid006 start.");
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+    NiceMock<PasteboardServiceInterfaceMock> ipcMock;
+    EXPECT_CALL(ipcMock, GetCallingUid()).WillRepeatedly(testing::Return(PasteboardService::RSS_UID));
+    auto ret = tempPasteboard->IsCallerUidValid();
+    ASSERT_EQ(ret, true);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "IsCallerUidValid006 end.");
+}
+
+/**
  * @tc.name: CloseDistributedStoreTest002
  * @tc.desc: test Func CloseDistributedStore
  * @tc.type: FUNC
@@ -1924,6 +1933,55 @@ HWTEST_F(PasteboardServiceMockTest, UserContextResolverResolveCallingUserFail002
 }
 
 /**
+ * @tc.name: UserContextResolverResolveCallingUserFail003
+ * @tc.desc: test UserContextResolver ResolveCallingUser rejects userId=0 from IPC
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, UserContextResolverResolveCallingUserFail003, TestSize.Level1)
+{
+    NiceMock<PasteboardServiceInterfaceMock> mock;
+    constexpr int32_t uid = 20010002;
+    EXPECT_CALL(mock, GetCallingUid()).WillOnce(Return(uid));
+    EXPECT_CALL(mock, GetOsAccountLocalIdFromUid(uid, testing::_))
+        .WillOnce([](const int, int &id) {
+            id = 0;
+            return ERR_OK;
+        });
+
+    UserContextResolver resolver;
+    auto context = resolver.ResolveCallingUser();
+    EXPECT_FALSE(context.isValid);
+    EXPECT_EQ(context.userId, ERROR_USERID);
+    EXPECT_EQ(context.uid, uid);
+    EXPECT_EQ(context.source, UserContextSource::CALLER);
+}
+
+/**
+ * @tc.name: UserContextResolverResolveCallingUserFail004
+ * @tc.desc: test UserContextResolver ResolveCallingUser rejects negative userId from IPC
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, UserContextResolverResolveCallingUserFail004, TestSize.Level1)
+{
+    NiceMock<PasteboardServiceInterfaceMock> mock;
+    constexpr int32_t uid = 20010002;
+    constexpr int32_t abnormalUserId = -2;
+    EXPECT_CALL(mock, GetCallingUid()).WillOnce(Return(uid));
+    EXPECT_CALL(mock, GetOsAccountLocalIdFromUid(uid, testing::_))
+        .WillOnce([](const int, int &id) {
+            id = abnormalUserId;
+            return ERR_OK;
+        });
+
+    UserContextResolver resolver;
+    auto context = resolver.ResolveCallingUser();
+    EXPECT_FALSE(context.isValid);
+    EXPECT_EQ(context.userId, ERROR_USERID);
+    EXPECT_EQ(context.uid, uid);
+    EXPECT_EQ(context.source, UserContextSource::CALLER);
+}
+
+/**
  * @tc.name: UserContextResolverResolveMainDisplayUser001
  * @tc.desc: test UserContextResolver ResolveMainDisplayUser success
  * @tc.type: FUNC
@@ -1975,6 +2033,51 @@ HWTEST_F(PasteboardServiceMockTest, UserContextResolverResolveMainDisplayUserFai
     EXPECT_CALL(mock, GetForegroundOsAccountLocalId(MAIN_DISPLAY_ID, testing::_))
         .WillOnce([](uint64_t, int32_t &id) {
             id = ERROR_USERID;
+            return ERR_OK;
+        });
+
+    UserContextResolver resolver;
+    auto context = resolver.ResolveMainDisplayUser();
+    EXPECT_FALSE(context.isValid);
+    EXPECT_EQ(context.userId, ERROR_USERID);
+    EXPECT_EQ(context.displayId, MAIN_DISPLAY_ID);
+    EXPECT_EQ(context.source, UserContextSource::MAIN_DISPLAY);
+}
+
+/**
+ * @tc.name: UserContextResolverResolveMainDisplayUserFail003
+ * @tc.desc: test UserContextResolver ResolveMainDisplayUser rejects userId=0 from IPC
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, UserContextResolverResolveMainDisplayUserFail003, TestSize.Level1)
+{
+    NiceMock<PasteboardServiceInterfaceMock> mock;
+    EXPECT_CALL(mock, GetForegroundOsAccountLocalId(MAIN_DISPLAY_ID, testing::_))
+        .WillOnce([](uint64_t, int32_t &id) {
+            id = 0;
+            return ERR_OK;
+        });
+
+    UserContextResolver resolver;
+    auto context = resolver.ResolveMainDisplayUser();
+    EXPECT_FALSE(context.isValid);
+    EXPECT_EQ(context.userId, ERROR_USERID);
+    EXPECT_EQ(context.displayId, MAIN_DISPLAY_ID);
+    EXPECT_EQ(context.source, UserContextSource::MAIN_DISPLAY);
+}
+
+/**
+ * @tc.name: UserContextResolverResolveMainDisplayUserFail004
+ * @tc.desc: test UserContextResolver ResolveMainDisplayUser rejects negative userId from IPC
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, UserContextResolverResolveMainDisplayUserFail004, TestSize.Level1)
+{
+    NiceMock<PasteboardServiceInterfaceMock> mock;
+    constexpr int32_t abnormalUserId = -2;
+    EXPECT_CALL(mock, GetForegroundOsAccountLocalId(MAIN_DISPLAY_ID, testing::_))
+        .WillOnce([](uint64_t, int32_t &id) {
+            id = abnormalUserId;
             return ERR_OK;
         });
 
@@ -2063,6 +2166,40 @@ HWTEST_F(PasteboardServiceMockTest, UserContextResolverResolveForegroundUsersFai
 }
 
 /**
+ * @tc.name: UserContextResolverResolveForegroundUsersFail003
+ * @tc.desc: test UserContextResolver ResolveForegroundUsers filters userId=0 and negative
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, UserContextResolverResolveForegroundUsersFail003, TestSize.Level1)
+{
+    NiceMock<PasteboardServiceInterfaceMock> mock;
+    constexpr int32_t validUserId = 101;
+    constexpr uint64_t validDisplayId = 1;
+    EXPECT_CALL(mock, GetForegroundOsAccounts(testing::_))
+        .WillOnce([](std::vector<AccountSA::ForegroundOsAccount> &accounts) {
+            AccountSA::ForegroundOsAccount zeroUser;
+            zeroUser.localId = 0;
+            zeroUser.displayId = MAIN_DISPLAY_ID;
+            AccountSA::ForegroundOsAccount negUser;
+            negUser.localId = -2;
+            negUser.displayId = 2;
+            AccountSA::ForegroundOsAccount valid;
+            valid.localId = validUserId;
+            valid.displayId = validDisplayId;
+            accounts = { zeroUser, negUser, valid };
+            return ERR_OK;
+        });
+
+    UserContextResolver resolver;
+    auto contexts = resolver.ResolveForegroundUsers();
+    ASSERT_EQ(contexts.size(), 1);
+    EXPECT_EQ(contexts[0].userId, validUserId);
+    EXPECT_EQ(contexts[0].displayId, validDisplayId);
+    EXPECT_TRUE(contexts[0].isValid);
+    EXPECT_EQ(contexts[0].source, UserContextSource::FOREGROUND);
+}
+
+/**
  * @tc.name: UserContextResolverResolveEventContext001
  * @tc.desc: test UserContextResolver event context resolve success
  * @tc.type: FUNC
@@ -2135,6 +2272,60 @@ HWTEST_F(PasteboardServiceMockTest, UserContextResolverResolveEventContextFail00
 }
 
 /**
+ * @tc.name: UserContextResolverResolveEventContextFail002
+ * @tc.desc: test UserContextResolver event context rejects userId=0 and negative
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, UserContextResolverResolveEventContextFail002, TestSize.Level1)
+{
+    constexpr int32_t zeroUserId = 0;
+    constexpr int32_t negUserId = -2;
+    EventFwk::CommonEventData zeroData;
+    zeroData.SetCode(zeroUserId);
+    EventFwk::CommonEventData negData;
+    negData.SetCode(negUserId);
+    AAFwk::Want zeroWant;
+    zeroWant.SetParam(PACKAGE_REMOVED_USER_ID, zeroUserId);
+    AAFwk::Want negWant;
+    negWant.SetParam(PACKAGE_REMOVED_USER_ID, negUserId);
+
+    UserContextResolver resolver;
+    auto switchedZero = resolver.ResolveUserSwitchedNewUser(zeroData);
+    auto stoppingZero = resolver.ResolveStoppingUser(zeroData);
+    auto packageRemovedZero = resolver.ResolveUserIdFromWant(zeroWant);
+    auto eventZero = resolver.ResolveEventUser(zeroData);
+    auto madeZero = resolver.MakeEventContext(zeroUserId, UserContextSource::EVENT);
+
+    EXPECT_FALSE(switchedZero.isValid);
+    EXPECT_EQ(switchedZero.userId, zeroUserId);
+    EXPECT_FALSE(stoppingZero.isValid);
+    EXPECT_EQ(stoppingZero.userId, zeroUserId);
+    EXPECT_FALSE(packageRemovedZero.isValid);
+    EXPECT_EQ(packageRemovedZero.userId, zeroUserId);
+    EXPECT_FALSE(eventZero.isValid);
+    EXPECT_EQ(eventZero.userId, zeroUserId);
+    EXPECT_FALSE(madeZero.isValid);
+    EXPECT_EQ(madeZero.userId, zeroUserId);
+
+    auto switchedNeg = resolver.ResolveUserSwitchedNewUser(negData);
+    auto stoppingNeg = resolver.ResolveStoppingUser(negData);
+    auto packageRemovedNeg = resolver.ResolveUserIdFromWant(negWant);
+    auto eventNeg = resolver.ResolveEventUser(negData);
+    auto madeNeg = resolver.MakeEventContext(negUserId, UserContextSource::EVENT);
+
+    EXPECT_FALSE(switchedNeg.isValid);
+    EXPECT_EQ(switchedNeg.userId, negUserId);
+    EXPECT_FALSE(stoppingNeg.isValid);
+    EXPECT_EQ(stoppingNeg.userId, negUserId);
+    EXPECT_FALSE(packageRemovedNeg.isValid);
+    EXPECT_EQ(packageRemovedNeg.userId, negUserId);
+    EXPECT_FALSE(eventNeg.isValid);
+    EXPECT_EQ(eventNeg.userId, negUserId);
+    EXPECT_FALSE(madeNeg.isValid);
+    EXPECT_EQ(madeNeg.userId, negUserId);
+}
+
+/**
  * @tc.name: UserContextResolverResolveInteractionUser001
  * @tc.desc: test UserContextResolver ResolveInteractionUser
  * @tc.type: FUNC
@@ -2153,6 +2344,26 @@ HWTEST_F(PasteboardServiceMockTest, UserContextResolverResolveInteractionUser001
     EXPECT_FALSE(invalid.isValid);
     EXPECT_EQ(invalid.userId, ERROR_USERID);
     EXPECT_EQ(invalid.source, UserContextSource::INTERACTION);
+}
+
+/**
+ * @tc.name: UserContextResolverResolveInteractionUser002
+ * @tc.desc: test UserContextResolver ResolveInteractionUser rejects userId=0 and negative
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, UserContextResolverResolveInteractionUser002, TestSize.Level1)
+{
+    UserContextResolver resolver;
+
+    auto zero = resolver.ResolveInteractionUser(0);
+    EXPECT_FALSE(zero.isValid);
+    EXPECT_EQ(zero.userId, 0);
+    EXPECT_EQ(zero.source, UserContextSource::INTERACTION);
+
+    auto neg = resolver.ResolveInteractionUser(-2);
+    EXPECT_FALSE(neg.isValid);
+    EXPECT_EQ(neg.userId, -2);
+    EXPECT_EQ(neg.source, UserContextSource::INTERACTION);
 }
 
 /**
@@ -2421,7 +2632,9 @@ HWTEST_F(PasteboardServiceMockTest, SetCurrentDataTest001, TestSize.Level1)
     service.securityLevel_.securityLevel_ = DATA_SEC_LEVEL1;
     TestEvent event;
     PasteData data;
-    bool result = service.SetCurrentData(event, data);
+    service.setDistributedMemory_.latestData = std::make_shared<PasteData>(data);
+    service.setDistributedMemory_.latestEvent = event;
+    bool result = service.SetCurrentData();
     EXPECT_EQ(result, false);
 }
 
@@ -2450,7 +2663,9 @@ HWTEST_F(PasteboardServiceMockTest, SetCurrentDataTest002, TestSize.Level1)
     EXPECT_CALL(mock, GetRemoteDeviceMinVersion())
         .WillRepeatedly(testing::Return(DistributedModuleConfig::FIRST_VERSION));
 
-    bool result = service.SetCurrentData(event, data);
+    service.setDistributedMemory_.latestData = std::make_shared<PasteData>(data);
+    service.setDistributedMemory_.latestEvent = event;
+    bool result = service.SetCurrentData();
     EXPECT_EQ(result, false);
 }
 
@@ -2479,7 +2694,9 @@ HWTEST_F(PasteboardServiceMockTest, SetCurrentDataTest003, TestSize.Level1)
     EXPECT_CALL(mock, GetRemoteDeviceMinVersion())
         .WillRepeatedly(testing::Return(DistributedModuleConfig::FIRST_VERSION + 1));
     EXPECT_CALL(mock, Encode(testing::_)).WillOnce(Return(true));
-    bool result = service.SetCurrentData(event, data);
+    service.setDistributedMemory_.latestData = std::make_shared<PasteData>(data);
+    service.setDistributedMemory_.latestEvent = event;
+    bool result = service.SetCurrentData();
     EXPECT_EQ(result, true);
 }
 

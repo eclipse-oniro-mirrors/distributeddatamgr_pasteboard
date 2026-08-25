@@ -29,13 +29,6 @@
             }
         },
         {
-            "name":"pasteboard_desc_text",
-            "value":"Copie num dispositivo e cole noutro. Os dispositivos devem estar próximos um do outro, com a sessão iniciada na mesma Conta e ter a WLAN, o Bluetooth e esta funcionalidade ativada. %s",
-            "attr":{
-                "priority":"LT"
-            }
-        },
-        {
             "name":"prompttext_udmf_format_error",
             "value":"Falha ao converter o formato. Tente mais tarde.",
             "attr":{

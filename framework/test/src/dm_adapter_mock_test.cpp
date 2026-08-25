@@ -398,5 +398,51 @@ PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "OnDeviceOnlineMaintainsUdidCache001
 PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "OnDeviceOnlineMaintainsUdidCache001 end");
 }
 
+/**
+ * @tc.name: GetRemoteDeviceInfoByDeviceManager001
+ * @tc.desc: GetRemoteDeviceInfo should query DeviceManager for the real device name on demand.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(DMAdapterMockTest, GetRemoteDeviceInfoByDeviceManager001, TestSize.Level0)
+{
+PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "GetRemoteDeviceInfoByDeviceManager001 start");
+#ifdef PB_DEVICE_MANAGER_ENABLE
+    constexpr const char *NETWORK_ID = "testNetworkId";
+    constexpr const char *UDID = "testUdid";
+    constexpr const char *DEVICE_NAME = "realDeviceName";
+    DMAdapter::GetInstance().devices_.clear();
+    EXPECT_CALL(*deviceManagerMock_, GetUdidByNetworkId(testing::_, testing::_, testing::_))
+        .Times(1)
+        .WillRepeatedly([](auto, auto, std::string &udid) {
+            udid = UDID;
+            return 0;
+        });
+    EXPECT_CALL(*deviceManagerMock_, GetDeviceInfo(testing::_, testing::_, testing::_))
+        .Times(1)
+        .WillRepeatedly([](auto, auto, DmDeviceInfo &deviceInfo) {
+            deviceInfo = {};
+            deviceInfo.authForm = IDENTICAL_ACCOUNT;
+            std::string networkId = NETWORK_ID;
+            std::copy(networkId.begin(), networkId.end(), deviceInfo.networkId);
+            std::string deviceName = DEVICE_NAME;
+            std::copy(deviceName.begin(), deviceName.end(), deviceInfo.deviceName);
+            return 0;
+        });
+    DMAdapter::GetInstance().devices_.emplace(UDID);
+
+    DmDeviceInfo remoteDevice;
+    int32_t ret = DMAdapter::GetInstance().GetRemoteDeviceInfo(NETWORK_ID, remoteDevice);
+    ASSERT_EQ(static_cast<int32_t>(PasteboardError::E_OK), ret);
+    EXPECT_EQ(std::string(DEVICE_NAME), std::string(remoteDevice.deviceName));
+    EXPECT_EQ(std::string(NETWORK_ID), std::string(remoteDevice.networkId));
+    DMAdapter::GetInstance().devices_.clear();
+#else
+    ASSERT_TRUE(true);
+#endif
+PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "GetRemoteDeviceInfoByDeviceManager001 end");
+}
+
 } // namespace MiscServices
 } // namespace OHOS

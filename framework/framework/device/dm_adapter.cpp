@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,8 +13,6 @@
  * limitations under the License.
  */
 
-#include <algorithm>
-#include <cstring>
 #include <thread>
 
 #include "common/pasteboard_common_utils.h"
@@ -105,9 +103,6 @@ DMAdapter::DMAdapter() {}
 
 DMAdapter::~DMAdapter()
 {
-#ifdef PB_DEVICE_MANAGER_ENABLE
-    devices_.clear();
-#endif
 }
 
 DMAdapter &DMAdapter::GetInstance()
@@ -224,16 +219,16 @@ const std::string DMAdapter::GetLocalNetworkId()
 int32_t DMAdapter::GetRemoteDeviceInfo(const std::string &networkId, DmDeviceInfo &remoteDevice)
 {
     remoteDevice = {};
-    if (IsDeviceOnline(networkId)) {
-        PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(networkId.size() < sizeof(remoteDevice.networkId),
-            static_cast<int32_t>(PasteboardError::INVALID_PARAM_ERROR), PASTEBOARD_MODULE_SERVICE,
-            "networkId too long");
-        std::copy(networkId.begin(), networkId.end(), remoteDevice.networkId);
-        std::copy_n(DEVICE_INVALID_NAME, strlen(DEVICE_INVALID_NAME), remoteDevice.deviceName);
-        remoteDevice.authForm = IDENTICAL_ACCOUNT;
-        return static_cast<int32_t>(PasteboardError::E_OK);
+    if (!IsDeviceOnline(networkId)) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "device not online, networkId:%{public}.6s", networkId.c_str());
+        return static_cast<int32_t>(PasteboardError::NO_TRUST_DEVICE_ERROR);
     }
-    return static_cast<int32_t>(PasteboardError::NO_TRUST_DEVICE_ERROR);
+    int32_t ret = DeviceManager::GetInstance().GetDeviceInfo(PKG_NAME, networkId, remoteDevice);
+    if (ret != 0) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "GetDeviceInfo failed, ret:%{public}d", ret);
+        return static_cast<int32_t>(PasteboardError::NO_TRUST_DEVICE_ERROR);
+    }
+    return static_cast<int32_t>(PasteboardError::E_OK);
 }
 #endif
 

@@ -14,6 +14,8 @@
  */
 #include "security_level.h"
 
+#include <vector>
+
 #include "dev_slinfo_mgr.h"
 #include "device/dm_adapter.h"
 #include "pasteboard_hilog.h"

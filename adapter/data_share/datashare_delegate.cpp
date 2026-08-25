@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -43,11 +43,12 @@ sptr<IRemoteObject> GetSystemAbilitySafe(int32_t saId)
 
 std::shared_ptr<DataShare::DataShareHelper> DataShareDelegate::CreateDataShareHelper(const std::string &key)
 {
-    std::string SETTING_URI_PROXY;
+    std::string settingUriProxy;
     if (key == DEVICE_COLLAB_SWITCH) {
-        SETTING_URI_PROXY = std::string(SETTING_URI_WIFI_PROXY);
+        settingUriProxy = std::string(SETTING_URI_WIFI_PROXY);
     } else {
-        SETTING_URI_PROXY = std::string(SETTING_URI_PROXY_PREFIX) + userId_ + std::string(SETTING_URI_PROXY_SUFFIX);
+        std::lock_guard<std::mutex> lock(userIdMutex_);
+        settingUriProxy = std::string(SETTING_URI_PROXY_PREFIX) + userId_ + std::string(SETTING_URI_PROXY_SUFFIX);
     }
     auto remoteObj = GetSystemAbilitySafe(PASTEBOARD_SA_ID);
     if (!remoteObj) {
@@ -55,13 +56,14 @@ std::shared_ptr<DataShare::DataShareHelper> DataShareDelegate::CreateDataShareHe
         return nullptr;
     }
     
-    auto [ret, helper] = DataShare::DataShareHelper::Create(remoteObj, SETTING_URI_PROXY, SETTINGS_DATA_EXT_URI);
+    auto [ret, helper] = DataShare::DataShareHelper::Create(remoteObj, settingUriProxy, SETTINGS_DATA_EXT_URI);
     remoteObj = nullptr;
     return helper;
 }
 
 void DataShareDelegate::SetUserId(int32_t userId)
 {
+    std::lock_guard<std::mutex> lock(userIdMutex_);
     this->userId_ = std::to_string(userId);
 }
 
@@ -95,16 +97,16 @@ int32_t DataShareDelegate::GetValue(const std::string &key, std::string &value)
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "Query failed key=%{public}s", key.c_str());
         return static_cast<int32_t>(PasteboardError::INVALID_RETURN_VALUE_ERROR);
     }
-    int32_t count;
-    resultSet->GetRowCount(count);
+    int32_t count = 0;
+    int32_t ret = resultSet->GetRowCount(count);
     if (count == 0) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "no value, key=%{public}s", key.c_str());
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "no value, key=%{public}s, ret=%{public}d", key.c_str(), ret);
         resultSet->Close();
         return static_cast<int32_t>(PasteboardError::QUERY_SETTING_NO_DATA_ERROR);
     }
     int32_t index = 0;
     resultSet->GoToRow(index);
-    int32_t ret = resultSet->GetString(index, value);
+    ret = resultSet->GetString(index, value);
     if (ret != DataShare::E_OK) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "get value failed, ret=%{public}d", ret);
         resultSet->Close();
@@ -120,6 +122,7 @@ Uri DataShareDelegate::MakeUri(const std::string &key)
     if (key == DEVICE_COLLAB_SWITCH) {
         uriString = std::string(SETTING_URI_WIFI_PROXY) + "&key=" + key;
     } else {
+        std::lock_guard<std::mutex> lock(userIdMutex_);
         uriString = std::string(SETTING_URI_PROXY_PREFIX) + userId_ +
             std::string(SETTING_URI_PROXY_SUFFIX) + "&key=" + key;
     }

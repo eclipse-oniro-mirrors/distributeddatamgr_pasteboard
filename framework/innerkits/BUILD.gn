@@ -109,7 +109,7 @@ ohos_shared_library("pasteboard_data") {
     "ipc:ipc_single",
     "libxml2:libxml2",
     "samgr:samgr_proxy",
-    "udmf:udmf_core",
+    "udmf:udmf_client",
   ]
   subsystem_name = "distributeddatamgr"
   innerapi_tags = [ "platformsdk" ]
@@ -174,8 +174,6 @@ ohos_shared_library("pasteboard_client") {
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
-    "data_share:datashare_common",
-    "data_share:datashare_consumer",
     "dfs_service:distributed_file_daemon_kit_inner",
     "ffrt:libffrt",
     "hilog:libhilog",

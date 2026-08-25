@@ -86,6 +86,7 @@ ohos_shared_library("pasteboard_service") {
     "core/src/pasteboard_dialog.cpp",
     "core/src/pasteboard_delay_manager.cpp",
     "core/src/pasteboard_disposable_manager.cpp",
+    "core/src/pasteboard_hml_manager.cpp",
     "core/src/pasteboard_pattern.cpp",
     "core/src/pasteboard_service.cpp",
     "core/src/pasteboard_user_context.cpp",
@@ -139,6 +140,7 @@ ohos_shared_library("pasteboard_service") {
     "ability_base:base",
     "ability_base:want",
     "ability_base:zuri",
+    "ability_runtime:dataobs_manager",
     "ability_runtime:uri_permission_mgr",
     "ability_runtime:wantagent_innerkits",
     "access_token:libaccesstoken_sdk",
@@ -167,7 +169,7 @@ ohos_shared_library("pasteboard_service") {
     "resource_schedule_service:ressched_client",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
-    "udmf:udmf_core",
+    "udmf:udmf_client",
   ]
   if (window_manager_use_sceneboard) {
     external_deps += [ "window_manager:libwm_lite" ]
@@ -235,7 +237,7 @@ ohos_source_set("pasteboard_stub_proxy") {
     "hilog:libhilog",
     "ipc:ipc_single",
     "samgr:samgr_proxy",
-    "udmf:udmf_core",
+    "udmf:udmf_client",
   ]
   subsystem_name = "distributeddatamgr"
   part_name = "pasteboard"
@@ -270,7 +272,7 @@ ohos_source_set("pasteboard_client_idl") {
     "ipc:ipc_single",
     "image_framework:image",
     "samgr:samgr_proxy",
-    "udmf:udmf_core",
+    "udmf:udmf_client",
   ]
 
   subsystem_name = "distributeddatamgr"
@@ -306,7 +308,7 @@ ohos_source_set("pasteboard_service_idl") {
     "ipc:ipc_single",
     "image_framework:image",
     "samgr:samgr_proxy",
-    "udmf:udmf_core",
+    "udmf:udmf_client",
   ]
 
   subsystem_name = "distributeddatamgr"

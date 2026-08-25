@@ -1423,4 +1423,21 @@ HWTEST_F(PasteboardClientTest, GetPasteDataInfoTest008, TestSize.Level0)
     ASSERT_EQ(pasteDataInfo.textDataSize, static_cast<int32_t>(plainText.size()));
     ASSERT_EQ(pasteDataInfo.htmlDataSize, 0);
 }
+
+/**
+ * @tc.name: DetachPasteboard001
+ * @tc.desc: Detach pasteboard client from service, should return ERR_OK when client is registered.
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(PasteboardClientTest, DetachPasteboard001, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "DetachPasteboard001 start");
+    auto client = PasteboardClient::GetInstance();
+    ASSERT_TRUE(client != nullptr);
+    int32_t ret = client->DetachPasteboard();
+    EXPECT_EQ(ret, ERR_OK);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "DetachPasteboard001 end");
+}
 } // namespace OHOS::MiscServices

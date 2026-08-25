@@ -21,6 +21,7 @@
         "pasteboard_device_manager_part_enabled",
         "pasteboard_screenlock_mgr_part_enabled",
         "pasteboard_dataclassification_enabled",
+        "pasteboard_api_metrics_enabled",
         "pasteboard_cockpit_platform_enabled"
       ],
       "adapted_system_type": [
@@ -61,6 +62,7 @@
           "libxml2",
           "memmgr",
           "napi",
+          "node",
           "os_account",
           "resource_schedule_service",
           "safwk",
@@ -71,6 +73,7 @@
           "window_manager",
           "ffrt",
           "runtime_core",
+          "api_metrics",
           "taihe_ffi_gen"
         ]
         },
@@ -119,6 +122,7 @@
           },
           {
             "name": "//foundation/distributeddatamgr/pasteboard/framework/framework:pasteboard_framework",
+            "visibility": [ "distributed_pasteboard" ],
             "header": {
               "header_files": [
                 "clip/clip_plugin.h",

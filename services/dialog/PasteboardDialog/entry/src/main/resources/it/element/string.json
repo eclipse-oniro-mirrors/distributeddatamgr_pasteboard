@@ -29,13 +29,6 @@
             }
         },
         {
-            "name":"pasteboard_desc_text",
-            "value":"Copia su un dispositivo, incolla su un altro. I dispositivi devono essere vicini, connessi allo stesso ID e con WLAN, Bluetooth e questa funzione abilitati. %s",
-            "attr":{
-                "priority":"LT"
-            }
-        },
-        {
             "name":"prompttext_udmf_format_error",
             "value":"Conversione formato non riuscita. Riprova più tardi.",
             "attr":{

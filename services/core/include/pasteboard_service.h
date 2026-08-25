@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (C) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -207,6 +207,9 @@ public:
     void CleanDistributedData(int32_t user);
     void HandleWifiOffAndClearDistributedEvent(int32_t userId);
     bool IsValidCurrentEvent();
+    bool IsFileManagerApp(const std::string &bundleName);
+    bool StartWith(const std::string &str, const std::string &prefix);
+    int32_t CheckRemoteFileDocsUriLimit(const std::vector<Uri> &grantUris, const std::string &bundleName);
 
     static std::shared_mutex pasteDataMutex_;
 
@@ -220,6 +223,7 @@ private:
     static constexpr const char *PLUGIN_NAME = "distributed_clip";
     static constexpr const char *SET_CRITICAL_ID = "pasteboard_service_set_critical_id";
     static constexpr const pid_t EDM_UID = 3057;
+    static constexpr const pid_t RSS_UID = 1096;
     static constexpr const pid_t ROOT_UID = 0;
     static constexpr uint32_t EXPIRATION_INTERVAL = 2 * 60 * 1000;
     static constexpr int MIN_TRANMISSION_TIME = 30 * 1000; // ms
@@ -372,6 +376,8 @@ private:
         const std::string &pasteId, int32_t &syncTime, UeReportInfo &ueReportInfo);
     void GetPasteDataDot(PasteData &pasteData, const std::string &bundleName, const int32_t &userId);
     int32_t GetLocalData(const AppInfo &appInfo, PasteData &data);
+    void UpdateClipOnRead(int32_t userId, const PasteData &data,
+        const std::string &originBundleName, uint64_t startTime, uint64_t curTime);
     int32_t GetRemoteData(int32_t userId, const Event &event, PasteData &data, int32_t &syncTime);
     int32_t GetRemotePasteData(int32_t userId, const Event &event, PasteData &data, int32_t &syncTime);
     int32_t GetDelayPasteRecord(int32_t userId, PasteData &data);

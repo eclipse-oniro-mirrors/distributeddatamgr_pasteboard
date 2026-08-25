@@ -29,7 +29,7 @@ namespace MiscServices {
 namespace {
 bool IsValidUserId(int32_t userId)
 {
-    return userId != ERROR_USERID;
+    return userId > 0;
 }
 } // namespace
 
@@ -130,7 +130,7 @@ UserContext UserContextResolver::ResolveInteractionUser(int32_t userId) const
     UserContext context;
     context.userId = userId;
     context.source = UserContextSource::INTERACTION;
-    context.isValid = userId != ERROR_USERID;
+    context.isValid = IsValidUserId(userId);
     return context;
 }
 

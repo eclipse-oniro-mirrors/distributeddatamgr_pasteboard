@@ -16,7 +16,10 @@
 #ifndef PASTEBOARD_PROGRESS_SIGNAL_H
 #define PASTEBOARD_PROGRESS_SIGNAL_H
 
+#include <atomic>
+
 #include "api/visibility.h"
+#include "nocopyable.h"
 
 namespace OHOS {
 namespace MiscServices {

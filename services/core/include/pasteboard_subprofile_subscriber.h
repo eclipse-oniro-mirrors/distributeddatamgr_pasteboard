@@ -28,7 +28,8 @@ public:
     void OnSubProfileChanged(const AccountSA::SubProfileEventData &eventData) override;
 
 private:
-    void OnSubProfileAccountsChangedInner(AccountSA::OsAccountSubProfileEventType type, int32_t osAccountId);
+    static void OnSubProfileAccountsChangedInner(const sptr<PasteboardService>& service,
+        AccountSA::OsAccountSubProfileEventType type, int32_t osAccountId);
     sptr<PasteboardService> pasteboardService_ = nullptr;
 };
 } // namespace OHOS::MiscServices

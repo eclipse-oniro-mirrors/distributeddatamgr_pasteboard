@@ -16,6 +16,7 @@
 #include "entry_getter.h"
 #include "pasteboard_hilog.h"
 #include "pastedata_record_napi.h"
+#include "common/histogram_wrapper.h"
 
 using namespace OHOS::MiscServices;
 using namespace OHOS::Media;
@@ -290,6 +291,7 @@ void PasteDataRecordNapi::JSFillInstance(napi_env env, napi_value &instance)
 
 napi_value PasteDataRecordNapi::ConvertToText(napi_env env, napi_callback_info info)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.convertToText", true);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_JS_NAPI, "ConvertToText is called!");
 
     struct ExeContext {
@@ -337,6 +339,7 @@ napi_value PasteDataRecordNapi::ConvertToTextV9(napi_env env, napi_callback_info
 
 napi_value PasteDataRecordNapi::ToPlainText(napi_env env, napi_callback_info info)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.toPlainText", true);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_JS_NAPI, "ToPlainText is called!");
     size_t argc = ARGC_TYPE_SET1;
     napi_value argv[ARGC_TYPE_SET1] = {0};
@@ -360,6 +363,7 @@ napi_value PasteDataRecordNapi::ToPlainText(napi_env env, napi_callback_info inf
 
 napi_value PasteDataRecordNapi::AddEntry(napi_env env, napi_callback_info info)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.addEntry", true);
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "AddEntry is called!");
     size_t argc = ARGC_TYPE_SET2;
     napi_value argv[ARGC_TYPE_SET2] = { 0 };
@@ -369,6 +373,9 @@ napi_value PasteDataRecordNapi::AddEntry(napi_env env, napi_callback_info info)
     if (!CheckArgs(env, argv, argc, mimeType)) {
         return nullptr;
     }
+    int32_t mimeTypeEnum = MiscServices::GetHistogramMimeTypeEnum(mimeType);
+    HISTOGRAM_ENUMERATION_SAMPLED(
+        "Pasteboard.MimeType.addEntry", mimeTypeEnum, MiscServices::HISTOGRAM_MIMETYPE_BOUNDARY);
 
     PasteDataRecordNapi *obj = nullptr;
     napi_status status = napi_unwrap(env, thisVar, reinterpret_cast<void **>(&obj));
@@ -391,6 +398,7 @@ napi_value PasteDataRecordNapi::AddEntry(napi_env env, napi_callback_info info)
 
 napi_value PasteDataRecordNapi::GetValidTypes(napi_env env, napi_callback_info info)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.getValidTypes", true);
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "GetValidType is called!");
     size_t argc = ARGC_TYPE_SET1;
     napi_value argv[ARGC_TYPE_SET1] = { 0 };
@@ -423,6 +431,7 @@ napi_value PasteDataRecordNapi::GetValidTypes(napi_env env, napi_callback_info i
 
 napi_value PasteDataRecordNapi::GetRecordData(napi_env env, napi_callback_info info)
 {
+    HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.PasteDataRecord.getData", true);
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "GetValidType is called!");
 
     struct ExeContext {
@@ -550,11 +559,19 @@ PastedataRecordEntryGetterInstance::~PastedataRecordEntryGetterInstance()
 
 void UvWorkGetRecordByEntryGetter(uv_work_t *work, int status)
 {
-    if (UV_ECANCELED == status || work == nullptr || work->data == nullptr) {
+    if (work == nullptr || work->data == nullptr) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "invalid parameter");
         return;
     }
     PasteboardEntryGetterWorker *entryGetterWork = reinterpret_cast<PasteboardEntryGetterWorker *>(work->data);
+    if (UV_ECANCELED == status) {
+        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_JS_NAPI, "work canceled");
+        delete entryGetterWork;
+        entryGetterWork = nullptr;
+        delete work;
+        work = nullptr;
+        return;
+    }
     if (entryGetterWork == nullptr || entryGetterWork->entryGetter == nullptr) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "pasteboardDataWorker or delayGetter is null");
         delete work;
@@ -638,8 +655,10 @@ UDMF::ValueType PastedataRecordEntryGetterInstance::GetValueByType(const std::st
             [entryGetterWork] { return entryGetterWork->complete; }) && entryGetterWork->entryValue != nullptr) {
             return *(entryGetterWork->entryValue);
         }
-        if (!entryGetterWork->complete && uv_cancel((uv_req_t*)work) != 0) {
-            entryGetterWork->clean = true;
+        if (!entryGetterWork->complete) {
+            if (uv_cancel((uv_req_t*)work) != 0) {
+                entryGetterWork->clean = true;
+            }
             noNeedClean = true;
         }
     }

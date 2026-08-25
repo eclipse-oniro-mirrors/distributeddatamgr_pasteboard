@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (C) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -298,7 +298,7 @@ std::string PasteDataRecord::GetMimeType() const
     if (!mimeType_.empty()) {
         return mimeType_;
     }
-    if (!entries_.empty()) {
+    if (!entries_.empty() && entries_.front() != nullptr) {
         return entries_.front()->GetMimeType();
     }
     return this->mimeType_;
@@ -865,6 +865,9 @@ std::vector<std::string> PasteDataRecord::GetValidTypes(const std::vector<std::s
 bool PasteDataRecord::HasEmptyEntry() const
 { // LCOV_EXCL_START
     for (auto const &entry : GetEntries()) {
+        if (entry == nullptr) {
+            continue;
+        }
         if (std::holds_alternative<std::monostate>(entry->GetValue())) {
             return true;
         }
@@ -896,6 +899,9 @@ std::set<std::string> PasteDataRecord::GetUtdTypes() const
         types.emplace(CommonUtils::Convert2UtdId(udType_, mimeType_));
     }
     for (auto const &entry : entries_) {
+        if (entry == nullptr) {
+            continue;
+        }
         types.emplace(entry->GetUtdId());
     }
     return types;
@@ -908,6 +914,9 @@ std::set<std::string> PasteDataRecord::GetMimeTypes() const
         types.emplace(mimeType_);
     }
     for (auto const& entry: entries_) {
+        if (entry == nullptr) {
+            continue;
+        }
         types.emplace(entry->GetMimeType());
     }
     return types;
@@ -933,6 +942,9 @@ void PasteDataRecord::AddEntry(const std::string &utdType, std::shared_ptr<Paste
 
     bool has = false;
     for (auto &entry : entries_) {
+        if (entry == nullptr) {
+            continue;
+        }
         if (entry->GetUtdId() == utdType ||
             (entry->GetMimeType() == MIMETYPE_TEXT_URI && value->GetMimeType() == MIMETYPE_TEXT_URI)) {
             entry = value;
@@ -972,6 +984,9 @@ std::shared_ptr<PasteDataEntry> PasteDataRecord::GetEntryByMimeType(const std::s
 std::shared_ptr<PasteDataEntry> PasteDataRecord::GetEntry(const std::string &utdType)
 { // LCOV_EXCL_START
     for (auto const &entry : entries_) {
+        if (entry == nullptr) {
+            continue;
+        }
         if (entry->GetUtdId() == utdType ||
             (CommonUtils::IsFileUri(utdType) && CommonUtils::IsFileUri(entry->GetUtdId()))) {
             if (isDelay_ && !entry->HasContent(utdType) && !PasteBoardCommon::IsPasteboardService()) {

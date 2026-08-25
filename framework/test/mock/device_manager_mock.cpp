@@ -21,6 +21,11 @@ int32_t DeviceManagerImpl::GetLocalDeviceInfo(const std::string &pkgName, DmDevi
 {
     return PasteDeviceManager::pasteDeviceManager->GetLocalDeviceInfo(pkgName, deviceInfo);
 }
+int32_t DeviceManagerImpl::GetDeviceInfo(
+    const std::string &pkgName, const std::string networkId, DmDeviceInfo &deviceInfo)
+{
+    return PasteDeviceManager::pasteDeviceManager->GetDeviceInfo(pkgName, networkId, deviceInfo);
+}
 int32_t DeviceManagerImpl::GetUdidByNetworkId(
     const std::string &pkgName, const std::string &networkId, std::string &udid)
 {

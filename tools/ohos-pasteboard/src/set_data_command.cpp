@@ -83,7 +83,7 @@ std::string SetDataCommand::Execute(const std::vector<std::string> &args)
 
     PasteData pasteData;
     std::shared_ptr<PasteDataRecord> record = nullptr;
-    
+
     if (result.orderedParams[0].first == "html") {
         record = PasteDataRecord::NewHtmlRecord(result.orderedParams[0].second);
     } else if (result.orderedParams[0].first == "uri") {

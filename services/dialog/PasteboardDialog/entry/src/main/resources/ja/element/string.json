@@ -78,13 +78,6 @@
             }
         },
         {
-            "name":"pasteboard_desc_text",
-            "value":"一方のデバイスからコピーし、もう一方のデバイスに貼り付けます。デバイスは互いの近くにあり、同じIDでログインしており、WLAN、Bluetooth、およびこの機能が有効になっている必要があります。%s",
-            "attr":{
-                "priority":"LT"
-            }
-        },
-        {
             "name":"prompttext_udmf_format_error",
             "value":"形式の変換に失敗しました。後で再試行してください。",
             "attr":{

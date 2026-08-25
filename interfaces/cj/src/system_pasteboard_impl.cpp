@@ -24,13 +24,6 @@ namespace MiscServicesCj {
 
 static sptr<SystemPasteboardImpl> g_systemPasteboard_instance = nullptr;
 
-OHOS::FFI::RuntimeType *SystemPasteboardImpl::GetClassType()
-{
-    static OHOS::FFI::RuntimeType runtimeType = OHOS::FFI::RuntimeType::Create<OHOS::FFI::FFIData>("SystemPasteboardIm"
-                                                                                                   "pl");
-    return &runtimeType;
-}
-
 SystemPasteboardImpl::SystemPasteboardImpl()
 {
     value_ = nullptr;
@@ -44,6 +37,10 @@ int NewInstance(sptr<SystemPasteboardImpl> &instance)
         return 0;
     }
     g_systemPasteboard_instance = FFI::FFIData::Create<SystemPasteboardImpl>();
+    if (g_systemPasteboard_instance == nullptr) {
+        LOGE("[SystemPasteboardImpl] NewInstance create instance failed");
+        return ERR_INVALID_INSTANCE_CODE;
+    }
     instance = g_systemPasteboard_instance;
     return 0;
 }

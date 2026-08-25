@@ -24,20 +24,14 @@
 namespace OHOS {
 namespace MiscServicesCj {
 class PasteDataImpl : public OHOS::FFI::FFIData {
+    DECL_TYPE(PasteDataImpl, OHOS::FFI::FFIData)
 public:
     PasteDataImpl();
     explicit PasteDataImpl(std::shared_ptr<MiscServices::PasteData> pasteData);
     PasteDataImpl(std::string mimeType, const CJValueType &value);
     std::shared_ptr<MiscServices::PasteData> GetRealPasteData();
-    OHOS::FFI::RuntimeType *GetRuntimeType() override
-    {
-        return GetClassType();
-    }
 
 private:
-    friend class OHOS::FFI::RuntimeType;
-    friend class OHOS::FFI::TypeBase;
-    static OHOS::FFI::RuntimeType *GetClassType();
     void CreateHtmlData(std::string mimeType, const CJValueType &value);
     void CreatePlainTextData(std::string mimeType, const CJValueType &value);
     void CreateUriData(std::string mimeType, const CJValueType &value);

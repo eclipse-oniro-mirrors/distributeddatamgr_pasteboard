@@ -246,6 +246,102 @@ HWTEST_F(PasteBoardCommonEventSubscriberTest, HandleScreenUnlockedTest003, TestS
 }
 
 /**
+ * @tc.name: HandleScreenLockedTest005
+ * @tc.desc: test HandleScreenLocked with userId=0 should be rejected
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteBoardCommonEventSubscriberTest, HandleScreenLockedTest005, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "HandleScreenLockedTest005 start");
+    EventFwk::CommonEventSubscribeInfo subscribeInfo;
+    sptr<PasteboardService> service = new PasteboardService();
+    auto subscriber = std::make_shared<PasteBoardCommonEventSubscriber>(subscribeInfo, service);
+
+    EventFwk::Want want;
+    want.SetParam(PACKAGE_REMOVED_USER_ID, 0);
+    EventFwk::CommonEventData data;
+    data.SetWant(want);
+
+    subscriber->HandleScreenLocked(data);
+
+    auto result = service->screenStatusMap_.Find(0);
+    EXPECT_EQ(result.first, false);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "HandleScreenLockedTest005 end");
+}
+
+/**
+ * @tc.name: HandleScreenLockedTest006
+ * @tc.desc: test HandleScreenLocked with negative userId should be rejected
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteBoardCommonEventSubscriberTest, HandleScreenLockedTest006, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "HandleScreenLockedTest006 start");
+    EventFwk::CommonEventSubscribeInfo subscribeInfo;
+    sptr<PasteboardService> service = new PasteboardService();
+    auto subscriber = std::make_shared<PasteBoardCommonEventSubscriber>(subscribeInfo, service);
+
+    EventFwk::Want want;
+    want.SetParam(PACKAGE_REMOVED_USER_ID, -2);
+    EventFwk::CommonEventData data;
+    data.SetWant(want);
+
+    subscriber->HandleScreenLocked(data);
+
+    auto result = service->screenStatusMap_.Find(-2);
+    EXPECT_EQ(result.first, false);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "HandleScreenLockedTest006 end");
+}
+
+/**
+ * @tc.name: HandleScreenUnlockedTest004
+ * @tc.desc: test HandleScreenUnlocked with userId=0 should be rejected
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteBoardCommonEventSubscriberTest, HandleScreenUnlockedTest004, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "HandleScreenUnlockedTest004 start");
+    EventFwk::CommonEventSubscribeInfo subscribeInfo;
+    sptr<PasteboardService> service = new PasteboardService();
+    auto subscriber = std::make_shared<PasteBoardCommonEventSubscriber>(subscribeInfo, service);
+
+    EventFwk::Want want;
+    want.SetParam(PACKAGE_REMOVED_USER_ID, 0);
+    EventFwk::CommonEventData data;
+    data.SetWant(want);
+
+    subscriber->HandleScreenUnlocked(data);
+
+    auto result = service->screenStatusMap_.Find(0);
+    EXPECT_EQ(result.first, false);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "HandleScreenUnlockedTest004 end");
+}
+
+/**
+ * @tc.name: HandleScreenUnlockedTest005
+ * @tc.desc: test HandleScreenUnlocked with negative userId should be rejected
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteBoardCommonEventSubscriberTest, HandleScreenUnlockedTest005, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "HandleScreenUnlockedTest005 start");
+    EventFwk::CommonEventSubscribeInfo subscribeInfo;
+    sptr<PasteboardService> service = new PasteboardService();
+    auto subscriber = std::make_shared<PasteBoardCommonEventSubscriber>(subscribeInfo, service);
+
+    EventFwk::Want want;
+    want.SetParam(PACKAGE_REMOVED_USER_ID, -2);
+    EventFwk::CommonEventData data;
+    data.SetWant(want);
+
+    subscriber->HandleScreenUnlocked(data);
+
+    auto result = service->screenStatusMap_.Find(-2);
+    EXPECT_EQ(result.first, false);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "HandleScreenUnlockedTest005 end");
+}
+
+/**
  * @tc.name: HandleUserSwitchedTest001
  * @tc.desc: test HandleUserSwitched with null service
  * @tc.type: FUNC

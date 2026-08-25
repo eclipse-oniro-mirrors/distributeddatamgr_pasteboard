@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (C) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -86,6 +86,7 @@ using namespace UeReporter;
 namespace {
 constexpr int32_t COMMON_USERID = 0;
 constexpr int32_t INIT_INTERVAL = 10000L;
+constexpr int32_t MAX_REMOTE_FILE_MANAGER_URI_COUNT = 256;
 constexpr uint32_t MAX_IPC_THREAD_NUM = 32;
 constexpr const char *PASTEBOARD_SERVICE_SA_NAME = "pasteboard_service";
 constexpr const char *PASTEBOARD_SERVICE_NAME = "PasteboardService";
@@ -103,6 +104,8 @@ constexpr const char *NETWORK_DEV_NUM = "NETWORK_DEV_NUM";
 constexpr const char *COVER_DELAY_DATA = "COVER_DELAY_DATA";
 constexpr const char *UE_COPY = "DISTRIBUTED_PASTEBOARD_COPY";
 constexpr const char *UE_PASTE = "DISTRIBUTED_PASTEBOARD_PASTE";
+constexpr const char *FILE_DOCS_URI_PREFIX = "file://docs/";
+constexpr const char *FILEMANAGER_KEY = "filemanager";
 constexpr int32_t INVALID_VERSION = -1;
 constexpr int32_t WIFI_DISABLED = 1;
 constexpr int32_t ADD_PERMISSION_CHECK_SDK_VERSION = 12;
@@ -218,15 +221,14 @@ void PasteboardService::OnStart()
         HandleInitFailure();
         return;
     }
-    auto callback = [this]() {
+    std::thread thread([this]() {
         auto userId = ResolveMainDisplayUserId();
         if (userId != ERROR_USERID) {
             switch_.Init(userId);
         }
-    };
-    if (serviceHandler_ != nullptr) {
-        serviceHandler_->PostTask(callback);
-    }
+    });
+    PasteBoardCommonUtils::SetThreadTaskName(thread, "SwitchInit");
+    thread.detach();
     InitializeDumpCommands();
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "Start PasteboardService success.");
     EventCenter::GetInstance().Subscribe(OHOS::MiscServices::Event::EVT_REMOTE_CHANGE, RemotePasteboardChange());
@@ -1727,19 +1729,27 @@ int32_t PasteboardService::GetLocalData(const AppInfo &appInfo, PasteData &data)
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "no data userId is %{public}d.", appInfo.userId);
         return static_cast<int32_t>(PasteboardError::NO_DATA_ERROR);
     }
-    auto ret = IsDataValid(*(it.second), appInfo.tokenId, appInfo.userId);
-    if (ret != static_cast<int32_t>(PasteboardError::E_OK)) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "paste data is invalid. ret = %{public}d "
-            "appInfo.userId = %{public}d", ret, appInfo.userId);
-        return ret;
+    bool isDelayData = false;
+    bool isDelayRecord = false;
+    std::string originBundleName;
+    {
+        std::shared_lock<std::shared_mutex> read(pasteDataMutex_);
+        auto ret = IsDataValid(*(it.second), appInfo.tokenId, appInfo.userId);
+        if (ret != static_cast<int32_t>(PasteboardError::E_OK)) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "paste data is invalid. ret = %{public}d "
+                "appInfo.userId = %{public}d", ret, appInfo.userId);
+            return ret;
+        }
+        data = *(it.second);
+        originBundleName = it.second->GetBundleName();
+        isDelayData = it.second->IsDelayData();
+        isDelayRecord = it.second->IsDelayRecord();
     }
-    data = *(it.second);
-    auto originBundleName = it.second->GetBundleName();
-    if (it.second->IsDelayData()) {
+    if (isDelayData) {
         GetDelayPasteData(appInfo.userId, data);
         RADAR_REPORT(DFX_GET_PASTEBOARD, DFX_CHECK_GET_DELAY_PASTE, DFX_SUCCESS, CONCURRENT_ID, pasteId);
     }
-    if (it.second->IsDelayRecord()) {
+    if (isDelayRecord) {
         GetDelayPasteRecord(appInfo.userId, data);
     }
     data.SetBundleInfo(appInfo.bundleName, appInfo.appIndex);
@@ -1749,9 +1759,22 @@ int32_t PasteboardService::GetLocalData(const AppInfo &appInfo, PasteData &data)
         return static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR);
     }
     auto curTime = result.second;
-    if (tempTime.second == curTime) {
-        bool isNotify = false;
-        clips_.ComputeIfPresent(appInfo.userId, [&data, &isNotify](auto &key, auto &value) {
+    UpdateClipOnRead(appInfo.userId, data, originBundleName, tempTime.second, curTime);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetPasteData success. appInfo.userId = %{public}d", appInfo.userId);
+    SetLocalPasteFlag(data.IsRemote(), appInfo.tokenId, data);
+    return static_cast<int32_t>(PasteboardError::E_OK);
+}
+
+void PasteboardService::UpdateClipOnRead(int32_t userId, const PasteData &data,
+    const std::string &originBundleName, uint64_t startTime, uint64_t curTime)
+{
+    if (startTime != curTime) {
+        return;
+    }
+    bool isNotify = false;
+    {
+        std::unique_lock<std::shared_mutex> write(pasteDataMutex_);
+        clips_.ComputeIfPresent(userId, [&data, &isNotify](auto &key, auto &value) {
             if (value->IsDelayData()) {
                 value = std::make_shared<PasteData>(data);
                 isNotify = true;
@@ -1761,13 +1784,10 @@ int32_t PasteboardService::GetLocalData(const AppInfo &appInfo, PasteData &data)
             }
             return true;
         });
-        if (isNotify) {
-            NotifyObservers(originBundleName, appInfo.userId, PasteboardEventStatus::PASTEBOARD_WRITE);
-        }
     }
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetPasteData success. appInfo.userId = %{public}d", appInfo.userId);
-    SetLocalPasteFlag(data.IsRemote(), appInfo.tokenId, data);
-    return static_cast<int32_t>(PasteboardError::E_OK);
+    if (isNotify) {
+        NotifyObservers(originBundleName, userId, PasteboardEventStatus::PASTEBOARD_WRITE);
+    }
 }
 
 void PasteboardService::GetDelayPasteData(int32_t userId, PasteData &data)
@@ -2114,6 +2134,35 @@ void PasteboardService::RemoveInvalidRemoteUri(std::vector<Uri> &grantUris)
     grantUris.erase(newEnd, grantUris.end());
 }
 
+bool PasteboardService::IsFileManagerApp(const std::string &bundleName)
+{
+    auto fullTokenId = IPCSkeleton::GetCallingFullTokenID();
+    return IsSystemAppByFullTokenID(fullTokenId) && bundleName.find(FILEMANAGER_KEY) != std::string::npos;
+}
+
+bool PasteboardService::StartWith(const std::string &str, const std::string &prefix)
+{
+    if (prefix.size() > str.size()) {
+        return false;
+    }
+    return str.compare(0, prefix.size(), prefix) == 0;
+}
+
+int32_t PasteboardService::CheckRemoteFileDocsUriLimit(const std::vector<Uri> &grantUris, const std::string &bundleName)
+{
+    if (IsFileManagerApp(bundleName) || grantUris.size() <= MAX_REMOTE_FILE_MANAGER_URI_COUNT) {
+        return static_cast<int32_t>(PasteboardError::E_OK);
+    }
+    for (const auto &uri : grantUris) {
+        if (StartWith(uri.ToString(), FILE_DOCS_URI_PREFIX)) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE,
+                "remote uri count %{public}zu bundleName is %{public}s", grantUris.size(), bundleName.c_str());
+            return static_cast<int32_t>(PasteboardError::REMOTE_DATA_SIZE_EXCEEDED);
+        }
+    }
+    return static_cast<int32_t>(PasteboardError::E_OK);
+}
+
 int32_t PasteboardService::GrantPermission(const std::vector<Uri> &grantUris, uint32_t permFlag, bool isRemoteData,
     uint32_t targetTokenId)
 {
@@ -2127,6 +2176,10 @@ int32_t PasteboardService::GrantPermission(const std::vector<Uri> &grantUris, ui
     int32_t userId = appInfo.userId;
     auto [hasData, data] = clips_.Find(userId);
     uint32_t srcTokenId = (hasData && data) ? data->GetTokenId() : 0;
+    if (isRemoteData && CheckRemoteFileDocsUriLimit(grantUris, appInfo.bundleName) !=
+        static_cast<int32_t>(PasteboardError::E_OK)) {
+        return ret;
+    }
     while (length > offset) {
         if (length - offset < PasteData::URI_BATCH_SIZE) {
             count = length - offset;
@@ -3489,7 +3542,7 @@ bool PasteboardService::CheckMdmShareOption(PasteData &pasteData)
 bool PasteboardService::IsCallerUidValid()
 {
     pid_t callingUid = IPCSkeleton::GetCallingUid();
-    if (callingUid == EDM_UID || (uid_ != -1 && callingUid == uid_)) {
+    if (callingUid == EDM_UID || (uid_ != -1 && callingUid == uid_) || callingUid == RSS_UID) {
         return true;
     }
     PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "callingUid error: %{public}d.", callingUid);
@@ -4400,11 +4453,23 @@ int32_t PasteboardService::ProcessDistributedDelayHtml(PasteData &data, PasteDat
     }
 
     PasteData tmp;
-    std::shared_ptr<std::string> html = entry.ConvertToHtml();
-    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(html != nullptr, static_cast<int32_t>(PasteboardError::GET_ENTRY_VALUE_FAILED),
-        PASTEBOARD_MODULE_SERVICE, "convert to html failed");
 
-    tmp.AddHtmlRecord(*html);
+    auto entryValue = entry.GetValue();
+    if (std::holds_alternative<std::shared_ptr<Object>>(entryValue)) {
+        auto object = std::get<std::shared_ptr<Object>>(entryValue);
+        auto newObject = std::make_shared<Object>();
+        newObject->value_ = object->value_;
+        auto newEntry = std::make_shared<PasteDataEntry>(entry.GetUtdId(), entry.GetMimeType(), EntryValue(newObject));
+        auto record = std::make_shared<PasteDataRecord>();
+        record->AddEntryByMimeType(MIMETYPE_TEXT_HTML, newEntry);
+        tmp.AddRecord(record);
+    } else {
+        std::shared_ptr<std::string> html = entry.ConvertToHtml();
+        PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(html != nullptr,
+            static_cast<int32_t>(PasteboardError::GET_ENTRY_VALUE_FAILED),
+            PASTEBOARD_MODULE_SERVICE, "convert to html failed");
+        tmp.AddHtmlRecord(*html);
+    }
     tmp.SetBundleInfo(data.GetBundleName(), data.GetAppIndex());
     tmp.SetOriginAuthority(data.GetOriginAuthority());
     tmp.SetTokenId(data.GetTokenId());
@@ -4450,10 +4515,10 @@ int32_t PasteboardService::GetDistributedDelayData(const Event &evt, uint8_t ver
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(ret == static_cast<int32_t>(PasteboardError::E_OK), ret,
         PASTEBOARD_MODULE_SERVICE, "get delay data failed, version=%{public}hhu", version);
 
-    auto authorityInfo = data->GetOriginAuthority();
-    data->SetBundleInfo(authorityInfo.first, authorityInfo.second);
     {
         std::unique_lock<std::shared_mutex> write(pasteDataMutex_);
+        auto authorityInfo = data->GetOriginAuthority();
+        data->SetBundleInfo(authorityInfo.first, authorityInfo.second);
         std::string bundleIndex = PasteBoardCommon::GetDirByAuthority(authorityInfo);
         PasteboardWebController::GetInstance().SplitWebviewPasteData(*data, bundleIndex, evt.user);
         PasteboardWebController::GetInstance().SetWebviewPasteData(*data, bundleIndex);

@@ -41,6 +41,9 @@ CommandRegistry &CommandRegistry::Instance()
 
 void CommandRegistry::Register(std::shared_ptr<Command> cmd)
 {
+    if (cmd == nullptr) {
+        return;
+    }
     commands_[cmd->GetName()] = cmd;
 }
 
