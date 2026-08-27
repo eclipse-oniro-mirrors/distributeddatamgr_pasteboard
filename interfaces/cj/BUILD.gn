@@ -86,6 +86,8 @@ ohos_shared_library("cj_pasteboard_ffi") {
     defines += [ "WINDOWS_PLATFORM" ]
   }
 
+  version_script = "libcj_pasteboard_ffi.map"
+
   innerapi_tags = [ "platformsdk" ]
 
   subsystem_name = "distributeddatamgr"
