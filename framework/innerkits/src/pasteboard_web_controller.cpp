@@ -34,7 +34,6 @@ constexpr const char *FILE_SCHEME = "file";
 
 constexpr uint32_t FOUR_BYTES = 4;
 constexpr uint32_t EIGHT_BIT = 8;
-constexpr uid_t ANCO_SERVICE_BROKER_UID = 5557;
 constexpr uint32_t BYTE_OFFSET_1 = 1;
 constexpr uint32_t BYTE_OFFSET_2 = 2;
 constexpr uint32_t BYTE_OFFSET_3 = 3;
