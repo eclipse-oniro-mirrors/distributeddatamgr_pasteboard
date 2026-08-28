@@ -31,7 +31,7 @@ enum TAG_ENTRY : uint16_t {
     TAG_ENTRY_VALUE,
 };
 
-std::map<std::string, std::vector<uint8_t>> MineCustomData::GetItemData()
+std::map<std::string, std::vector<uint8_t>> MineCustomData::GetItemData() const
 { // LCOV_EXCL_START
     return this->itemData_;
 } // LCOV_EXCL_STOP
