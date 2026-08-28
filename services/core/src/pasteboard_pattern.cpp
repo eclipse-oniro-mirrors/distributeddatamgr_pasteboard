@@ -26,6 +26,8 @@ namespace OHOS::MiscServices {
 constexpr int32_t MIN_HTTP_URL_LENGTH = 7;
 constexpr int32_t MIN_FLIGHT_NUMBER_LENGTH = 5;
 constexpr int32_t MAX_FLIGHT_NUMBER_LENGTH = 7;
+constexpr size_t MAX_PATTERN_TEXT_LENGTH = 256 * 1024;
+constexpr size_t MAX_HTML_PARSE_LENGTH = 512 * 1024;
 
 std::map<uint32_t, std::string> PatternDetection::patterns_{
     { static_cast<uint32_t>(Pattern::URL), std::string("[a-zA-Z0-9+.-]+://[-a-zA-Z0-9+&@#/%?"
@@ -62,6 +64,11 @@ const std::set<Pattern> PatternDetection::Detect(
 void PatternDetection::DetectPlainText(
     std::set<Pattern> &patternsOut, const std::set<Pattern> &patternsIn, const std::string &plainText)
 {
+    if (plainText.empty() || plainText.size() > MAX_PATTERN_TEXT_LENGTH) {
+        PASTEBOARD_HILOGW(PASTEBOARD_MODULE_SERVICE,
+            "plainText too long or empty, size:%{public}zu", plainText.size());
+        return;
+    }
     for (Pattern pattern : patternsIn) {
         if (patternsOut.find(pattern) != patternsOut.end()) {
             continue;
@@ -99,7 +106,13 @@ void PatternDetection::DetectPlainText(
 
 std::string PatternDetection::ExtractHtmlContent(const std::string &html_str)
 {
-    xmlDocPtr doc = htmlReadMemory(html_str.c_str(), html_str.size(), nullptr, nullptr, 0);
+    if (html_str.empty() || html_str.size() > MAX_HTML_PARSE_LENGTH) {
+        PASTEBOARD_HILOGW(PASTEBOARD_MODULE_SERVICE,
+            "html_str too long or empty, size:%{public}zu", html_str.size());
+        return "";
+    }
+    constexpr int htmlParseOptions = HTML_PARSE_NOERROR | HTML_PARSE_NOWARNING | HTML_PARSE_NOBLANKS;
+    xmlDocPtr doc = htmlReadMemory(html_str.c_str(), html_str.size(), nullptr, nullptr, htmlParseOptions);
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(doc != nullptr, "", PASTEBOARD_MODULE_SERVICE,
         "parse html failed, doc is null");
     xmlNode *rootNode = xmlDocGetRootElement(doc);
