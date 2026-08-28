@@ -15,6 +15,7 @@
 
 #include "message_parcel_warp.h"
 
+#include <cinttypes>
 #include <sys/mman.h>
 #include <sys/syscall.h>
 
@@ -97,6 +98,8 @@ int64_t MessageParcelWarp::GetRawDataSize()
 
 bool MessageParcelWarp::MemcpyData(void *ptr, size_t size, const void *data, size_t count)
 {
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(count <= size, false,
+        PASTEBOARD_MODULE_COMMON, "count exceeds size, count:%{public}zu size:%{public}zu", count, size);
     if (size <= WRITE_SPLIT_CHUNK_SIZE) {
         if (memcpy_s(ptr, size, data, count) != EOK) {
             PASTEBOARD_HILOGE(PASTEBOARD_MODULE_COMMON, "memcpy_s failed, size:%{public}zu", size);
@@ -106,13 +109,12 @@ bool MessageParcelWarp::MemcpyData(void *ptr, size_t size, const void *data, siz
     }
     char* ptrDest = static_cast<char*>(ptr);
     const char* ptrSrc = static_cast<const char*>(data);
-    size_t remaining = size;
+    size_t remaining = count;
     size_t offset = 0;
     while (remaining > 0) {
         size_t currentChunkSize = (remaining > WRITE_SPLIT_CHUNK_SIZE) ? WRITE_SPLIT_CHUNK_SIZE : remaining;
         size_t destSize = size - offset;
-        size_t destChunkCount = currentChunkSize;
-        size_t copyCount = (destChunkCount <= destSize) ? destChunkCount : destSize;
+        size_t copyCount = (currentChunkSize <= destSize) ? currentChunkSize : destSize;
         if (memcpy_s(ptrDest + offset, copyCount, ptrSrc + offset, currentChunkSize) != EOK) {
             PASTEBOARD_HILOGE(PASTEBOARD_MODULE_COMMON, "memcpy_s failed, size:%{public}zu", size);
             return false;
@@ -193,6 +195,11 @@ const void *MessageParcelWarp::ReadRawData(MessageParcel &parcelPata, size_t siz
 #ifndef CROSS_PLATFORM
     fdsan_exchange_owner_tag(readRawDataFd_, 0, PASTEBOARD_FD_TAG);
 #endif
+
+    int64_t actualSize = AshmemGetSize(fd);
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(actualSize >= 0 && static_cast<int64_t>(size) <= actualSize, nullptr,
+        PASTEBOARD_MODULE_COMMON,
+        "ashmem size mismatch, actualSize:%{public}" PRId64 " size:%{public}zu", actualSize, size);
 
     void *ptr = ::mmap(nullptr, size, PROT_READ, MAP_SHARED, fd, 0);
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(ptr != MAP_FAILED, nullptr,
