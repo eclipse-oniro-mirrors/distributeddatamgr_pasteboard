@@ -2639,6 +2639,10 @@ bool PasteboardService::HasDataType(const std::string &mimeType)
 {
     auto tokenId = IPCSkeleton::GetCallingTokenID();
     auto userId = GetAppInfo(tokenId).userId;
+    if (userId == ERROR_USERID) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "userId invalid.");
+        return false;
+    }
     if (GetScreenStatus(userId) == ScreenEvent::ScreenUnlocked) {
         auto [distRet, distEvt] = GetValidDistributeEvent(userId);
         if (distRet == static_cast<int32_t>(PasteboardError::E_OK)) {
@@ -2720,6 +2724,10 @@ int32_t PasteboardService::DetectPatterns(const std::vector<Pattern> &patternsTo
 {
     auto tokenId = IPCSkeleton::GetCallingTokenID();
     auto userId = GetAppInfo(tokenId).userId;
+    if (userId == ERROR_USERID) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "userId invalid.");
+        return static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR);
+    }
     bool hasPlain = HasLocalDataType(MIMETYPE_TEXT_PLAIN, tokenId, userId);
     bool hasHTML = HasLocalDataType(MIMETYPE_TEXT_HTML, tokenId, userId);
     if (!hasHTML && !hasPlain) {
@@ -3792,6 +3800,7 @@ bool PasteboardService::IsFocusedApp(uint32_t tokenId)
     auto dispRet = AccountSA::OsAccountManager::GetForegroundOsAccountDisplayId(userId, displayId);
     if (dispRet != ERR_OK) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "get foreground display id failed, ret=%{public}d", dispRet);
+        return false;
     }
     bool isFocused = false;
     int32_t ret = PasteboardAbilityManager::CheckUIExtensionIsFocused(tokenId, displayId, isFocused);
