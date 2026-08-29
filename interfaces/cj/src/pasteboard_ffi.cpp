@@ -398,13 +398,13 @@ RetDataCString FfiOHOSPasteDataGetPrimaryMimeType(int64_t id)
 
 static char **VectorToCArrString(std::vector<std::string> &vec)
 {
-    char **result = new (std::nothrow) char *[vec.size()];
+    char **result = new char *[vec.size()];
     if (result == nullptr) {
         return nullptr;
     }
     size_t temp = 0;
     for (size_t i = 0; i < vec.size(); i++) {
-        result[i] = new (std::nothrow) char[vec[i].length() + 1];
+        result[i] = new char[vec[i].length() + 1];
         if (result[i] == nullptr) {
             break;
         }

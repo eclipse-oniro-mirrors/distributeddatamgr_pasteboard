@@ -69,7 +69,7 @@ public:
         return cursor_ < total_;
     }
 
-    inline bool HasExpectBuffer(size_t expectLen) const
+    inline bool HasExpectBuffer(uint32_t expectLen) const
     {
         return total_ >= cursor_ && total_ - cursor_ >= expectLen;
     }
