@@ -90,7 +90,6 @@ ohos_shared_library("pasteboard_service") {
     "core/src/pasteboard_pattern.cpp",
     "core/src/pasteboard_service.cpp",
     "core/src/pasteboard_service_distributed.cpp",
-    "core/src/pasteboard_service_handler.cpp",
     "core/src/pasteboard_service_p2p.cpp",
     "core/src/pasteboard_user_context.cpp",
     "core/src/pasteboard_window_manager.cpp",
