@@ -24,12 +24,6 @@ namespace {
 constexpr const char *FAIL_TO_GET_TIME_STAMP = "FAIL_TO_GET_TIME_STAMP";
 constexpr int32_t MAX_DUMP_UID = 10000;
 constexpr int32_t TM_YEAR_BASE = 1900;
-constexpr size_t DATA_HISTORY_SIZE = 10;
-constexpr const char *DUMP_SOURCE_REMOTE = "remote";
-constexpr const char *DUMP_SOURCE_LOCAL = "local";
-constexpr const char *DUMP_NO_DATA = "No copy data.\n";
-constexpr const char *DUMP_HISTORY_HEADER = "Access history last ten times: \n";
-constexpr const char *DUMP_HISTORY_EMPTY = "Access history fail! dataHistory_ no data.\n";
 } // namespace
 
 void PasteboardService::InitializeDumpCommands()
@@ -61,6 +55,7 @@ bool PasteboardService::SetPasteboardHistory(HistoryInfo &info)
         PASTEBOARD_MODULE_SERVICE, "invalid userId");
     std::string history = std::move(info.time) + " " + std::move(info.bundleName) + " " + std::move(info.state) + " " +
                           " " + std::move(info.remote) + " userId:" + std::to_string(info.userId);
+    constexpr const size_t DATA_HISTORY_SIZE = 10;
     std::lock_guard<decltype(historyMutex_)> lg(historyMutex_);
     if (dataHistory_.size() == DATA_HISTORY_SIZE) {
         dataHistory_.erase(dataHistory_.begin());
@@ -118,7 +113,7 @@ std::string PasteboardService::DumpUserHistory(int32_t userId) const
         PASTEBOARD_MODULE_SERVICE, "invalid userId");
     std::string result;
     if (!dataHistory_.empty()) {
-        result.append(DUMP_HISTORY_HEADER);
+        result.append("Access history last ten times: ").append("\n");
         for (auto iter = dataHistory_.rbegin(); iter != dataHistory_.rend(); ++iter) {
             std::string userIdPrefix = " userId:" + std::to_string(userId);
             size_t userIdPos = (*iter).find(userIdPrefix);
@@ -128,7 +123,7 @@ std::string PasteboardService::DumpUserHistory(int32_t userId) const
             }
         }
     } else {
-        result.append(DUMP_HISTORY_EMPTY);
+        result.append("Access history fail! dataHistory_ no data.").append("\n");
     }
     return result;
 }
@@ -153,13 +148,13 @@ std::string PasteboardService::DumpUserData(int32_t userId)
 {
     auto it = clips_.Find(userId);
     if (!it.first || it.second == nullptr) {
-        return DUMP_NO_DATA;
+        return "No copy data.\n";
     }
     size_t recordCounts = it.second->GetRecordCount();
     auto property = it.second->GetProperty();
     std::string shareOption;
     PasteData::ShareOptionToString(property.shareOption, shareOption);
-    std::string sourceDevice = property.isRemote ? DUMP_SOURCE_REMOTE : DUMP_SOURCE_LOCAL;
+    std::string sourceDevice = property.isRemote ? "remote" : "local";
     std::string result;
     result.append("|Owner       :  ").append(property.bundleName).append("\n")
         .append("|Timestamp   :  ").append(property.setTime).append("\n")

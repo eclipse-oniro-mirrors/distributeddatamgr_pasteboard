@@ -46,7 +46,7 @@ using json = nlohmann::json;
 
 namespace OHOS {
 namespace MiscServices {
-constexpr int32_t HITRACE_GETPASTEDATA = 0;
+constexpr const int32_t HITRACE_GETPASTEDATA = 0;
 std::string g_progressKey;
 constexpr int32_t PASTEBOARD_PROGRESS_UPDATE_PERCENT = 5;
 constexpr int32_t UPDATE_PERCENT_WITHOUT_FILE = 10;
