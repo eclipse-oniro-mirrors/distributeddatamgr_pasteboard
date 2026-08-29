@@ -116,15 +116,12 @@ constexpr uint32_t MAX_RECOGNITION_LENGTH = 1000;
 constexpr int32_t DEVICE_COLLABORATION_UID = 5521;
 constexpr uint64_t SYSTEM_APP_MASK = (static_cast<uint64_t>(1) << 32);
 constexpr uint32_t MAX_BUNDLE_NAME_LENGTH = 127;
+constexpr int64_t MIN_ASHMEM_DATA_SIZE = 32 * 1024;
 constexpr int32_t E_OK_OPERATION = 0;
 constexpr int32_t SET_VALUE_SUCCESS = 1;
+constexpr uid_t ANCO_SERVICE_BROKER_UID = 5557;
 constexpr float RECALCULATE_DATA_SIZE = 0.9;
 constexpr uint16_t MAX_TRANSFER_SIZE = 1300;
-constexpr uint8_t UINT16_SIZE = 2;
-constexpr uint8_t BYTE_MASK = 0xFF;
-constexpr uint8_t BYTE_SHIFT = 8;
-constexpr int32_t MAX_DUMP_UID = 10000;
-constexpr int32_t TM_YEAR_BASE = 1900;
 
 const bool G_REGISTER_RESULT = SystemAbility::MakeAndRegisterAbility(new PasteboardService());
 const std::string CONSTRAINT = "constraint.distributed.transmission.outgoing";
@@ -1344,7 +1341,7 @@ int32_t PasteboardService::GetPasteData(int &fd, int64_t &size, std::vector<uint
         "MIMETYPES", ueReportInfo.description.mimeTypes,
         "DATA_TIMESTAMP", ueReportInfo.timestamp);
     realErrCode = ret;
-    return ERR_OK;
+    return 0;
 }
 
 int32_t PasteboardService::GetPasteDataInner(int &fd, int64_t &size, std::vector<uint8_t> &rawData,
@@ -3485,7 +3482,7 @@ int32_t PasteboardService::SetAppShareOptions(int32_t shareOptions)
     }
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "Set token id: 0x%{public}x share options: %{public}d success.",
         tokenId, shareOptions);
-    return ERR_OK;
+    return 0;
 }
 
 int32_t PasteboardService::RemoveAppShareOptions()
@@ -3510,14 +3507,14 @@ int32_t PasteboardService::RemoveAppShareOptions()
             globalShareOptions_.Erase(tokenId);
             PASTEBOARD_HILOGI(
                 PASTEBOARD_MODULE_SERVICE, "Remove token id: 0x%{public}x share options success.", tokenId);
-            return ERR_OK;
+            return 0;
         } else {
             PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "Can not remove token id: 0x%{public}x.", tokenId);
-            return ERR_OK;
+            return 0;
         }
     }
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "This token id: 0x%{public}x not set.", tokenId);
-    return ERR_OK;
+    return 0;
 }
 
 void PasteboardService::UpdateShareOption(PasteData &pasteData)
@@ -3648,11 +3645,12 @@ int PasteboardService::Dump(int fd, const std::vector<std::u16string> &args)
 {
     if (fd < 0) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "invalid fd: %{public}d", fd);
-        return ERR_OK;
+        return 0;
     }
     int uid = static_cast<int>(IPCSkeleton::GetCallingUid());
-    if (uid > MAX_DUMP_UID) {
-        return ERR_OK;
+    const int maxUid = 10000;
+    if (uid > maxUid) {
+        return 0;
     }
 
     std::vector<std::string> argsStr;
@@ -3661,9 +3659,9 @@ int PasteboardService::Dump(int fd, const std::vector<std::u16string> &args)
     }
 
     if (PasteboardDumpHelper::GetInstance().Dump(fd, argsStr)) {
-        return ERR_OK;
+        return 0;
     }
-    return ERR_OK;
+    return 0;
 }
 
 std::string PasteboardService::GetTime()
@@ -3679,7 +3677,7 @@ std::string PasteboardService::GetTime()
     struct timeval timeVal = { 0, 0 };
     gettimeofday(&timeVal, nullptr);
 
-    std::string targetTime = std::to_string(nowTime.tm_year + TM_YEAR_BASE) + "-" + std::to_string(nowTime.tm_mon + 1) + "-" +
+    std::string targetTime = std::to_string(nowTime.tm_year + 1900) + "-" + std::to_string(nowTime.tm_mon + 1) + "-" +
                              std::to_string(nowTime.tm_mday) + " " + std::to_string(nowTime.tm_hour) + ":" +
                              std::to_string(nowTime.tm_min) + ":" + std::to_string(nowTime.tm_sec) + "." +
                              std::to_string(timeVal.tv_usec / USEC_TO_MSEC);
@@ -5461,11 +5459,11 @@ std::vector<uint8_t> PasteboardService::EncodeMimeTypes(const std::vector<std::s
             continue;
         }
         uint16_t strLen = static_cast<uint16_t>(len);
-        if (result.size() + strLen + UINT16_SIZE > MAX_TRANSFER_SIZE) {
+        if (result.size() + strLen + 2 > MAX_TRANSFER_SIZE) {
             break;
         }
-        result.emplace_back(static_cast<uint8_t>(len & BYTE_MASK));
-        result.emplace_back(static_cast<uint8_t>((len >> BYTE_SHIFT) & BYTE_MASK));
+        result.emplace_back(static_cast<uint8_t>(len & 0xFF));
+        result.emplace_back(static_cast<uint8_t>((len >> 8) & 0xFF));
         const uint8_t *data = reinterpret_cast<const uint8_t *>(mimeType.data());
         result.insert(result.end(), data, data + strLen);
     }
@@ -5479,9 +5477,9 @@ std::vector<std::string> PasteboardService::DecodeMimeTypes(const std::vector<ui
     const uint8_t *data = rawData.data();
     size_t size = rawData.size();
     size_t index = 0;
-    while (index + UINT16_SIZE <= size) {
-        uint16_t len = static_cast<uint16_t>(data[index]) | (static_cast<uint16_t>(data[index + 1]) << BYTE_SHIFT);
-        index += UINT16_SIZE;
+    while (index + 2 <= size) {
+        uint16_t len = static_cast<uint16_t>(data[index]) | (static_cast<uint16_t>(data[index + 1]) << 8);
+        index += 2;
         if (index + len > size) {
             break;
         }

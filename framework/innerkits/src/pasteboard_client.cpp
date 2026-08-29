@@ -23,7 +23,6 @@
 #include "fd_san.h"
 #include "ffrt/ffrt_utils.h"
 #include "hitrace_meter.h"
-#include "pasteboard_common.h"
 #include "pasteboard_copy.h"
 #include "pasteboard_deduplicate_memory.h"
 #include "pasteboard_error.h"
@@ -70,6 +69,8 @@ std::mutex PasteboardClient::instanceLock_;
 std::atomic<bool> PasteboardClient::remoteTask_(false);
 std::atomic<bool> PasteboardClient::isPasting_(false);
 std::atomic<uint64_t> PasteboardClient::progressStartTime_;
+constexpr int64_t MIN_ASHMEM_DATA_SIZE = 32 * 1024; // 32K
+constexpr uid_t ANCO_SERVICE_BROKER_UID = 5557;
 
 struct RadarReportIdentity {
     pid_t pid;

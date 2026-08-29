@@ -19,7 +19,6 @@
 #include "fd_san.h"
 #include "message_parcel_warp.h"
 #include "pasteboard_client_death_observer_stub.h"
-#include "pasteboard_common.h"
 #include "pasteboard_error.h"
 #include "pasteboard_hilog.h"
 #include "pasteboard_load_callback.h"
@@ -30,6 +29,7 @@ namespace OHOS {
 namespace MiscServices {
 
 constexpr int32_t LOADSA_TIMEOUT_MS = 4000;
+constexpr int64_t MIN_ASHMEM_DATA_SIZE = 32 * 1024; // 32K
 sptr<IPasteboardService> PasteboardServiceLoader::pasteboardServiceProxy_;
 std::condition_variable PasteboardServiceLoader::proxyConVar_;
 PasteboardServiceLoader::StaticDestroyMonitor PasteboardServiceLoader::staticDestroyMonitor_;

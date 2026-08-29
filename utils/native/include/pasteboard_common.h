@@ -23,9 +23,6 @@
 
 namespace OHOS {
 namespace MiscServices {
-constexpr uid_t ANCO_SERVICE_BROKER_UID = 5557;
-constexpr int64_t MIN_ASHMEM_DATA_SIZE = 32 * 1024;
-
 class PasteBoardCommon : public Singleton<PasteBoardCommon> {
 public:
     PasteBoardCommon() = default;
