@@ -16,6 +16,7 @@
 
 #include <dlfcn.h>
 #include <fstream>
+#include <sys/stat.h>
 
 #include "pasteboard_hilog.h"
 namespace OHOS::MiscServices {
@@ -63,6 +64,23 @@ int32_t Loader::LoadUid()
 Config Loader::LoadConfig()
 {
     Config config;
+    if (CONF_FILE.empty() || CONF_FILE[0] != '/') {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "invalid config file path");
+        return config;
+    }
+    struct stat fileStat;
+    if (stat(CONF_FILE.c_str(), &fileStat) != 0) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "stat config file failed");
+        return config;
+    }
+    if (fileStat.st_uid != 0) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "config file not owned by root");
+        return config;
+    }
+    if ((fileStat.st_mode & (S_IWGRP | S_IWOTH)) != 0) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "config file writable by non-root");
+        return config;
+    }
     std::string context;
     std::ifstream fin(CONF_FILE);
     while (fin.good()) {
