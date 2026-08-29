@@ -52,7 +52,6 @@
 #include "pasteboard_event_ue.h"
 #include "pasteboard_img_extractor.h"
 #include "pasteboard_pattern.h"
-#include "pasteboard_mime_utils.h"
 #include "pasteboard_time.h"
 #include "pasteboard_trace.h"
 #include "pasteboard_web_controller.h"
@@ -120,6 +119,10 @@ constexpr uint32_t MAX_BUNDLE_NAME_LENGTH = 127;
 constexpr int32_t E_OK_OPERATION = 0;
 constexpr int32_t SET_VALUE_SUCCESS = 1;
 constexpr float RECALCULATE_DATA_SIZE = 0.9;
+constexpr uint16_t MAX_TRANSFER_SIZE = 1300;
+constexpr uint8_t UINT16_SIZE = 2;
+constexpr uint8_t BYTE_MASK = 0xFF;
+constexpr uint8_t BYTE_SHIFT = 8;
 constexpr int32_t MAX_DUMP_UID = 10000;
 constexpr int32_t TM_YEAR_BASE = 1900;
 
@@ -5446,6 +5449,46 @@ int32_t PasteboardService::CallbackExit(uint32_t code, int32_t result)
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "pid:%{public}d, uid:%{public}d, cmd:%{public}u, ret:%{public}d",
         pid, uid, code, result);
     return ERR_NONE;
+}
+
+std::vector<uint8_t> PasteboardService::EncodeMimeTypes(const std::vector<std::string> &mimeTypes)
+{
+    std::vector<uint8_t> result;
+    result.reserve(MAX_TRANSFER_SIZE);
+    for (const auto &mimeType : mimeTypes) {
+        auto len = mimeType.size();
+        if (len > UINT16_MAX) {
+            continue;
+        }
+        uint16_t strLen = static_cast<uint16_t>(len);
+        if (result.size() + strLen + UINT16_SIZE > MAX_TRANSFER_SIZE) {
+            break;
+        }
+        result.emplace_back(static_cast<uint8_t>(len & BYTE_MASK));
+        result.emplace_back(static_cast<uint8_t>((len >> BYTE_SHIFT) & BYTE_MASK));
+        const uint8_t *data = reinterpret_cast<const uint8_t *>(mimeType.data());
+        result.insert(result.end(), data, data + strLen);
+    }
+    result.shrink_to_fit();
+    return result;
+}
+
+std::vector<std::string> PasteboardService::DecodeMimeTypes(const std::vector<uint8_t> &rawData)
+{
+    std::vector<std::string> mimeTypes;
+    const uint8_t *data = rawData.data();
+    size_t size = rawData.size();
+    size_t index = 0;
+    while (index + UINT16_SIZE <= size) {
+        uint16_t len = static_cast<uint16_t>(data[index]) | (static_cast<uint16_t>(data[index + 1]) << BYTE_SHIFT);
+        index += UINT16_SIZE;
+        if (index + len > size) {
+            break;
+        }
+        mimeTypes.emplace_back(reinterpret_cast<const char *>(data + index), len);
+        index += len;
+    }
+    return mimeTypes;
 }
 
 void InputEventCallback::OnKeyInputEventForPaste(std::shared_ptr<MMI::KeyEvent> keyEvent) const
