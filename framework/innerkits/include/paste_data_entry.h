@@ -25,7 +25,7 @@ namespace MiscServices {
 class API_EXPORT MineCustomData : public TLVWriteable, public TLVReadable {
 public:
     MineCustomData() = default;
-    std::map<std::string, std::vector<uint8_t>> GetItemData() const;
+    std::map<std::string, std::vector<uint8_t>> GetItemData();
     void AddItemData(const std::string &mimeType, const std::vector<uint8_t> &arrayBuffer);
 
     bool EncodeTLV(WriteOnlyBuffer &buffer) const override;

@@ -191,7 +191,7 @@ void PasteData::AddRecord(const PasteDataRecord &record)
     this->AddRecord(std::make_shared<PasteDataRecord>(record));
 } // LCOV_EXCL_STOP
 
-std::vector<std::string> PasteData::GetMimeTypes() const
+std::vector<std::string> PasteData::GetMimeTypes()
 { // LCOV_EXCL_START
     std::set<std::string> mimeTypes;
     for (const auto &item : records_) {
@@ -204,7 +204,7 @@ std::vector<std::string> PasteData::GetMimeTypes() const
     return std::vector<std::string>(mimeTypes.begin(), mimeTypes.end());
 } // LCOV_EXCL_STOP
 
-std::vector<std::string> PasteData::GetReportMimeTypes() const
+std::vector<std::string> PasteData::GetReportMimeTypes()
 { // LCOV_EXCL_START
     std::vector<std::string> mimeTypes;
     uint32_t recordNum = records_.size();
@@ -226,7 +226,7 @@ std::vector<std::string> PasteData::GetReportMimeTypes() const
     return mimeTypes;
 } // LCOV_EXCL_STOP
 
-uint8_t PasteData::GenerateDataType() const
+uint8_t PasteData::GenerateDataType()
 { // LCOV_EXCL_START
     std::vector<std::string> mimeTypes = GetMimeTypes();
     if (mimeTypes.empty()) {
@@ -253,7 +253,7 @@ uint8_t PasteData::GenerateDataType() const
     return value;
 } // LCOV_EXCL_STOP
 
-DataDescription PasteData::GetReportDescription() const
+DataDescription PasteData::GetReportDescription()
 { // LCOV_EXCL_START
     DataDescription description;
     description.recordNum = records_.size();
@@ -271,7 +271,7 @@ DataDescription PasteData::GetReportDescription() const
     return description;
 } // LCOV_EXCL_STOP
 
-std::shared_ptr<std::string> PasteData::GetPrimaryHtml() const
+std::shared_ptr<std::string> PasteData::GetPrimaryHtml()
 { // LCOV_EXCL_START
     for (const auto &item : records_) {
         std::shared_ptr<std::string> primary = item->GetHtmlText();
@@ -282,7 +282,7 @@ std::shared_ptr<std::string> PasteData::GetPrimaryHtml() const
     return nullptr;
 } // LCOV_EXCL_STOP
 
-std::shared_ptr<PixelMap> PasteData::GetPrimaryPixelMap() const
+std::shared_ptr<PixelMap> PasteData::GetPrimaryPixelMap()
 { // LCOV_EXCL_START
     for (const auto &item : records_) {
         std::shared_ptr<PixelMap> primary = item->GetPixelMap();
@@ -293,7 +293,7 @@ std::shared_ptr<PixelMap> PasteData::GetPrimaryPixelMap() const
     return nullptr;
 } // LCOV_EXCL_STOP
 
-std::shared_ptr<OHOS::AAFwk::Want> PasteData::GetPrimaryWant() const
+std::shared_ptr<OHOS::AAFwk::Want> PasteData::GetPrimaryWant()
 { // LCOV_EXCL_START
     for (const auto &item : records_) {
         std::shared_ptr<OHOS::AAFwk::Want> primary = item->GetWant();
@@ -304,7 +304,7 @@ std::shared_ptr<OHOS::AAFwk::Want> PasteData::GetPrimaryWant() const
     return nullptr;
 } // LCOV_EXCL_STOP
 
-std::shared_ptr<std::string> PasteData::GetPrimaryText() const
+std::shared_ptr<std::string> PasteData::GetPrimaryText()
 { // LCOV_EXCL_START
     for (const auto &item : records_) {
         std::shared_ptr<std::string> primary = item->GetPlainText();
@@ -315,7 +315,7 @@ std::shared_ptr<std::string> PasteData::GetPrimaryText() const
     return nullptr;
 } // LCOV_EXCL_STOP
 
-std::shared_ptr<OHOS::Uri> PasteData::GetPrimaryUri() const
+std::shared_ptr<OHOS::Uri> PasteData::GetPrimaryUri()
 { // LCOV_EXCL_START
     for (const auto &item : records_) {
         std::shared_ptr<OHOS::Uri> primary = item->GetUri();
@@ -326,7 +326,7 @@ std::shared_ptr<OHOS::Uri> PasteData::GetPrimaryUri() const
     return nullptr;
 } // LCOV_EXCL_STOP
 
-std::shared_ptr<std::string> PasteData::GetPrimaryMimeType() const
+std::shared_ptr<std::string> PasteData::GetPrimaryMimeType()
 { // LCOV_EXCL_START
     if (records_.empty()) {
         return nullptr;
@@ -358,7 +358,7 @@ std::size_t PasteData::GetRecordCount() const
     return records_.size();
 } // LCOV_EXCL_STOP
 
-ShareOption PasteData::GetShareOption() const
+ShareOption PasteData::GetShareOption()
 { // LCOV_EXCL_START
     return props_.shareOption;
 } // LCOV_EXCL_STOP
@@ -369,12 +369,12 @@ void PasteData::SetShareOption(ShareOption shareOption)
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "shareOption = %{public}d.", shareOption);
 } // LCOV_EXCL_STOP
 
-std::uint32_t PasteData::GetTokenId() const
+std::uint32_t PasteData::GetTokenId()
 { // LCOV_EXCL_START
     return props_.tokenId;
 } // LCOV_EXCL_STOP
 
-int32_t PasteData::GetOriginTokenId() const
+int32_t PasteData::GetOriginTokenId()
 { // LCOV_EXCL_START
     auto originInfo = props_.additions.GetWantParams(ORIGIN_INFO);
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGD(
@@ -510,7 +510,7 @@ void PasteData::SetTime(const std::string &setTime)
     props_.setTime = setTime;
 } // LCOV_EXCL_STOP
 
-std::string PasteData::GetTime() const
+std::string PasteData::GetTime()
 { // LCOV_EXCL_START
     return props_.setTime;
 } // LCOV_EXCL_STOP
@@ -530,7 +530,7 @@ void PasteData::SetTag(const std::string &tag)
     props_.tag = tag;
 } // LCOV_EXCL_STOP
 
-std::string PasteData::GetTag() const
+std::string PasteData::GetTag()
 { // LCOV_EXCL_START
     return props_.tag;
 } // LCOV_EXCL_STOP

@@ -280,7 +280,7 @@ std::shared_ptr<std::string> PasteDataRecord::GetHtmlTextV0() const
     return htmlText_;
 } // LCOV_EXCL_STOP
 
-std::shared_ptr<std::string> PasteDataRecord::GetHtmlText() const
+std::shared_ptr<std::string> PasteDataRecord::GetHtmlText()
 { // LCOV_EXCL_START
     auto htmlText = GetHtmlTextV0();
     if (htmlText) {
@@ -314,7 +314,7 @@ std::shared_ptr<std::string> PasteDataRecord::GetPlainTextV0() const
     return plainText_;
 } // LCOV_EXCL_STOP
 
-std::shared_ptr<std::string> PasteDataRecord::GetPlainText() const
+std::shared_ptr<std::string> PasteDataRecord::GetPlainText()
 { // LCOV_EXCL_START
     auto plainText = GetPlainTextV0();
     if (plainText) {
@@ -337,7 +337,7 @@ std::shared_ptr<PixelMap> PasteDataRecord::GetPixelMapV0() const
     return pixelMap_;
 } // LCOV_EXCL_STOP
 
-std::shared_ptr<PixelMap> PasteDataRecord::GetPixelMap() const
+std::shared_ptr<PixelMap> PasteDataRecord::GetPixelMap()
 { // LCOV_EXCL_START
     auto pixelMap = GetPixelMapV0();
     if (pixelMap) {
@@ -358,7 +358,7 @@ std::shared_ptr<OHOS::Uri> PasteDataRecord::GetUriV0() const
     return std::make_shared<OHOS::Uri>(convertUri_);
 } // LCOV_EXCL_STOP
 
-std::shared_ptr<OHOS::Uri> PasteDataRecord::GetUri() const
+std::shared_ptr<OHOS::Uri> PasteDataRecord::GetUri()
 { // LCOV_EXCL_START
     auto uri = GetUriV0();
     if (uri) {
@@ -756,7 +756,7 @@ std::shared_ptr<RemoteRecordValue> PasteDataRecord::Local2Remote() const
     return value;
 }
 
-std::string PasteDataRecord::GetPassUri() const
+std::string PasteDataRecord::GetPassUri()
 { // LCOV_EXCL_START
     std::string tempUri;
     if (uri_ != nullptr) {
@@ -961,7 +961,7 @@ void PasteDataRecord::AddEntry(const std::string &utdType, std::shared_ptr<Paste
     entries_.emplace_back(value);
 } // LCOV_EXCL_STOP
 
-std::shared_ptr<PasteDataEntry> PasteDataRecord::GetEntryByMimeType(const std::string &mimeType) const
+std::shared_ptr<PasteDataEntry> PasteDataRecord::GetEntryByMimeType(const std::string &mimeType)
 { // LCOV_EXCL_START
     auto utdId = CommonUtils::Convert2UtdId(UDMF::UDType::UD_BUTT, mimeType);
     std::shared_ptr<PasteDataEntry> entry = GetEntry(utdId);
@@ -981,7 +981,7 @@ std::shared_ptr<PasteDataEntry> PasteDataRecord::GetEntryByMimeType(const std::s
     return entry;
 } // LCOV_EXCL_STOP
 
-std::shared_ptr<PasteDataEntry> PasteDataRecord::GetEntry(const std::string &utdType) const
+std::shared_ptr<PasteDataEntry> PasteDataRecord::GetEntry(const std::string &utdType)
 { // LCOV_EXCL_START
     for (auto const &entry : entries_) {
         if (entry == nullptr) {

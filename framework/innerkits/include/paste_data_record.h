@@ -78,14 +78,14 @@ public:
     std::set<std::string> GetUtdTypes() const;
     std::set<std::string> GetMimeTypes() const;
     std::shared_ptr<std::string> GetHtmlTextV0() const;
-    std::shared_ptr<std::string> GetHtmlText() const;
+    std::shared_ptr<std::string> GetHtmlText();
     std::shared_ptr<std::string> GetPlainTextV0() const;
-    std::shared_ptr<std::string> GetPlainText() const;
+    std::shared_ptr<std::string> GetPlainText();
     std::shared_ptr<OHOS::Media::PixelMap> GetPixelMapV0() const;
-    std::shared_ptr<OHOS::Media::PixelMap> GetPixelMap() const;
+    std::shared_ptr<OHOS::Media::PixelMap> GetPixelMap();
     void ClearPixelMap();
     std::shared_ptr<OHOS::Uri> GetUriV0() const;
-    std::shared_ptr<OHOS::Uri> GetUri() const;
+    std::shared_ptr<OHOS::Uri> GetUri();
     void SetUri(std::shared_ptr<OHOS::Uri> uri);
     std::shared_ptr<OHOS::Uri> GetOriginUri() const;
     std::shared_ptr<OHOS::AAFwk::Want> GetWant() const;
@@ -112,8 +112,8 @@ public:
     uint32_t RemoveEmptyEntry();
     void AddEntry(const std::string &utdType, std::shared_ptr<PasteDataEntry> value);
     void AddEntryByMimeType(const std::string &mimeType, std::shared_ptr<PasteDataEntry> value);
-    std::shared_ptr<PasteDataEntry> GetEntry(const std::string &utdType) const;
-    std::shared_ptr<PasteDataEntry> GetEntryByMimeType(const std::string &mimeType) const;
+    std::shared_ptr<PasteDataEntry> GetEntry(const std::string &utdType);
+    std::shared_ptr<PasteDataEntry> GetEntryByMimeType(const std::string &mimeType);
     std::vector<std::shared_ptr<PasteDataEntry>> GetEntries() const;
     std::vector<std::string> GetValidTypes(const std::vector<std::string> &types) const;
     std::vector<std::string> GetValidMimeTypes(const std::vector<std::string> &mimeTypes) const;
@@ -148,7 +148,7 @@ public:
     };
 
 private:
-    std::string GetPassUri() const;
+    std::string GetPassUri();
     void AddUriEntry();
     bool DecodeItem1(uint16_t tag, ReadOnlyBuffer &buffer, TLVHead &head);
     bool DecodeItem2(uint16_t tag, ReadOnlyBuffer &buffer, TLVHead &head);
