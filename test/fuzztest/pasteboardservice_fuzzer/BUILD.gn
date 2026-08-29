@@ -49,6 +49,8 @@ ohos_fuzztest("PasteboardServiceFuzzTest") {
     "${pasteboard_innerkits_path}/src/paste_data_info.cpp",
     "${pasteboard_innerkits_path}/src/paste_data_entry.cpp",
     "${pasteboard_innerkits_path}/src/paste_data_record.cpp",
+    "${pasteboard_innerkits_path}/src/paste_data_record_factory.cpp",
+    "${pasteboard_innerkits_path}/src/paste_data_record_tlv.cpp",
     "${pasteboard_tlv_path}/tlv_readable.cpp",
     "${pasteboard_tlv_path}/tlv_utils.cpp",
     "${pasteboard_tlv_path}/tlv_writeable.cpp",
