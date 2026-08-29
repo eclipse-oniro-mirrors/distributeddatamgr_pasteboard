@@ -98,7 +98,6 @@ ohos_shared_library("pasteboard_service") {
     "core/src/pasteboard_service_dump.cpp",
     "core/src/pasteboard_service_permission.cpp",
     "core/src/pasteboard_service_distributed.cpp",
-    "core/src/pasteboard_service_remote.cpp",
     "core/src/pasteboard_service_appinfo.cpp",
     "core/src/pasteboard_service_entity.cpp",
     "core/src/pasteboard_user_context.cpp",
