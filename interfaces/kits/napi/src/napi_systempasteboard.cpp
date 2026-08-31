@@ -1368,8 +1368,10 @@ napi_value SystemPasteboardNapi::GetDataWithProgress(napi_env env, napi_callback
                 context->status = napi_ok;
             }
         }
-        std::lock_guard<std::recursive_mutex> lock(listenerMutex_);
-        listenerMap_.erase("progressNotify");
+        {
+            std::lock_guard<std::recursive_mutex> lock(listenerMutex_);
+            listenerMap_.erase("progressNotify");
+        }
         if (context->getDataParams->info != nullptr) {
             delete context->getDataParams->info;
             context->getDataParams->info = nullptr;
