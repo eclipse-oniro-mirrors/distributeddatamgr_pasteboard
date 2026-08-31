@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (C) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -932,10 +932,23 @@ napi_value SystemPasteboardNapi::GetChangeCount(napi_env env, napi_callback_info
 {
     HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.getChangeCount", true);
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "SystemPasteboardNapi GetChangeCount() is called!");
-    uint32_t changeCount = 0;
-    PasteboardClient::GetInstance()->GetChangeCount(changeCount);
+    auto block = std::make_shared<BlockObject<std::shared_ptr<uint32_t>>>(SYNC_TIMEOUT);
+    std::thread thread([block]() {
+        uint32_t changeCount = 0;
+        PasteboardClient::GetInstance()->GetChangeCount(changeCount);
+        auto ptr = std::make_shared<uint32_t>(changeCount);
+        block->SetValue(ptr);
+    });
+    PasteBoardCommonUtils::SetThreadTaskName(thread, "NGetChangeCount");
+    thread.detach();
+    auto value = block->GetValue();
     napi_value result = nullptr;
-    napi_create_uint32(env, changeCount, &result);
+    if (value == nullptr) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "time out, GetChangeCount failed.");
+        napi_create_uint32(env, 0, &result);
+        return result;
+    }
+    napi_create_uint32(env, *value, &result);
     return result;
 }
 

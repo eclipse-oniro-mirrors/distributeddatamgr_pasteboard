@@ -157,11 +157,11 @@ GN targets and files use lower_snake_case, such as
 names such as `GetMimeTypesTest001`. Avoid logging sensitive data.
 
 Business code file copyright header uses the format
-`Copyright (c) [修改时间]-[创建时间] Huawei Device Co., Ltd.` (for example,
-`Copyright (c) 2026-2025 Huawei Device Co., Ltd.`), where the left year is the
-modification year and the right year is the creation year. When editing any
-business source file, the modification year (left side of the range) MUST be
-updated to the current year; do not touch the creation year (right side)
+`Copyright (c) [创建时间]-[修改时间] Huawei Device Co., Ltd.` (for example,
+`Copyright (c) 2025-2026 Huawei Device Co., Ltd.`), where the right year is the
+modification year and the left year is the creation year. When editing any
+business source file, the modification year (right side of the range) MUST be
+updated to the current year; do not touch the creation year (left side)
 unless the file is newly created, in which case use a single current year
 (for example, `Copyright (c) 2026 Huawei Device Co., Ltd.`) until the next
 edit. This rule applies to `.cpp`, `.h`, and other business source files; it
@@ -261,5 +261,5 @@ than 2000 lines of new code; split the work into multiple scoped commits or
 PRs if it would exceed that limit. PRs should include linked issue,
 purpose, change summary, binary-source status, and TDD/XTS/Pretest results.
 Complete log and secure-coding checklists when relevant. Changes to
-`services/core/include/pasteboard_serv_ipc_interface_code.h` require the
+`services/IPasteboardService.idl` require the
 reviewer named in `CODEOWNERS`.
