@@ -21,6 +21,7 @@
 #include "long_wrapper.h"
 #include "pasteboard_common.h"
 #include "pasteboard_hilog.h"
+#include "want_params_wrapper.h"
 
 using namespace std::chrono;
 using namespace OHOS::Media;
@@ -385,6 +386,8 @@ int32_t PasteData::GetOriginTokenId()
 void PasteData::SetTokenId(uint32_t tokenId)
 { // LCOV_EXCL_START
     props_.tokenId = tokenId;
+    auto originInfo.SetParam(ORIGIN_TOKEN_ID, AAFwk::Integer::Box(tokenId));
+    props_.additions.SetParam(ORIGIN_INFO, AAFwk::WantParamWrapper::Box(std::move(originInfo)));
 } // LCOV_EXCL_STOP
 
 bool PasteData::RemoveRecordAt(std::size_t number)
