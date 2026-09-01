@@ -1793,26 +1793,35 @@ void PasteboardService::UpdateClipOnRead(int32_t userId, const PasteData &data,
 void PasteboardService::GetDelayPasteData(int32_t userId, PasteData &data)
 {
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_SERVICE, "get delay data start");
-    delayGetters_.ComputeIfPresent(userId, [this, &data, userId](auto, auto &delayGetter) {
-        PasteData delayData;
-        if (delayGetter.first != nullptr) {
-            delayGetter.first->GetPasteData("", delayData);
-        }
-        if (delayGetter.second != nullptr && delayGetter.first != nullptr) {
-            delayGetter.first->AsObject()->RemoveDeathRecipient(delayGetter.second);
-        }
-        delayData.SetDelayData(false);
-        delayData.SetBundleInfo(data.GetBundleName(), data.GetAppIndex());
-        delayData.SetOriginAuthority(data.GetOriginAuthority());
-        delayData.SetTime(data.GetTime());
-        delayData.SetTokenId(data.GetTokenId());
-        std::string bundleIndex = PasteBoardCommon::GetDirByAuthority(data.GetOriginAuthority());
-        PasteboardWebController::GetInstance().SplitWebviewPasteData(delayData, bundleIndex, userId);
-        PasteboardWebController::GetInstance().SetWebviewPasteData(delayData, bundleIndex);
-        PasteboardWebController::GetInstance().CheckAppUriPermission(delayData);
-        data = delayData;
-        return false;
-    });
+    sptr<IPasteboardDelayGetter> delayGetter;
+    sptr<DelayGetterDeathRecipient> deathRecipient;
+    bool hasGetter = delayGetters_.ComputeIfPresent(userId,
+        [&delayGetter, &deathRecipient](auto, auto &value) {
+            delayGetter = value.first;
+            deathRecipient = value.second;
+            return false;
+        });
+    if (!hasGetter) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "delay getter not found, userId=%{public}d", userId);
+        return;
+    }
+    PasteData delayData;
+    if (delayGetter != nullptr) {
+        delayGetter->GetPasteData("", delayData);
+    }
+    if (deathRecipient != nullptr && delayGetter != nullptr) {
+        delayGetter->AsObject()->RemoveDeathRecipient(deathRecipient);
+    }
+    delayData.SetDelayData(false);
+    delayData.SetBundleInfo(data.GetBundleName(), data.GetAppIndex());
+    delayData.SetOriginAuthority(data.GetOriginAuthority());
+    delayData.SetTime(data.GetTime());
+    delayData.SetTokenId(data.GetTokenId());
+    std::string bundleIndex = PasteBoardCommon::GetDirByAuthority(data.GetOriginAuthority());
+    PasteboardWebController::GetInstance().SplitWebviewPasteData(delayData, bundleIndex, userId);
+    PasteboardWebController::GetInstance().SetWebviewPasteData(delayData, bundleIndex);
+    PasteboardWebController::GetInstance().CheckAppUriPermission(delayData);
+    data = delayData;
 }
 
 int32_t PasteboardService::GetDelayPasteRecord(int32_t userId, PasteData &data)
