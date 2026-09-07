@@ -394,16 +394,14 @@ napi_status ConvertEntryValue(napi_env env, napi_value *result, std::string &mim
         return napi_create_string_utf8(env, str->c_str(), str->size(), result);
     } else if (mimeType == MIMETYPE_PIXELMAP) {
         std::shared_ptr<Media::PixelMap> pixelMap = value->ConvertToPixelMap();
-        if (!CheckExpression(env, pixelMap != nullptr,
-            JSErrorCode::INVALID_PARAMETERS, "Parameter error. pixelMap get failed")) {
+        if (pixelMap == nullptr) {
             return napi_generic_failure;
         }
         *result = Media::PixelMapNapi::CreatePixelMap(env, pixelMap);
         return napi_ok;
     } else if (mimeType == MIMETYPE_TEXT_WANT) {
         std::shared_ptr<AAFwk::Want> want = value->ConvertToWant();
-        if (!CheckExpression(env, want != nullptr,
-            JSErrorCode::INVALID_PARAMETERS, "Parameter error. want get failed")) {
+        if (want == nullptr) {
             return napi_generic_failure;
         }
         *result = AppExecFwk::WrapWant(env, *want);
