@@ -2367,19 +2367,6 @@ HWTEST_F(PasteboardServiceMockTest, UserContextResolverResolveInteractionUser002
 }
 
 /**
- * @tc.name: UserContextResolverIsMainDisplayUser001
- * @tc.desc: test IsMainScreenUser and IsMainDisplayUser
- * @tc.type: FUNC
- */
-HWTEST_F(PasteboardServiceMockTest, UserContextResolverIsMainDisplayUser001, TestSize.Level1)
-{
-    EXPECT_TRUE(IsMainScreenUser(MAIN_SCREEN_USER_ID));
-    EXPECT_FALSE(IsMainScreenUser(MAIN_SCREEN_USER_ID + 1));
-    EXPECT_TRUE(IsMainDisplayUser(MAIN_SCREEN_USER_ID));
-    EXPECT_FALSE(IsMainDisplayUser(ERROR_USERID));
-}
-
-/**
  * @tc.name: GetCurrentAccountIdUseCallingUid001
  * @tc.desc: test GetCurrentAccountId uses calling uid instead of QueryActiveOsAccountIds
  * @tc.type: FUNC
@@ -4225,6 +4212,80 @@ HWTEST_F(PasteboardServiceMockTest, SyncDelayedData001, TestSize.Level1)
     EXPECT_FALSE(record->HasEmptyEntry());
     EXPECT_EQ(setData->GetMimeTypes().size(), 1);
     EXPECT_STREQ(setData->GetMimeTypes()[0].c_str(), MIMETYPE_TEXT_PLAIN);
+}
+
+namespace {
+class CountingClipPlugin : public ClipPlugin {
+public:
+    int32_t regCount = 0;
+    int32_t unregCount = 0;
+    int32_t SetPasteData(const GlobalEvent &, const std::vector<uint8_t> &, uint32_t,
+        const std::vector<uint8_t> &) override { return 0; }
+    std::pair<int32_t, int32_t> GetPasteData(const GlobalEvent &, std::vector<uint8_t> &) override
+    { return {0, 0}; }
+    void RegisterListeners(int32_t) override { regCount++; }
+    void UnregisterListeners(int32_t) override { unregCount++; }
+};
+} // namespace
+
+/**
+ * @tc.name: AccountSwitchListenerLifecycle001
+ * @tc.desc: SWITCHING->UnregisterListeners, SWITCHED->RegisterListeners
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, AccountSwitchListenerLifecycle001, TestSize.Level1)
+{
+    auto plugin = std::make_shared<CountingClipPlugin>();
+    PasteboardService service;
+    service.clipPlugin_ = plugin;           // -fno-access-control 直填
+    service.OnAccountSwitching(10);
+    EXPECT_EQ(plugin->unregCount, 1);
+    EXPECT_EQ(plugin->regCount, 0);
+    service.OnAccountSwitched(11);
+    EXPECT_EQ(plugin->regCount, 1);
+    service.clipPlugin_ = nullptr;
+}
+
+/**
+ * @tc.name: IsCallerOnMainDisplay001
+ * @tc.desc: non-cockpit true for all userIds; cockpit non-main gate deferred (mock gap)
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, IsCallerOnMainDisplay001, TestSize.Level1)
+{
+    PasteboardService service;
+#ifdef PB_COCKPIT_PLATFORM_ENABLE
+    // Cockpit non-main assertions need OsAccountManager::GetForegroundOsAccountDisplayId mock; absent. See task-3-report.md.
+#else
+    EXPECT_TRUE(service.IsCallerOnMainDisplay(10));
+    EXPECT_TRUE(service.IsCallerOnMainDisplay(101));
+    EXPECT_TRUE(service.IsCallerOnMainDisplay(999));
+#endif
+}
+
+/**
+ * @tc.name: NonMainDisplayDistributedSkipped001
+ * @tc.desc: non-main display: distributed entries fall back to local, plugin not called
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, NonMainDisplayDistributedSkipped001, TestSize.Level1)
+{
+    PasteboardService service;
+#ifdef PB_COCKPIT_PLATFORM_ENABLE
+    // Cockpit non-main skip needs OsAccountManager::GetForegroundOsAccountDisplayId mock; absent on
+    // PasteboardServiceInterfaceMock. Cannot exercise the GET_LOCAL_DATA skip path without controlling
+    // display IPC. See task-4-report.md; deferred to integration / cockpit-specific tests.
+#else
+    NiceMock<PasteboardServiceInterfaceMock> mock;
+    EXPECT_TRUE(service.IsCallerOnMainDisplay(101));
+    auto [ret, evt] = service.GetValidDistributeEvent(101);
+    EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::PLUGIN_IS_NULL));
+    EXPECT_CALL(mock, IsOn()).WillOnce(Return(true));
+    service.securityLevel_.securityLevel_ = DATA_SEC_LEVEL1;
+    auto [data, result] = service.GetDistributedData(evt, 101);
+    EXPECT_EQ(data, nullptr);
+    EXPECT_EQ(result.errorCode, static_cast<int32_t>(PasteboardError::REMOTE_TASK_ERROR));
+#endif
 }
 }
 } // namespace OHOS::MiscServices

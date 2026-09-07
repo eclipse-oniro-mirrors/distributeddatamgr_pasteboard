@@ -433,6 +433,7 @@ private:
     void OnConfigChange(bool isOn);
     void OnConfigChangeInner(bool isOn);
     std::shared_ptr<ClipPlugin> GetClipPlugin();
+    bool IsCallerOnMainDisplay(int32_t userId);
     void IncreaseChangeCount(int32_t userId);
 
     static std::string GetTime();
@@ -477,6 +478,8 @@ private:
     std::vector<std::string> DecodeMimeTypes(const std::vector<uint8_t> &rawData);
 
     void InitPlugin(std::shared_ptr<ClipPlugin> clipPlugin);
+    void OnAccountSwitching(int32_t osAccountId);
+    void OnAccountSwitched(int32_t osAccountId);
     bool OpenP2PLinkForPreEstablish(const std::string &networkId, ClipPlugin *clipPlugin);
     void PreEstablishP2PLink(const std::string &networkId, ClipPlugin *clipPlugin);
     void PreEstablishP2PLinkCallback(const std::string &networkId, ClipPlugin *clipPlugin);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -341,5 +341,20 @@ HWTEST_F(ClipPluginTest, IsWiFiEnableTest, TestSize.Level0)
     bool result = clipPlugin->IsWiFiEnable();
     ASSERT_EQ(result, false);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "IsWiFiEnableTest end");
+}
+
+/**
+ * @tc.name: RegisterListenersTest001
+ * @tc.desc: test RegisterListeners/UnregisterListeners base no-op callable
+ * @tc.type: FUNC
+ */
+HWTEST_F(ClipPluginTest, RegisterListenersTest001, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RegisterListenersTest001 start");
+    CustomClipPlugin plugin;
+    plugin.RegisterListeners(10);
+    plugin.UnregisterListeners(10);
+    SUCCEED();
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RegisterListenersTest001 end");
 }
 } // namespace OHOS::MiscServices

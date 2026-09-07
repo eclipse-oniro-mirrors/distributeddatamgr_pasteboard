@@ -30,7 +30,6 @@ constexpr int32_t ERROR_USERID = -1;
 constexpr uint64_t MAIN_DISPLAY_ID = 0;
 constexpr const char *USER_SWITCH_OLD_ID = "oldId";
 constexpr const char *PACKAGE_REMOVED_USER_ID = "userId";
-constexpr int32_t MAIN_SCREEN_USER_ID = 10;
 
 enum class UserContextSource : int32_t {
     CALLER = 0,
@@ -71,8 +70,6 @@ private:
     UserContext MakeEventContext(int32_t userId, UserContextSource source) const;
 };
 
-bool IsMainScreenUser(int32_t userId);
-bool IsMainDisplayUser(int32_t userId);
 } // namespace MiscServices
 } // namespace OHOS
 #endif // PASTEBOARD_USER_CONTEXT_H

@@ -134,16 +134,6 @@ UserContext UserContextResolver::ResolveInteractionUser(int32_t userId) const
     return context;
 }
 
-bool IsMainScreenUser(int32_t userId)
-{
-    return userId == MAIN_SCREEN_USER_ID;
-}
-
-bool IsMainDisplayUser(int32_t userId)
-{
-    return IsMainScreenUser(userId);
-}
-
 UserContext UserContextResolver::MakeEventContext(int32_t userId, UserContextSource source) const
 {
     UserContext context;
