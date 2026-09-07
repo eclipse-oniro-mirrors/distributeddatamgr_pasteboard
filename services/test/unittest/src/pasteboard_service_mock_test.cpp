@@ -4245,47 +4245,5 @@ HWTEST_F(PasteboardServiceMockTest, AccountSwitchListenerLifecycle001, TestSize.
     EXPECT_EQ(plugin->regCount, 1);
     service.clipPlugin_ = nullptr;
 }
-
-/**
- * @tc.name: IsCallerOnMainDisplay001
- * @tc.desc: non-cockpit true for all userIds; cockpit non-main gate deferred (mock gap)
- * @tc.type: FUNC
- */
-HWTEST_F(PasteboardServiceMockTest, IsCallerOnMainDisplay001, TestSize.Level1)
-{
-    PasteboardService service;
-#ifdef PB_COCKPIT_PLATFORM_ENABLE
-    // Cockpit non-main assertions need OsAccountManager::GetForegroundOsAccountDisplayId mock; absent. See task-3-report.md.
-#else
-    EXPECT_TRUE(service.IsCallerOnMainDisplay(10));
-    EXPECT_TRUE(service.IsCallerOnMainDisplay(101));
-    EXPECT_TRUE(service.IsCallerOnMainDisplay(999));
-#endif
-}
-
-/**
- * @tc.name: NonMainDisplayDistributedSkipped001
- * @tc.desc: non-main display: distributed entries fall back to local, plugin not called
- * @tc.type: FUNC
- */
-HWTEST_F(PasteboardServiceMockTest, NonMainDisplayDistributedSkipped001, TestSize.Level1)
-{
-    PasteboardService service;
-#ifdef PB_COCKPIT_PLATFORM_ENABLE
-    // Cockpit non-main skip needs OsAccountManager::GetForegroundOsAccountDisplayId mock; absent on
-    // PasteboardServiceInterfaceMock. Cannot exercise the GET_LOCAL_DATA skip path without controlling
-    // display IPC. See task-4-report.md; deferred to integration / cockpit-specific tests.
-#else
-    NiceMock<PasteboardServiceInterfaceMock> mock;
-    EXPECT_TRUE(service.IsCallerOnMainDisplay(101));
-    auto [ret, evt] = service.GetValidDistributeEvent(101);
-    EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::PLUGIN_IS_NULL));
-    EXPECT_CALL(mock, IsOn()).WillOnce(Return(true));
-    service.securityLevel_.securityLevel_ = DATA_SEC_LEVEL1;
-    auto [data, result] = service.GetDistributedData(evt, 101);
-    EXPECT_EQ(data, nullptr);
-    EXPECT_EQ(result.errorCode, static_cast<int32_t>(PasteboardError::REMOTE_TASK_ERROR));
-#endif
-}
 }
 } // namespace OHOS::MiscServices

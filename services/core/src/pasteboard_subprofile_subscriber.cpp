@@ -44,31 +44,7 @@ void PasteboardSubProfileSubscriber::OnSubProfileAccountsChangedInner(
     PASTEBOARD_CHECK_AND_RETURN_LOGE(osAccountId >= 0, PASTEBOARD_MODULE_SERVICE,
         "Invalid osAccountId=%{public}d", osAccountId);
 
-    auto clearAndLog = [&]() {
-        int32_t result = service->ClearByUser(osAccountId);
-        if (result != ERR_OK) {
-            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "ClearByUser failed, osAccountId=%{public}d, result=%{public}d",
-                osAccountId, result);
-        } else {
-            PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ClearByUser successful, osAccountId=%{public}d", osAccountId);
-        }
-    };
-
-    switch (type) {
-        case AccountSA::OsAccountSubProfileEventType::SWITCHING:
-            service->OnAccountSwitching(osAccountId);
-            clearAndLog();
-            break;
-        case AccountSA::OsAccountSubProfileEventType::SWITCHED:
-            clearAndLog();
-            service->OnAccountSwitched(osAccountId);
-            break;
-        case AccountSA::OsAccountSubProfileEventType::CREATED:
-        case AccountSA::OsAccountSubProfileEventType::DELETED:
-        default:
-            clearAndLog();
-            break;
-    }
+    service->HandleSubProfileEvent(static_cast<int32_t>(type), osAccountId);
 }
 
 } // namespace OHOS::MiscServices
