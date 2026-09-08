@@ -3877,45 +3877,48 @@ void PasteboardService::InitPlugin(std::shared_ptr<ClipPlugin> clipPlugin)
 
 void PasteboardService::OnAccountSwitching(int32_t osAccountId)
 {
-    std::lock_guard<decltype(mutex)> lockGuard(mutex);
-    if (clipPlugin_) {
-        clipPlugin_->UnregisterListeners(osAccountId);
+    std::shared_ptr<ClipPlugin> plugin;
+    {
+        std::lock_guard<decltype(mutex)> lockGuard(mutex);
+        plugin = clipPlugin_;
+    }
+    if (plugin) {
+        plugin->UnregisterListeners(osAccountId);
     }
 }
 
 void PasteboardService::OnAccountSwitched(int32_t osAccountId)
 {
-    std::lock_guard<decltype(mutex)> lockGuard(mutex);
-    if (clipPlugin_) {
-        clipPlugin_->RegisterListeners(osAccountId);
+    std::shared_ptr<ClipPlugin> plugin;
+    {
+        std::lock_guard<decltype(mutex)> lockGuard(mutex);
+        plugin = clipPlugin_;
+    }
+    if (plugin) {
+        plugin->RegisterListeners(osAccountId);
     }
 }
 
 void PasteboardService::HandleSubProfileEvent(int32_t type, int32_t osAccountId)
 {
-    auto clearAndLog = [&]() {
-        int32_t result = ClearByUser(osAccountId);
-        if (result != ERR_OK) {
-            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "ClearByUser failed, osAccountId=%{public}d, result=%{public}d",
-                osAccountId, result);
-        } else {
-            PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ClearByUser successful, osAccountId=%{public}d", osAccountId);
-        }
-    };
     switch (static_cast<AccountSA::OsAccountSubProfileEventType>(type)) {
         case AccountSA::OsAccountSubProfileEventType::SWITCHING:
             OnAccountSwitching(osAccountId);
-            clearAndLog();
             break;
         case AccountSA::OsAccountSubProfileEventType::SWITCHED:
-            clearAndLog();
             OnAccountSwitched(osAccountId);
             break;
         case AccountSA::OsAccountSubProfileEventType::CREATED:
         case AccountSA::OsAccountSubProfileEventType::DELETED:
         default:
-            clearAndLog();
             break;
+    }
+    int32_t result = ClearByUser(osAccountId);
+    if (result != ERR_OK) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "ClearByUser failed, osAccountId=%{public}d, result=%{public}d",
+            osAccountId, result);
+    } else {
+        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ClearByUser successful, osAccountId=%{public}d", osAccountId);
     }
 }
 

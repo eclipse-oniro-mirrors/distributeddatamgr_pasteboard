@@ -30,6 +30,7 @@
 #include "pasteboard_error.h"
 #include "pasteboard_hilog.h"
 #include "pasteboard_service.h"
+#include "pasteboard_subprofile_subscriber.h"
 #include "pasteboard_user_context.h"
 #include "remote_file_share.h"
 #include "eventcenter/pasteboard_event.h"
@@ -4243,6 +4244,35 @@ HWTEST_F(PasteboardServiceMockTest, AccountSwitchListenerLifecycle001, TestSize.
     EXPECT_EQ(plugin->regCount, 0);
     service.OnAccountSwitched(11);
     EXPECT_EQ(plugin->regCount, 1);
+    service.clipPlugin_ = nullptr;
+}
+
+/**
+ * @tc.name: HandleSubProfileEventDispatch001
+ * @tc.desc: test HandleSubProfileEvent dispatch per type
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, HandleSubProfileEventDispatch001, TestSize.Level1)
+{
+    auto plugin = std::make_shared<CountingClipPlugin>();
+    PasteboardService service;
+    service.clipPlugin_ = plugin;
+    constexpr int32_t osAccountId = 10;
+
+    service.HandleSubProfileEvent(static_cast<int32_t>(AccountSA::OsAccountSubProfileEventType::SWITCHING), osAccountId);
+    EXPECT_EQ(plugin->unregCount, 1);
+    EXPECT_EQ(plugin->regCount, 0);
+
+    service.HandleSubProfileEvent(static_cast<int32_t>(AccountSA::OsAccountSubProfileEventType::SWITCHED), osAccountId);
+    EXPECT_EQ(plugin->regCount, 1);
+    EXPECT_EQ(plugin->unregCount, 1);
+
+    plugin->regCount = 0;
+    plugin->unregCount = 0;
+    service.HandleSubProfileEvent(static_cast<int32_t>(AccountSA::OsAccountSubProfileEventType::CREATED), osAccountId);
+    EXPECT_EQ(plugin->regCount, 0);
+    EXPECT_EQ(plugin->unregCount, 0);
+
     service.clipPlugin_ = nullptr;
 }
 }
