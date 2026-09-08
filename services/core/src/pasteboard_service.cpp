@@ -3899,6 +3899,7 @@ void PasteboardService::OnAccountSwitched(int32_t osAccountId)
     }
 }
 
+#ifdef PB_COCKPIT_PLATFORM_ENABLE
 void PasteboardService::HandleSubProfileEvent(int32_t type, int32_t osAccountId)
 {
     switch (static_cast<AccountSA::OsAccountSubProfileEventType>(type)) {
@@ -3921,6 +3922,7 @@ void PasteboardService::HandleSubProfileEvent(int32_t type, int32_t osAccountId)
         PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ClearByUser successful, osAccountId=%{public}d", osAccountId);
     }
 }
+#endif
 
 bool PasteboardService::OpenP2PLinkForPreEstablish(const std::string &networkId, ClipPlugin *clipPlugin)
 {

@@ -479,7 +479,9 @@ private:
     void InitPlugin(std::shared_ptr<ClipPlugin> clipPlugin);
     void OnAccountSwitching(int32_t osAccountId);
     void OnAccountSwitched(int32_t osAccountId);
+#ifdef PB_COCKPIT_PLATFORM_ENABLE
     void HandleSubProfileEvent(int32_t type, int32_t osAccountId);
+#endif
     bool OpenP2PLinkForPreEstablish(const std::string &networkId, ClipPlugin *clipPlugin);
     void PreEstablishP2PLink(const std::string &networkId, ClipPlugin *clipPlugin);
     void PreEstablishP2PLinkCallback(const std::string &networkId, ClipPlugin *clipPlugin);
