@@ -4195,6 +4195,12 @@ void PasteboardService::GetPasteDataDot(PasteData &pasteData, const std::string 
 std::pair<std::shared_ptr<PasteData>, PasteDateResult> PasteboardService::GetDistributedData(
     const Event &event, int32_t user)
 {
+    if (!IsCallerOnMainDisplay(user)) {
+        PasteDateResult pasteDateResult;
+        pasteDateResult.syncTime = -1;
+        pasteDateResult.errorCode = static_cast<int32_t>(PasteboardError::REMOTE_TASK_ERROR);
+        return std::make_pair(nullptr, pasteDateResult);
+    }
     auto clipPlugin = GetClipPlugin();
     PasteDateResult pasteDateResult;
     if (clipPlugin == nullptr) {
@@ -4295,6 +4301,9 @@ bool PasteboardService::SetDistributedData(int32_t user, PasteData &data)
 
     if (IsConstraintEnabled(user) || IsDisallowDistributed()) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "not allowed to send, user:%{public}d", user);
+        return false;
+    }
+    if (!IsCallerOnMainDisplay(user)) {
         return false;
     }
     auto clipPlugin = GetClipPlugin();
@@ -4649,6 +4658,9 @@ int32_t PasteboardService::GetLocalEntryValue(int32_t userId, PasteData &data, P
 int32_t PasteboardService::GetRemoteEntryValue(const AppInfo &appInfo, PasteData &data, PasteDataRecord &record,
     PasteDataEntry &entry)
 {
+    if (!IsCallerOnMainDisplay(appInfo.userId)) {
+        return static_cast<int32_t>(PasteboardError::PLUGIN_IS_NULL);
+    }
     auto clipPlugin = GetClipPlugin();
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(clipPlugin != nullptr, static_cast<int32_t>(PasteboardError::PLUGIN_IS_NULL),
         PASTEBOARD_MODULE_SERVICE, "plugin is null");
@@ -4971,6 +4983,9 @@ bool PasteboardService::IsCallerOnMainDisplay(int32_t userId)
 
 void PasteboardService::CleanDistributedData(int32_t user)
 {
+    if (!IsCallerOnMainDisplay(user)) {
+        return;
+    }
     auto clipPlugin = GetClipPlugin();
     if (clipPlugin == nullptr) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "clipPlugin null.");
@@ -4990,6 +5005,9 @@ bool PasteboardService::IsValidCurrentEvent()
 
 void PasteboardService::CloseDistributedStore(int32_t user, bool isNeedClear)
 {
+    if (!IsCallerOnMainDisplay(user)) {
+        return;
+    }
     std::lock_guard<decltype(mutex)> lockGuard(mutex);
     PASTEBOARD_CHECK_AND_RETURN_LOGE(clipPlugin_ != nullptr, PASTEBOARD_MODULE_SERVICE, "clipPlugin is null");
     if (isNeedClear) {
@@ -5084,6 +5102,9 @@ sptr<AppExecFwk::IBundleMgr> PasteboardService::GetAppBundleManager()
 void PasteboardService::ChangeStoreStatus(int32_t userId)
 {
     PasteboardService::currentUserId_.store(userId);
+    if (!IsCallerOnMainDisplay(userId)) {
+        return;
+    }
     auto clipPlugin = GetClipPlugin();
     if (clipPlugin == nullptr) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "clipPlugin null.");
@@ -5265,6 +5286,9 @@ void PasteboardService::ClearUriOnUninstall(std::shared_ptr<PasteData> pasteData
             }
         }
 
+        if (!IsCallerOnMainDisplay(pasteData->userId_)) {
+            return;
+        }
         std::lock_guard<decltype(mutex)> lockGuard(mutex);
         PASTEBOARD_CHECK_AND_RETURN_LOGE(clipPlugin_ != nullptr, PASTEBOARD_MODULE_SERVICE, "clipPlugin is null");
         clipPlugin_->Clear(pasteData->userId_);
