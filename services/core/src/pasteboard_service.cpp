@@ -3902,6 +3902,9 @@ void PasteboardService::OnAccountSwitched(int32_t osAccountId)
 #ifdef PB_COCKPIT_PLATFORM_ENABLE
 void PasteboardService::HandleSubProfileEvent(int32_t type, int32_t osAccountId)
 {
+    if (!IsCallerOnMainDisplay(osAccountId)) {
+        return;   // 非主屏 userId：服务端判断，不触发插件监听注销/重注册
+    }
     switch (static_cast<AccountSA::OsAccountSubProfileEventType>(type)) {
         case AccountSA::OsAccountSubProfileEventType::SWITCHING:
             OnAccountSwitching(osAccountId);
@@ -4949,6 +4952,21 @@ std::shared_ptr<ClipPlugin> PasteboardService::GetClipPlugin()
     clipPlugin_ = std::shared_ptr<ClipPlugin>(ClipPlugin::CreatePlugin(PLUGIN_NAME), release);
     InitPlugin(clipPlugin_);
     return clipPlugin_;
+}
+
+bool PasteboardService::IsCallerOnMainDisplay(int32_t userId)
+{
+#ifndef PB_COCKPIT_PLATFORM_ENABLE
+    return true;
+#else
+    uint64_t displayId = MAIN_DISPLAY_ID;
+    auto ret = AccountSA::OsAccountManager::GetForegroundOsAccountDisplayId(userId, displayId);
+    if (ret != ERR_OK) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "get foreground display id failed, ret=%{public}d", ret);
+        return false;
+    }
+    return displayId == MAIN_DISPLAY_ID;
+#endif
 }
 
 void PasteboardService::CleanDistributedData(int32_t user)

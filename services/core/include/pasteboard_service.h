@@ -433,6 +433,7 @@ private:
     void OnConfigChange(bool isOn);
     void OnConfigChangeInner(bool isOn);
     std::shared_ptr<ClipPlugin> GetClipPlugin();
+    bool IsCallerOnMainDisplay(int32_t userId);
     void IncreaseChangeCount(int32_t userId);
 
     static std::string GetTime();
