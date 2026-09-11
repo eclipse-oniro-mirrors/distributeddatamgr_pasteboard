@@ -3873,6 +3873,12 @@ void PasteboardService::InitPlugin(std::shared_ptr<ClipPlugin> clipPlugin)
         this, std::placeholders::_1, std::placeholders::_2));
     clipPlugin->RegisterPreSyncMonitorCallback(std::bind(&PasteboardService::PreSyncSwitchMonitorCallback, this));
     clipPlugin->SetMaxLocalCapacity(maxLocalCapacity_.load() / SIZE_K / SIZE_K);
+#ifdef PB_COCKPIT_PLATFORM_ENABLE
+    int32_t mainDisplayUserId = ResolveMainDisplayUserId();
+    if (mainDisplayUserId != ERROR_USERID) {
+        clipPlugin->RegisterListeners(mainDisplayUserId);
+    }
+#endif
 }
 
 void PasteboardService::OnAccountSwitching(int32_t osAccountId)

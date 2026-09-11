@@ -3851,6 +3851,56 @@ HWTEST_F(PasteboardServiceMockTest, InitPluginTest, TestSize.Level1)
     tempPasteboard->InitPlugin(clipPlugin);
 }
 
+namespace {
+class MockMainDisplayResolver : public UserContextResolver {
+public:
+    UserContext ResolveMainDisplayUser() const override
+    {
+        UserContext context;
+        context.userId = 100;
+        context.isValid = true;
+        context.source = UserContextSource::MAIN_DISPLAY;
+        context.displayId = MAIN_DISPLAY_ID;
+        return context;
+    }
+};
+
+class InitPluginCountingClip : public ClipPlugin {
+public:
+    int32_t regCount = 0;
+    int32_t SetPasteData(const GlobalEvent &, const std::vector<uint8_t> &, uint32_t,
+        const std::vector<uint8_t> &) override
+    {
+        return 0;
+    }
+    std::pair<int32_t, int32_t> GetPasteData(const GlobalEvent &, std::vector<uint8_t> &) override
+    {
+        return { 0, 0 };
+    }
+    void RegisterListeners(int32_t userId) override
+    {
+        regCount++;
+        (void)userId;
+    }
+};
+} // namespace
+
+/**
+ * @tc.name: InitPluginRegisterListenersTest
+ * @tc.desc: InitPlugin should call RegisterListeners with main display userId
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, InitPluginRegisterListenersTest, TestSize.Level1)
+{
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+    tempPasteboard->userContextResolver_ = std::make_unique<MockMainDisplayResolver>();
+    auto plugin = std::make_shared<InitPluginCountingClip>();
+    EXPECT_NE(plugin, nullptr);
+    tempPasteboard->InitPlugin(plugin);
+    EXPECT_EQ(plugin->regCount, 1);
+}
+
 /**
  * @tc.name: PreEstablishP2PLinkCallbackTest
  * @tc.desc: PreEstablishP2PLinkCallback
