@@ -4198,22 +4198,25 @@ void PasteboardService::GetPasteDataDot(PasteData &pasteData, const std::string 
     CalculateTimeConsuming timeC(dataSize, pState);
 }
 
+static std::pair<std::shared_ptr<PasteData>, PasteDateResult> MakeRemoteTaskError()
+{
+    PasteDateResult result;
+    result.syncTime = -1;
+    result.errorCode = static_cast<int32_t>(PasteboardError::REMOTE_TASK_ERROR);
+    return std::make_pair(nullptr, result);
+}
+
 std::pair<std::shared_ptr<PasteData>, PasteDateResult> PasteboardService::GetDistributedData(
     const Event &event, int32_t user)
 {
     if (!IsCallerOnMainDisplay(user)) {
-        PasteDateResult pasteDateResult;
-        pasteDateResult.syncTime = -1;
-        pasteDateResult.errorCode = static_cast<int32_t>(PasteboardError::REMOTE_TASK_ERROR);
-        return std::make_pair(nullptr, pasteDateResult);
+        return MakeRemoteTaskError();
     }
     auto clipPlugin = GetClipPlugin();
     PasteDateResult pasteDateResult;
     if (clipPlugin == nullptr) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "clipPlugin null.");
-        pasteDateResult.syncTime = -1;
-        pasteDateResult.errorCode = static_cast<int32_t>(PasteboardError::REMOTE_TASK_ERROR);
-        return std::make_pair(nullptr, pasteDateResult);
+        return MakeRemoteTaskError();
     }
     std::vector<uint8_t> rawData;
     auto result = clipPlugin->GetPasteData(event, rawData);
