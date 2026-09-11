@@ -3852,12 +3852,13 @@ HWTEST_F(PasteboardServiceMockTest, InitPluginTest, TestSize.Level1)
 }
 
 namespace {
+constexpr int32_t MOCK_MAIN_DISPLAY_USER_ID = 100;
 class MockMainDisplayResolver : public UserContextResolver {
 public:
     UserContext ResolveMainDisplayUser() const override
     {
         UserContext context;
-        context.userId = 100;
+        context.userId = MOCK_MAIN_DISPLAY_USER_ID;
         context.isValid = true;
         context.source = UserContextSource::MAIN_DISPLAY;
         context.displayId = MAIN_DISPLAY_ID;
