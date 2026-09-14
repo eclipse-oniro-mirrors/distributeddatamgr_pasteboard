@@ -247,7 +247,6 @@ private:
     void InitBundles(Loader &loader);
     void SetInputMethodPid(int32_t userId, pid_t callPid);
     void ClearInputMethodPidByPid(int32_t userId, pid_t callPid);
-    void ClearInputMethodPid(void);
     int32_t ClearInner(int32_t userId, const AppInfo &appInfo);
     bool IsSystemAppByFullTokenID(uint64_t tokenId);
     FocusedAppInfo GetFocusedAppInfo() const;

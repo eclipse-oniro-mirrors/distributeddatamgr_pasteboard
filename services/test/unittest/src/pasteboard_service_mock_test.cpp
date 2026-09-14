@@ -1301,6 +1301,29 @@ HWTEST_F(PasteboardServiceMockTest, UnsubscribeAllObserverTest004, TestSize.Leve
 }
 
 /**
+ * @tc.name: UnsubscribeAllObserverTest005
+ * @tc.desc: UnsubscribeAllObserver must only remove the calling app's observers, leaving other apps under the
+ *           same userId untouched.
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, UnsubscribeAllObserverTest005, TestSize.Level1)
+{
+    PasteboardService service;
+    auto userId = service.GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
+    ASSERT_NE(userId, ERROR_USERID);
+    pid_t callPid = IPCSkeleton::GetCallingPid();
+    pid_t otherPid = callPid + 1;
+    service.observerLocalChangedMap_[std::make_pair(userId, callPid)] = nullptr;
+    service.observerLocalChangedMap_[std::make_pair(userId, otherPid)] = nullptr;
+    ASSERT_EQ(static_cast<int>(service.observerLocalChangedMap_.size()), 2);
+
+    int32_t result = service.UnsubscribeAllObserver(PasteboardObserverType::OBSERVER_LOCAL);
+    ASSERT_EQ(result, ERR_OK);
+    EXPECT_EQ(static_cast<int>(service.observerLocalChangedMap_.count(std::make_pair(userId, callPid))), 0);
+    EXPECT_EQ(static_cast<int>(service.observerLocalChangedMap_.count(std::make_pair(userId, otherPid))), 1);
+}
+
+/**
  * @tc.name: UnsubscribeObserverTest001
  * @tc.desc: test Func UnsubscribeObserver, it will be return 0.
  * @tc.type: FUNC

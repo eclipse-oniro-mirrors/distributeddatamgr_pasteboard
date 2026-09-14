@@ -3217,12 +3217,6 @@ void PasteboardService::ClearInputMethodPidByPid(int32_t userId, pid_t callPid)
     }
 }
 
-void PasteboardService::ClearInputMethodPid()
-{
-    imeMap_.Clear();
-    PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "clear inputMethod pid!");
-}
-
 int32_t PasteboardService::SubscribeObserver(PasteboardObserverType type,
     const sptr<IPasteboardChangedObserver> &observer)
 {
@@ -3288,23 +3282,24 @@ int32_t PasteboardService::UnsubscribeObserver(
 
 int32_t PasteboardService::UnsubscribeAllObserver(PasteboardObserverType type)
 {
-    ClearInputMethodPid();
+    auto callPid = IPCSkeleton::GetCallingPid();
     bool isEventType = static_cast<uint32_t>(type) & static_cast<uint32_t>(PasteboardObserverType::OBSERVER_EVENT);
     int32_t userId = isEventType ? COMMON_USERID : GetAppInfo(IPCSkeleton::GetCallingTokenID()).userId;
+    ClearInputMethodPidByPid(userId, callPid);
     if (userId == ERROR_USERID) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "userId invalid.");
         return static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR);
     }
     if (static_cast<uint32_t>(type) & static_cast<uint32_t>(PasteboardObserverType::OBSERVER_LOCAL)) {
-        RemoveAllObserver(userId, observerLocalChangedMap_);
+        RemoveObserverByPid(userId, callPid, observerLocalChangedMap_);
     }
 
     if (static_cast<uint32_t>(type) & static_cast<uint32_t>(PasteboardObserverType::OBSERVER_REMOTE)) {
-        RemoveAllObserver(userId, observerRemoteChangedMap_);
+        RemoveObserverByPid(userId, callPid, observerRemoteChangedMap_);
     }
 
     if (isEventType && IsCallerUidValid()) {
-        RemoveAllObserver(userId, observerEventMap_);
+        RemoveObserverByPid(userId, callPid, observerEventMap_);
     }
     return ERR_OK;
 }
