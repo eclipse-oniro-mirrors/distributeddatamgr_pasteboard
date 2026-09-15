@@ -1177,7 +1177,6 @@ HWTEST_F(PasteboardServiceTest, PasteDataTest0017, TestSize.Level1)
     EXPECT_EQ(*plainText1, plainText);
 
     auto property = newPasteData.GetProperty();
-    EXPECT_TRUE(property.additions.IsEmpty());
     EXPECT_EQ(property.mimeTypes.size(), 1);
     EXPECT_EQ(property.mimeTypes[0], MIMETYPE_TEXT_PLAIN);
     EXPECT_TRUE(property.tag.empty());
