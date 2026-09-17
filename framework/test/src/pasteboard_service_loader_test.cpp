@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,6 +24,7 @@
 #include "pasteboard_error.h"
 #include "pasteboard_hilog.h"
 #include "pasteboard_load_callback.h"
+#include "pasteboard_samgr_listener.h"
 #include "pasteboard_service_loader.h"
 #include "system_ability_definition.h"
 
@@ -382,5 +383,319 @@ HWTEST_F(PasteboardServiceLoaderTest, ProcessPasteDataTest005, TestSize.Level0)
     EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::DESERIALIZATION_ERROR));
     mpw->writeRawDataFd_ = -1;
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ProcessPasteDataTest005 end");
+}
+
+/**
+ * @tc.name: IsStaticDestroyedTest001
+ * @tc.desc: IsStaticDestroyed returns false under normal conditions
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(PasteboardServiceLoaderTest, IsStaticDestroyedTest001, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "IsStaticDestroyedTest001 start");
+    EXPECT_FALSE(PasteboardServiceLoader::IsStaticDestroyed());
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "IsStaticDestroyedTest001 end");
+}
+
+/**
+ * @tc.name: ClearPasteboardServiceProxyTest001
+ * @tc.desc: ClearPasteboardServiceProxy clears proxy under normal conditions
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(PasteboardServiceLoaderTest, ClearPasteboardServiceProxyTest001, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ClearPasteboardServiceProxyTest001 start");
+    PasteboardServiceLoader::GetInstance().pasteboardServiceProxy_ = nullptr;
+    PasteboardServiceLoader::GetInstance().ClearPasteboardServiceProxy();
+    EXPECT_EQ(PasteboardServiceLoader::GetInstance().pasteboardServiceProxy_, nullptr);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ClearPasteboardServiceProxyTest001 end");
+}
+
+/**
+ * @tc.name: ClearPasteboardServiceProxyGuardTest001
+ * @tc.desc: ClearPasteboardServiceProxy early-returns when static is destroyed
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(PasteboardServiceLoaderTest, ClearPasteboardServiceProxyGuardTest001, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ClearPasteboardServiceProxyGuardTest001 start");
+    PasteboardServiceLoader::GetInstance().pasteboardServiceProxy_ = nullptr;
+    PasteboardServiceLoader::staticDestroyMonitor_.destroyed_ = true;
+    EXPECT_TRUE(PasteboardServiceLoader::IsStaticDestroyed());
+    PasteboardServiceLoader::GetInstance().ClearPasteboardServiceProxy();
+    PasteboardServiceLoader::staticDestroyMonitor_.destroyed_ = false;
+    EXPECT_FALSE(PasteboardServiceLoader::IsStaticDestroyed());
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ClearPasteboardServiceProxyGuardTest001 end");
+}
+
+/**
+ * @tc.name: OnRemoteSaDiedGuardTest001
+ * @tc.desc: OnRemoteSaDied early-returns when static is destroyed
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(PasteboardServiceLoaderTest, OnRemoteSaDiedGuardTest001, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "OnRemoteSaDiedGuardTest001 start");
+    PasteboardServiceLoader::GetInstance().pasteboardServiceProxy_ = nullptr;
+    PasteboardServiceLoader::staticDestroyMonitor_.destroyed_ = true;
+    EXPECT_TRUE(PasteboardServiceLoader::IsStaticDestroyed());
+    wptr<IRemoteObject> remote = nullptr;
+    PasteboardServiceLoader::GetInstance().OnRemoteSaDied(remote);
+    PasteboardServiceLoader::staticDestroyMonitor_.destroyed_ = false;
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "OnRemoteSaDiedGuardTest001 end");
+}
+
+/**
+ * @tc.name: LoadSystemAbilityFailGuardTest001
+ * @tc.desc: LoadSystemAbilityFail early-returns when static is destroyed
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(PasteboardServiceLoaderTest, LoadSystemAbilityFailGuardTest001, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "LoadSystemAbilityFailGuardTest001 start");
+    PasteboardServiceLoader::GetInstance().pasteboardServiceProxy_ = nullptr;
+    PasteboardServiceLoader::staticDestroyMonitor_.destroyed_ = true;
+    EXPECT_TRUE(PasteboardServiceLoader::IsStaticDestroyed());
+    PasteboardServiceLoader::GetInstance().LoadSystemAbilityFail();
+    PasteboardServiceLoader::staticDestroyMonitor_.destroyed_ = false;
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "LoadSystemAbilityFailGuardTest001 end");
+}
+
+/**
+ * @tc.name: LoadSystemAbilitySuccessGuardTest001
+ * @tc.desc: LoadSystemAbilitySuccess early-returns when static is destroyed
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(PasteboardServiceLoaderTest, LoadSystemAbilitySuccessGuardTest001, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "LoadSystemAbilitySuccessGuardTest001 start");
+    PasteboardServiceLoader::GetInstance().pasteboardServiceProxy_ = nullptr;
+    PasteboardServiceLoader::staticDestroyMonitor_.destroyed_ = true;
+    EXPECT_TRUE(PasteboardServiceLoader::IsStaticDestroyed());
+    sptr<IRemoteObject> remoteObject = nullptr;
+    PasteboardServiceLoader::GetInstance().LoadSystemAbilitySuccess(remoteObject);
+    PasteboardServiceLoader::staticDestroyMonitor_.destroyed_ = false;
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "LoadSystemAbilitySuccessGuardTest001 end");
+}
+
+/**
+ * @tc.name: OnRemoteDiedGuardTest001
+ * @tc.desc: PasteboardSaDeathRecipient::OnRemoteDied early-returns when static is destroyed
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(PasteboardServiceLoaderTest, OnRemoteDiedGuardTest001, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "OnRemoteDiedGuardTest001 start");
+    PasteboardServiceLoader::GetInstance().pasteboardServiceProxy_ = nullptr;
+    PasteboardServiceLoader::staticDestroyMonitor_.destroyed_ = true;
+    EXPECT_TRUE(PasteboardServiceLoader::IsStaticDestroyed());
+    PasteboardSaDeathRecipient recipient;
+    wptr<IRemoteObject> remote = nullptr;
+    recipient.OnRemoteDied(remote);
+    PasteboardServiceLoader::staticDestroyMonitor_.destroyed_ = false;
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "OnRemoteDiedGuardTest001 end");
+}
+
+/**
+ * @tc.name: OnLoadSystemAbilitySuccessGuardTest001
+ * @tc.desc: PasteboardLoadCallback::OnLoadSystemAbilitySuccess early-returns when static is destroyed
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(PasteboardServiceLoaderTest, OnLoadSystemAbilitySuccessGuardTest001, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "OnLoadSystemAbilitySuccessGuardTest001 start");
+    PasteboardServiceLoader::GetInstance().pasteboardServiceProxy_ = nullptr;
+    PasteboardServiceLoader::staticDestroyMonitor_.destroyed_ = true;
+    EXPECT_TRUE(PasteboardServiceLoader::IsStaticDestroyed());
+    PasteboardLoadCallback callback;
+    sptr<IRemoteObject> remoteObject = nullptr;
+    callback.OnLoadSystemAbilitySuccess(PASTEBOARD_SERVICE_ID, remoteObject);
+    EXPECT_EQ(PasteboardServiceLoader::GetInstance().pasteboardServiceProxy_, nullptr);
+    PasteboardServiceLoader::staticDestroyMonitor_.destroyed_ = false;
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "OnLoadSystemAbilitySuccessGuardTest001 end");
+}
+
+/**
+ * @tc.name: OnLoadSystemAbilityFailGuardTest001
+ * @tc.desc: PasteboardLoadCallback::OnLoadSystemAbilityFail early-returns when static is destroyed
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(PasteboardServiceLoaderTest, OnLoadSystemAbilityFailGuardTest001, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "OnLoadSystemAbilityFailGuardTest001 start");
+    PasteboardServiceLoader::GetInstance().pasteboardServiceProxy_ = nullptr;
+    PasteboardServiceLoader::staticDestroyMonitor_.destroyed_ = true;
+    EXPECT_TRUE(PasteboardServiceLoader::IsStaticDestroyed());
+    PasteboardLoadCallback callback;
+    callback.OnLoadSystemAbilityFail(PASTEBOARD_SERVICE_ID);
+    PasteboardServiceLoader::staticDestroyMonitor_.destroyed_ = false;
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "OnLoadSystemAbilityFailGuardTest001 end");
+}
+
+/**
+ * @tc.name: OnRemoteSaDiedTest001
+ * @tc.desc: OnRemoteSaDied normal path (IsDestroyed=false) clears proxy
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(PasteboardServiceLoaderTest, OnRemoteSaDiedTest001, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "OnRemoteSaDiedTest001 start");
+    PasteboardServiceLoader::GetInstance().pasteboardServiceProxy_ = nullptr;
+    EXPECT_FALSE(PasteboardServiceLoader::IsStaticDestroyed());
+    wptr<IRemoteObject> remote = nullptr;
+    PasteboardServiceLoader::GetInstance().OnRemoteSaDied(remote);
+    EXPECT_EQ(PasteboardServiceLoader::GetInstance().pasteboardServiceProxy_, nullptr);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "OnRemoteSaDiedTest001 end");
+}
+
+/**
+ * @tc.name: LoadSystemAbilityFailTest001
+ * @tc.desc: LoadSystemAbilityFail normal path (IsDestroyed=false) clears proxy and notifies
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(PasteboardServiceLoaderTest, LoadSystemAbilityFailTest001, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "LoadSystemAbilityFailTest001 start");
+    PasteboardServiceLoader::GetInstance().pasteboardServiceProxy_ = nullptr;
+    EXPECT_FALSE(PasteboardServiceLoader::IsStaticDestroyed());
+    PasteboardServiceLoader::GetInstance().LoadSystemAbilityFail();
+    EXPECT_EQ(PasteboardServiceLoader::GetInstance().pasteboardServiceProxy_, nullptr);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "LoadSystemAbilityFailTest001 end");
+}
+
+/**
+ * @tc.name: LoadSystemAbilitySuccessTest001
+ * @tc.desc: LoadSystemAbilitySuccess normal path (IsDestroyed=false) proceeds past guard
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(PasteboardServiceLoaderTest, LoadSystemAbilitySuccessTest001, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "LoadSystemAbilitySuccessTest001 start");
+    PasteboardServiceLoader::GetInstance().pasteboardServiceProxy_ = nullptr;
+    PasteboardServiceLoader::GetInstance().deathRecipient_ = nullptr;
+    EXPECT_FALSE(PasteboardServiceLoader::IsStaticDestroyed());
+    sptr<IRemoteObject> remoteObject = nullptr;
+    PasteboardServiceLoader::GetInstance().LoadSystemAbilitySuccess(remoteObject);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "LoadSystemAbilitySuccessTest001 end");
+}
+
+/**
+ * @tc.name: OnRemoteDiedTest001
+ * @tc.desc: OnRemoteDied normal path (IsStaticDestroyed=false) delegates to OnRemoteSaDied
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(PasteboardServiceLoaderTest, OnRemoteDiedTest001, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "OnRemoteDiedTest001 start");
+    PasteboardServiceLoader::GetInstance().pasteboardServiceProxy_ = nullptr;
+    EXPECT_FALSE(PasteboardServiceLoader::IsStaticDestroyed());
+    PasteboardSaDeathRecipient recipient;
+    wptr<IRemoteObject> remote = nullptr;
+    recipient.OnRemoteDied(remote);
+    EXPECT_EQ(PasteboardServiceLoader::GetInstance().pasteboardServiceProxy_, nullptr);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "OnRemoteDiedTest001 end");
+}
+
+/**
+ * @tc.name: OnLoadSystemAbilitySuccessTest001
+ * @tc.desc: OnLoadSystemAbilitySuccess normal path (IsStaticDestroyed=false) delegates to LoadSystemAbilitySuccess
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(PasteboardServiceLoaderTest, OnLoadSystemAbilitySuccessTest001, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "OnLoadSystemAbilitySuccessTest001 start");
+    PasteboardServiceLoader::GetInstance().pasteboardServiceProxy_ = nullptr;
+    PasteboardServiceLoader::GetInstance().deathRecipient_ = nullptr;
+    EXPECT_FALSE(PasteboardServiceLoader::IsStaticDestroyed());
+    PasteboardLoadCallback callback;
+    sptr<IRemoteObject> remoteObject = nullptr;
+    callback.OnLoadSystemAbilitySuccess(PASTEBOARD_SERVICE_ID, remoteObject);
+    EXPECT_EQ(PasteboardServiceLoader::GetInstance().pasteboardServiceProxy_, nullptr);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "OnLoadSystemAbilitySuccessTest001 end");
+}
+
+/**
+ * @tc.name: OnLoadSystemAbilityFailTest001
+ * @tc.desc: OnLoadSystemAbilityFail normal path (IsStaticDestroyed=false) delegates to LoadSystemAbilityFail
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(PasteboardServiceLoaderTest, OnLoadSystemAbilityFailTest001, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "OnLoadSystemAbilityFailTest001 start");
+    PasteboardServiceLoader::GetInstance().pasteboardServiceProxy_ = nullptr;
+    EXPECT_FALSE(PasteboardServiceLoader::IsStaticDestroyed());
+    PasteboardLoadCallback callback;
+    callback.OnLoadSystemAbilityFail(PASTEBOARD_SERVICE_ID);
+    EXPECT_EQ(PasteboardServiceLoader::GetInstance().pasteboardServiceProxy_, nullptr);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "OnLoadSystemAbilityFailTest001 end");
+}
+
+/**
+ * @tc.name: OnAddSystemAbilityGuardTest001
+ * @tc.desc: PasteboardSaMgrListener::OnAddSystemAbility early-returns when static is destroyed
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(PasteboardServiceLoaderTest, OnAddSystemAbilityGuardTest001, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "OnAddSystemAbilityGuardTest001 start");
+    PasteboardServiceLoader::GetInstance().pasteboardServiceProxy_ = nullptr;
+    PasteboardServiceLoader::staticDestroyMonitor_.destroyed_ = true;
+    EXPECT_TRUE(PasteboardServiceLoader::IsStaticDestroyed());
+    PasteboardSaMgrListener listener;
+    listener.hasDied_ = false;
+    listener.OnAddSystemAbility(PASTEBOARD_SERVICE_ID, "");
+    PasteboardServiceLoader::staticDestroyMonitor_.destroyed_ = false;
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "OnAddSystemAbilityGuardTest001 end");
+}
+
+/**
+ * @tc.name: OnAddSystemAbilityTest001
+ * @tc.desc: OnAddSystemAbility normal path (IsStaticDestroyed=false) clears proxy
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(PasteboardServiceLoaderTest, OnAddSystemAbilityTest001, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "OnAddSystemAbilityTest001 start");
+    PasteboardServiceLoader::GetInstance().pasteboardServiceProxy_ = nullptr;
+    EXPECT_FALSE(PasteboardServiceLoader::IsStaticDestroyed());
+    PasteboardSaMgrListener listener;
+    listener.hasDied_ = false;
+    listener.OnAddSystemAbility(PASTEBOARD_SERVICE_ID, "");
+    EXPECT_EQ(PasteboardServiceLoader::GetInstance().pasteboardServiceProxy_, nullptr);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "OnAddSystemAbilityTest001 end");
 }
 }
