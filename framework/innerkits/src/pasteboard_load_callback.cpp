@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,12 +24,20 @@ namespace MiscServices {
 void PasteboardLoadCallback::OnLoadSystemAbilitySuccess(
     int32_t systemAbilityId, const sptr<IRemoteObject> &remoteObject)
 {
+    if (PasteboardServiceLoader::IsStaticDestroyed()) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CLIENT, "static already destroyed, skip load sa success.");
+        return;
+    }
     PasteboardServiceLoader::GetInstance().LoadSystemAbilitySuccess(remoteObject);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "Load system ability success!");
 }
 
 void PasteboardLoadCallback::OnLoadSystemAbilityFail(int32_t systemAbilityId)
 {
+    if (PasteboardServiceLoader::IsStaticDestroyed()) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CLIENT, "static already destroyed, skip load sa fail.");
+        return;
+    }
     PasteboardServiceLoader::GetInstance().LoadSystemAbilityFail();
     PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CLIENT, "Load system ability failed!");
 }

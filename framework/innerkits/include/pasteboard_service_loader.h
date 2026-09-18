@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -37,6 +37,7 @@ private:
 class API_EXPORT PasteboardServiceLoader {
 public:
     static PasteboardServiceLoader &GetInstance();
+    static bool IsStaticDestroyed();
     sptr<IPasteboardService> GetPasteboardService();
     sptr<IPasteboardService> GetPasteboardServiceProxy();
     void SetPasteboardServiceProxy(const sptr<IRemoteObject> &remoteObject);
@@ -56,12 +57,13 @@ private:
     static sptr<IPasteboardService> pasteboardServiceProxy_;
     static std::condition_variable proxyConVar_;
     static std::mutex instanceLock_;
+    static PasteboardServiceLoader instance_;
     bool constructing_ = false;
     sptr<IRemoteObject::DeathRecipient> deathRecipient_{ nullptr };
 
     class StaticDestroyMonitor {
     public:
-        StaticDestroyMonitor() : destroyed_(false) {}
+        StaticDestroyMonitor() = default;
         ~StaticDestroyMonitor()
         {
             destroyed_ = true;
@@ -73,6 +75,7 @@ private:
         }
 
     private:
+        DISALLOW_COPY_AND_MOVE(StaticDestroyMonitor);
         bool destroyed_ = false;
     };
     static StaticDestroyMonitor staticDestroyMonitor_;

@@ -627,6 +627,7 @@ ohos_unittest("PasteboardServiceLoaderTest") {
   ]
   sources = [
     "${pasteboard_root_path}/framework/innerkits/src/pasteboard_load_callback.cpp",
+    "${pasteboard_root_path}/framework/innerkits/src/pasteboard_samgr_listener.cpp",
     "${pasteboard_root_path}/framework/innerkits/src/pasteboard_service_loader.cpp",
     "src/pasteboard_service_loader_test.cpp",
   ]

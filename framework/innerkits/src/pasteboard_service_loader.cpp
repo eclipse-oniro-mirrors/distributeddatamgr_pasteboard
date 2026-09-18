@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -32,9 +32,10 @@ constexpr int32_t LOADSA_TIMEOUT_MS = 4000;
 constexpr int64_t MIN_ASHMEM_DATA_SIZE = 32 * 1024; // 32K
 sptr<IPasteboardService> PasteboardServiceLoader::pasteboardServiceProxy_;
 std::condition_variable PasteboardServiceLoader::proxyConVar_;
-PasteboardServiceLoader::StaticDestroyMonitor PasteboardServiceLoader::staticDestroyMonitor_;
 sptr<IRemoteObject> clientDeathObserverPtr_;
 std::mutex PasteboardServiceLoader::instanceLock_;
+PasteboardServiceLoader PasteboardServiceLoader::instance_;
+PasteboardServiceLoader::StaticDestroyMonitor PasteboardServiceLoader::staticDestroyMonitor_;
 
 PasteboardServiceLoader::PasteboardServiceLoader()
 {
@@ -42,9 +43,6 @@ PasteboardServiceLoader::PasteboardServiceLoader()
 
 PasteboardServiceLoader::~PasteboardServiceLoader()
 {
-    if (staticDestroyMonitor_.IsDestroyed()) {
-        return;
-    }
     auto pasteboardServiceProxy = GetPasteboardServiceProxy();
     if (pasteboardServiceProxy == nullptr) {
         return;
@@ -80,8 +78,12 @@ extern "C" __attribute__((destructor)) void CleanUp()
 
 PasteboardServiceLoader &PasteboardServiceLoader::GetInstance()
 {
-    static PasteboardServiceLoader serviceLoader;
-    return serviceLoader;
+    return instance_;
+}
+
+bool PasteboardServiceLoader::IsStaticDestroyed()
+{
+    return staticDestroyMonitor_.IsDestroyed();
 }
 
 sptr<IPasteboardService> PasteboardServiceLoader::GetPasteboardService()
@@ -134,6 +136,10 @@ sptr<IPasteboardService> PasteboardServiceLoader::GetPasteboardServiceProxy()
 
 void PasteboardServiceLoader::ClearPasteboardServiceProxy()
 {
+    if (staticDestroyMonitor_.IsDestroyed()) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CLIENT, "static already destroyed, skip clear proxy.");
+        return;
+    }
     std::lock_guard<std::mutex> lock(instanceLock_);
     pasteboardServiceProxy_ = nullptr;
 }
@@ -261,6 +267,10 @@ int32_t PasteboardServiceLoader::ProcessPasteData(PasteDataEntry &data, int64_t 
 
 void PasteboardServiceLoader::LoadSystemAbilitySuccess(const sptr<IRemoteObject> &remoteObject)
 {
+    if (staticDestroyMonitor_.IsDestroyed()) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CLIENT, "static already destroyed, skip load success.");
+        return;
+    }
     std::lock_guard<std::mutex> lock(instanceLock_);
     SetPasteboardServiceProxy(remoteObject);
     proxyConVar_.notify_all();
@@ -268,6 +278,10 @@ void PasteboardServiceLoader::LoadSystemAbilitySuccess(const sptr<IRemoteObject>
 
 void PasteboardServiceLoader::LoadSystemAbilityFail()
 {
+    if (staticDestroyMonitor_.IsDestroyed()) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CLIENT, "static already destroyed, skip load fail.");
+        return;
+    }
     std::lock_guard<std::mutex> lock(instanceLock_);
     pasteboardServiceProxy_ = nullptr;
     proxyConVar_.notify_all();
@@ -276,6 +290,10 @@ void PasteboardServiceLoader::LoadSystemAbilityFail()
 void PasteboardServiceLoader::OnRemoteSaDied(const wptr<IRemoteObject> &remote)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "OnRemoteSaDied start.");
+    if (staticDestroyMonitor_.IsDestroyed()) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CLIENT, "static already destroyed, skip remote sa died.");
+        return;
+    }
     std::lock_guard<std::mutex> lock(instanceLock_);
     pasteboardServiceProxy_ = nullptr;
 }
@@ -285,6 +303,10 @@ PasteboardSaDeathRecipient::PasteboardSaDeathRecipient() {}
 void PasteboardSaDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &object)
 {
     PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CLIENT, "PasteboardSaDeathRecipient on remote systemAbility died.");
+    if (PasteboardServiceLoader::IsStaticDestroyed()) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CLIENT, "static already destroyed, skip OnRemoteDied.");
+        return;
+    }
     PasteboardServiceLoader::GetInstance().OnRemoteSaDied(object);
 }
 } // namespace MiscServices

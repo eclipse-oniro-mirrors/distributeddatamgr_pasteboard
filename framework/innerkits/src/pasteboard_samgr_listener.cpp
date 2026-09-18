@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -26,6 +26,10 @@ void PasteboardSaMgrListener::OnAddSystemAbility(int32_t systemAbilityId,
 {
     (void)deviceId;
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "pasteboard service started");
+    if (PasteboardServiceLoader::IsStaticDestroyed()) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CLIENT, "static already destroyed, skip OnAddSystemAbility.");
+        return;
+    }
     PasteboardServiceLoader::GetInstance().ClearPasteboardServiceProxy();
     if (hasDied_) {
         PasteboardClient::GetInstance()->Resubscribe();
