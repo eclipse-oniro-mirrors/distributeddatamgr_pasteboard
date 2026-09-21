@@ -1300,6 +1300,218 @@ HWTEST_F(PasteboardServiceMockTest, UnsubscribeAllObserverTest004, TestSize.Leve
     ASSERT_EQ(result, ERR_OK);
 }
 
+namespace {
+constexpr int32_t TEST_USERID = 100;
+constexpr int32_t COMMON_USERID = 0;
+constexpr pid_t TEST_CALL_PID = 2333;
+constexpr pid_t TEST_OTHER_PID = 2334;
+
+void SetupValidUserIdMock(NiceMock<PasteboardServiceInterfaceMock> &mock, pid_t callPid)
+{
+    EXPECT_CALL(mock, GetCallingPid()).WillRepeatedly(Return(callPid));
+    EXPECT_CALL(mock, GetCallingTokenID()).WillRepeatedly(Return(0));
+    EXPECT_CALL(mock, GetTokenTypeFlag(testing::_)).WillRepeatedly(Return(ATokenTypeEnum::TOKEN_INVALID));
+    EXPECT_CALL(mock, GetForegroundOsAccountLocalId(testing::_, testing::_))
+        .WillRepeatedly([](uint64_t, int32_t &id) {
+            id = TEST_USERID;
+            return ERR_OK;
+        });
+}
+} // namespace
+
+/**
+ * @tc.name: UnsubscribeAllObserverTest005
+ * @tc.desc: UnsubscribeAllObserver(OBSERVER_LOCAL) must only remove the calling app's local observers,
+ *           leaving other apps under the same userId untouched.
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, UnsubscribeAllObserverTest005, TestSize.Level1)
+{
+    PasteboardService service;
+    NiceMock<PasteboardServiceInterfaceMock> mock;
+    SetupValidUserIdMock(mock, TEST_CALL_PID);
+
+    service.observerLocalChangedMap_[std::make_pair(TEST_USERID, TEST_CALL_PID)] = nullptr;
+    service.observerLocalChangedMap_[std::make_pair(TEST_USERID, TEST_OTHER_PID)] = nullptr;
+    ASSERT_EQ(static_cast<int>(service.observerLocalChangedMap_.size()), 2);
+
+    int32_t result = service.UnsubscribeAllObserver(PasteboardObserverType::OBSERVER_LOCAL);
+    ASSERT_EQ(result, ERR_OK);
+    EXPECT_EQ(static_cast<int>(service.observerLocalChangedMap_.count(std::make_pair(TEST_USERID, TEST_CALL_PID))),
+        0);
+    EXPECT_EQ(static_cast<int>(service.observerLocalChangedMap_.count(std::make_pair(TEST_USERID, TEST_OTHER_PID))),
+        1);
+}
+
+/**
+ * @tc.name: UnsubscribeAllObserverTest006
+ * @tc.desc: UnsubscribeAllObserver(OBSERVER_REMOTE) must only remove the calling app's remote observers,
+ *           leaving other apps under the same userId untouched.
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, UnsubscribeAllObserverTest006, TestSize.Level1)
+{
+    PasteboardService service;
+    NiceMock<PasteboardServiceInterfaceMock> mock;
+    SetupValidUserIdMock(mock, TEST_CALL_PID);
+
+    service.observerRemoteChangedMap_[std::make_pair(TEST_USERID, TEST_CALL_PID)] = nullptr;
+    service.observerRemoteChangedMap_[std::make_pair(TEST_USERID, TEST_OTHER_PID)] = nullptr;
+    ASSERT_EQ(static_cast<int>(service.observerRemoteChangedMap_.size()), 2);
+
+    int32_t result = service.UnsubscribeAllObserver(PasteboardObserverType::OBSERVER_REMOTE);
+    ASSERT_EQ(result, ERR_OK);
+    EXPECT_EQ(static_cast<int>(service.observerRemoteChangedMap_.count(std::make_pair(TEST_USERID, TEST_CALL_PID))),
+        0);
+    EXPECT_EQ(static_cast<int>(service.observerRemoteChangedMap_.count(std::make_pair(TEST_USERID, TEST_OTHER_PID))),
+        1);
+}
+
+/**
+ * @tc.name: UnsubscribeAllObserverTest007
+ * @tc.desc: UnsubscribeAllObserver(OBSERVER_EVENT) with a valid caller uid must only remove the calling app's
+ *           event observers, leaving other apps untouched.
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, UnsubscribeAllObserverTest007, TestSize.Level1)
+{
+    PasteboardService service;
+    NiceMock<PasteboardServiceInterfaceMock> mock;
+    EXPECT_CALL(mock, GetCallingPid()).WillRepeatedly(Return(TEST_CALL_PID));
+    EXPECT_CALL(mock, GetCallingUid()).WillRepeatedly(Return(PasteboardService::EDM_UID));
+
+    service.observerEventMap_[std::make_pair(COMMON_USERID, TEST_CALL_PID)] = nullptr;
+    service.observerEventMap_[std::make_pair(COMMON_USERID, TEST_OTHER_PID)] = nullptr;
+    ASSERT_EQ(static_cast<int>(service.observerEventMap_.size()), 2);
+
+    int32_t result = service.UnsubscribeAllObserver(PasteboardObserverType::OBSERVER_EVENT);
+    ASSERT_EQ(result, ERR_OK);
+    EXPECT_EQ(static_cast<int>(service.observerEventMap_.count(std::make_pair(COMMON_USERID, TEST_CALL_PID))), 0);
+    EXPECT_EQ(static_cast<int>(service.observerEventMap_.count(std::make_pair(COMMON_USERID, TEST_OTHER_PID))), 1);
+}
+
+/**
+ * @tc.name: UnsubscribeAllObserverTest008
+ * @tc.desc: UnsubscribeAllObserver(OBSERVER_EVENT) with an invalid caller uid must not touch the event map at
+ *           all, even for the calling app.
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, UnsubscribeAllObserverTest008, TestSize.Level1)
+{
+    PasteboardService service;
+    NiceMock<PasteboardServiceInterfaceMock> mock;
+    EXPECT_CALL(mock, GetCallingPid()).WillRepeatedly(Return(TEST_CALL_PID));
+    EXPECT_CALL(mock, GetCallingUid()).WillRepeatedly(Return(0));
+
+    service.observerEventMap_[std::make_pair(COMMON_USERID, TEST_CALL_PID)] = nullptr;
+    ASSERT_EQ(static_cast<int>(service.observerEventMap_.size()), 1);
+
+    int32_t result = service.UnsubscribeAllObserver(PasteboardObserverType::OBSERVER_EVENT);
+    ASSERT_EQ(result, ERR_OK);
+    EXPECT_EQ(static_cast<int>(service.observerEventMap_.count(std::make_pair(COMMON_USERID, TEST_CALL_PID))), 1);
+}
+
+/**
+ * @tc.name: UnsubscribeAllObserverTest009
+ * @tc.desc: UnsubscribeAllObserver(OBSERVER_LOCAL) returns INVALID_USERID_ERROR when the caller's userId is
+ *           invalid and must not modify any observer map.
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, UnsubscribeAllObserverTest009, TestSize.Level1)
+{
+    PasteboardService service;
+    NiceMock<PasteboardServiceInterfaceMock> mock;
+    EXPECT_CALL(mock, GetCallingPid()).WillRepeatedly(Return(TEST_CALL_PID));
+    EXPECT_CALL(mock, GetCallingTokenID()).WillRepeatedly(Return(0));
+    EXPECT_CALL(mock, GetTokenTypeFlag(testing::_)).WillRepeatedly(Return(ATokenTypeEnum::TOKEN_INVALID));
+    EXPECT_CALL(mock, GetForegroundOsAccountLocalId(testing::_, testing::_)).WillRepeatedly(Return(-1));
+
+    service.observerLocalChangedMap_[std::make_pair(TEST_USERID, TEST_CALL_PID)] = nullptr;
+    ASSERT_EQ(static_cast<int>(service.observerLocalChangedMap_.size()), 1);
+
+    int32_t result = service.UnsubscribeAllObserver(PasteboardObserverType::OBSERVER_LOCAL);
+    EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR));
+    EXPECT_EQ(static_cast<int>(service.observerLocalChangedMap_.count(std::make_pair(TEST_USERID, TEST_CALL_PID))),
+        1);
+}
+
+/**
+ * @tc.name: UnsubscribeAllObserverTest010
+ * @tc.desc: UnsubscribeAllObserver must clear the calling app's own input method pid registration (matching
+ *           path of ClearInputMethodPidByPid), leaving other apps' registrations untouched.
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, UnsubscribeAllObserverTest010, TestSize.Level1)
+{
+    PasteboardService service;
+    NiceMock<PasteboardServiceInterfaceMock> mock;
+    SetupValidUserIdMock(mock, TEST_CALL_PID);
+
+    service.imeMap_.InsertOrAssign(TEST_USERID, TEST_CALL_PID);
+    service.imeMap_.InsertOrAssign(TEST_USERID + 1, TEST_OTHER_PID);
+    ASSERT_EQ(static_cast<int>(service.imeMap_.Size()), 2);
+
+    int32_t result = service.UnsubscribeAllObserver(PasteboardObserverType::OBSERVER_LOCAL);
+    ASSERT_EQ(result, ERR_OK);
+    EXPECT_FALSE(service.imeMap_.Contains(TEST_USERID));
+    auto [hasOther, otherPid] = service.imeMap_.Find(TEST_USERID + 1);
+    EXPECT_TRUE(hasOther);
+    EXPECT_EQ(otherPid, TEST_OTHER_PID);
+}
+
+/**
+ * @tc.name: UnsubscribeAllObserverTest011
+ * @tc.desc: UnsubscribeAllObserver must NOT clear another app's input method pid registration under the same
+ *           userId (non-matching path of ClearInputMethodPidByPid). This is the cross-app isolation fix.
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, UnsubscribeAllObserverTest011, TestSize.Level1)
+{
+    PasteboardService service;
+    NiceMock<PasteboardServiceInterfaceMock> mock;
+    SetupValidUserIdMock(mock, TEST_CALL_PID);
+
+    service.imeMap_.InsertOrAssign(TEST_USERID, TEST_OTHER_PID);
+    ASSERT_TRUE(service.imeMap_.Contains(TEST_USERID));
+
+    int32_t result = service.UnsubscribeAllObserver(PasteboardObserverType::OBSERVER_LOCAL);
+    ASSERT_EQ(result, ERR_OK);
+    auto [hasPid, pid] = service.imeMap_.Find(TEST_USERID);
+    EXPECT_TRUE(hasPid);
+    EXPECT_EQ(pid, TEST_OTHER_PID);
+}
+
+/**
+ * @tc.name: UnsubscribeAllObserverTest012
+ * @tc.desc: UnsubscribeAllObserver(OBSERVER_LOCAL | OBSERVER_REMOTE) must remove the calling app's observers
+ *           from both maps while leaving other apps' observers in both maps untouched.
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, UnsubscribeAllObserverTest012, TestSize.Level1)
+{
+    PasteboardService service;
+    NiceMock<PasteboardServiceInterfaceMock> mock;
+    SetupValidUserIdMock(mock, TEST_CALL_PID);
+
+    service.observerLocalChangedMap_[std::make_pair(TEST_USERID, TEST_CALL_PID)] = nullptr;
+    service.observerLocalChangedMap_[std::make_pair(TEST_USERID, TEST_OTHER_PID)] = nullptr;
+    service.observerRemoteChangedMap_[std::make_pair(TEST_USERID, TEST_CALL_PID)] = nullptr;
+    service.observerRemoteChangedMap_[std::make_pair(TEST_USERID, TEST_OTHER_PID)] = nullptr;
+
+    int32_t result = service.UnsubscribeAllObserver(
+        static_cast<PasteboardObserverType>(static_cast<uint32_t>(PasteboardObserverType::OBSERVER_LOCAL) |
+            static_cast<uint32_t>(PasteboardObserverType::OBSERVER_REMOTE)));
+    ASSERT_EQ(result, ERR_OK);
+    EXPECT_EQ(static_cast<int>(service.observerLocalChangedMap_.count(std::make_pair(TEST_USERID, TEST_CALL_PID))),
+        0);
+    EXPECT_EQ(static_cast<int>(service.observerLocalChangedMap_.count(std::make_pair(TEST_USERID, TEST_OTHER_PID))),
+        1);
+    EXPECT_EQ(static_cast<int>(service.observerRemoteChangedMap_.count(std::make_pair(TEST_USERID, TEST_CALL_PID))),
+        0);
+    EXPECT_EQ(static_cast<int>(service.observerRemoteChangedMap_.count(std::make_pair(TEST_USERID, TEST_OTHER_PID))),
+        1);
+}
+
 /**
  * @tc.name: UnsubscribeObserverTest001
  * @tc.desc: test Func UnsubscribeObserver, it will be return 0.

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -260,21 +260,6 @@ HWTEST_F(PasteboardServiceCleanTest, ClearInputMethodPidByPidTest001, TestSize.L
     pid_t callPid = 1;
     tempPasteboard->ClearInputMethodPidByPid(userId, callPid);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ClearInputMethodPidByPidTest001 end");
-}
-
-/**
- * @tc.name: ClearInputMethodPidTest001
- * @tc.desc: test Func ClearInputMethodPid
- * @tc.type: FUNC
- */
-HWTEST_F(PasteboardServiceCleanTest, ClearInputMethodPidTest001, TestSize.Level1)
-{
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ClearInputMethodPidTest001 start");
-    auto tempPasteboard = std::make_shared<PasteboardService>();
-    EXPECT_NE(tempPasteboard, nullptr);
-
-    tempPasteboard->ClearInputMethodPid();
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ClearInputMethodPidTest001 end");
 }
 
 /**
