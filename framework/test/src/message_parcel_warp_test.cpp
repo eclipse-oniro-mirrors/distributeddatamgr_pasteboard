@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,11 +13,13 @@
  * limitations under the License.
  */
 #include <cstring>
-#include <iostream>
+#include <fcntl.h>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <iostream>
 #include <sys/mman.h>
 
+#include "ashmem.h"
 #include "message_parcel_warp.h"
 #include "pasteboard_hilog.h"
 using namespace testing;
@@ -340,6 +342,82 @@ HWTEST_F(MessageParcelWarpTest, ReadRawDataTest003, TestSize.Level0)
     auto result = messageParcelWarp.ReadRawData(parcel, size);
     EXPECT_EQ(result, nullptr);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadRawDataTest003 end");
+}
+
+/**
+ * @tc.name: ReadRawDataTest004
+ * @tc.desc: Test ReadRawData with non-ashmem fd, AshmemGetSize returns < 0
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(MessageParcelWarpTest, ReadRawDataTest004, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadRawDataTest004 start");
+    MessageParcelWarp messageParcelWarp;
+    MessageParcel parcel;
+    size_t size = MIN_RAW_SIZE + 1;
+
+    int fd = open("/dev/null", O_RDONLY);
+    ASSERT_GE(fd, 0);
+
+    NiceMock<MessageParcelWarpMock> mock;
+    EXPECT_CALL(mock, ReadInt64).WillOnce(testing::Return(size));
+    EXPECT_CALL(mock, ReadFileDescriptor).WillRepeatedly(testing::Return(fd));
+
+    auto result = messageParcelWarp.ReadRawData(parcel, size);
+    EXPECT_EQ(result, nullptr);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadRawDataTest004 end");
+}
+
+/**
+ * @tc.name: ReadRawDataTest005
+ * @tc.desc: Test ReadRawData with ashmem fd whose actual size is less than declared size
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(MessageParcelWarpTest, ReadRawDataTest005, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadRawDataTest005 start");
+    MessageParcelWarp messageParcelWarp;
+    MessageParcel parcel;
+    size_t ashmemSize = MIN_RAW_SIZE + 1;
+    size_t declaredSize = MIN_RAW_SIZE + 2;
+
+    int fd = AshmemCreate("PasteboardTest", ashmemSize);
+    ASSERT_GE(fd, 0);
+
+    NiceMock<MessageParcelWarpMock> mock;
+    EXPECT_CALL(mock, ReadInt64).WillOnce(testing::Return(declaredSize));
+    EXPECT_CALL(mock, ReadFileDescriptor).WillRepeatedly(testing::Return(fd));
+
+    auto result = messageParcelWarp.ReadRawData(parcel, declaredSize);
+    EXPECT_EQ(result, nullptr);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadRawDataTest005 end");
+}
+
+/**
+ * @tc.name: ReadRawDataTest006
+ * @tc.desc: Test ReadRawData with valid ashmem fd whose actual size equals declared size
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(MessageParcelWarpTest, ReadRawDataTest006, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadRawDataTest006 start");
+    MessageParcelWarp messageParcelWarp;
+    MessageParcel parcel;
+    size_t size = MIN_RAW_SIZE + 1;
+
+    int fd = AshmemCreate("PasteboardTest", size);
+    ASSERT_GE(fd, 0);
+
+    NiceMock<MessageParcelWarpMock> mock;
+    EXPECT_CALL(mock, ReadInt64).WillOnce(testing::Return(size));
+    EXPECT_CALL(mock, ReadFileDescriptor).WillRepeatedly(testing::Return(fd));
+
+    auto result = messageParcelWarp.ReadRawData(parcel, size);
+    EXPECT_NE(result, nullptr);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadRawDataTest006 end");
 }
 }
 }
