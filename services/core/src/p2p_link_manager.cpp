@@ -118,13 +118,14 @@ void P2PLinkManager::PreEstablish(const std::string &networkId)
     auto state = entry->state.load();
     if (state == LinkState::ESTABLISHED) {
         StartIdleTimer(networkId);
-        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "pre-establish: already established, refresh idle, deviceId=%{public}.5s",
+        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE,
+            "pre-establish: already established, refresh idle, deviceId=%{public}.5s",
             networkId.c_str());
         return;
     }
     if (state == LinkState::ESTABLISHING) {
-        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "pre-establish: already in progress, deviceId=%{public}.5s",
-            networkId.c_str());
+        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE,
+            "pre-establish: already in progress, deviceId=%{public}.5s", networkId.c_str());
         return;
     }
     entry->state.store(LinkState::ESTABLISHING);
@@ -164,35 +165,19 @@ void P2PLinkManager::DoEstablish(
         CleanupEntryIfIdle(networkId, entry);
         return;
     }
-    if (applyResources) {
-        auto status = plugin->ApplyAdvancedResource(networkId);
-        if (status != RESULT_OK) {
-            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "apply resource failed, deviceId=%{public}.5s, status=%{public}d",
-                networkId.c_str(), status);
-            NotifyWaiters(entry, SET_VALUE_FAILURE);
-            CleanupEntryIfIdle(networkId, entry);
-            return;
-        }
+    if (applyResources && !ApplyAdvancedResource(networkId, plugin, entry)) {
+        return;
     }
-    auto status = plugin->PublishServiceState(networkId, ClipPlugin::ServiceStatus::CONNECT_SUCC);
-    if (status != RESULT_OK) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "publish CONNECT_SUCC failed, deviceId=%{public}.5s, status=%{public}d",
-            networkId.c_str(), status);
-    }
-    status = DistributedFileDaemonManager::GetInstance().ConnectDfs(networkId);
-    if (status != RESULT_OK) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "open p2p error, status=%{public}d", status);
-        plugin->PublishServiceState(networkId, ClipPlugin::ServiceStatus::IDLE);
-        NotifyWaiters(entry, SET_VALUE_FAILURE);
-        CleanupEntryIfIdle(networkId, entry);
+    if (!ConnectDfsAndPublish(networkId, plugin, entry, applyResources)) {
         return;
     }
     {
         std::lock_guard<std::mutex> lock(entry->mutex);
         entry->state.store(LinkState::ESTABLISHED);
         entry->resourcesApplied = applyResources;
-        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "establish success, deviceId=%{public}.5s, ref=%{public}d, res=%{public}d",
-            networkId.c_str(), entry->refCount, entry->resourcesApplied);
+        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE,
+            "establish success, deviceId=%{public}.5s, ref=%{public}d",
+            networkId.c_str(), entry->refCount);
     }
     NotifyWaiters(entry, SET_VALUE_SUCCESS);
     {
@@ -202,6 +187,40 @@ void P2PLinkManager::DoEstablish(
         }
     }
 #endif
+}
+
+bool P2PLinkManager::ApplyAdvancedResource(const std::string &networkId,
+    std::shared_ptr<ClipPlugin> plugin, std::shared_ptr<LinkEntry> entry)
+{
+    auto status = plugin->ApplyAdvancedResource(networkId);
+    if (status != RESULT_OK) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE,
+            "apply resource failed, deviceId=%{public}.5s, status=%{public}d",
+            networkId.c_str(), status);
+        NotifyWaiters(entry, SET_VALUE_FAILURE);
+        CleanupEntryIfIdle(networkId, entry);
+        return false;
+    }
+    return true;
+}
+
+bool P2PLinkManager::ConnectDfsAndPublish(const std::string &networkId,
+    std::shared_ptr<ClipPlugin> plugin, std::shared_ptr<LinkEntry> entry, bool applyResources)
+{
+    auto status = plugin->PublishServiceState(networkId, ClipPlugin::ServiceStatus::CONNECT_SUCC);
+    if (status != RESULT_OK) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE,
+            "publish CONNECT_SUCC failed, status=%{public}d", status);
+    }
+    status = DistributedFileDaemonManager::GetInstance().ConnectDfs(networkId);
+    if (status != RESULT_OK) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "open p2p error, status=%{public}d", status);
+        plugin->PublishServiceState(networkId, ClipPlugin::ServiceStatus::IDLE);
+        NotifyWaiters(entry, SET_VALUE_FAILURE);
+        CleanupEntryIfIdle(networkId, entry);
+        return false;
+    }
+    return true;
 }
 
 void P2PLinkManager::ApplyResourcesIfNeeded(const std::string &networkId, std::shared_ptr<LinkEntry> entry)
@@ -216,13 +235,13 @@ void P2PLinkManager::ApplyResourcesIfNeeded(const std::string &networkId, std::s
     }
     auto status = plugin->ApplyAdvancedResource(networkId);
     if (status != RESULT_OK) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "apply resource on reuse failed, deviceId=%{public}.5s, status=%{public}d",
-            networkId.c_str(), status);
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE,
+            "apply resource on reuse failed, status=%{public}d", status);
         return;
     }
     entry->resourcesApplied = true;
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "apply resources on reuse, deviceId=%{public}.5s",
-        networkId.c_str());
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE,
+        "apply resources on reuse, deviceId=%{public}.5s", networkId.c_str());
 }
 
 void P2PLinkManager::NotifyWaiters(std::shared_ptr<LinkEntry> entry, int32_t value)
@@ -421,7 +440,8 @@ void P2PLinkManager::CleanupEntryIfIdle(const std::string &networkId, std::share
         entry->resourcesApplied = false;
         entry->establishBlock = nullptr;
         links_.Erase(networkId);
-        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "cleanup idle entry after establish failure, deviceId=%{public}.5s",
+        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE,
+            "cleanup idle entry after establish failure, deviceId=%{public}.5s",
             networkId.c_str());
     }
 }
