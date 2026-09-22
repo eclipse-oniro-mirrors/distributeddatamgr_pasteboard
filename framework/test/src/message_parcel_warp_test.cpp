@@ -299,7 +299,7 @@ HWTEST_F(MessageParcelWarpTest, ReadRawDataTest001, TestSize.Level0)
 
 /**
  * @tc.name: ReadRawDataTest002
- * @tc.desc: Test ReadRawData
+ * @tc.desc: Test ReadRawData small data path with valid ReadUnpadBuffer
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -307,17 +307,16 @@ HWTEST_F(MessageParcelWarpTest, ReadRawDataTest002, TestSize.Level0)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadRawDataTest002 start");
     MessageParcelWarp messageParcelWarp;
-    messageParcelWarp.rawData_ = std::make_shared<char>('A');
-    messageParcelWarp.writeRawDataFd_ = 0;
     MessageParcel parcel;
-    size_t size = MIN_RAW_SIZE + 1;
+    size_t size = MIN_RAW_SIZE;
+    uint8_t buffer[MIN_RAW_SIZE] = {0};
 
     NiceMock<MessageParcelWarpMock> mock;
     EXPECT_CALL(mock, ReadInt64).WillOnce(testing::Return(size));
-    EXPECT_CALL(mock, ReadFileDescriptor).WillRepeatedly(testing::Return(1));
+    EXPECT_CALL(mock, ReadUnpadBuffer).WillOnce(testing::Return(buffer));
 
     auto result = messageParcelWarp.ReadRawData(parcel, size);
-    EXPECT_NE(result, messageParcelWarp.rawData_.get());
+    EXPECT_EQ(result, buffer);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadRawDataTest002 end");
 }
 
@@ -418,6 +417,90 @@ HWTEST_F(MessageParcelWarpTest, ReadRawDataTest006, TestSize.Level0)
     auto result = messageParcelWarp.ReadRawData(parcel, size);
     EXPECT_NE(result, nullptr);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadRawDataTest006 end");
+}
+
+/**
+ * @tc.name: ReadRawDataTest007
+ * @tc.desc: Test ReadRawData with canRead_ already false (double call)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(MessageParcelWarpTest, ReadRawDataTest007, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadRawDataTest007 start");
+    MessageParcelWarp messageParcelWarp;
+    MessageParcel parcel;
+    size_t size = MIN_RAW_SIZE;
+
+    NiceMock<MessageParcelWarpMock> mock;
+    EXPECT_CALL(mock, ReadInt64).WillRepeatedly(testing::Return(size));
+    EXPECT_CALL(mock, ReadUnpadBuffer).WillRepeatedly(testing::Return(nullptr));
+
+    messageParcelWarp.ReadRawData(parcel, size);
+    auto result = messageParcelWarp.ReadRawData(parcel, size);
+    EXPECT_EQ(result, nullptr);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadRawDataTest007 end");
+}
+
+/**
+ * @tc.name: ReadRawDataTest008
+ * @tc.desc: Test ReadRawData with size == 0
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(MessageParcelWarpTest, ReadRawDataTest008, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadRawDataTest008 start");
+    MessageParcelWarp messageParcelWarp;
+    MessageParcel parcel;
+
+    NiceMock<MessageParcelWarpMock> mock;
+
+    auto result = messageParcelWarp.ReadRawData(parcel, 0);
+    EXPECT_EQ(result, nullptr);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadRawDataTest008 end");
+}
+
+/**
+ * @tc.name: ReadRawDataTest009
+ * @tc.desc: Test ReadRawData with size exceeding maxRawDataSize_
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(MessageParcelWarpTest, ReadRawDataTest009, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadRawDataTest009 start");
+    MessageParcelWarp messageParcelWarp;
+    MessageParcel parcel;
+    size_t size = static_cast<size_t>(MessageParcelWarp::GetRawDataSize()) + 1;
+
+    NiceMock<MessageParcelWarpMock> mock;
+
+    auto result = messageParcelWarp.ReadRawData(parcel, size);
+    EXPECT_EQ(result, nullptr);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadRawDataTest009 end");
+}
+
+/**
+ * @tc.name: ReadRawDataTest010
+ * @tc.desc: Test ReadRawData small data path with ReadUnpadBuffer returning nullptr
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(MessageParcelWarpTest, ReadRawDataTest010, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadRawDataTest010 start");
+    MessageParcelWarp messageParcelWarp;
+    MessageParcel parcel;
+    size_t size = MIN_RAW_SIZE;
+
+    NiceMock<MessageParcelWarpMock> mock;
+    EXPECT_CALL(mock, ReadInt64).WillOnce(testing::Return(size));
+    EXPECT_CALL(mock, ReadUnpadBuffer).WillOnce(testing::Return(nullptr));
+
+    auto result = messageParcelWarp.ReadRawData(parcel, size);
+    EXPECT_EQ(result, nullptr);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ReadRawDataTest010 end");
 }
 }
 }
