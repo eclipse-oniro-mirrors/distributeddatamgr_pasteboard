@@ -928,7 +928,9 @@ HWTEST_F(PasteboardServiceEventTest, OnEstablishP2PLinkTaskTest001, TestSize.Lev
 
     std::string networkId = "networkId";
     std::shared_ptr<BlockObject<int32_t>> block = std::make_shared<BlockObject<int32_t>>(2000, SET_VALUE_SUCCESS);
-    tempPasteboard->OnEstablishP2PLinkTask(networkId, block);
+    auto waitBlocks = std::make_shared<std::vector<std::shared_ptr<BlockObject<int32_t>>>>();
+    waitBlocks->push_back(block);
+    tempPasteboard->OnEstablishP2PLinkTask(networkId, block, waitBlocks);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnEstablishP2PLinkTaskTest001 end");
 }
 

@@ -85,6 +85,8 @@ struct PasteDateResult {
 struct PasteP2pEstablishInfo {
     std::string networkId;
     std::shared_ptr<BlockObject<int32_t>> pasteBlock;
+    std::shared_ptr<std::vector<std::shared_ptr<BlockObject<int32_t>>>> waitBlocks;
+    bool finished = false;
 };
 
 struct FocusedAppInfo {
@@ -401,8 +403,9 @@ private:
     bool IsContainUri(const Event &evt);
     std::shared_ptr<BlockObject<int32_t>> EstablishP2PLinkTask(
         const std::string &pasteId, const ClipPlugin::GlobalEvent &event);
-    void OnEstablishP2PLinkTask(const std::string &networkId, std::shared_ptr<BlockObject<int32_t>> pasteBlock);
-    void ClearP2PEstablishTaskInfo();
+    void OnEstablishP2PLinkTask(const std::string &networkId, std::shared_ptr<BlockObject<int32_t>> pasteBlock,
+        std::shared_ptr<std::vector<std::shared_ptr<BlockObject<int32_t>>>> waitBlocks);
+    void ClearP2PEstablishTaskInfo(const std::shared_ptr<BlockObject<int32_t>> &pasteBlock);
     void CloseP2PLink(const std::string &networkId);
     bool HasDistributedDataType(const std::string &mimeType);
 
@@ -532,6 +535,7 @@ private:
     PasteP2pEstablishInfo p2pEstablishInfo_;
     ConcurrentMap<std::string, ConcurrentMap<std::string, PasteboardP2pInfo>> p2pMap_;
     std::map<std::string, std::shared_ptr<BlockObject<int32_t>>> preSyncP2pMap_;
+    ConcurrentMap<std::string, bool> establishedLinks_;
     int32_t subscribeActiveId_ = INVALID_SUBSCRIBE_ID;
     enum GlobalShareOptionSource {
         MDM = 0,

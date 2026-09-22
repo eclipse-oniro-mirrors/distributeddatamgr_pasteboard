@@ -1469,7 +1469,7 @@ int32_t PasteboardService::CheckAndGrantRemoteUri(PasteData &data, const AppInfo
             }
         }
     }
-    ClearP2PEstablishTaskInfo();
+    ClearP2PEstablishTaskInfo(pasteBlock);
     return GrantUriPermission(grantUris, appInfo.tokenId, isRemoteData);
 }
 
@@ -1578,7 +1578,7 @@ void PasteboardService::HandleGetDataError(int32_t result, std::shared_ptr<Block
     if (pasteBlock) {
         PasteComplete(deviceId, pasteId);
     }
-    ClearP2PEstablishTaskInfo();
+    ClearP2PEstablishTaskInfo(pasteBlock);
 }
 
 PasteboardService::RemoteDataTaskManager::DataTask PasteboardService::RemoteDataTaskManager::GetRemoteDataTask(
@@ -1845,11 +1845,16 @@ int32_t PasteboardService::GetDelayPasteRecord(int32_t userId, PasteData &data)
     return static_cast<int32_t>(PasteboardError::E_OK);
 }
 
-void PasteboardService::ClearP2PEstablishTaskInfo()
+void PasteboardService::ClearP2PEstablishTaskInfo(const std::shared_ptr<BlockObject<int32_t>> &pasteBlock)
 {
     std::lock_guard<std::mutex> tmpMutex(p2pMapMutex_);
+    if (p2pEstablishInfo_.pasteBlock != pasteBlock) {
+        return;
+    }
     p2pEstablishInfo_.networkId.clear();
     p2pEstablishInfo_.pasteBlock = nullptr;
+    p2pEstablishInfo_.waitBlocks = nullptr;
+    p2pEstablishInfo_.finished = false;
 }
 
 void PasteboardService::OpenP2PLink(const std::string &networkId)
@@ -1988,15 +1993,36 @@ bool PasteboardService::IsContainUri(const Event &evt)
 }
 
 void PasteboardService::OnEstablishP2PLinkTask(const std::string &networkId,
-    std::shared_ptr<BlockObject<int32_t>> pasteBlock)
+    std::shared_ptr<BlockObject<int32_t>> pasteBlock,
+    std::shared_ptr<std::vector<std::shared_ptr<BlockObject<int32_t>>>> waitBlocks)
 {
     PASTEBOARD_CHECK_AND_RETURN_LOGE(pasteBlock != nullptr, PASTEBOARD_MODULE_SERVICE, "block is nullptr");
     OpenP2PLink(networkId);
-    pasteBlock->SetValue(SET_VALUE_SUCCESS);
-    std::lock_guard<std::mutex> tmpMutex(p2pMapMutex_);
-    auto findResult = p2pMap_.Find(networkId);
-    if (!findResult.first || findResult.second.Empty()) {
-        CloseP2PLink(networkId);
+    std::vector<std::shared_ptr<BlockObject<int32_t>>> waitSnapshot;
+    {
+        std::lock_guard<std::mutex> tmpMutex(p2pMapMutex_);
+        if (waitBlocks != nullptr) {
+            waitSnapshot = *waitBlocks;
+        }
+        if (p2pEstablishInfo_.pasteBlock == pasteBlock) {
+            p2pEstablishInfo_.finished = true;
+            auto findResult = p2pMap_.Find(networkId);
+            if (findResult.first && !findResult.second.Empty()) {
+                establishedLinks_.InsertOrAssign(networkId, true);
+            }
+        }
+    }
+    for (const auto &block : waitSnapshot) {
+        if (block != nullptr) {
+            block->SetValue(SET_VALUE_SUCCESS);
+        }
+    }
+    {
+        std::lock_guard<std::mutex> tmpMutex(p2pMapMutex_);
+        auto findResult = p2pMap_.Find(networkId);
+        if (!findResult.first || findResult.second.Empty()) {
+            CloseP2PLink(networkId);
+        }
     }
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "P2pEstablish Finish");
 }
@@ -2019,6 +2045,12 @@ std::shared_ptr<BlockObject<int32_t>> PasteboardService::EstablishP2PLinkTask(
     if (result) {
         return result;
     }
+    auto established = establishedLinks_.Find(networkId);
+    if (established.first && established.second) {
+        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "p2p link already established, reuse, deviceId=%{public}.5s",
+            networkId.c_str());
+        return nullptr;
+    }
     if (!ffrtTimer_) {
         return nullptr;
     }
@@ -2027,14 +2059,32 @@ std::shared_ptr<BlockObject<int32_t>> PasteboardService::EstablishP2PLinkTask(
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "failed to alloc BlockObject");
         return nullptr;
     }
+    std::shared_ptr<std::vector<std::shared_ptr<BlockObject<int32_t>>>> waitBlocks = nullptr;
     {
         std::lock_guard<std::mutex> tmpMutex(p2pMapMutex_);
+        if (p2pEstablishInfo_.pasteBlock != nullptr && p2pEstablishInfo_.networkId == networkId) {
+            if (p2pEstablishInfo_.finished) {
+                PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "in-flight p2p establish already finished");
+                return nullptr;
+            }
+            if (p2pEstablishInfo_.waitBlocks != nullptr) {
+                p2pEstablishInfo_.waitBlocks->push_back(pasteBlock);
+                PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "reuse in-flight p2p establish, deviceId=%{public}.5s",
+                    networkId.c_str());
+                return pasteBlock;
+            }
+        }
         p2pEstablishInfo_.networkId = networkId;
         p2pEstablishInfo_.pasteBlock = pasteBlock;
+        p2pEstablishInfo_.waitBlocks =
+            std::make_shared<std::vector<std::shared_ptr<BlockObject<int32_t>>>>();
+        p2pEstablishInfo_.waitBlocks->push_back(pasteBlock);
+        p2pEstablishInfo_.finished = false;
+        waitBlocks = p2pEstablishInfo_.waitBlocks;
     }
-    FFRTTask p2pTask = [networkId, pasteBlock, this] {
+    FFRTTask p2pTask = [networkId, pasteBlock, waitBlocks, this] {
         std::thread thread([=]() {
-            OnEstablishP2PLinkTask(networkId, pasteBlock);
+            OnEstablishP2PLinkTask(networkId, pasteBlock, waitBlocks);
         });
         PasteBoardCommonUtils::SetThreadTaskName(thread, "OnEstablishP2P");
         thread.detach();
@@ -2051,6 +2101,7 @@ void PasteboardService::CloseP2PLink(const std::string &networkId)
 {
 #ifdef PB_DEVICE_MANAGER_ENABLE
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "CloseP2PLink enter");
+    establishedLinks_.Erase(networkId);
     DmDeviceInfo remoteDevice;
     auto ret = DMAdapter::GetInstance().GetRemoteDeviceInfo(networkId, remoteDevice);
     if (ret != static_cast<int32_t>(PasteboardError::E_OK)) {
