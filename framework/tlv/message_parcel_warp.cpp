@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -193,6 +193,10 @@ const void *MessageParcelWarp::ReadRawData(MessageParcel &parcelPata, size_t siz
 #ifndef CROSS_PLATFORM
     fdsan_exchange_owner_tag(readRawDataFd_, 0, PASTEBOARD_FD_TAG);
 #endif
+
+    auto actualSize = AshmemGetSize(fd);
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(actualSize >= 0 && static_cast<int64_t>(size) <= actualSize, nullptr,
+        PASTEBOARD_MODULE_COMMON, "ashmem size invalid, actualSize:%{public}d size:%{public}zu", actualSize, size);
 
     void *ptr = ::mmap(nullptr, size, PROT_READ, MAP_SHARED, fd, 0);
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(ptr != MAP_FAILED, nullptr,
