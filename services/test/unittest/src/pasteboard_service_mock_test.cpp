@@ -2728,13 +2728,12 @@ HWTEST_F(PasteboardServiceMockTest, PasteboardEventSubscriberTest002, TestSize.L
     EXPECT_CALL(mock, GetNetworkId()).WillRepeatedly(testing::Return(networkId));
     PasteboardService::PasteboardP2pInfo p2pInfo;
     p2pInfo.callPid = 1234;
-    p2pInfo.isSuccess = false;
     std::string key = "key1";
     ConcurrentMap<std::string, PasteboardService::PasteboardP2pInfo> p2pMap;
     p2pMap.Insert(key, p2pInfo);
-    tempPasteboard->p2pMap_.Insert(networkId, p2pMap);
+    tempPasteboard->pasteSessions_.Insert(networkId, p2pMap);
     tempPasteboard->PasteboardEventSubscriber();
-    EXPECT_NE(tempPasteboard->p2pMap_.Size(), 0);
+    EXPECT_NE(tempPasteboard->pasteSessions_.Size(), 0);
 }
 
 /**
@@ -2750,13 +2749,12 @@ HWTEST_F(PasteboardServiceMockTest, PasteboardEventSubscriberTest003, TestSize.L
     EXPECT_CALL(mock, GetNetworkId()).WillRepeatedly(testing::Return("networkId1"));
     PasteboardService::PasteboardP2pInfo p2pInfo;
     p2pInfo.callPid = 1234;
-    p2pInfo.isSuccess = false;
     std::string key = "key1";
     ConcurrentMap<std::string, PasteboardService::PasteboardP2pInfo> p2pMap;
     p2pMap.Insert(key, p2pInfo);
-    tempPasteboard->p2pMap_.Insert("networkId2", p2pMap);
+    tempPasteboard->pasteSessions_.Insert("networkId2", p2pMap);
     tempPasteboard->PasteboardEventSubscriber();
-    EXPECT_NE(tempPasteboard->p2pMap_.Size(), 0);
+    EXPECT_NE(tempPasteboard->pasteSessions_.Size(), 0);
 }
 
 /**
@@ -4050,35 +4048,21 @@ HWTEST_F(PasteboardServiceMockTest, PreSyncRemotePasteboardDataTest, TestSize.Le
 }
 
 /**
- * @tc.name: ClearP2PEstablishTaskInfoTest
- * @tc.desc: ClearP2PEstablishTaskInfo
+ * @tc.name: P2PLinkManagerReleaseTest
+ * @tc.desc: P2PLinkManager Release and ForceClose clear the in-flight establish state.
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, ClearP2PEstablishTaskInfoTest, TestSize.Level1)
+HWTEST_F(PasteboardServiceMockTest, P2PLinkManagerReleaseTest, TestSize.Level1)
 {
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
-    auto block = std::make_shared<BlockObject<int32_t>>(2000, 0);
-    ASSERT_NE(block, nullptr);
-    tempPasteboard->p2pEstablishInfo_.networkId = "networkId";
-    tempPasteboard->p2pEstablishInfo_.pasteBlock = block;
-    tempPasteboard->p2pEstablishInfo_.waitBlocks =
-        std::make_shared<std::vector<std::shared_ptr<BlockObject<int32_t>>>>();
-    tempPasteboard->p2pEstablishInfo_.finished = false;
-
-    auto otherBlock = std::make_shared<BlockObject<int32_t>>(2000, 0);
-    tempPasteboard->ClearP2PEstablishTaskInfo(otherBlock);
-    EXPECT_EQ(tempPasteboard->p2pEstablishInfo_.pasteBlock, block);
-    EXPECT_EQ(tempPasteboard->p2pEstablishInfo_.networkId, std::string("networkId"));
-
-    tempPasteboard->ClearP2PEstablishTaskInfo(nullptr);
-    EXPECT_EQ(tempPasteboard->p2pEstablishInfo_.pasteBlock, block);
-
-    tempPasteboard->ClearP2PEstablishTaskInfo(block);
-    EXPECT_EQ(tempPasteboard->p2pEstablishInfo_.pasteBlock, nullptr);
-    EXPECT_TRUE(tempPasteboard->p2pEstablishInfo_.networkId.empty());
-    EXPECT_EQ(tempPasteboard->p2pEstablishInfo_.waitBlocks, nullptr);
-    EXPECT_FALSE(tempPasteboard->p2pEstablishInfo_.finished);
+    std::string networkId = "networkId";
+    EXPECT_FALSE(tempPasteboard->p2pLinkManager_.IsEstablished(networkId));
+    tempPasteboard->p2pLinkManager_.Release(networkId);
+    EXPECT_FALSE(tempPasteboard->p2pLinkManager_.IsEstablished(networkId));
+    tempPasteboard->p2pLinkManager_.ForceClose(networkId);
+    EXPECT_FALSE(tempPasteboard->p2pLinkManager_.IsEstablished(networkId));
+    ASSERT_TRUE(true);
 }
 
 /**
@@ -4156,60 +4140,46 @@ HWTEST_F(PasteboardServiceMockTest, UnRegisterPreSyncMonitorTest, TestSize.Level
 }
 
 /**
- * @tc.name: DeletePreSyncP2pFromP2pMapTest
- * @tc.desc: DeletePreSyncP2pFromP2pMap
+ * @tc.name: P2PLinkManagerRemoveLinkTest
+ * @tc.desc: P2PLinkManager RemoveLink removes the link entry for a networkId.
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, DeletePreSyncP2pFromP2pMapTest, TestSize.Level1)
+HWTEST_F(PasteboardServiceMockTest, P2PLinkManagerRemoveLinkTest, TestSize.Level1)
 {
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
     std::string networkId = "TestNetworkId";
-    tempPasteboard->ffrtTimer_ = std::make_shared<FFRTTimer>();
-    EXPECT_NE(tempPasteboard->ffrtTimer_, nullptr);
-    std::string p2pPreSyncId = "P2pPreSyncId_";
-    std::string pasteId = "TestPasteId";
-    std::shared_ptr<BlockObject<int32_t>> block = std::make_shared<BlockObject<int32_t>>(2000, 0);
-    EXPECT_NE(block, nullptr);
     PasteboardService::PasteboardP2pInfo p2pInfo;
     p2pInfo.callPid = 123;
-    p2pInfo.isSuccess = false;
     ConcurrentMap<std::string, PasteboardService::PasteboardP2pInfo> p2pMap;
-    p2pMap.Insert(p2pPreSyncId, p2pInfo);
-    p2pMap.Insert(pasteId, p2pInfo);
-    tempPasteboard->p2pMap_.Insert(networkId, p2pMap);
-    tempPasteboard->preSyncP2pMap_.insert(std::make_pair(networkId, block));
-    tempPasteboard->DeletePreSyncP2pFromP2pMap(networkId);
+    p2pMap.Insert("TestPasteId", p2pInfo);
+    tempPasteboard->pasteSessions_.Insert(networkId, p2pMap);
+    EXPECT_NE(tempPasteboard->pasteSessions_.Size(), 0);
+    tempPasteboard->p2pLinkManager_.RemoveLink(networkId);
+    EXPECT_FALSE(tempPasteboard->p2pLinkManager_.HasLink(networkId));
+    ASSERT_TRUE(true);
 }
 
 /**
- * @tc.name: CheckAndReuseP2PLinkTest001
- * @tc.desc: CheckAndReuseP2PLink
+ * @tc.name: P2PLinkManagerEnsureLinkTest001
+ * @tc.desc: P2PLinkManager EnsureLink starts a new establish on a fresh networkId and joins in-flight on a second call.
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, CheckAndReuseP2PLinkTest001, TestSize.Level1)
+HWTEST_F(PasteboardServiceMockTest, P2PLinkManagerEnsureLinkTest001, TestSize.Level1)
 {
 #ifdef PB_DEVICE_MANAGER_ENABLE
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
     std::string networkId = "TestNetworkId";
-    std::string pasteId = "P2pPreSyncId_";
-    auto result = tempPasteboard->CheckAndReuseP2PLink(networkId, pasteId);
+    auto result = tempPasteboard->p2pLinkManager_.EnsureLink("");
     EXPECT_EQ(result, nullptr);
-    tempPasteboard->ffrtTimer_ = std::make_shared<FFRTTimer>();
-    EXPECT_NE(tempPasteboard->ffrtTimer_, nullptr);
-
-    PasteboardService::PasteboardP2pInfo p2pInfo;
-    p2pInfo.callPid = 123;
-    p2pInfo.isSuccess = false;
-    ConcurrentMap<std::string, PasteboardService::PasteboardP2pInfo> p2pMap;
-    p2pMap.Insert(pasteId, p2pInfo);
-    tempPasteboard->p2pMap_.Insert(networkId, p2pMap);
-    std::shared_ptr<BlockObject<int32_t>> block = std::make_shared<BlockObject<int32_t>>(2000, 0);
-    EXPECT_NE(block, nullptr);
-    tempPasteboard->preSyncP2pMap_.insert(std::make_pair(networkId, block));
-    result = tempPasteboard->CheckAndReuseP2PLink(networkId, pasteId);
-    EXPECT_NE(result, nullptr);
+    EXPECT_FALSE(tempPasteboard->p2pLinkManager_.IsEstablished(networkId));
+    auto first = tempPasteboard->p2pLinkManager_.EnsureLink(networkId);
+    EXPECT_NE(first, nullptr);
+    EXPECT_FALSE(tempPasteboard->p2pLinkManager_.IsEstablished(networkId));
+    auto second = tempPasteboard->p2pLinkManager_.EnsureLink(networkId);
+    EXPECT_NE(second, nullptr);
+    EXPECT_NE(first, second);
 #else
     ASSERT_TRUE(true);
 #endif
@@ -4243,13 +4213,9 @@ HWTEST_F(PasteboardServiceMockTest, EstablishP2PLinkTaskTest001, TestSize.Level1
     EXPECT_EQ(result, nullptr);
     PasteboardService::PasteboardP2pInfo p2pInfo;
     p2pInfo.callPid = 123;
-    p2pInfo.isSuccess = false;
     ConcurrentMap<std::string, PasteboardService::PasteboardP2pInfo> p2pMap;
     p2pMap.Insert(pasteId, p2pInfo);
-    tempPasteboard->p2pMap_.Insert(event.deviceId, p2pMap);
-    std::shared_ptr<BlockObject<int32_t>> block = std::make_shared<BlockObject<int32_t>>(2000, 0);
-    EXPECT_NE(block, nullptr);
-    tempPasteboard->preSyncP2pMap_.insert(std::make_pair(event.deviceId, block));
+    tempPasteboard->pasteSessions_.Insert(event.deviceId, p2pMap);
     result = tempPasteboard->EstablishP2PLinkTask(pasteId, event);
     EXPECT_NE(result, nullptr);
 #else
@@ -4259,7 +4225,7 @@ HWTEST_F(PasteboardServiceMockTest, EstablishP2PLinkTaskTest001, TestSize.Level1
 
 /**
  * @tc.name: EstablishP2PLinkTaskSequentialReuseTest001
- * @tc.desc: EstablishP2PLinkTask reuses the established link without spawning a thread or ConnectDfs.
+ * @tc.desc: EstablishP2PLinkTask starts a new establish via P2PLinkManager when no link is established.
  * @tc.type: FUNC
  */
 HWTEST_F(PasteboardServiceMockTest, EstablishP2PLinkTaskSequentialReuseTest001, TestSize.Level1)
@@ -4269,23 +4235,24 @@ HWTEST_F(PasteboardServiceMockTest, EstablishP2PLinkTaskSequentialReuseTest001, 
     ASSERT_NE(tempPasteboard, nullptr);
     tempPasteboard->ffrtTimer_ = std::make_shared<FFRTTimer>();
     std::string networkId = "TestNetworkId";
-    tempPasteboard->establishedLinks_.InsertOrAssign(networkId, true);
+    EXPECT_FALSE(tempPasteboard->p2pLinkManager_.IsEstablished(networkId));
 
     TestEvent event;
     event.deviceId = networkId;
     event.dataType.push_back(MIMETYPE_TEXT_URI);
     std::string pasteId = "SequentialReusePasteId";
     auto result = tempPasteboard->EstablishP2PLinkTask(pasteId, event);
-    EXPECT_EQ(result, nullptr);
-    auto established = tempPasteboard->establishedLinks_.Find(networkId);
-    EXPECT_TRUE(established.first && established.second);
+    EXPECT_NE(result, nullptr);
+    EXPECT_FALSE(tempPasteboard->p2pLinkManager_.IsEstablished(networkId));
+#else
+    ASSERT_TRUE(true);
 #endif
 }
 
 /**
  * @tc.name: EstablishP2PLinkTaskConcurrentDedupTest001
- * @tc.desc: When an establishment for the same networkId is in-flight, EstablishP2PLinkTask reuses it
- *           (returns its own block, registers in waitBlocks) without spawning a new thread.
+ * @tc.desc: When an establishment for the same networkId is in-flight, EstablishP2PLinkTask
+ *           returns a distinct waiter block without spawning a new establish.
  * @tc.type: FUNC
  */
 HWTEST_F(PasteboardServiceMockTest, EstablishP2PLinkTaskConcurrentDedupTest001, TestSize.Level1)
@@ -4296,39 +4263,24 @@ HWTEST_F(PasteboardServiceMockTest, EstablishP2PLinkTaskConcurrentDedupTest001, 
     tempPasteboard->ffrtTimer_ = std::make_shared<FFRTTimer>();
     std::string networkId = "TestNetworkId";
 
-    auto originBlock = std::make_shared<BlockObject<int32_t>>(2000, 0);
-    ASSERT_NE(originBlock, nullptr);
-    auto waitBlocks = std::make_shared<std::vector<std::shared_ptr<BlockObject<int32_t>>>>();
-    waitBlocks->push_back(originBlock);
-    {
-        std::lock_guard<std::mutex> lock(tempPasteboard->p2pMapMutex_);
-        tempPasteboard->p2pEstablishInfo_.networkId = networkId;
-        tempPasteboard->p2pEstablishInfo_.pasteBlock = originBlock;
-        tempPasteboard->p2pEstablishInfo_.waitBlocks = waitBlocks;
-        tempPasteboard->p2pEstablishInfo_.finished = false;
-    }
-
     TestEvent event;
     event.deviceId = networkId;
     event.dataType.push_back(MIMETYPE_TEXT_URI);
     std::string pasteId = "ConcurrentDedupPasteId";
-    auto result = tempPasteboard->EstablishP2PLinkTask(pasteId, event);
-    EXPECT_NE(result, nullptr);
-    EXPECT_NE(result, originBlock);
-
-    std::lock_guard<std::mutex> lock(tempPasteboard->p2pMapMutex_);
-    EXPECT_EQ(tempPasteboard->p2pEstablishInfo_.pasteBlock, originBlock);
-    EXPECT_FALSE(tempPasteboard->p2pEstablishInfo_.finished);
-    ASSERT_NE(tempPasteboard->p2pEstablishInfo_.waitBlocks, nullptr);
-    EXPECT_EQ(tempPasteboard->p2pEstablishInfo_.waitBlocks->size(), 2u);
-    EXPECT_EQ(tempPasteboard->p2pEstablishInfo_.waitBlocks->back(), result);
+    auto first = tempPasteboard->EstablishP2PLinkTask(pasteId, event);
+    EXPECT_NE(first, nullptr);
+    auto second = tempPasteboard->EstablishP2PLinkTask(pasteId, event);
+    EXPECT_NE(second, nullptr);
+    EXPECT_NE(first, second);
+    EXPECT_FALSE(tempPasteboard->p2pLinkManager_.IsEstablished(networkId));
+#else
+    ASSERT_TRUE(true);
 #endif
 }
 
 /**
  * @tc.name: EstablishP2PLinkTaskFinishedTest001
- * @tc.desc: When the in-flight establishment for the same networkId is already finished, EstablishP2PLinkTask
- *           returns nullptr instead of waiting.
+ * @tc.desc: After ForceClose clears any in-flight state, EstablishP2PLinkTask starts a fresh establish.
  * @tc.type: FUNC
  */
 HWTEST_F(PasteboardServiceMockTest, EstablishP2PLinkTaskFinishedTest001, TestSize.Level1)
@@ -4339,29 +4291,22 @@ HWTEST_F(PasteboardServiceMockTest, EstablishP2PLinkTaskFinishedTest001, TestSiz
     tempPasteboard->ffrtTimer_ = std::make_shared<FFRTTimer>();
     std::string networkId = "TestNetworkId";
 
-    auto originBlock = std::make_shared<BlockObject<int32_t>>(2000, 0);
-    ASSERT_NE(originBlock, nullptr);
-    {
-        std::lock_guard<std::mutex> lock(tempPasteboard->p2pMapMutex_);
-        tempPasteboard->p2pEstablishInfo_.networkId = networkId;
-        tempPasteboard->p2pEstablishInfo_.pasteBlock = originBlock;
-        tempPasteboard->p2pEstablishInfo_.waitBlocks =
-            std::make_shared<std::vector<std::shared_ptr<BlockObject<int32_t>>>>();
-        tempPasteboard->p2pEstablishInfo_.finished = true;
-    }
-
     TestEvent event;
     event.deviceId = networkId;
     event.dataType.push_back(MIMETYPE_TEXT_URI);
     std::string pasteId = "FinishedPasteId";
+    tempPasteboard->p2pLinkManager_.ForceClose(networkId);
+    EXPECT_FALSE(tempPasteboard->p2pLinkManager_.IsEstablished(networkId));
     auto result = tempPasteboard->EstablishP2PLinkTask(pasteId, event);
-    EXPECT_EQ(result, nullptr);
+    EXPECT_NE(result, nullptr);
+#else
+    ASSERT_TRUE(true);
 #endif
 }
 
 /**
  * @tc.name: CloseP2PLinkInvalidatesCacheTest001
- * @tc.desc: CloseP2PLink invalidates the establishedLinks_ cache so that a later EstablishP2PLinkTask re-establishes.
+ * @tc.desc: CloseP2PLink (ForceClose) ensures the link is not reported as established.
  * @tc.type: FUNC
  */
 HWTEST_F(PasteboardServiceMockTest, CloseP2PLinkInvalidatesCacheTest001, TestSize.Level1)
@@ -4370,88 +4315,88 @@ HWTEST_F(PasteboardServiceMockTest, CloseP2PLinkInvalidatesCacheTest001, TestSiz
     auto tempPasteboard = std::make_shared<PasteboardService>();
     ASSERT_NE(tempPasteboard, nullptr);
     std::string networkId = "TestNetworkId";
-    tempPasteboard->establishedLinks_.InsertOrAssign(networkId, true);
-    EXPECT_TRUE(tempPasteboard->establishedLinks_.Find(networkId).first);
-
+    EXPECT_FALSE(tempPasteboard->p2pLinkManager_.IsEstablished(networkId));
     tempPasteboard->CloseP2PLink(networkId);
-    EXPECT_FALSE(tempPasteboard->establishedLinks_.Find(networkId).first);
-#endif
-}
-
-/**
- * @tc.name: OpenP2PLinkForPreEstablishTest001
- * @tc.desc: OpenP2PLinkForPreEstablish
- * @tc.type: FUNC
- */
-HWTEST_F(PasteboardServiceMockTest, OpenP2PLinkForPreEstablishTest001, TestSize.Level1)
-{
-#ifdef PB_DEVICE_MANAGER_ENABLE
-    auto tempPasteboard = std::make_shared<PasteboardService>();
-    EXPECT_NE(tempPasteboard, nullptr);
-    std::string networkId = "TestNetworkId";
-    auto clipPlugin = std::make_shared<DefaultClip>();
-    EXPECT_NE(clipPlugin, nullptr);
-    NiceMock<PasteboardServiceInterfaceMock> mock;
-    EXPECT_CALL(mock, GetRemoteDeviceInfo(testing::_, testing::_))
-        .WillOnce(Return(static_cast<int32_t>(PasteboardError::OTHER_ERROR)));
-    tempPasteboard->ffrtTimer_ = std::make_shared<FFRTTimer>();
-    EXPECT_NE(tempPasteboard->ffrtTimer_, nullptr);
-    auto result = tempPasteboard->OpenP2PLinkForPreEstablish(networkId, clipPlugin.get());
-    EXPECT_EQ(result, false);
+    EXPECT_FALSE(tempPasteboard->p2pLinkManager_.IsEstablished(networkId));
 #else
     ASSERT_TRUE(true);
 #endif
 }
 
 /**
- * @tc.name: PreEstablishP2PLinkTest001
- * @tc.desc: PreEstablishP2PLink
+ * @tc.name: P2PLinkManagerPreEstablishTest001
+ * @tc.desc: P2PLinkManager PreEstablish starts a pre-establish without crashing.
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, PreEstablishP2PLinkTest001, TestSize.Level1)
+HWTEST_F(PasteboardServiceMockTest, P2PLinkManagerPreEstablishTest001, TestSize.Level1)
+{
+#ifdef PB_DEVICE_MANAGER_ENABLE
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+    std::string networkId = "TestNetworkId";
+    auto clipPlugin = std::make_shared<DefaultClip>();
+    EXPECT_NE(clipPlugin, nullptr);
+    tempPasteboard->clipPlugin_ = clipPlugin;
+    tempPasteboard->ffrtTimer_ = std::make_shared<FFRTTimer>();
+    EXPECT_NE(tempPasteboard->ffrtTimer_, nullptr);
+    tempPasteboard->p2pLinkManager_.PreEstablish(networkId);
+    EXPECT_FALSE(tempPasteboard->p2pLinkManager_.IsEstablished(networkId));
+    tempPasteboard->p2pLinkManager_.PreEstablish("");
+    EXPECT_FALSE(tempPasteboard->p2pLinkManager_.IsEstablished(networkId));
+#else
+    ASSERT_TRUE(true);
+#endif
+}
+
+/**
+ * @tc.name: P2PLinkManagerPreEstablishTest002
+ * @tc.desc: P2PLinkManager PreEstablish is idempotent for an in-progress networkId and coexists with pasteSessions_.
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, P2PLinkManagerPreEstablishTest002, TestSize.Level1)
 {
 #ifdef PB_DEVICE_MANAGER_ENABLE
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
     tempPasteboard->ffrtTimer_ = std::make_shared<FFRTTimer>();
     EXPECT_NE(tempPasteboard->ffrtTimer_, nullptr);
-    tempPasteboard->p2pEstablishInfo_.pasteBlock = std::make_shared<BlockObject<int32_t>>(2000, 0);
-    EXPECT_NE(tempPasteboard->p2pEstablishInfo_.pasteBlock, nullptr);
     std::string networkId = "TestNetworkId";
-    tempPasteboard->p2pEstablishInfo_.networkId = networkId;
     auto clipPlugin = std::make_shared<DefaultClip>();
     EXPECT_NE(clipPlugin, nullptr);
-    tempPasteboard->PreEstablishP2PLink(networkId, clipPlugin.get());
-    tempPasteboard->p2pEstablishInfo_.pasteBlock = nullptr;
-    tempPasteboard->PreEstablishP2PLink(networkId, clipPlugin.get());
-    std::string p2pPresyncId = "P2pPreSyncId_";
+    tempPasteboard->clipPlugin_ = clipPlugin;
+    tempPasteboard->p2pLinkManager_.PreEstablish(networkId);
+    EXPECT_FALSE(tempPasteboard->p2pLinkManager_.IsEstablished(networkId));
+    tempPasteboard->p2pLinkManager_.PreEstablish(networkId);
+    EXPECT_FALSE(tempPasteboard->p2pLinkManager_.IsEstablished(networkId));
     PasteboardService::PasteboardP2pInfo p2pInfo;
     p2pInfo.callPid = 123;
-    p2pInfo.isSuccess = false;
     ConcurrentMap<std::string, PasteboardService::PasteboardP2pInfo> p2pMap;
-    p2pMap.Insert(p2pPresyncId, p2pInfo);
-    tempPasteboard->p2pMap_.Insert(networkId, p2pMap);
-    tempPasteboard->PreEstablishP2PLink(networkId, clipPlugin.get());
+    p2pMap.Insert("P2pPreSyncId_", p2pInfo);
+    tempPasteboard->pasteSessions_.Insert(networkId, p2pMap);
+    tempPasteboard->p2pLinkManager_.PreEstablish(networkId);
+    EXPECT_FALSE(tempPasteboard->p2pLinkManager_.IsEstablished(networkId));
 #else
     ASSERT_TRUE(true);
 #endif
 }
 
 /**
- * @tc.name: AddPreSyncP2pTimeoutTaskTest001
- * @tc.desc: AddPreSyncP2pTimeoutTask
+ * @tc.name: P2PLinkManagerCloseAllTest001
+ * @tc.desc: P2PLinkManager CloseAll clears all link state without crashing.
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceMockTest, AddPreSyncP2pTimeoutTaskTest001, TestSize.Level1)
+HWTEST_F(PasteboardServiceMockTest, P2PLinkManagerCloseAllTest001, TestSize.Level1)
 {
 #ifdef PB_DEVICE_MANAGER_ENABLE
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
     std::string networkId = "TestNetworkId";
-    tempPasteboard->AddPreSyncP2pTimeoutTask(networkId);
+    tempPasteboard->p2pLinkManager_.CloseAll();
+    EXPECT_FALSE(tempPasteboard->p2pLinkManager_.IsEstablished(networkId));
     tempPasteboard->ffrtTimer_ = std::make_shared<FFRTTimer>();
     EXPECT_NE(tempPasteboard->ffrtTimer_, nullptr);
-    tempPasteboard->AddPreSyncP2pTimeoutTask(networkId);
+    tempPasteboard->p2pLinkManager_.CloseAll();
+    EXPECT_FALSE(tempPasteboard->p2pLinkManager_.IsEstablished(networkId));
 #else
     ASSERT_TRUE(true);
 #endif

@@ -916,22 +916,19 @@ HWTEST_F(PasteboardServiceEventTest, OnStopTest001, TestSize.Level1)
 }
 
 /**
- * @tc.name: OnEstablishP2PLinkTaskTest001
- * @tc.desc: test Func OnEstablishP2PLinkTask
+ * @tc.name: PasteboardServiceP2PLinkManagerTest001
+ * @tc.desc: test Func P2PLinkManager EnsureLink and Release
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceEventTest, OnEstablishP2PLinkTaskTest001, TestSize.Level1)
+HWTEST_F(PasteboardServiceEventTest, PasteboardServiceP2PLinkManagerTest001, TestSize.Level1)
 {
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnEstablishP2PLinkTaskTest001 start");
-    std::shared_ptr<PasteboardService> tempPasteboard = std::make_shared<PasteboardService>();
-    EXPECT_NE(tempPasteboard, nullptr);
-
-    std::string networkId = "networkId";
-    std::shared_ptr<BlockObject<int32_t>> block = std::make_shared<BlockObject<int32_t>>(2000, SET_VALUE_SUCCESS);
-    auto waitBlocks = std::make_shared<std::vector<std::shared_ptr<BlockObject<int32_t>>>>();
-    waitBlocks->push_back(block);
-    tempPasteboard->OnEstablishP2PLinkTask(networkId, block, waitBlocks);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnEstablishP2PLinkTaskTest001 end");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteboardServiceP2PLinkManagerTest001 start");
+    P2PLinkManager manager;
+    manager.Init(nullptr, nullptr);
+    auto block = manager.EnsureLink("networkId");
+    EXPECT_EQ(block, nullptr);
+    manager.Release("networkId");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteboardServiceP2PLinkManagerTest001 end");
 }
 
 /**
