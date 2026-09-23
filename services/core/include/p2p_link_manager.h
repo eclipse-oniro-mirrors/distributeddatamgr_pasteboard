@@ -82,6 +82,8 @@ private:
     std::function<std::shared_ptr<ClipPlugin>()> pluginGetter_;
 
     std::shared_ptr<LinkEntry> GetOrCreateEntry(const std::string &networkId);
+    void ScheduleEstablish(const std::string &networkId, std::shared_ptr<LinkEntry> entry, bool applyResources);
+    void ApplyResourceOnReuse(const std::string &networkId, std::shared_ptr<LinkEntry> entry);
     void DoEstablish(const std::string &networkId, std::shared_ptr<LinkEntry> entry, bool applyResources);
     bool ApplyAdvancedResource(const std::string &networkId, std::shared_ptr<ClipPlugin> plugin,
         std::shared_ptr<LinkEntry> entry);
