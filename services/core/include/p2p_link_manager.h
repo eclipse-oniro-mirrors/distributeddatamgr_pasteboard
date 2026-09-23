@@ -82,6 +82,14 @@ private:
     std::function<std::shared_ptr<ClipPlugin>()> pluginGetter_;
 
     std::shared_ptr<LinkEntry> GetOrCreateEntry(const std::string &networkId);
+    struct EnsurePlan {
+        std::shared_ptr<BlockObject<int32_t>> block;
+        bool refreshIdle = false;
+        bool reuseApply = false;
+        bool scheduleEstablish = false;
+    };
+    EnsurePlan PrepareEnsurePlan(const std::string &networkId, std::shared_ptr<LinkEntry> entry,
+        bool applyResourcesOnReuse);
     void ScheduleEstablish(const std::string &networkId, std::shared_ptr<LinkEntry> entry, bool applyResources);
     void ApplyResourceOnReuse(const std::string &networkId, std::shared_ptr<LinkEntry> entry);
     void DoEstablish(const std::string &networkId, std::shared_ptr<LinkEntry> entry, bool applyResources);
