@@ -927,8 +927,33 @@ HWTEST_F(PasteboardServiceEventTest, PasteboardServiceP2PLinkManagerTest001, Tes
     manager.Init(nullptr, nullptr);
     auto block = manager.EnsureLink("networkId");
     EXPECT_EQ(block, nullptr);
+    EXPECT_FALSE(manager.IsEstablished("networkId"));
+    EXPECT_TRUE(manager.HasLink("networkId"));
+    auto block2 = manager.EnsureLink("networkId");
+    EXPECT_EQ(block2, nullptr);
+    EXPECT_FALSE(manager.IsEstablished("networkId"));
     manager.Release("networkId");
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteboardServiceP2PLinkManagerTest001 end");
+}
+
+/**
+ * @tc.name: PasteboardServiceP2PLinkManagerTest002
+ * @tc.desc: ForceClose and CloseAll must not deadlock when an entry exists (NotifyWaiters outside entry lock).
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceEventTest, PasteboardServiceP2PLinkManagerTest002, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteboardServiceP2PLinkManagerTest002 start");
+    P2PLinkManager manager;
+    manager.Init(nullptr, nullptr);
+    manager.EnsureLink("networkIdA");
+    EXPECT_TRUE(manager.HasLink("networkIdA"));
+    manager.ForceClose("networkIdA");
+    EXPECT_FALSE(manager.HasLink("networkIdA"));
+    manager.EnsureLink("networkIdB");
+    manager.CloseAll();
+    EXPECT_FALSE(manager.HasLink("networkIdB"));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "PasteboardServiceP2PLinkManagerTest002 end");
 }
 
 /**
