@@ -74,7 +74,7 @@ private:
         bool resourcesApplied{false};
         std::shared_ptr<BlockObject<int32_t>> establishBlock;
         std::vector<std::shared_ptr<BlockObject<int32_t>>> waiters;
-        std::mutex mutex;
+        FFRTMutex mutex;
     };
 
     ConcurrentMap<std::string, std::shared_ptr<LinkEntry>> links_;
@@ -87,7 +87,6 @@ private:
         std::shared_ptr<LinkEntry> entry);
     bool ConnectDfsAndPublish(const std::string &networkId, std::shared_ptr<ClipPlugin> plugin,
         std::shared_ptr<LinkEntry> entry, bool applyResources);
-    void ApplyResourcesIfNeeded(const std::string &networkId, std::shared_ptr<LinkEntry> entry);
     void DoCloseLink(const std::string &networkId);
     void StartIdleTimer(const std::string &networkId);
     void CancelIdleTimer(const std::string &networkId);

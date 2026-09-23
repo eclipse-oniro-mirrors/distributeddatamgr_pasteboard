@@ -15,10 +15,7 @@
 
 #include "p2p_link_manager.h"
 
-#include <thread>
-
 #include "clip/clip_plugin.h"
-#include "common/pasteboard_common_utils.h"
 #include "device/dm_adapter.h"
 #include "distributed_file_daemon_manager.h"
 #include "pasteboard_error.h"
@@ -69,46 +66,74 @@ std::shared_ptr<BlockObject<int32_t>> P2PLinkManager::EnsureLink(
         return nullptr;
     }
     auto entry = GetOrCreateEntry(networkId);
-    std::lock_guard<std::mutex> lock(entry->mutex);
-    entry->refCount++;
-    auto state = entry->state.load();
-    if (state == LinkState::ESTABLISHED) {
-        CancelIdleTimer(networkId);
-        if (applyResourcesOnReuse) {
-            ApplyResourcesIfNeeded(networkId, entry);
+    std::shared_ptr<BlockObject<int32_t>> result = nullptr;
+    bool reuseEstablished = false;
+    bool needApply = false;
+    bool needEstablish = false;
+    {
+        std::lock_guard<FFRTMutex> lock(entry->mutex);
+        entry->refCount++;
+        auto state = entry->state.load();
+        if (state == LinkState::ESTABLISHED) {
+            reuseEstablished = true;
+            needApply = applyResourcesOnReuse && !entry->resourcesApplied;
+            if (needApply) {
+                entry->resourcesApplied = true;
+            }
+            PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "reuse established link, deviceId=%{public}.5s, ref=%{public}d",
+                networkId.c_str(), entry->refCount);
+            result = nullptr;
+        } else if (state == LinkState::ESTABLISHING) {
+            result = std::make_shared<BlockObject<int32_t>>(MIN_TRANMISSION_TIME, 0);
+            entry->waiters.push_back(result);
+            PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "join in-flight establish, deviceId=%{public}.5s, ref=%{public}d",
+                networkId.c_str(), entry->refCount);
+        } else {
+            entry->state.store(LinkState::ESTABLISHING);
+            if (!timer_) {
+                entry->state.store(LinkState::IDLE);
+                entry->refCount--;
+                PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE,
+                    "timer is null, cannot establish, deviceId=%{public}.5s, ref=%{public}d",
+                    networkId.c_str(), entry->refCount);
+                return nullptr;
+            }
+            entry->establishBlock = std::make_shared<BlockObject<int32_t>>(MIN_TRANMISSION_TIME, 0);
+            result = entry->establishBlock;
+            needEstablish = true;
+            PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "start new establish, deviceId=%{public}.5s, ref=%{public}d",
+                networkId.c_str(), entry->refCount);
         }
-        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "reuse established link, deviceId=%{public}.5s, ref=%{public}d",
-            networkId.c_str(), entry->refCount);
-        return nullptr;
     }
-    if (state == LinkState::ESTABLISHING) {
-        auto block = std::make_shared<BlockObject<int32_t>>(MIN_TRANMISSION_TIME, 0);
-        entry->waiters.push_back(block);
-        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "join in-flight establish, deviceId=%{public}.5s, ref=%{public}d",
-            networkId.c_str(), entry->refCount);
-        return block;
+    if (reuseEstablished) {
+        CancelIdleTimer(networkId);
+        if (needApply) {
+            auto plugin = pluginGetter_ ? pluginGetter_() : nullptr;
+            if (plugin != nullptr) {
+                auto status = plugin->ApplyAdvancedResource(networkId);
+                if (status != RESULT_OK) {
+                    PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE,
+                        "apply resource on reuse failed, deviceId=%{public}.5s, status=%{public}d",
+                        networkId.c_str(), status);
+                    std::lock_guard<FFRTMutex> lock(entry->mutex);
+                    entry->resourcesApplied = false;
+                }
+            } else {
+                PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "plugin is not exist, cannot apply resources");
+                std::lock_guard<FFRTMutex> lock(entry->mutex);
+                entry->resourcesApplied = false;
+            }
+        }
     }
-    entry->state.store(LinkState::ESTABLISHING);
-    if (!timer_) {
-        entry->state.store(LinkState::IDLE);
-        entry->refCount--;
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE,
-            "timer is null, cannot establish, deviceId=%{public}.5s, ref=%{public}d",
-            networkId.c_str(), entry->refCount);
-        return nullptr;
+    if (needEstablish) {
+        CancelIdleTimer(networkId);
+        std::string taskName = EstablishTimerName(networkId);
+        FFRTTask task = [this, networkId, entry] {
+            FFRTUtils::SubmitTask([this, networkId, entry] { DoEstablish(networkId, entry, true); });
+        };
+        timer_->SetTimer(taskName, task);
     }
-    entry->establishBlock = std::make_shared<BlockObject<int32_t>>(MIN_TRANMISSION_TIME, 0);
-    auto establishBlock = entry->establishBlock;
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "start new establish, deviceId=%{public}.5s, ref=%{public}d",
-        networkId.c_str(), entry->refCount);
-    std::string taskName = EstablishTimerName(networkId);
-    FFRTTask task = [this, networkId, entry] {
-        std::thread thread([=]() { DoEstablish(networkId, entry, true); });
-        PasteBoardCommonUtils::SetThreadTaskName(thread, "DoEstablish");
-        thread.detach();
-    };
-    timer_->SetTimer(taskName, task);
-    return establishBlock;
+    return result;
 #else
     return nullptr;
 #endif
@@ -121,30 +146,34 @@ void P2PLinkManager::PreEstablish(const std::string &networkId)
         return;
     }
     auto entry = GetOrCreateEntry(networkId);
-    std::lock_guard<std::mutex> lock(entry->mutex);
-    auto state = entry->state.load();
-    if (state == LinkState::ESTABLISHED) {
+    bool refreshIdle = false;
+    bool needEstablish = false;
+    {
+        std::lock_guard<FFRTMutex> lock(entry->mutex);
+        auto state = entry->state.load();
+        if (state == LinkState::ESTABLISHED) {
+            refreshIdle = true;
+            PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE,
+                "pre-establish: already established, refresh idle, deviceId=%{public}.5s",
+                networkId.c_str());
+        } else if (state == LinkState::ESTABLISHING) {
+            PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE,
+                "pre-establish: already in progress, deviceId=%{public}.5s", networkId.c_str());
+        } else {
+            entry->state.store(LinkState::ESTABLISHING);
+            entry->establishBlock = std::make_shared<BlockObject<int32_t>>(MIN_TRANMISSION_TIME, 0);
+            needEstablish = true;
+            PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "pre-establish: start new, deviceId=%{public}.5s",
+                networkId.c_str());
+        }
+    }
+    if (refreshIdle) {
         StartIdleTimer(networkId);
-        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE,
-            "pre-establish: already established, refresh idle, deviceId=%{public}.5s",
-            networkId.c_str());
-        return;
     }
-    if (state == LinkState::ESTABLISHING) {
-        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE,
-            "pre-establish: already in progress, deviceId=%{public}.5s", networkId.c_str());
-        return;
-    }
-    entry->state.store(LinkState::ESTABLISHING);
-    entry->establishBlock = std::make_shared<BlockObject<int32_t>>(MIN_TRANMISSION_TIME, 0);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "pre-establish: start new, deviceId=%{public}.5s",
-        networkId.c_str());
-    if (timer_) {
+    if (needEstablish && timer_) {
         std::string taskName = EstablishTimerName(networkId);
         FFRTTask task = [this, networkId, entry] {
-            std::thread thread([=]() { DoEstablish(networkId, entry, false); });
-            PasteBoardCommonUtils::SetThreadTaskName(thread, "PreDoEstablish");
-            thread.detach();
+            FFRTUtils::SubmitTask([this, networkId, entry] { DoEstablish(networkId, entry, false); });
         };
         timer_->SetTimer(taskName, task);
     }
@@ -179,7 +208,7 @@ void P2PLinkManager::DoEstablish(
         return;
     }
     {
-        std::lock_guard<std::mutex> lock(entry->mutex);
+        std::lock_guard<FFRTMutex> lock(entry->mutex);
         entry->state.store(LinkState::ESTABLISHED);
         entry->resourcesApplied = applyResources;
         PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE,
@@ -188,7 +217,7 @@ void P2PLinkManager::DoEstablish(
     }
     NotifyWaiters(entry, SET_VALUE_SUCCESS);
     {
-        std::lock_guard<std::mutex> lock(entry->mutex);
+        std::lock_guard<FFRTMutex> lock(entry->mutex);
         if (entry->refCount <= 0) {
             StartIdleTimer(networkId);
         }
@@ -230,33 +259,12 @@ bool P2PLinkManager::ConnectDfsAndPublish(const std::string &networkId,
     return true;
 }
 
-void P2PLinkManager::ApplyResourcesIfNeeded(const std::string &networkId, std::shared_ptr<LinkEntry> entry)
-{
-    if (entry->resourcesApplied) {
-        return;
-    }
-    auto plugin = pluginGetter_ ? pluginGetter_() : nullptr;
-    if (plugin == nullptr) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "plugin is not exist, cannot apply resources");
-        return;
-    }
-    auto status = plugin->ApplyAdvancedResource(networkId);
-    if (status != RESULT_OK) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE,
-            "apply resource on reuse failed, status=%{public}d", status);
-        return;
-    }
-    entry->resourcesApplied = true;
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE,
-        "apply resources on reuse, deviceId=%{public}.5s", networkId.c_str());
-}
-
 void P2PLinkManager::NotifyWaiters(std::shared_ptr<LinkEntry> entry, int32_t value)
 {
     std::vector<std::shared_ptr<BlockObject<int32_t>>> snapshot;
     std::shared_ptr<BlockObject<int32_t>> establishBlock = nullptr;
     {
-        std::lock_guard<std::mutex> lock(entry->mutex);
+        std::lock_guard<FFRTMutex> lock(entry->mutex);
         establishBlock = entry->establishBlock;
         entry->establishBlock = nullptr;
         snapshot = entry->waiters;
@@ -279,11 +287,17 @@ void P2PLinkManager::Release(const std::string &networkId)
     if (!found || !entry) {
         return;
     }
-    std::lock_guard<std::mutex> lock(entry->mutex);
-    entry->refCount--;
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "release, deviceId=%{public}.5s, ref=%{public}d, state=%{public}d",
-        networkId.c_str(), entry->refCount, static_cast<int32_t>(entry->state.load()));
-    if (entry->refCount <= 0 && entry->state.load() == LinkState::ESTABLISHED) {
+    bool startIdle = false;
+    {
+        std::lock_guard<FFRTMutex> lock(entry->mutex);
+        entry->refCount--;
+        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "release, deviceId=%{public}.5s, ref=%{public}d, state=%{public}d",
+            networkId.c_str(), entry->refCount, static_cast<int32_t>(entry->state.load()));
+        if (entry->refCount <= 0 && entry->state.load() == LinkState::ESTABLISHED) {
+            startIdle = true;
+        }
+    }
+    if (startIdle) {
         StartIdleTimer(networkId);
     }
 #endif
@@ -302,7 +316,7 @@ void P2PLinkManager::ForceClose(const std::string &networkId)
     }
     NotifyWaiters(entry, SET_VALUE_FAILURE);
     {
-        std::lock_guard<std::mutex> lock(entry->mutex);
+        std::lock_guard<FFRTMutex> lock(entry->mutex);
         entry->state.store(LinkState::IDLE);
         entry->refCount = 0;
         entry->resourcesApplied = false;
@@ -324,7 +338,7 @@ void P2PLinkManager::CloseAll()
         }
         if (entry) {
             NotifyWaiters(entry, SET_VALUE_FAILURE);
-            std::lock_guard<std::mutex> lock(entry->mutex);
+            std::lock_guard<FFRTMutex> lock(entry->mutex);
             entry->state.store(LinkState::IDLE);
             entry->refCount = 0;
             entry->resourcesApplied = false;
@@ -376,13 +390,12 @@ void P2PLinkManager::DoCloseLink(const std::string &networkId)
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "remote device is not exist");
         return;
     }
-    std::thread thread([networkId]() {
+    FFRTUtils::SubmitTask([networkId]() {
         auto status = DistributedFileDaemonManager::GetInstance().DisconnectDfs(networkId);
         if (status != RESULT_OK) {
             PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "close p2p error, status:%{public}d", status);
         }
     });
-    thread.detach();
     auto plugin = pluginGetter_ ? pluginGetter_() : nullptr;
     if (plugin) {
         auto status = plugin->PublishServiceState(networkId, ClipPlugin::ServiceStatus::IDLE);
@@ -401,9 +414,7 @@ void P2PLinkManager::StartIdleTimer(const std::string &networkId)
     std::string taskName = IdleTimerName(networkId);
     timer_->CancelTimer(taskName);
     FFRTTask task = [this, networkId] {
-        std::thread thread([=]() { OnIdleTimeout(networkId); });
-        PasteBoardCommonUtils::SetThreadTaskName(thread, "P2pIdleTimeout");
-        thread.detach();
+        FFRTUtils::SubmitTask([this, networkId] { OnIdleTimeout(networkId); });
     };
     timer_->SetTimer(taskName, task, IDLE_TIMEOUT);
 }
@@ -424,7 +435,7 @@ void P2PLinkManager::OnIdleTimeout(const std::string &networkId)
     }
     bool shouldClose = false;
     {
-        std::lock_guard<std::mutex> lock(entry->mutex);
+        std::lock_guard<FFRTMutex> lock(entry->mutex);
         if (entry->refCount <= 0 && entry->state.load() == LinkState::ESTABLISHED) {
             entry->state.store(LinkState::IDLE);
             entry->resourcesApplied = false;
@@ -443,7 +454,7 @@ void P2PLinkManager::OnIdleTimeout(const std::string &networkId)
 
 void P2PLinkManager::CleanupEntryIfIdle(const std::string &networkId, std::shared_ptr<LinkEntry> entry)
 {
-    std::lock_guard<std::mutex> lock(entry->mutex);
+    std::lock_guard<FFRTMutex> lock(entry->mutex);
     entry->state.store(LinkState::IDLE);
     entry->resourcesApplied = false;
     entry->establishBlock = nullptr;
