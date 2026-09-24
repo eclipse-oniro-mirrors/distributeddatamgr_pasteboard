@@ -17,8 +17,8 @@
 
 #include "cJSON.h"
 #include "clip/clip_plugin.h"
-#include "serializable/serializable.h"
 #include "pasteboard_hilog.h"
+#include "serializable/serializable.h"
 
 namespace OHOS::MiscServices {
 using namespace testing::ext;

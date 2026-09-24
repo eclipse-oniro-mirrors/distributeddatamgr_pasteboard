@@ -206,6 +206,9 @@ public:
     void ClearUriOnUninstall(std::shared_ptr<PasteData> pasteData);
     void CleanDistributedData(int32_t user);
     void HandleWifiOffAndClearDistributedEvent(int32_t userId);
+#ifdef PB_COCKPIT_PLATFORM_ENABLE
+    void HandleSubProfileEvent(int32_t type, int32_t osAccountId);
+#endif
     bool IsValidCurrentEvent();
     bool IsFileManagerApp(const std::string &bundleName);
     bool StartWith(const std::string &str, const std::string &prefix);
@@ -480,9 +483,6 @@ private:
     void InitPlugin(std::shared_ptr<ClipPlugin> clipPlugin);
     void OnAccountSwitching(int32_t osAccountId);
     void OnAccountSwitched(int32_t osAccountId);
-#ifdef PB_COCKPIT_PLATFORM_ENABLE
-    void HandleSubProfileEvent(int32_t type, int32_t osAccountId);
-#endif
     bool OpenP2PLinkForPreEstablish(const std::string &networkId, ClipPlugin *clipPlugin);
     void PreEstablishP2PLink(const std::string &networkId, ClipPlugin *clipPlugin);
     void PreEstablishP2PLinkCallback(const std::string &networkId, ClipPlugin *clipPlugin);
