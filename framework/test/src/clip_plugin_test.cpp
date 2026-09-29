@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,8 +17,8 @@
 
 #include "cJSON.h"
 #include "clip/clip_plugin.h"
-#include "serializable/serializable.h"
 #include "pasteboard_hilog.h"
+#include "serializable/serializable.h"
 
 namespace OHOS::MiscServices {
 using namespace testing::ext;
@@ -341,5 +341,33 @@ HWTEST_F(ClipPluginTest, IsWiFiEnableTest, TestSize.Level0)
     bool result = clipPlugin->IsWiFiEnable();
     ASSERT_EQ(result, false);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "IsWiFiEnableTest end");
+}
+
+/**
+ * @tc.name: RegisterListenersTest001
+ * @tc.desc: test RegisterListeners base callable
+ * @tc.type: FUNC
+ */
+HWTEST_F(ClipPluginTest, RegisterListenersTest001, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RegisterListenersTest001 start");
+    auto clipPlugin = std::make_shared<CustomClipPlugin>();
+    ASSERT_NE(clipPlugin, nullptr);
+    clipPlugin->RegisterListeners(10);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "RegisterListenersTest001 end");
+}
+
+/**
+ * @tc.name: UnregisterListenersTest001
+ * @tc.desc: test UnregisterListeners base callable
+ * @tc.type: FUNC
+ */
+HWTEST_F(ClipPluginTest, UnregisterListenersTest001, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "UnregisterListenersTest001 start");
+    auto clipPlugin = std::make_shared<CustomClipPlugin>();
+    ASSERT_NE(clipPlugin, nullptr);
+    clipPlugin->UnregisterListeners(10);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "UnregisterListenersTest001 end");
 }
 } // namespace OHOS::MiscServices

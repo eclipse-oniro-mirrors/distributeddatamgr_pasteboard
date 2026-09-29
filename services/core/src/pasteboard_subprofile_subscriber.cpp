@@ -38,23 +38,13 @@ void PasteboardSubProfileSubscriber::OnSubProfileAccountsChangedInner(
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "Event received: type=%{public}d, osAccountId=%{public}d",
         static_cast<int32_t>(type), osAccountId);
-
-    PASTEBOARD_CHECK_AND_RETURN_LOGE(service != nullptr,
-        PASTEBOARD_MODULE_SERVICE, "service is nullptr");
-
+    PASTEBOARD_CHECK_AND_RETURN_LOGE(service != nullptr, PASTEBOARD_MODULE_SERVICE, "service is nullptr");
     PASTEBOARD_CHECK_AND_RETURN_LOGE(type != AccountSA::OsAccountSubProfileEventType::INVALID_TYPE,
         PASTEBOARD_MODULE_SERVICE, "Invalid event type");
+    PASTEBOARD_CHECK_AND_RETURN_LOGE(osAccountId >= 0, PASTEBOARD_MODULE_SERVICE,
+        "Invalid osAccountId=%{public}d", osAccountId);
 
-    PASTEBOARD_CHECK_AND_RETURN_LOGE(osAccountId >= 0,
-        PASTEBOARD_MODULE_SERVICE, "Invalid osAccountId=%{public}d", osAccountId);
-
-    int32_t result = service->ClearByUser(osAccountId);
-    if (result != ERR_OK) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "ClearByUser failed, osAccountId=%{public}d, result=%{public}d",
-            osAccountId, result);
-    } else {
-        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ClearByUser successful, osAccountId=%{public}d", osAccountId);
-    }
+    service->HandleSubProfileEvent(static_cast<int32_t>(type), osAccountId);
 }
 
 } // namespace OHOS::MiscServices
