@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -86,6 +86,8 @@ public:
     virtual bool NeedSyncTopEvent();
     virtual void RegisterPreSyncCallback(const PreSyncCallback &callback);
     virtual void RegisterPreSyncMonitorCallback(const PreSyncMonitorCallback &callback);
+    virtual void RegisterListeners(int32_t userId);
+    virtual void UnregisterListeners(int32_t userId);
     virtual void SendPreSyncEvent(int32_t userId);
     virtual void SetMaxLocalCapacity(int64_t maxLocalCapacity);
     virtual int32_t GetMimeTypes(std::vector<uint8_t> &mimeTypes, const GlobalEvent &event);

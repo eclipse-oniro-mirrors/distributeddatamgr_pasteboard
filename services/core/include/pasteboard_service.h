@@ -202,6 +202,9 @@ public:
     void ClearUriOnUninstall(std::shared_ptr<PasteData> pasteData);
     void CleanDistributedData(int32_t user);
     void HandleWifiOffAndClearDistributedEvent(int32_t userId);
+#ifdef PB_COCKPIT_PLATFORM_ENABLE
+    void HandleSubProfileEvent(int32_t type, int32_t osAccountId);
+#endif
     bool IsValidCurrentEvent();
     bool IsFileManagerApp(const std::string &bundleName);
     bool StartWith(const std::string &str, const std::string &prefix);
@@ -420,6 +423,7 @@ private:
     void OnConfigChange(bool isOn);
     void OnConfigChangeInner(bool isOn);
     std::shared_ptr<ClipPlugin> GetClipPlugin();
+    bool IsCallerOnMainDisplay(int32_t userId);
     void IncreaseChangeCount(int32_t userId);
 
     static std::string GetTime();
@@ -464,6 +468,8 @@ private:
     std::vector<std::string> DecodeMimeTypes(const std::vector<uint8_t> &rawData);
 
     void InitPlugin(std::shared_ptr<ClipPlugin> clipPlugin);
+    void OnAccountSwitching(int32_t osAccountId);
+    void OnAccountSwitched(int32_t osAccountId);
     void PreEstablishP2PLinkCallback(const std::string &networkId, ClipPlugin *clipPlugin);
     void PreSyncSwitchMonitorCallback();
     void RegisterPreSyncMonitor();
