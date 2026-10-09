@@ -37,6 +37,7 @@ namespace {
 constexpr int32_t RESULT_OK = 0;
 constexpr int32_t REMOTE_DEV_FAIL = static_cast<int32_t>(PasteboardError::NO_TRUST_DEVICE_ERROR);
 constexpr int32_t REMOTE_DEV_OK = static_cast<int32_t>(PasteboardError::E_OK);
+constexpr uint32_t POLL_INTERVAL_MS = 10;
 const std::string NET_A = "networkIdA";
 const std::string NET_B = "networkIdB";
 } // namespace
@@ -186,11 +187,11 @@ std::shared_ptr<P2PLinkManager::LinkEntry> P2PLinkManagerTest::GetEntry(
 
 bool P2PLinkManagerTest::WaitForEstablished(P2PLinkManager &m, const std::string &networkId, uint32_t timeoutMs)
 {
-    for (uint32_t elapsed = 0; elapsed <= timeoutMs; elapsed += 10) {
+    for (uint32_t elapsed = 0; elapsed <= timeoutMs; elapsed += POLL_INTERVAL_MS) {
         if (m.IsEstablished(networkId)) {
             return true;
         }
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        std::this_thread::sleep_for(std::chrono::milliseconds(POLL_INTERVAL_MS));
     }
     return false;
 }
@@ -542,7 +543,8 @@ HWTEST_F(P2PLinkManagerTest, DoEstablishTest004, TestSize.Level1)
     ON_CALL(plugin, ApplyAdvancedResource).WillByDefault(Return(RESULT_OK));
     ON_CALL(plugin, PublishServiceState).WillByDefault(Return(RESULT_OK));
     EXPECT_CALL(plugin, ApplyAdvancedResource(NET_A)).WillOnce(Return(RESULT_OK));
-    EXPECT_CALL(plugin, PublishServiceState(NET_A, ClipPlugin::ServiceStatus::CONNECT_SUCC)).WillOnce(Return(RESULT_OK));
+    EXPECT_CALL(plugin, PublishServiceState(NET_A, ClipPlugin::ServiceStatus::CONNECT_SUCC))
+        .WillOnce(Return(RESULT_OK));
     EXPECT_CALL(plugin, PublishServiceState(NET_A, ClipPlugin::ServiceStatus::IDLE)).WillOnce(Return(RESULT_OK));
     auto mgr = MakeManager(nullptr, plugin);
     auto entry = GetEntry(mgr, NET_A);
@@ -571,7 +573,8 @@ HWTEST_F(P2PLinkManagerTest, DoEstablishTest005, TestSize.Level1)
     ON_CALL(plugin, ApplyAdvancedResource).WillByDefault(Return(RESULT_OK));
     ON_CALL(plugin, PublishServiceState).WillByDefault(Return(RESULT_OK));
     EXPECT_CALL(plugin, ApplyAdvancedResource(NET_A)).WillOnce(Return(RESULT_OK));
-    EXPECT_CALL(plugin, PublishServiceState(NET_A, ClipPlugin::ServiceStatus::CONNECT_SUCC)).WillOnce(Return(RESULT_OK));
+    EXPECT_CALL(plugin, PublishServiceState(NET_A, ClipPlugin::ServiceStatus::CONNECT_SUCC))
+        .WillOnce(Return(RESULT_OK));
     EXPECT_CALL(plugin, PublishServiceState(NET_A, ClipPlugin::ServiceStatus::IDLE)).Times(0);
     auto mgr = MakeManager(nullptr, plugin);
     auto entry = GetEntry(mgr, NET_A);
@@ -600,7 +603,8 @@ HWTEST_F(P2PLinkManagerTest, DoEstablishTest006, TestSize.Level1)
     NiceMock<MockClipPlugin> plugin;
     ON_CALL(plugin, PublishServiceState).WillByDefault(Return(RESULT_OK));
     EXPECT_CALL(plugin, ApplyAdvancedResource).Times(0);
-    EXPECT_CALL(plugin, PublishServiceState(NET_A, ClipPlugin::ServiceStatus::CONNECT_SUCC)).WillOnce(Return(RESULT_OK));
+    EXPECT_CALL(plugin, PublishServiceState(NET_A, ClipPlugin::ServiceStatus::CONNECT_SUCC))
+        .WillOnce(Return(RESULT_OK));
     auto mgr = MakeManager(nullptr, plugin);
     auto entry = GetEntry(mgr, NET_A);
     entry->state.store(P2PLinkManager::LinkState::ESTABLISHING);
