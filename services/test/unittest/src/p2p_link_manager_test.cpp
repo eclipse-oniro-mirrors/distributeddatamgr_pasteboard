@@ -196,9 +196,7 @@ bool P2PLinkManagerTest::WaitForEstablished(P2PLinkManager &m, const std::string
     return false;
 }
 
-// ===========================================================================
 // Init
-// ===========================================================================
 
 /**
  * @tc.name: InitTest001
@@ -218,9 +216,7 @@ HWTEST_F(P2PLinkManagerTest, InitTest001, TestSize.Level1)
     EXPECT_NE(mgr.pluginGetter_, nullptr);
 }
 
-// ===========================================================================
 // GetOrCreateEntry / HasLink / IsEstablished / GetAllNetworkIds
-// ===========================================================================
 
 /**
  * @tc.name: HasLinkTest001
@@ -301,9 +297,7 @@ HWTEST_F(P2PLinkManagerTest, GetOrCreateEntryTest001, TestSize.Level1)
     EXPECT_TRUE(mgr.HasLink(NET_A));
 }
 
-// ===========================================================================
 // EnsureLink (PrepareEnsurePlan branches)
-// ===========================================================================
 
 /**
  * @tc.name: EnsureLinkTest001
@@ -396,9 +390,7 @@ HWTEST_F(P2PLinkManagerTest, EnsureLinkTest005, TestSize.Level1)
     EXPECT_EQ(entry->refCount, 1);
 }
 
-// ===========================================================================
 // PreEstablish
-// ===========================================================================
 
 /**
  * @tc.name: PreEstablishTest001
@@ -459,9 +451,7 @@ HWTEST_F(P2PLinkManagerTest, PreEstablishTest004, TestSize.Level1)
     EXPECT_EQ(entry->state.load(), P2PLinkManager::LinkState::ESTABLISHED);
 }
 
-// ===========================================================================
 // DoEstablish (direct synchronous calls cover all branches)
-// ===========================================================================
 
 /**
  * @tc.name: DoEstablishTest001
@@ -620,9 +610,7 @@ HWTEST_F(P2PLinkManagerTest, DoEstablishTest006, TestSize.Level1)
     mgr.ForceClose(NET_A);
 }
 
-// ===========================================================================
 // ApplyAdvancedResource (direct)
-// ===========================================================================
 
 /**
  * @tc.name: ApplyAdvancedResourceTest001
@@ -665,9 +653,7 @@ HWTEST_F(P2PLinkManagerTest, ApplyAdvancedResourceTest002, TestSize.Level1)
     EXPECT_EQ(entry->state.load(), P2PLinkManager::LinkState::ESTABLISHING);
 }
 
-// ===========================================================================
 // ApplyResourceOnReuse (direct)
-// ===========================================================================
 
 /**
  * @tc.name: ApplyResourceOnReuseTest001
@@ -718,9 +704,7 @@ HWTEST_F(P2PLinkManagerTest, ApplyResourceOnReuseTest003, TestSize.Level1)
     EXPECT_FALSE(entry->resourcesApplied);
 }
 
-// ===========================================================================
 // Release
-// ===========================================================================
 
 /**
  * @tc.name: ReleaseTest001
@@ -785,9 +769,7 @@ HWTEST_F(P2PLinkManagerTest, ReleaseTest004, TestSize.Level1)
     EXPECT_EQ(entry->state.load(), P2PLinkManager::LinkState::ESTABLISHING);
 }
 
-// ===========================================================================
 // ForceClose / CloseAll / RemoveLink
-// ===========================================================================
 
 /**
  * @tc.name: ForceCloseTest001
@@ -874,9 +856,7 @@ HWTEST_F(P2PLinkManagerTest, RemoveLinkTest001, TestSize.Level1)
     EXPECT_FALSE(mgr.HasLink(NET_A));
 }
 
-// ===========================================================================
 // DoCloseLink (direct)
-// ===========================================================================
 
 /**
  * @tc.name: DoCloseLinkTest001
@@ -915,9 +895,7 @@ HWTEST_F(P2PLinkManagerTest, DoCloseLinkTest002, TestSize.Level1)
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
 }
 
-// ===========================================================================
 // OnIdleTimeout
-// ===========================================================================
 
 /**
  * @tc.name: OnIdleTimeoutTest001
@@ -985,9 +963,7 @@ HWTEST_F(P2PLinkManagerTest, OnIdleTimeoutTest004, TestSize.Level1)
     EXPECT_EQ(entry->state.load(), P2PLinkManager::LinkState::ESTABLISHING);
 }
 
-// ===========================================================================
 // CleanupEntryIfIdle (direct)
-// ===========================================================================
 
 /**
  * @tc.name: CleanupEntryIfIdleTest001
@@ -1023,9 +999,7 @@ HWTEST_F(P2PLinkManagerTest, CleanupEntryIfIdleTest002, TestSize.Level1)
     EXPECT_EQ(entry->establishBlock, nullptr);
 }
 
-// ===========================================================================
 // NotifyWaiters (direct)
-// ===========================================================================
 
 /**
  * @tc.name: NotifyWaitersTest001
@@ -1064,9 +1038,7 @@ HWTEST_F(P2PLinkManagerTest, NotifyWaitersTest002, TestSize.Level1)
     EXPECT_EQ(entry->waiters.size(), 0u);
 }
 
-// ===========================================================================
 // Timer helpers
-// ===========================================================================
 
 /**
  * @tc.name: StartIdleTimerTest001
@@ -1103,9 +1075,7 @@ HWTEST_F(P2PLinkManagerTest, TimerNameTest001, TestSize.Level1)
     EXPECT_EQ(P2PLinkManager::EstablishTimerName(NET_A), "P2P_ESTABLISH_" + NET_A);
 }
 
-// ===========================================================================
 // Async integration: EnsureLink -> ScheduleEstablish -> DoEstablish (success/fail)
-// ===========================================================================
 
 /**
  * @tc.name: EnsureLinkIntegrationTest001
