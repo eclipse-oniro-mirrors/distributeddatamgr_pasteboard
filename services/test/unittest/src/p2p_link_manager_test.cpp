@@ -117,9 +117,6 @@ public:
         (const std::string &networkId, ServiceStatus status), (override));
 };
 
-// ---------------------------------------------------------------------------
-// Test fixture
-// ---------------------------------------------------------------------------
 class P2PLinkManagerTest : public testing::Test {
 public:
     static void SetUpTestCase(void);

@@ -325,6 +325,37 @@ void P2PLinkManager::Release(const std::string &networkId)
 #endif
 }
 
+void P2PLinkManager::CloseEntryInternal(const std::string &networkId, std::shared_ptr<LinkEntry> entry)
+{
+    CancelIdleTimer(networkId);
+    if (timer_) {
+        timer_->CancelTimer(EstablishTimerName(networkId));
+    }
+    if (!entry) {
+        return;
+    }
+    std::vector<std::shared_ptr<BlockObject<int32_t>>> snapshot;
+    std::shared_ptr<BlockObject<int32_t>> establishBlock;
+    {
+        std::lock_guard<FFRTMutex> lock(entry->mutex);
+        establishBlock = entry->establishBlock;
+        entry->establishBlock = nullptr;
+        snapshot = entry->waiters;
+        entry->waiters.clear();
+        entry->state.store(LinkState::IDLE);
+        entry->refCount = 0;
+        entry->resourcesApplied = false;
+    }
+    if (establishBlock) {
+        establishBlock->SetValue(SET_VALUE_FAILURE);
+    }
+    for (const auto &block : snapshot) {
+        if (block) {
+            block->SetValue(SET_VALUE_FAILURE);
+        }
+    }
+}
+
 void P2PLinkManager::ForceClose(const std::string &networkId)
 {
 #ifdef PB_DEVICE_MANAGER_ENABLE
@@ -332,20 +363,9 @@ void P2PLinkManager::ForceClose(const std::string &networkId)
     if (!found || !entry) {
         return;
     }
-    CancelIdleTimer(networkId);
-    if (timer_) {
-        timer_->CancelTimer(EstablishTimerName(networkId));
-    }
-    NotifyWaiters(entry, SET_VALUE_FAILURE);
-    {
-        std::lock_guard<FFRTMutex> lock(entry->mutex);
-        entry->state.store(LinkState::IDLE);
-        entry->refCount = 0;
-        entry->resourcesApplied = false;
-        entry->establishBlock = nullptr;
-    }
-    DoCloseLink(networkId);
+    CloseEntryInternal(networkId, entry);
     links_.Erase(networkId);
+    DoCloseLink(networkId);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "force close, deviceId=%{public}.5s", networkId.c_str());
 #endif
 }
@@ -354,18 +374,7 @@ void P2PLinkManager::CloseAll()
 {
 #ifdef PB_DEVICE_MANAGER_ENABLE
     links_.ForEach([this](const auto &networkId, auto &entry) {
-        CancelIdleTimer(networkId);
-        if (timer_) {
-            timer_->CancelTimer(EstablishTimerName(networkId));
-        }
-        if (entry) {
-            NotifyWaiters(entry, SET_VALUE_FAILURE);
-            std::lock_guard<FFRTMutex> lock(entry->mutex);
-            entry->state.store(LinkState::IDLE);
-            entry->refCount = 0;
-            entry->resourcesApplied = false;
-            entry->establishBlock = nullptr;
-        }
+        CloseEntryInternal(networkId, entry);
         DoCloseLink(networkId);
         return false;
     });
@@ -476,18 +485,26 @@ void P2PLinkManager::OnIdleTimeout(const std::string &networkId)
 
 void P2PLinkManager::CleanupEntryIfIdle(const std::string &networkId, std::shared_ptr<LinkEntry> entry)
 {
-    std::lock_guard<FFRTMutex> lock(entry->mutex);
-    entry->state.store(LinkState::IDLE);
-    entry->resourcesApplied = false;
-    entry->establishBlock = nullptr;
-    if (entry->refCount <= 0) {
+    bool shouldErase = false;
+    int32_t refPending = 0;
+    {
+        std::lock_guard<FFRTMutex> lock(entry->mutex);
+        entry->state.store(LinkState::IDLE);
+        entry->resourcesApplied = false;
+        entry->establishBlock = nullptr;
+        if (entry->refCount <= 0) {
+            shouldErase = true;
+        }
+        refPending = entry->refCount;
+    }
+    if (shouldErase) {
         links_.Erase(networkId);
         PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE,
             "cleanup idle entry after establish failure, deviceId=%{public}.5s", networkId.c_str());
     } else {
         PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE,
             "reset to idle after establish failure, ref pending, deviceId=%{public}.5s, ref=%{public}d",
-            networkId.c_str(), entry->refCount);
+            networkId.c_str(), refPending);
     }
 }
 

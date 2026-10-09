@@ -98,6 +98,7 @@ private:
     bool ConnectDfsAndPublish(const std::string &networkId, std::shared_ptr<ClipPlugin> plugin,
         std::shared_ptr<LinkEntry> entry, bool applyResources);
     void DoCloseLink(const std::string &networkId);
+    void CloseEntryInternal(const std::string &networkId, std::shared_ptr<LinkEntry> entry);
     void StartIdleTimer(const std::string &networkId);
     void CancelIdleTimer(const std::string &networkId);
     void OnIdleTimeout(const std::string &networkId);
