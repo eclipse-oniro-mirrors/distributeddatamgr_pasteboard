@@ -2354,11 +2354,52 @@ ohos_unittest("PasteboardSubProfileSubscriberTest") {
   }
 }
 
+ohos_unittest("P2PLinkManagerTest") {
+  use_exceptions = true
+  module_out_path = module_output_path
+  sources = [
+    "${pasteboard_service_path}/core/src/p2p_link_manager.cpp",
+    "unittest/src/p2p_link_manager_test.cpp",
+  ]
+  configs = [ ":module_private_config" ]
+  cflags = [ "-fno-access-control" ]
+  # The fake distributed_file_daemon_manager.h must be found before any real
+  # header, so the mock/p2p directory is listed first.
+  include_dirs = [
+    "unittest/mock/p2p",
+    "${pasteboard_service_path}/dfx/src",
+    "${pasteboard_service_path}/dfx/src/behaviour",
+    "${pasteboard_service_path}/dfx/src/statistic",
+    "${pasteboard_service_path}/dfx/src/fault",
+    "${pasteboard_service_path}/core/include",
+    "${pasteboard_framework_path}/framework/include",
+    "${pasteboard_framework_path}/framework/include/device",
+    "${pasteboard_utils_path}/native/include",
+  ]
+  external_deps = [
+    "cJSON:cjson",
+    "c_utils:utils",
+    "ffrt:libffrt",
+    "googletest:gmock",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+  ]
+  deps = [
+    "${pasteboard_framework_path}:pasteboard_framework",
+  ]
+  defines = []
+  if (pasteboard_device_manager_part_enabled) {
+    external_deps += [ "device_manager:devicemanagersdk" ]
+    defines += [ "PB_DEVICE_MANAGER_ENABLE" ]
+  }
+}
+
 group("unittest") {
   testonly = true
   deps = [
     ":EntityRecognitionObserverStubTest",
     ":HiViewAdapterTest",
+    ":P2PLinkManagerTest",
     ":PasteboardAbilityManagerTest",
     ":PasteboardDeduplicateMemoryTest",
     ":PasteboardDelayManagerTest",
