@@ -42,9 +42,6 @@ const std::string NET_A = "networkIdA";
 const std::string NET_B = "networkIdB";
 } // namespace
 
-// ---------------------------------------------------------------------------
-// Mock: DistributedFileDaemonManager (virtual, override GetInstance)
-// ---------------------------------------------------------------------------
 class MockDfsDaemonManager : public DistributedFileDaemonManager {
 public:
     MOCK_METHOD(int32_t, ConnectDfs, (const std::string &networkId), (override));
@@ -61,9 +58,6 @@ DistributedFileDaemonManager &DistributedFileDaemonManager::GetInstance()
 }
 } // namespace OHOS::Storage::DistributedFile
 
-// ---------------------------------------------------------------------------
-// Mock: DMAdapter::GetRemoteDeviceInfo (non-virtual, symbol override)
-// ---------------------------------------------------------------------------
 class P2PLinkInterface {
 public:
     virtual ~P2PLinkInterface() = default;
@@ -102,9 +96,6 @@ int32_t DMAdapter::GetRemoteDeviceInfo(const std::string &networkId, DmDeviceInf
     return iface->GetRemoteDeviceInfo(networkId, remoteDevice);
 }
 
-// ---------------------------------------------------------------------------
-// Mock: ClipPlugin (virtual, injected via pluginGetter_)
-// ---------------------------------------------------------------------------
 class MockClipPlugin : public ClipPlugin {
 public:
     MOCK_METHOD(int32_t, SetPasteData,
@@ -124,21 +115,15 @@ public:
     void SetUp();
     void TearDown();
 
-    // Create a manager initialized with given timer and a shared mock plugin.
     P2PLinkManager MakeManager(std::shared_ptr<FFRTTimer> timer, NiceMock<MockClipPlugin> &plugin);
-    // Create a manager with nullptr timer and nullptr plugin getter.
     P2PLinkManager MakeBareManager();
-    // Acquire a private LinkEntry for direct manipulation (requires -fno-access-control).
     std::shared_ptr<P2PLinkManager::LinkEntry> GetEntry(P2PLinkManager &m, const std::string &networkId);
-    // Wait until the link is established (async integration tests).
     bool WaitForEstablished(P2PLinkManager &m, const std::string &networkId, uint32_t timeoutMs = 3000);
 };
 
 void P2PLinkManagerTest::SetUpTestCase()
 {
-    // The dfs mock is a long-lived global; suppress gmock leak warnings for it.
     testing::Mock::AllowLeak(&g_dfsMock);
-    // Default behavior for the long-lived dfs mock: fail connect, succeed disconnect.
     ON_CALL(g_dfsMock, ConnectDfs).WillByDefault(Return(-1));
     ON_CALL(g_dfsMock, DisconnectDfs).WillByDefault(Return(RESULT_OK));
 }
@@ -150,7 +135,6 @@ void P2PLinkManagerTest::TearDownTestCase()
 
 void P2PLinkManagerTest::SetUp()
 {
-    // Reset any per-test dfs expectations.
     testing::Mock::VerifyAndClearExpectations(&g_dfsMock);
     ON_CALL(g_dfsMock, ConnectDfs).WillByDefault(Return(-1));
     ON_CALL(g_dfsMock, DisconnectDfs).WillByDefault(Return(RESULT_OK));
@@ -195,8 +179,6 @@ bool P2PLinkManagerTest::WaitForEstablished(P2PLinkManager &m, const std::string
     return false;
 }
 
-// Init
-
 /**
  * @tc.name: InitTest001
  * @tc.desc: Init stores timer and plugin getter
@@ -214,8 +196,6 @@ HWTEST_F(P2PLinkManagerTest, InitTest001, TestSize.Level1)
     EXPECT_NE(mgr.timer_, nullptr);
     EXPECT_NE(mgr.pluginGetter_, nullptr);
 }
-
-// GetOrCreateEntry / HasLink / IsEstablished / GetAllNetworkIds
 
 /**
  * @tc.name: HasLinkTest001
@@ -295,8 +275,6 @@ HWTEST_F(P2PLinkManagerTest, GetOrCreateEntryTest001, TestSize.Level1)
     EXPECT_EQ(e1.get(), e2.get());
     EXPECT_TRUE(mgr.HasLink(NET_A));
 }
-
-// EnsureLink (PrepareEnsurePlan branches)
 
 /**
  * @tc.name: EnsureLinkTest001
@@ -389,8 +367,6 @@ HWTEST_F(P2PLinkManagerTest, EnsureLinkTest005, TestSize.Level1)
     EXPECT_EQ(entry->refCount, 1);
 }
 
-// PreEstablish
-
 /**
  * @tc.name: PreEstablishTest001
  * @tc.desc: empty networkId is a no-op
@@ -449,8 +425,6 @@ HWTEST_F(P2PLinkManagerTest, PreEstablishTest004, TestSize.Level1)
     mgr.PreEstablish(NET_A);
     EXPECT_EQ(entry->state.load(), P2PLinkManager::LinkState::ESTABLISHED);
 }
-
-// DoEstablish (direct synchronous calls cover all branches)
 
 /**
  * @tc.name: DoEstablishTest001
@@ -614,8 +588,6 @@ HWTEST_F(P2PLinkManagerTest, DoEstablishTest006, TestSize.Level1)
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
 }
 
-// ApplyAdvancedResource (direct)
-
 /**
  * @tc.name: ApplyAdvancedResourceTest001
  * @tc.desc: ApplyAdvancedResource fails -> notify failure, cleanup, return false
@@ -656,8 +628,6 @@ HWTEST_F(P2PLinkManagerTest, ApplyAdvancedResourceTest002, TestSize.Level1)
     EXPECT_TRUE(ret);
     EXPECT_EQ(entry->state.load(), P2PLinkManager::LinkState::ESTABLISHING);
 }
-
-// ApplyResourceOnReuse (direct)
 
 /**
  * @tc.name: ApplyResourceOnReuseTest001
@@ -707,8 +677,6 @@ HWTEST_F(P2PLinkManagerTest, ApplyResourceOnReuseTest003, TestSize.Level1)
     mgr.ApplyResourceOnReuse(NET_A, entry);
     EXPECT_FALSE(entry->resourcesApplied);
 }
-
-// Release
 
 /**
  * @tc.name: ReleaseTest001
@@ -772,8 +740,6 @@ HWTEST_F(P2PLinkManagerTest, ReleaseTest004, TestSize.Level1)
     EXPECT_EQ(entry->refCount, 0);
     EXPECT_EQ(entry->state.load(), P2PLinkManager::LinkState::ESTABLISHING);
 }
-
-// ForceClose / CloseAll / RemoveLink
 
 /**
  * @tc.name: ForceCloseTest001
@@ -860,8 +826,6 @@ HWTEST_F(P2PLinkManagerTest, RemoveLinkTest001, TestSize.Level1)
     EXPECT_FALSE(mgr.HasLink(NET_A));
 }
 
-// DoCloseLink (direct)
-
 /**
  * @tc.name: DoCloseLinkTest001
  * @tc.desc: GetRemoteDeviceInfo fails -> early return, no DisconnectDfs
@@ -898,8 +862,6 @@ HWTEST_F(P2PLinkManagerTest, DoCloseLinkTest002, TestSize.Level1)
     mgr.DoCloseLink(NET_A);
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
 }
-
-// OnIdleTimeout
 
 /**
  * @tc.name: OnIdleTimeoutTest001
@@ -967,8 +929,6 @@ HWTEST_F(P2PLinkManagerTest, OnIdleTimeoutTest004, TestSize.Level1)
     EXPECT_EQ(entry->state.load(), P2PLinkManager::LinkState::ESTABLISHING);
 }
 
-// CleanupEntryIfIdle (direct)
-
 /**
  * @tc.name: CleanupEntryIfIdleTest001
  * @tc.desc: refCount<=0 -> entry erased from map
@@ -1002,8 +962,6 @@ HWTEST_F(P2PLinkManagerTest, CleanupEntryIfIdleTest002, TestSize.Level1)
     EXPECT_FALSE(entry->resourcesApplied);
     EXPECT_EQ(entry->establishBlock, nullptr);
 }
-
-// NotifyWaiters (direct)
 
 /**
  * @tc.name: NotifyWaitersTest001
@@ -1042,8 +1000,6 @@ HWTEST_F(P2PLinkManagerTest, NotifyWaitersTest002, TestSize.Level1)
     EXPECT_EQ(entry->waiters.size(), 0u);
 }
 
-// Timer helpers
-
 /**
  * @tc.name: StartIdleTimerTest001
  * @tc.desc: StartIdleTimer with null timer is a no-op (no crash)
@@ -1078,8 +1034,6 @@ HWTEST_F(P2PLinkManagerTest, TimerNameTest001, TestSize.Level1)
     EXPECT_EQ(P2PLinkManager::IdleTimerName(NET_A), "P2P_IDLE_" + NET_A);
     EXPECT_EQ(P2PLinkManager::EstablishTimerName(NET_A), "P2P_ESTABLISH_" + NET_A);
 }
-
-// Async integration: EnsureLink -> ScheduleEstablish -> DoEstablish (success/fail)
 
 /**
  * @tc.name: EnsureLinkIntegrationTest001
