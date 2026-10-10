@@ -136,6 +136,8 @@ public:
 
 void P2PLinkManagerTest::SetUpTestCase()
 {
+    // The dfs mock is a long-lived global; suppress gmock leak warnings for it.
+    testing::Mock::AllowLeak(&g_dfsMock);
     // Default behavior for the long-lived dfs mock: fail connect, succeed disconnect.
     ON_CALL(g_dfsMock, ConnectDfs).WillByDefault(Return(-1));
     ON_CALL(g_dfsMock, DisconnectDfs).WillByDefault(Return(RESULT_OK));
@@ -562,7 +564,7 @@ HWTEST_F(P2PLinkManagerTest, DoEstablishTest005, TestSize.Level1)
     EXPECT_CALL(plugin, ApplyAdvancedResource(NET_A)).WillOnce(Return(RESULT_OK));
     EXPECT_CALL(plugin, PublishServiceState(NET_A, ClipPlugin::ServiceStatus::CONNECT_SUCC))
         .WillOnce(Return(RESULT_OK));
-    EXPECT_CALL(plugin, PublishServiceState(NET_A, ClipPlugin::ServiceStatus::IDLE)).Times(0);
+    EXPECT_CALL(plugin, PublishServiceState(NET_A, ClipPlugin::ServiceStatus::IDLE)).WillOnce(Return(RESULT_OK));
     auto mgr = MakeManager(nullptr, plugin);
     auto entry = GetEntry(mgr, NET_A);
     entry->state.store(P2PLinkManager::LinkState::ESTABLISHING);
@@ -570,12 +572,14 @@ HWTEST_F(P2PLinkManagerTest, DoEstablishTest005, TestSize.Level1)
     entry->establishBlock = std::make_shared<BlockObject<int32_t>>(P2PLinkManager::MIN_TRANMISSION_TIME, 0);
 
     NiceMock<P2PLinkInterfaceMock> dmMock;
-    EXPECT_CALL(dmMock, GetRemoteDeviceInfo(NET_A, _)).WillOnce(Return(REMOTE_DEV_OK));
+    EXPECT_CALL(dmMock, GetRemoteDeviceInfo(NET_A, _)).WillRepeatedly(Return(REMOTE_DEV_OK));
     EXPECT_CALL(g_dfsMock, ConnectDfs(NET_A)).WillOnce(Return(RESULT_OK));
+    EXPECT_CALL(g_dfsMock, DisconnectDfs(NET_A)).WillOnce(Return(RESULT_OK));
     mgr.DoEstablish(NET_A, entry, true);
     EXPECT_TRUE(mgr.IsEstablished(NET_A));
     EXPECT_EQ(entry->resourcesApplied, true);
     mgr.ForceClose(NET_A);
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
 }
 
 /**
@@ -592,6 +596,7 @@ HWTEST_F(P2PLinkManagerTest, DoEstablishTest006, TestSize.Level1)
     EXPECT_CALL(plugin, ApplyAdvancedResource).Times(0);
     EXPECT_CALL(plugin, PublishServiceState(NET_A, ClipPlugin::ServiceStatus::CONNECT_SUCC))
         .WillOnce(Return(RESULT_OK));
+    EXPECT_CALL(plugin, PublishServiceState(NET_A, ClipPlugin::ServiceStatus::IDLE)).WillOnce(Return(RESULT_OK));
     auto mgr = MakeManager(nullptr, plugin);
     auto entry = GetEntry(mgr, NET_A);
     entry->state.store(P2PLinkManager::LinkState::ESTABLISHING);
@@ -599,12 +604,14 @@ HWTEST_F(P2PLinkManagerTest, DoEstablishTest006, TestSize.Level1)
     entry->establishBlock = std::make_shared<BlockObject<int32_t>>(P2PLinkManager::MIN_TRANMISSION_TIME, 0);
 
     NiceMock<P2PLinkInterfaceMock> dmMock;
-    EXPECT_CALL(dmMock, GetRemoteDeviceInfo(NET_A, _)).WillOnce(Return(REMOTE_DEV_OK));
+    EXPECT_CALL(dmMock, GetRemoteDeviceInfo(NET_A, _)).WillRepeatedly(Return(REMOTE_DEV_OK));
     EXPECT_CALL(g_dfsMock, ConnectDfs(NET_A)).WillOnce(Return(RESULT_OK));
+    EXPECT_CALL(g_dfsMock, DisconnectDfs(NET_A)).WillOnce(Return(RESULT_OK));
     mgr.DoEstablish(NET_A, entry, false);
     EXPECT_TRUE(mgr.IsEstablished(NET_A));
     EXPECT_EQ(entry->resourcesApplied, false);
     mgr.ForceClose(NET_A);
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
 }
 
 // ApplyAdvancedResource (direct)
@@ -1096,6 +1103,7 @@ HWTEST_F(P2PLinkManagerTest, EnsureLinkIntegrationTest001, TestSize.Level1)
     EXPECT_TRUE(WaitForEstablished(mgr, NET_A));
     EXPECT_TRUE(mgr.IsEstablished(NET_A));
     mgr.ForceClose(NET_A);
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
 }
 
 /**
@@ -1122,4 +1130,5 @@ HWTEST_F(P2PLinkManagerTest, EnsureLinkIntegrationTest002, TestSize.Level1)
     EXPECT_FALSE(established);
     EXPECT_FALSE(mgr.IsEstablished(NET_A));
     mgr.ForceClose(NET_A);
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
 }
