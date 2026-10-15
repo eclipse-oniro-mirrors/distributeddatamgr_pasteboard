@@ -183,6 +183,13 @@ ohos_shared_library("pasteboard_service") {
     defines += [ "WITH_DLP" ]
   }
 
+  if (pasteboard_security_guard_ext_enabled) {
+    sources += [ "core/src/security_guard_adapter.cpp" ]
+    external_deps += [ "security_guard_ext:libsecurity_auth" ]
+  } else {
+    sources += [ "core/src/security_guard_adapter_virtual.cpp" ]
+  }
+
   if (pasteboard_device_info_manager_part_enabled) {
     external_deps += [
       "device_info_manager:distributed_device_profile_common",

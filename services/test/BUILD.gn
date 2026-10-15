@@ -76,11 +76,35 @@ ohos_unittest("PasteboardServiceTest") {
     "samgr:samgr_proxy",
     "udmf:udmf_client",
   ]
-
   deps = [
     "${pasteboard_framework_path}:pasteboard_framework",
     "${pasteboard_innerkits_path}:pasteboard_client",
     "${pasteboard_innerkits_path}:pasteboard_data",
+  ]
+}
+
+ohos_unittest("PasteboardSecurityGuardMockTest") {
+  module_out_path = module_output_path
+  cflags = [ "-fno-access-control" ]
+  sources = [
+    "${pasteboard_service_path}/core/src/security_guard_adapter.cpp",
+    "unittest/mock/security_guard/sg_auth_client_mock.cpp",
+    "unittest/src/pasteboard_security_guard_mock_test.cpp",
+  ]
+  configs = [ ":module_private_config" ]
+  include_dirs = [
+    "unittest/mock/security_guard",
+    "${pasteboard_framework_path}/framework/include",
+  ]
+  external_deps = [
+    "c_utils:utils",
+    "ffrt:libffrt",
+    "googletest:gmock",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+  ]
+  deps = [
+    "${pasteboard_framework_path}:pasteboard_framework",
   ]
 }
 
@@ -100,6 +124,7 @@ ohos_unittest("PasteServInterfaceTest") {
     "${pasteboard_service_path}/core/src/pasteboard_service.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_user_context.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_window_manager.cpp",
+    "${pasteboard_service_path}/core/src/security_guard_adapter_virtual.cpp",
     "${pasteboard_service_path}/dfx/src/behaviour/pasteboard_behaviour_reporter_impl.cpp",
     "${pasteboard_service_path}/dfx/src/calculate_time_consuming.cpp",
     "${pasteboard_service_path}/dfx/src/command.cpp",
@@ -239,6 +264,7 @@ ohos_unittest("PasteServInterfaceMockTest") {
     "${pasteboard_service_path}/core/src/pasteboard_service.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_user_context.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_window_manager.cpp",
+    "${pasteboard_service_path}/core/src/security_guard_adapter_virtual.cpp",
     "${pasteboard_service_path}/dfx/src/behaviour/pasteboard_behaviour_reporter_impl.cpp",
     "${pasteboard_service_path}/dfx/src/calculate_time_consuming.cpp",
     "${pasteboard_service_path}/dfx/src/command.cpp",
@@ -255,6 +281,7 @@ ohos_unittest("PasteServInterfaceMockTest") {
     "${pasteboard_service_path}/zidl/src/pasteboard_entry_getter_proxy.cpp",
     "${pasteboard_utils_path}/native/src/pasteboard_common.cpp",
     "${pasteboard_utils_path}/native/src/pasteboard_time.cpp",
+    "unittest/mock/access_token/accesstoken_kit_mock.cpp",
     "unittest/src/pasteboard_service_mock_test.cpp",
   ]
   defines = []
@@ -762,6 +789,7 @@ ohos_unittest("PasteServGetLocalDataTest") {
     "${pasteboard_service_path}/core/src/pasteboard_pattern.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_service.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_user_context.cpp",
+    "${pasteboard_service_path}/core/src/security_guard_adapter_virtual.cpp",
     "${pasteboard_service_path}/dfx/src/behaviour/pasteboard_behaviour_reporter_impl.cpp",
     "${pasteboard_service_path}/dfx/src/calculate_time_consuming.cpp",
     "${pasteboard_service_path}/dfx/src/command.cpp",
@@ -900,6 +928,7 @@ ohos_unittest("PasteServSubscribeTest") {
     "${pasteboard_service_path}/core/src/pasteboard_pattern.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_service.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_user_context.cpp",
+    "${pasteboard_service_path}/core/src/security_guard_adapter_virtual.cpp",
     "${pasteboard_service_path}/dfx/src/behaviour/pasteboard_behaviour_reporter_impl.cpp",
     "${pasteboard_service_path}/dfx/src/calculate_time_consuming.cpp",
     "${pasteboard_service_path}/dfx/src/command.cpp",
@@ -1038,6 +1067,7 @@ ohos_unittest("PasteServNotifyTest") {
     "${pasteboard_service_path}/core/src/pasteboard_pattern.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_service.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_user_context.cpp",
+    "${pasteboard_service_path}/core/src/security_guard_adapter_virtual.cpp",
     "${pasteboard_service_path}/dfx/src/behaviour/pasteboard_behaviour_reporter_impl.cpp",
     "${pasteboard_service_path}/dfx/src/calculate_time_consuming.cpp",
     "${pasteboard_service_path}/dfx/src/command.cpp",
@@ -1176,6 +1206,7 @@ ohos_unittest("PasteServSetDataTest") {
     "${pasteboard_service_path}/core/src/pasteboard_pattern.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_service.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_user_context.cpp",
+    "${pasteboard_service_path}/core/src/security_guard_adapter_virtual.cpp",
     "${pasteboard_service_path}/dfx/src/behaviour/pasteboard_behaviour_reporter_impl.cpp",
     "${pasteboard_service_path}/dfx/src/calculate_time_consuming.cpp",
     "${pasteboard_service_path}/dfx/src/command.cpp",
@@ -1314,6 +1345,7 @@ ohos_unittest("PasteServGetDataTest") {
     "${pasteboard_service_path}/core/src/pasteboard_pattern.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_service.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_user_context.cpp",
+    "${pasteboard_service_path}/core/src/security_guard_adapter_virtual.cpp",
     "${pasteboard_service_path}/dfx/src/behaviour/pasteboard_behaviour_reporter_impl.cpp",
     "${pasteboard_service_path}/dfx/src/calculate_time_consuming.cpp",
     "${pasteboard_service_path}/dfx/src/command.cpp",
@@ -1453,6 +1485,7 @@ ohos_unittest("PasteServEventTest") {
     "${pasteboard_service_path}/core/src/pasteboard_service.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_user_context.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_window_manager.cpp",
+    "${pasteboard_service_path}/core/src/security_guard_adapter_virtual.cpp",
     "${pasteboard_service_path}/dfx/src/behaviour/pasteboard_behaviour_reporter_impl.cpp",
     "${pasteboard_service_path}/dfx/src/calculate_time_consuming.cpp",
     "${pasteboard_service_path}/dfx/src/command.cpp",
@@ -1592,6 +1625,7 @@ ohos_unittest("PasteServGetTest") {
     "${pasteboard_service_path}/core/src/pasteboard_service.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_user_context.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_window_manager.cpp",
+    "${pasteboard_service_path}/core/src/security_guard_adapter_virtual.cpp",
     "${pasteboard_service_path}/dfx/src/behaviour/pasteboard_behaviour_reporter_impl.cpp",
     "${pasteboard_service_path}/dfx/src/calculate_time_consuming.cpp",
     "${pasteboard_service_path}/dfx/src/command.cpp",
@@ -1730,6 +1764,7 @@ ohos_unittest("PasteServCheckTest") {
     "${pasteboard_service_path}/core/src/pasteboard_service.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_user_context.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_window_manager.cpp",
+    "${pasteboard_service_path}/core/src/security_guard_adapter_virtual.cpp",
     "${pasteboard_service_path}/dfx/src/behaviour/pasteboard_behaviour_reporter_impl.cpp",
     "${pasteboard_service_path}/dfx/src/calculate_time_consuming.cpp",
     "${pasteboard_service_path}/dfx/src/command.cpp",
@@ -1868,6 +1903,7 @@ ohos_unittest("PasteServCleanTest") {
     "${pasteboard_service_path}/core/src/pasteboard_service.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_user_context.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_window_manager.cpp",
+    "${pasteboard_service_path}/core/src/security_guard_adapter_virtual.cpp",
     "${pasteboard_service_path}/dfx/src/behaviour/pasteboard_behaviour_reporter_impl.cpp",
     "${pasteboard_service_path}/dfx/src/calculate_time_consuming.cpp",
     "${pasteboard_service_path}/dfx/src/command.cpp",
@@ -2006,6 +2042,7 @@ ohos_unittest("PasteServRemoteTest") {
     "${pasteboard_service_path}/core/src/pasteboard_service.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_user_context.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_window_manager.cpp",
+    "${pasteboard_service_path}/core/src/security_guard_adapter_virtual.cpp",
     "${pasteboard_service_path}/dfx/src/behaviour/pasteboard_behaviour_reporter_impl.cpp",
     "${pasteboard_service_path}/dfx/src/calculate_time_consuming.cpp",
     "${pasteboard_service_path}/dfx/src/command.cpp",
@@ -2228,6 +2265,7 @@ ohos_unittest("PasteboardSubProfileSubscriberTest") {
     "${pasteboard_service_path}/core/src/pasteboard_subprofile_subscriber.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_user_context.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_window_manager.cpp",
+    "${pasteboard_service_path}/core/src/security_guard_adapter_virtual.cpp",
     "${pasteboard_service_path}/dfx/src/behaviour/pasteboard_behaviour_reporter_impl.cpp",
     "${pasteboard_service_path}/dfx/src/calculate_time_consuming.cpp",
     "${pasteboard_service_path}/dfx/src/command.cpp",
@@ -2414,6 +2452,7 @@ group("unittest") {
     ":PasteboardLoadTest",
     ":PasteboardPatternTest",
     ":PasteboardServiceTest",
+    ":PasteboardSecurityGuardMockTest",
     ":PasteboardSubProfileSubscriberTest",
   ]
 

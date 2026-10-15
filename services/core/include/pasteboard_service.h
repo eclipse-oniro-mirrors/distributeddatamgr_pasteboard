@@ -17,7 +17,10 @@
 #define PASTE_BOARD_SERVICE_H
 
 #include <atomic>
+#include <memory>
 #include <system_ability_definition.h>
+
+#include "security_guard_adapter.h"
 
 #include "bundle_mgr_proxy.h"
 #include "clip/clip_plugin.h"
@@ -218,7 +221,8 @@ private:
     using Event = ClipPlugin::GlobalEvent;
     using GetProcessorFunc = IPasteDataProcessor& (*)();
     static constexpr const int32_t LISTENING_SERVICE[] = { DISTRIBUTED_HARDWARE_DEVICEMANAGER_SA_ID,
-        WINDOW_MANAGER_SERVICE_ID, MEMORY_MANAGER_SA_ID, DISTRIBUTED_DEVICE_PROFILE_SA_ID };
+        WINDOW_MANAGER_SERVICE_ID, MEMORY_MANAGER_SA_ID, DISTRIBUTED_DEVICE_PROFILE_SA_ID,
+        SecurityGuardAdapter::SECURITY_GUARD_SA_ID };
     static constexpr const char *PLUGIN_NAME = "distributed_clip";
     static constexpr const char *SET_CRITICAL_ID = "pasteboard_service_set_critical_id";
     static constexpr const pid_t EDM_UID = 3057;
@@ -447,6 +451,9 @@ private:
     void OnAddMemoryManager();
     void OnAddDeviceProfile();
     void OnRemoveDeviceProfile();
+    void OnAddSecurityGuard();
+    void OnRemoveSecurityGuard();
+    bool IsBlockedBySecurityGuard(PasteData &data, uint32_t tokenId);
     void ReportUeCopyEvent(PasteData &pasteData, int64_t dataSize, int32_t result);
     bool HasDataType(const std::string &mimeType);
     bool HasUtdType(const std::string &utdType);
