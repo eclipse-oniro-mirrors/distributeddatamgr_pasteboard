@@ -20,6 +20,7 @@ group("pasteboard_packages") {
     deps = [
       "etc/init:pasteboardservice.cfg",
       "framework/framework:build_module",
+      "framework/distributed:build_module",
       "framework/innerkits:pasteboard_client",
       "interfaces/cj:cj_pasteboard_ffi",
       "interfaces/kits:pasteboard_napi",

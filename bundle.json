@@ -22,7 +22,8 @@
         "pasteboard_screenlock_mgr_part_enabled",
         "pasteboard_dataclassification_enabled",
         "pasteboard_api_metrics_enabled",
-        "pasteboard_cockpit_platform_enabled"
+        "pasteboard_cockpit_platform_enabled",
+        "pasteboard_distributed_clip_enabled"
       ],
       "adapted_system_type": [
         "standard"
@@ -44,6 +45,7 @@
           "data_share",
           "dataclassification",
           "dfs_service",
+          "dsoftbus",
           "dlp_permission_service",
           "ets_frontend",
           "eventhandler",
@@ -58,6 +60,7 @@
           "ipc",
           "image_framework",
           "json",
+          "kv_store",
           "libuv",
           "libxml2",
           "memmgr",
@@ -70,6 +73,7 @@
           "screenlock_mgr",
           "time_service",
           "udmf",
+          "wifi",
           "window_manager",
           "ffrt",
           "runtime_core",
@@ -90,7 +94,8 @@
                 "//foundation/distributeddatamgr/pasteboard/interfaces/kits:pasteboard_napi",
                 "//foundation/distributeddatamgr/pasteboard/services/dialog:pasteboard_dialog_hap",
                 "//foundation/distributeddatamgr/pasteboard/interfaces/taihe:pasteboard_taihe",
-                "//foundation/distributeddatamgr/pasteboard/tools/ohos-pasteboard:ohos-pasteboard"
+                "//foundation/distributeddatamgr/pasteboard/tools/ohos-pasteboard:ohos-pasteboard",
+                "//foundation/distributeddatamgr/pasteboard/framework/distributed:build_module"
             ],
             "service_group": [
                 "//foundation/distributeddatamgr/pasteboard/etc/init:pasteboardservice.cfg",

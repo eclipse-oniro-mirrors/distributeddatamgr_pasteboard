@@ -1,0 +1,15 @@
+{
+  "processLabel": "pasteboard_service",
+  "version": "000.000.001",
+  "features": ["distributed_pasteboard", "pasteboard"],
+  "components": [
+    {
+      "description": "distributed paste board clips",
+      "lib": "libdistributed_clip.z.so",
+      "constructor": "",
+      "destructor": "",
+      "params": {}
+    }
+  ],
+  "uid": 5557
+}
