@@ -147,6 +147,7 @@ HWTEST_F(PasteboardServiceLoaderTest, GetPasteboardServiceProxyTest001, TestSize
  */
 HWTEST_F(PasteboardServiceLoaderTest, GetPasteboardServiceTest001, TestSize.Level0)
 {
+    PasteboardServiceLoader::GetInstance().GetPasteboardService();
     sptr<ISystemAbilityManager> saMgrProxy = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     EXPECT_NE(saMgrProxy, nullptr);
     sptr<IRemoteObject> remoteObject = saMgrProxy->CheckSystemAbility(PASTEBOARD_SERVICE_ID);
