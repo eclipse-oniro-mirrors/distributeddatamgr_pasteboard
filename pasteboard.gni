@@ -39,7 +39,7 @@ declare_args() {
   pasteboard_dataclassification_enabled = true
   pasteboard_api_metrics_enabled = true
   pasteboard_cockpit_platform_enabled = false
-  pasteboard_distributed_clip_enabled = true
+  pasteboard_distributed_clip_enabled = false
 
   if (defined(global_parts_info) &&
       !defined(global_parts_info.security_dlp_permission_service)) {
@@ -66,8 +66,8 @@ declare_args() {
     pasteboard_api_metrics_enabled = false
   }
   if (defined(global_parts_info) &&
-      (!defined(global_parts_info.distributedhardware_device_manager) ||
-       !defined(global_parts_info.communication_dsoftbus))) {
-    pasteboard_distributed_clip_enabled = false
+      defined(global_parts_info.InterConnection_CollaborationFwk) &&
+      defined(global_parts_info.communication_dsoftbus_service_ext)) {
+    pasteboard_distributed_clip_enabled = true
   }
 }
