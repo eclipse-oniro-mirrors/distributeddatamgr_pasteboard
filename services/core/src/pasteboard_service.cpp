@@ -827,6 +827,22 @@ void PasteboardService::UnsubscribeAllEntityObserver()
 int32_t PasteboardService::GetRecordValueByType(uint32_t dataId, uint32_t recordId, int64_t &rawDataSize,
     std::vector<uint8_t> &buffer, int &fd)
 {
+    auto appInfo = GetAppInfo(IPCSkeleton::GetCallingTokenID());
+    return GetRecordValueByTypeInner(appInfo.userId, appInfo, dataId, recordId, rawDataSize, buffer, fd);
+}
+
+int32_t PasteboardService::GetRecordValueByTypeByUser(int32_t userId, uint32_t dataId, uint32_t recordId,
+    int64_t &rawDataSize, std::vector<uint8_t> &buffer, int &fd)
+{
+    AppInfo appInfo;
+    auto ret = GetAndCheckByUserAppInfo(appInfo, userId);
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(ret == ERR_OK, ret, PASTEBOARD_MODULE_SERVICE, "check failed");
+    return GetRecordValueByTypeInner(userId, appInfo, dataId, recordId, rawDataSize, buffer, fd);
+}
+
+int32_t PasteboardService::GetRecordValueByTypeInner(int32_t userId, const AppInfo &appInfo, uint32_t dataId,
+    uint32_t recordId, int64_t &rawDataSize, std::vector<uint8_t> &buffer, int &fd)
+{
     MessageParcelWarp messageReply;
     if (rawDataSize <= 0 || rawDataSize > messageReply.GetRawDataSize()) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "invalid raw data size:%{public}" PRId64, rawDataSize);
@@ -857,7 +873,7 @@ int32_t PasteboardService::GetRecordValueByType(uint32_t dataId, uint32_t record
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "fail to decode paste data entry");
         return static_cast<int32_t>(PasteboardError::INVALID_DATA_ERROR);
     }
-    auto result = GetRecordValueByType(dataId, recordId, entryValue);
+    auto result = GetRecordValueByType(userId, appInfo, dataId, recordId, entryValue);
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(result == static_cast<int32_t>(PasteboardError::E_OK), result,
         PASTEBOARD_MODULE_SERVICE, "get record value failed, type=%{public}s, ret=%{public}d",
         entryValue.GetUtdId().c_str(), result);
@@ -904,10 +920,22 @@ int32_t PasteboardService::GetRecordValueByType(uint32_t dataId, uint32_t record
         PASTEBOARD_MODULE_SERVICE, "check permission failed, calling pid is %{public}d", callPid);
 
     auto appInfo = GetAppInfo(tokenId);
-    auto [hasData, data] = clips_.Find(appInfo.userId);
+    return GetRecordValueByType(appInfo.userId, appInfo, dataId, recordId, value);
+}
+
+int32_t PasteboardService::GetRecordValueByType(int32_t userId, const AppInfo &appInfo,
+    uint32_t dataId, uint32_t recordId, PasteDataEntry &value)
+{
+    auto tokenId = IPCSkeleton::GetCallingTokenID();
+    auto callPid = IPCSkeleton::GetCallingPid();
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE((dataId == delayDataId_ && tokenId == delayTokenId_) ||
+        VerifyPermission(tokenId), static_cast<int32_t>(PasteboardError::PERMISSION_VERIFICATION_ERROR),
+        PASTEBOARD_MODULE_SERVICE, "check permission failed, calling pid is %{public}d", callPid);
+
+    auto [hasData, data] = clips_.Find(userId);
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(hasData && data, static_cast<int32_t>(PasteboardError::NO_DATA_ERROR),
-        PASTEBOARD_MODULE_SERVICE, "data not find, userId=%{public}d", appInfo.userId);
-    auto validRet = IsDataValid(*data, tokenId, appInfo.userId);
+        PASTEBOARD_MODULE_SERVICE, "data not find, userId=%{public}d", userId);
+    auto validRet = IsDataValid(*data, tokenId, userId);
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(validRet == static_cast<int32_t>(PasteboardError::E_OK), validRet,
         PASTEBOARD_MODULE_SERVICE, "paste data is invalid, ret=%{public}d", validRet);
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(dataId == data->GetDataId(),
@@ -931,7 +959,7 @@ int32_t PasteboardService::GetRecordValueByType(uint32_t dataId, uint32_t record
         return static_cast<int32_t>(PasteboardError::E_OK);
     }
 
-    int32_t ret = GetLocalEntryValue(appInfo.userId, *data, *record, value);
+    int32_t ret = GetLocalEntryValue(userId, *data, *record, value);
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(ret == static_cast<int32_t>(PasteboardError::E_OK), ret,
         PASTEBOARD_MODULE_SERVICE, "get local entry failed, type=%{public}s, ret=%{public}d", utdId.c_str(), ret);
 
@@ -1335,7 +1363,11 @@ int32_t PasteboardService::GetPasteData(int &fd, int64_t &size, std::vector<uint
     fd = -1;
     std::string pasteId = PasteData::CreatePasteId("GetPasteData", pasteSeqId, IPCSkeleton::GetCallingPid());
     UeReportInfo ueReportInfo;
-    int32_t ret = GetPasteDataInner(fd, size, rawData, pasteId, syncTime, ueReportInfo);
+    auto appInfo = GetAppInfo(IPCSkeleton::GetCallingTokenID());
+    if (appInfo.userId == ERROR_USERID) {
+        return static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR);
+    }
+    int32_t ret = GetPasteDataInner(appInfo.userId, fd, size, rawData, pasteId, syncTime, ueReportInfo);
     if (fd == -1) {
         fd = AshmemCreate("GetPasteData Ashmem", 1);
         PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(fd >= 0, static_cast<int32_t>(PasteboardError::SERIALIZATION_ERROR),
@@ -1360,8 +1392,42 @@ int32_t PasteboardService::GetPasteData(int &fd, int64_t &size, std::vector<uint
     return 0;
 }
 
-int32_t PasteboardService::GetPasteDataInner(int &fd, int64_t &size, std::vector<uint8_t> &rawData,
-    const std::string &pasteId, int32_t &syncTime, UeReportInfo &ueReportInfo)
+int32_t PasteboardService::GetPasteDataByUser(int32_t userId, int &fd, int64_t &memSize,
+    std::vector<uint8_t> &buffer, uint32_t pasteSeqId, int32_t &syncTime, int32_t &realErrCode)
+{
+    AppInfo appInfo;
+    auto ret = GetAndCheckByUserAppInfo(appInfo, userId);
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(ret == ERR_OK, ret, PASTEBOARD_MODULE_SERVICE, "check failed");
+    fd = -1;
+    std::string pasteId = PasteData::CreatePasteId("GetPasteDataByUser", pasteSeqId, IPCSkeleton::GetCallingPid());
+    UeReportInfo ueReportInfo;
+    int32_t result = GetPasteDataInner(userId, fd, memSize, buffer, pasteId, syncTime, ueReportInfo);
+    if (fd == -1) {
+        fd = AshmemCreate("GetPasteDataByUser Ashmem", 1);
+        PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(fd >= 0, static_cast<int32_t>(PasteboardError::SERIALIZATION_ERROR),
+            PASTEBOARD_MODULE_SERVICE, "ashmem create failed");
+        fdsan_exchange_owner_tag(fd, 0, PASTEBOARD_FD_TAG);
+    }
+    ueReportInfo.ret = (result == static_cast<int32_t>(PasteboardError::E_OK) ? E_OK_OPERATION : result);
+    ueReportInfo.commonInfo = GetCommonState(memSize);
+    UE_REPORT(UE_PASTE, ueReportInfo,
+        "IS_DISTRIBUTED_PASTEBOARD", ueReportInfo.pasteInfo.isDistributed,
+        "RECORD_NUM", ueReportInfo.description.recordNum,
+        "DATA_SIZE", ueReportInfo.commonInfo.dataSize,
+        "CURRENT_ACCOUNT_ID", ueReportInfo.commonInfo.currentAccountId,
+        "PEER_BUNDLE_NAME", ueReportInfo.pasteInfo.peerBundleName,
+        "IS_PEER_ONLINE", ueReportInfo.pasteInfo.isPeerOnline,
+        "ONLINE_DEV_NUM", ueReportInfo.pasteInfo.onlineDevNum,
+        "NETWORK_TYPE", ueReportInfo.pasteInfo.networkType,
+        "ENTRY_NUM", ueReportInfo.description.entryNum,
+        "MIMETYPES", ueReportInfo.description.mimeTypes,
+        "DATA_TIMESTAMP", ueReportInfo.timestamp);
+    realErrCode = result;
+    return 0;
+}
+
+int32_t PasteboardService::GetPasteDataInner(int32_t userId, int &fd, int64_t &size,
+    std::vector<uint8_t> &rawData, const std::string &pasteId, int32_t &syncTime, UeReportInfo &ueReportInfo)
 {
     PasteboardTrace tracer("PasteboardService GetPasteData");
     PasteData data{};
@@ -1384,7 +1450,7 @@ int32_t PasteboardService::GetPasteDataInner(int &fd, int64_t &size, std::vector
     std::string peerUdid = "";
     RadarReportInfo radarReportInfo;
     radarReportInfo.pasteInfo.pasteId = data.GetPasteId();
-    auto ret = GetData(tokenId, data, syncTime, isPeerOnline, peerNetId, peerUdid);
+    auto ret = GetData(userId, tokenId, data, syncTime, isPeerOnline, peerNetId, peerUdid);
     data.SetBundleInfo(appInfo.bundleName, appInfo.appIndex);
     SetUeEvent(appInfo, data, isPeerOnline, ueReportInfo, peerNetId);
     SetRadarEvent(appInfo, data, isPeerOnline, radarReportInfo, peerNetId);
@@ -1464,14 +1530,14 @@ void PasteboardService::AddPermissionRecord(uint32_t tokenId, bool isReadGrant, 
     return;
 }
 
-int32_t PasteboardService::CheckAndGrantRemoteUri(PasteData &data, const AppInfo &appInfo,
+int32_t PasteboardService::CheckAndGrantRemoteUri(int32_t userId, PasteData &data, const AppInfo &appInfo,
     const std::string &pasteId, std::shared_ptr<BlockObject<int32_t>> pasteBlock)
 {
     int64_t fileSize = data.GetFileSize();
     bool isRemoteData = data.IsRemote();
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "pasteId=%{public}s, isRemote=%{public}s, fileSize=%{public}" PRId64,
         pasteId.c_str(), isRemoteData ? "true" : "false", fileSize);
-    GetPasteDataDot(data, appInfo.bundleName, appInfo.userId);
+    GetPasteDataDot(data, appInfo.bundleName, userId);
     std::map<uint32_t, std::vector<Uri>> grantUris = CheckUriPermission(
         data, std::make_pair(appInfo.bundleName, appInfo.appIndex));
     if (isRemoteData) {
@@ -1511,15 +1577,15 @@ bool PasteboardService::RemoteDataTaskManager::HasRunningTask()
     return false;
 }
 
-int32_t PasteboardService::GetData(uint32_t tokenId, PasteData &data, int32_t &syncTime, bool &isPeerOnline,
-    std::string &peerNetId, std::string &peerUdid)
+int32_t PasteboardService::GetData(int32_t userId, uint32_t tokenId, PasteData &data, int32_t &syncTime,
+    bool &isPeerOnline, std::string &peerNetId, std::string &peerUdid)
 {
     CalculateTimeConsuming::SetBeginTime();
     auto appInfo = GetAppInfo(tokenId);
     int32_t result = static_cast<int32_t>(PasteboardError::E_OK);
     std::string pasteId = data.GetPasteId();
     std::shared_ptr<BlockObject<int32_t>> pasteBlock = nullptr;
-    auto [distRet, distEvt] = GetValidDistributeEvent(appInfo.userId);
+    auto [distRet, distEvt] = GetValidDistributeEvent(userId);
     if (distRet == static_cast<int32_t>(PasteboardError::GET_SAME_REMOTE_DATA)) {
         auto isPasting = taskMgr_.IsRemoteDataPasting(distEvt);
         if (isPasting) {
@@ -1528,37 +1594,37 @@ int32_t PasteboardService::GetData(uint32_t tokenId, PasteData &data, int32_t &s
         }
     }
     if (distRet != static_cast<int32_t>(PasteboardError::E_OK) ||
-        GetScreenStatus(appInfo.userId) != ScreenEvent::ScreenUnlocked) {
+        GetScreenStatus(userId) != ScreenEvent::ScreenUnlocked) {
         auto currentEvent = GetCurrentEvent();
         pasteBlock = EstablishP2PLinkTask(pasteId, currentEvent);
-        result = GetLocalData(appInfo, data);
+        result = GetLocalData(userId, appInfo, data);
         if (distRet == static_cast<int32_t>(PasteboardError::GET_SAME_REMOTE_DATA)) {
             peerNetId = currentEvent.deviceId;
             peerUdid = DMAdapter::GetInstance().GetUdidByNetworkId(peerNetId);
         }
     } else {
         pasteBlock = EstablishP2PLinkTask(pasteId, distEvt);
-        result = GetRemoteData(appInfo.userId, distEvt, data, syncTime);
+        result = GetRemoteData(userId, distEvt, data, syncTime);
         if (result == static_cast<int32_t>(PasteboardError::REMOTE_DATA_SIZE_EXCEEDED)) {
             HandleGetDataError(result, pasteBlock, distEvt.deviceId, pasteId);
-            result = GetLocalData(appInfo, data);
+            result = GetLocalData(userId, appInfo, data);
         } else {
             peerNetId = distEvt.deviceId;
             peerUdid = DMAdapter::GetInstance().GetUdidByNetworkId(peerNetId);
         }
     }
-    HandleNotificationsAndStatusChecks(appInfo, data, peerNetId, isPeerOnline);
+    HandleNotificationsAndStatusChecks(userId, appInfo, data, peerNetId, isPeerOnline);
     PublishServiceState(data, syncTime, peerNetId, pasteBlock);
 
     if (result != static_cast<int32_t>(PasteboardError::E_OK)) {
         HandleGetDataError(result, pasteBlock, distEvt.deviceId, pasteId);
         return result;
     }
-    return CheckAndGrantRemoteUri(data, appInfo, pasteId, pasteBlock);
+    return CheckAndGrantRemoteUri(userId, data, appInfo, pasteId, pasteBlock);
 }
 
-void PasteboardService::HandleNotificationsAndStatusChecks(const AppInfo &appInfo, const PasteData &data,
-    const std::string &peerNetId, bool &isPeerOnline)
+void PasteboardService::HandleNotificationsAndStatusChecks(int32_t userId, const AppInfo &appInfo,
+    const PasteData &data, const std::string &peerNetId, bool &isPeerOnline)
 {
     uint32_t observerMapSize = 0;
     {
@@ -1567,7 +1633,7 @@ void PasteboardService::HandleNotificationsAndStatusChecks(const AppInfo &appInf
     }
     if (observerMapSize != 0) {
         std::string targetBundleName = GetAppBundleName(appInfo);
-        NotifyObservers(targetBundleName, appInfo.userId, PasteboardEventStatus::PASTEBOARD_READ);
+        NotifyObservers(targetBundleName, userId, PasteboardEventStatus::PASTEBOARD_READ);
     }
     if (!peerNetId.empty()) {
         isPeerOnline = DMAdapter::GetInstance().IsDeviceOnline(peerNetId);
@@ -1736,13 +1802,13 @@ int32_t PasteboardService::GetRemotePasteData(int32_t userId, const Event &event
     return static_cast<int32_t>(PasteboardError::TIMEOUT_ERROR);
 }
 
-int32_t PasteboardService::GetLocalData(const AppInfo &appInfo, PasteData &data)
+int32_t PasteboardService::GetLocalData(int32_t userId, const AppInfo &appInfo, PasteData &data)
 {
     std::string pasteId = data.GetPasteId();
-    auto it = clips_.Find(appInfo.userId);
-    auto tempTime = copyTime_.Find(appInfo.userId);
+    auto it = clips_.Find(userId);
+    auto tempTime = copyTime_.Find(userId);
     if (!it.first || !tempTime.first) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "no data userId is %{public}d.", appInfo.userId);
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "no data userId is %{public}d.", userId);
         return static_cast<int32_t>(PasteboardError::NO_DATA_ERROR);
     }
     bool isDelayData = false;
@@ -1750,10 +1816,10 @@ int32_t PasteboardService::GetLocalData(const AppInfo &appInfo, PasteData &data)
     std::string originBundleName;
     {
         std::shared_lock<std::shared_mutex> read(pasteDataMutex_);
-        auto ret = IsDataValid(*(it.second), appInfo.tokenId, appInfo.userId);
+        auto ret = IsDataValid(*(it.second), appInfo.tokenId, userId);
         if (ret != static_cast<int32_t>(PasteboardError::E_OK)) {
             PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "paste data is invalid. ret = %{public}d "
-                "appInfo.userId = %{public}d", ret, appInfo.userId);
+                "userId = %{public}d", ret, userId);
             return ret;
         }
         data = *(it.second);
@@ -1762,21 +1828,21 @@ int32_t PasteboardService::GetLocalData(const AppInfo &appInfo, PasteData &data)
         isDelayRecord = it.second->IsDelayRecord();
     }
     if (isDelayData) {
-        GetDelayPasteData(appInfo.userId, data);
+        GetDelayPasteData(userId, data);
         RADAR_REPORT(DFX_GET_PASTEBOARD, DFX_CHECK_GET_DELAY_PASTE, DFX_SUCCESS, CONCURRENT_ID, pasteId);
     }
     if (isDelayRecord) {
-        GetDelayPasteRecord(appInfo.userId, data);
+        GetDelayPasteRecord(userId, data);
     }
     data.SetBundleInfo(appInfo.bundleName, appInfo.appIndex);
-    auto result = copyTime_.Find(appInfo.userId);
+    auto result = copyTime_.Find(userId);
     if (!result.first) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "userId not found userId is %{public}d", appInfo.userId);
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "userId not found userId is %{public}d", userId);
         return static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR);
     }
     auto curTime = result.second;
-    UpdateClipOnRead(appInfo.userId, data, originBundleName, tempTime.second, curTime);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetPasteData success. appInfo.userId = %{public}d", appInfo.userId);
+    UpdateClipOnRead(userId, data, originBundleName, tempTime.second, curTime);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetPasteData success. userId = %{public}d", userId);
     SetLocalPasteFlag(data.IsRemote(), appInfo.tokenId, data);
     return static_cast<int32_t>(PasteboardError::E_OK);
 }
