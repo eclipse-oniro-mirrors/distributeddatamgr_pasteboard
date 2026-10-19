@@ -952,8 +952,10 @@ int32_t PasteboardService::GetRecordValueByType(int32_t userId, const AppInfo &a
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(entry != nullptr, static_cast<int32_t>(PasteboardError::INVALID_MIMETYPE),
         PASTEBOARD_MODULE_SERVICE, "entry is null, recordId=%{public}u, type=%{public}s", recordId, utdId.c_str());
 
+    AppInfo effectiveAppInfo = appInfo;
+    effectiveAppInfo.userId = userId;
     if (isRemoteData && !entry->HasContent(utdId)) {
-        int32_t ret = GetRemoteEntryValue(appInfo, *data, *record, value);
+        int32_t ret = GetRemoteEntryValue(effectiveAppInfo, *data, *record, value);
         PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(ret == static_cast<int32_t>(PasteboardError::E_OK), ret,
             PASTEBOARD_MODULE_SERVICE, "get remote entry failed, type=%{public}s, ret=%{public}d", utdId.c_str(), ret);
         return static_cast<int32_t>(PasteboardError::E_OK);
@@ -965,7 +967,7 @@ int32_t PasteboardService::GetRecordValueByType(int32_t userId, const AppInfo &a
 
     std::string mimeType = value.GetMimeType();
     if (mimeType == MIMETYPE_TEXT_HTML) {
-        return ProcessDelayHtmlEntry(*data, appInfo, value);
+        return ProcessDelayHtmlEntry(*data, effectiveAppInfo, value);
     }
     if (mimeType == MIMETYPE_TEXT_URI) {
         bool isInvalid = (isRemoteData || tokenId != data->GetTokenId()) &&
