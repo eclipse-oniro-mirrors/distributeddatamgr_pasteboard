@@ -4476,5 +4476,80 @@ HWTEST_F(PasteboardServiceMockTest, SyncDelayedData001, TestSize.Level1)
     EXPECT_EQ(setData->GetMimeTypes().size(), 1);
     EXPECT_STREQ(setData->GetMimeTypes()[0].c_str(), MIMETYPE_TEXT_PLAIN);
 }
+
+/**
+ * @tc.name: GetAndCheckByUserAppInfoTest001
+ * @tc.desc: TOKEN_NATIVE caller with valid userId succeeds
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, GetAndCheckByUserAppInfoTest001, TestSize.Level1)
+{
+    PasteboardService service;
+    NiceMock<PasteboardServiceInterfaceMock> mock;
+    EXPECT_CALL(mock, GetCallingTokenID()).WillRepeatedly(Return(12345));
+    EXPECT_CALL(mock, GetTokenTypeFlag(testing::_)).WillRepeatedly(Return(ATokenTypeEnum::TOKEN_NATIVE));
+    EXPECT_CALL(mock, GetForegroundOsAccountLocalId(testing::_, testing::_)).Times(0);
+
+    AppInfo appInfo;
+    int32_t ret = service.GetAndCheckByUserAppInfo(appInfo, 100);
+    EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
+    EXPECT_EQ(appInfo.tokenType, static_cast<int32_t>(ATokenTypeEnum::TOKEN_NATIVE));
+}
+
+/**
+ * @tc.name: GetAndCheckByUserAppInfoTest002
+ * @tc.desc: TOKEN_HAP caller is rejected
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, GetAndCheckByUserAppInfoTest002, TestSize.Level1)
+{
+    PasteboardService service;
+    NiceMock<PasteboardServiceInterfaceMock> mock;
+    EXPECT_CALL(mock, GetCallingTokenID()).WillRepeatedly(Return(12345));
+    EXPECT_CALL(mock, GetTokenTypeFlag(testing::_)).WillRepeatedly(Return(ATokenTypeEnum::TOKEN_HAP));
+    EXPECT_CALL(mock, GetForegroundOsAccountLocalId(testing::_, testing::_)).Times(0);
+
+    AppInfo appInfo;
+    int32_t ret = service.GetAndCheckByUserAppInfo(appInfo, 100);
+    EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR));
+}
+
+/**
+ * @tc.name: GetAndCheckByUserAppInfoTest003
+ * @tc.desc: TOKEN_SHELL caller is rejected
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, GetAndCheckByUserAppInfoTest003, TestSize.Level1)
+{
+    PasteboardService service;
+    NiceMock<PasteboardServiceInterfaceMock> mock;
+    EXPECT_CALL(mock, GetCallingTokenID()).WillRepeatedly(Return(12345));
+    EXPECT_CALL(mock, GetTokenTypeFlag(testing::_)).WillRepeatedly(Return(ATokenTypeEnum::TOKEN_SHELL));
+    EXPECT_CALL(mock, GetForegroundOsAccountLocalId(testing::_, testing::_)).Times(0);
+
+    AppInfo appInfo;
+    int32_t ret = service.GetAndCheckByUserAppInfo(appInfo, 100);
+    EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR));
+}
+
+/**
+ * @tc.name: GetAndCheckByUserAppInfoTest004
+ * @tc.desc: invalid userId (<=0) is rejected even for TOKEN_NATIVE
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, GetAndCheckByUserAppInfoTest004, TestSize.Level1)
+{
+    PasteboardService service;
+    NiceMock<PasteboardServiceInterfaceMock> mock;
+    EXPECT_CALL(mock, GetCallingTokenID()).WillRepeatedly(Return(12345));
+    EXPECT_CALL(mock, GetTokenTypeFlag(testing::_)).WillRepeatedly(Return(ATokenTypeEnum::TOKEN_NATIVE));
+    EXPECT_CALL(mock, GetForegroundOsAccountLocalId(testing::_, testing::_)).Times(0);
+
+    AppInfo appInfo;
+    int32_t ret = service.GetAndCheckByUserAppInfo(appInfo, 0);
+    EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR));
+    ret = service.GetAndCheckByUserAppInfo(appInfo, -1);
+    EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR));
+}
 }
 } // namespace OHOS::MiscServices

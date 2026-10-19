@@ -445,6 +445,10 @@ private:
     AppInfo GetAppInfo(uint32_t tokenId) const;
     void FillHapAppInfo(uint32_t tokenId, AppInfo &info) const;
     void FillNativeAppInfo(uint32_t tokenId, AppInfo &info) const;
+    // 获取并校验 ByUser 调用上下文：仅 TOKEN_NATIVE 允许，HAP/Shell/其它一律拒绝。
+    // userId 仅用于日志归因；返回的 appInfo.userId 无意义（ByUser 应使用外部 userId）。
+    // 返回 ERR_OK 时 outAppInfo.tokenType/bundleName/tokenId 可用，否则返回 INVALID_USERID_ERROR。
+    int32_t GetAndCheckByUserAppInfo(AppInfo &outAppInfo, int32_t userId) const;
     static std::string GetAppBundleName(const AppInfo &appInfo);
     static void SetLocalPasteFlag(bool isCrossPaste, uint32_t tokenId, PasteData &pasteData);
     void RecognizePasteData(PasteData &pasteData);

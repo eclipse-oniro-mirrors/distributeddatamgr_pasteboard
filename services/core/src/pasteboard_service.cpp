@@ -1147,6 +1147,23 @@ AppInfo PasteboardService::GetAppInfo(uint32_t tokenId) const
     return info;
 }
 
+int32_t PasteboardService::GetAndCheckByUserAppInfo(AppInfo &outAppInfo, int32_t userId) const
+{
+    auto tokenId = IPCSkeleton::GetCallingTokenID();
+    outAppInfo.tokenId = tokenId;
+    outAppInfo.tokenType = AccessTokenKit::GetTokenTypeFlag(tokenId);
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(outAppInfo.tokenType == ATokenTypeEnum::TOKEN_NATIVE,
+        static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR), PASTEBOARD_MODULE_SERVICE,
+        "ByUser caller not TOKEN_NATIVE, userId=%{public}d", userId);
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(IsValidUserId(userId),
+        static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR), PASTEBOARD_MODULE_SERVICE,
+        "ByUser invalid userId=%{public}d", userId);
+    // 复用 FillNativeAppInfo 填 bundleName（调 GetNativeTokenInfo，native 调用无跨 SA）
+    // outAppInfo.userId 保持 ERROR_USERID（ByUser 不使用，用外部 userId）
+    FillNativeAppInfo(tokenId, outAppInfo);
+    return static_cast<int32_t>(PasteboardError::E_OK);
+}
+
 void PasteboardService::FillHapAppInfo(uint32_t tokenId, AppInfo &info) const
 {
     HapTokenInfo hapInfo;
