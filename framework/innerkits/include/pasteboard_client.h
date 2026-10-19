@@ -329,7 +329,7 @@ public:
     int32_t GetUnifiedData(UDMF::UnifiedData &unifiedData);
 
     /**
-     * SetUdsdData
+     * GetUdsdData
      * @description set unified data with uds entries to the pasteboard.
      * @param unifiedData the object of the PasteDate.
      * @return int32_t.
@@ -356,6 +356,70 @@ public:
      * @description Set udsd data by specified userId (TOKEN_NATIVE only).
      */
     int32_t SetUdsdDataByUser(int32_t userId, const UDMF::UnifiedData &unifiedData);
+
+    /**
+     * GetPasteDataByUser
+     * @description Get paste data from the pasteboard by specified userId (TOKEN_NATIVE only).
+     * @param userId target user id.
+     * @param pasteData the object of the PasteData.
+     * @return int32_t error code (E_OK on success).
+     */
+    int32_t GetPasteDataByUser(int32_t userId, PasteData &pasteData);
+
+    /**
+     * GetDataWithProgressByUser
+     * @description Get paste data from the system pasteboard by specified userId (TOKEN_NATIVE only)
+     *             with system progress indicator.
+     * @param userId target user id.
+     * @param pasteData the object of the PasteData.
+     * @param params - Indicates the {@link GetDataParams}.
+     * @return int32_t error code (E_OK on success).
+     */
+    int32_t GetDataWithProgressByUser(int32_t userId, PasteData &pasteData,
+        std::shared_ptr<GetDataParams> params);
+
+    /**
+     * GetUnifiedDataByUser
+     * @description Get unified data from the pasteboard by specified userId (TOKEN_NATIVE only).
+     * @param userId target user id.
+     * @param unifiedData the object of the UnifiedData.
+     * @return int32_t error code (E_OK on success).
+     */
+    int32_t GetUnifiedDataByUser(int32_t userId, UDMF::UnifiedData &unifiedData);
+
+    /**
+     * GetUdsdDataByUser
+     * @description Get unified data with uds entries from the pasteboard by specified userId
+     *             (TOKEN_NATIVE only).
+     * @param userId target user id.
+     * @param unifiedData the object of the UnifiedData.
+     * @return int32_t error code (E_OK on success).
+     */
+    int32_t GetUdsdDataByUser(int32_t userId, UDMF::UnifiedData &unifiedData);
+
+    /**
+     * GetUnifiedDataWithProgressByUser
+     * @description Get unified data from the pasteboard by specified userId (TOKEN_NATIVE only)
+     *             with system progress indicator.
+     * @param userId target user id.
+     * @param unifiedData the object of the UnifiedData.
+     * @param params - Indicates the {@link GetDataParams}.
+     * @return int32_t error code (E_OK on success).
+     */
+    int32_t GetUnifiedDataWithProgressByUser(int32_t userId, UDMF::UnifiedData &unifiedData,
+        std::shared_ptr<GetDataParams> params);
+
+    /**
+     * GetRecordValueByTypeByUser
+     * @description Get entry value from the pasteboard by specified userId (TOKEN_NATIVE only).
+     * @param userId target user id.
+     * @param dataId the dataId of the PasteData.
+     * @param recordId the recordId of the PasteRecord.
+     * @param value the value of the PasteDataEntry.
+     * @return int32_t error code (E_OK on success).
+     */
+    int32_t GetRecordValueByTypeByUser(int32_t userId, uint32_t dataId, uint32_t recordId,
+        PasteDataEntry &value);
 
     /**
      * GetUnifiedDataWithEntry
@@ -605,6 +669,9 @@ private:
        std::shared_ptr<GetDataParams> params);
     int32_t GetPasteDataFromService(PasteData &pasteData, PasteDataFromServiceInfo &pasteDataFromServiceInfo,
        std::string progressKey, std::shared_ptr<GetDataParams> params);
+    int32_t GetPasteDataFromServiceByUser(int32_t userId, PasteData &pasteData,
+       PasteDataFromServiceInfo &pasteDataFromServiceInfo, std::string progressKey,
+       std::shared_ptr<GetDataParams> params);
     static void UpdateProgress(std::shared_ptr<GetDataParams> params, int progressValue);
     static std::atomic<uint64_t> progressStartTime_;
     static void OnProgressAbnormal(int32_t result);

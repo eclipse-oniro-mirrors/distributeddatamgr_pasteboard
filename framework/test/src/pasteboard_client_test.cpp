@@ -1260,6 +1260,104 @@ HWTEST_F(PasteboardClientTest, SetPasteDataByUserTest001, TestSize.Level0)
 }
 
 /**
+ * @tc.name: GetPasteDataByUserTest001
+ * @tc.desc: GetPasteDataByUser smoke test
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardClientTest, GetPasteDataByUserTest001, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "GetPasteDataByUserTest001 start");
+    auto client = PasteboardClient::GetInstance();
+    ASSERT_TRUE(client != nullptr);
+    PasteData data;
+    auto ret = client->GetPasteDataByUser(100, data);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "GetPasteDataByUserTest001 end, ret=%{public}d", ret);
+}
+
+/**
+ * @tc.name: GetDataWithProgressByUserTest001
+ * @tc.desc: GetDataWithProgressByUser smoke test
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardClientTest, GetDataWithProgressByUserTest001, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "GetDataWithProgressByUserTest001 start");
+    auto client = PasteboardClient::GetInstance();
+    ASSERT_TRUE(client != nullptr);
+    PasteData pasteData;
+    std::shared_ptr<GetDataParams> params = std::make_shared<GetDataParams>();
+    params->fileConflictOption = FILE_OVERWRITE;
+    params->progressIndicator = NONE_PROGRESS_INDICATOR;
+    params->listener.ProgressNotify = ProgressNotify;
+    auto ret = client->GetDataWithProgressByUser(100, pasteData, params);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "GetDataWithProgressByUserTest001 end, ret=%{public}d", ret);
+}
+
+/**
+ * @tc.name: GetUnifiedDataByUserTest001
+ * @tc.desc: GetUnifiedDataByUser smoke test
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardClientTest, GetUnifiedDataByUserTest001, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "GetUnifiedDataByUserTest001 start");
+    auto client = PasteboardClient::GetInstance();
+    ASSERT_TRUE(client != nullptr);
+    UDMF::UnifiedData unifiedData;
+    auto ret = client->GetUnifiedDataByUser(100, unifiedData);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "GetUnifiedDataByUserTest001 end, ret=%{public}d", ret);
+}
+
+/**
+ * @tc.name: GetUdsdDataByUserTest001
+ * @tc.desc: GetUdsdDataByUser smoke test
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardClientTest, GetUdsdDataByUserTest001, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "GetUdsdDataByUserTest001 start");
+    auto client = PasteboardClient::GetInstance();
+    ASSERT_TRUE(client != nullptr);
+    UDMF::UnifiedData unifiedData;
+    auto ret = client->GetUdsdDataByUser(100, unifiedData);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "GetUdsdDataByUserTest001 end, ret=%{public}d", ret);
+}
+
+/**
+ * @tc.name: GetUnifiedDataWithProgressByUserTest001
+ * @tc.desc: GetUnifiedDataWithProgressByUser smoke test
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardClientTest, GetUnifiedDataWithProgressByUserTest001, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "GetUnifiedDataWithProgressByUserTest001 start");
+    auto client = PasteboardClient::GetInstance();
+    ASSERT_TRUE(client != nullptr);
+    UDMF::UnifiedData unifiedData;
+    std::shared_ptr<GetDataParams> params = std::make_shared<GetDataParams>();
+    params->fileConflictOption = FILE_OVERWRITE;
+    params->progressIndicator = NONE_PROGRESS_INDICATOR;
+    params->listener.ProgressNotify = ProgressNotify;
+    auto ret = client->GetUnifiedDataWithProgressByUser(100, unifiedData, params);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "GetUnifiedDataWithProgressByUserTest001 end, ret=%{public}d", ret);
+}
+
+/**
+ * @tc.name: GetRecordValueByTypeByUserTest001
+ * @tc.desc: GetRecordValueByTypeByUser smoke test
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardClientTest, GetRecordValueByTypeByUserTest001, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "GetRecordValueByTypeByUserTest001 start");
+    auto client = PasteboardClient::GetInstance();
+    ASSERT_TRUE(client != nullptr);
+    PasteDataEntry entry;
+    auto ret = client->GetRecordValueByTypeByUser(100, 1, 1, entry);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "GetRecordValueByTypeByUserTest001 end, ret=%{public}d", ret);
+}
+
+/**
  * @tc.name: GetPasteDataInfoTest001
  * @tc.desc: GetPasteDataInfo return no data error when pasteboard is empty
  * @tc.type: FUNC
