@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -827,6 +827,78 @@ int32_t PasteboardClient::SetUdsdData(const UDMF::UnifiedData &unifiedData)
         }
     }
     int32_t ret = SetPasteData(*pasteData, nullptr, entryGetters);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "leave, ret=%{public}d", ret);
+    return ret;
+}
+
+int32_t PasteboardClient::SetPasteDataByUser(int32_t userId, PasteData &pasteData,
+    std::shared_ptr<PasteboardDelayGetter> delayGetter,
+    std::map<uint32_t, std::shared_ptr<UDMF::EntryGetter>> entryGetters)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "enter");
+    RADAR_REPORT(RadarReporter::DFX_SET_PASTEBOARD, RadarReporter::DFX_SET_BIZ_SCENE, RadarReporter::DFX_SUCCESS,
+        RadarReporter::BIZ_STATE, RadarReporter::DFX_BEGIN);
+    auto proxyService = GetPasteboardService();
+    if (proxyService == nullptr) {
+        RADAR_REPORT(RadarReporter::DFX_SET_PASTEBOARD, RadarReporter::DFX_CHECK_SET_SERVER, RadarReporter::DFX_FAILED,
+            RadarReporter::BIZ_STATE, RadarReporter::DFX_END, ERROR_CODE,
+            static_cast<int32_t>(PasteboardError::OBTAIN_SERVER_SA_ERROR));
+        return static_cast<int32_t>(PasteboardError::OBTAIN_SERVER_SA_ERROR);
+    }
+    sptr<PasteboardDelayGetterClient> delayGetterAgent;
+    sptr<PasteboardEntryGetterClient> entryGetterAgent;
+    CreateGetterAgent(delayGetterAgent, delayGetter, entryGetterAgent, entryGetters, pasteData);
+    std::vector<uint8_t> pasteDataTlv(0);
+    int fd = -1;
+    int64_t tlvSize = 0;
+    MessageParcelWarp messageData;
+    MessageParcel parcelPata;
+    int32_t ret = WritePasteData(pasteData, pasteDataTlv, fd, tlvSize, messageData, parcelPata);
+    if (ret != static_cast<int32_t>(PasteboardError::E_OK)) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CLIENT, "Write data failed, size=%{public}" PRId64, tlvSize);
+        return ret;
+    }
+    if (delayGetterAgent != nullptr && entryGetterAgent != nullptr) {
+        ret = proxyService->SetPasteDataByUser(userId, fd, tlvSize, pasteDataTlv, delayGetterAgent, entryGetterAgent);
+    } else if (delayGetterAgent != nullptr && entryGetterAgent == nullptr) {
+        ret = proxyService->SetPasteDataDelayDataByUser(userId, fd, tlvSize, pasteDataTlv, delayGetterAgent);
+    } else if (delayGetterAgent == nullptr && entryGetterAgent != nullptr) {
+        ret = proxyService->SetPasteDataEntryDataByUser(userId, fd, tlvSize, pasteDataTlv, entryGetterAgent);
+    } else {
+        ret = proxyService->SetPasteDataOnlyByUser(userId, fd, tlvSize, pasteDataTlv);
+    }
+    std::string pasteDataInfoSummary = GetPasteDataInfoSummary(pasteData);
+    ret = ConvertErrCode(ret);
+    if (ret == static_cast<int32_t>(PasteboardError::E_OK)) {
+        RADAR_REPORT(RadarReporter::DFX_SET_PASTEBOARD, RadarReporter::DFX_SET_BIZ_SCENE, RadarReporter::DFX_SUCCESS,
+            RadarReporter::BIZ_STATE, RadarReporter::DFX_END, PASTEDATA_SUMMARY, pasteDataInfoSummary);
+    } else {
+        RADAR_REPORT(RadarReporter::DFX_SET_PASTEBOARD, RadarReporter::DFX_SET_BIZ_SCENE, RadarReporter::DFX_FAILED,
+            RadarReporter::BIZ_STATE, RadarReporter::DFX_END,
+            ERROR_CODE, ret, PASTEDATA_SUMMARY, pasteDataInfoSummary);
+    }
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "leave, ret=%{public}d", ret);
+    return ret;
+}
+
+int32_t PasteboardClient::SetUnifiedDataByUser(
+    int32_t userId, const UDMF::UnifiedData &unifiedData, std::shared_ptr<PasteboardDelayGetter> delayGetter)
+{
+    auto pasteData = PasteboardUtils::GetInstance().Convert(unifiedData);
+    return SetPasteDataByUser(userId, *pasteData, delayGetter);
+}
+
+int32_t PasteboardClient::SetUdsdDataByUser(int32_t userId, const UDMF::UnifiedData &unifiedData)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "enter");
+    auto pasteData = ConvertUtils::Convert(unifiedData);
+    std::map<uint32_t, std::shared_ptr<UDMF::EntryGetter>> entryGetters;
+    for (auto record : unifiedData.GetRecords()) {
+        if (record != nullptr && record->GetEntryGetter() != nullptr) {
+            entryGetters.emplace(record->GetRecordId(), record->GetEntryGetter());
+        }
+    }
+    int32_t ret = SetPasteDataByUser(userId, *pasteData, nullptr, entryGetters);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "leave, ret=%{public}d", ret);
     return ret;
 }

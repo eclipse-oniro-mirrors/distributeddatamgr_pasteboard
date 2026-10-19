@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -1241,6 +1241,22 @@ HWTEST_F(PasteboardClientTest, ClearByUserTest001, TestSize.Level0)
     ASSERT_TRUE(client != nullptr);
     client->ClearByUser(0);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ClearByUserTest001 end");
+}
+
+/**
+ * @tc.name: SetPasteDataByUserTest001
+ * @tc.desc: SetPasteDataByUser smoke test
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardClientTest, SetPasteDataByUserTest001, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SetPasteDataByUserTest001 start");
+    auto client = PasteboardClient::GetInstance();
+    ASSERT_TRUE(client != nullptr);
+    PasteData data;
+    data.AddHtmlRecord("");
+    auto ret = client->SetPasteDataByUser(100, data);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "SetPasteDataByUserTest001 end, ret=%{public}d", ret);
 }
 
 /**

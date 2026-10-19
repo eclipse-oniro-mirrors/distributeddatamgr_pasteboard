@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -335,6 +335,27 @@ public:
      * @return int32_t.
      */
     int32_t SetUdsdData(const UDMF::UnifiedData &unifiedData);
+
+    /**
+     * SetPasteDataByUser
+     * @description Set pasteboard data by specified userId (TOKEN_NATIVE only).
+     * @param userId target user id.
+     * @return int32_t error code (E_OK on success).
+     */
+    int32_t SetPasteDataByUser(int32_t userId, PasteData &pasteData,
+        std::shared_ptr<PasteboardDelayGetter> delayGetter = nullptr,
+        std::map<uint32_t, std::shared_ptr<UDMF::EntryGetter>> entryGetters = {});
+    /**
+     * SetUnifiedDataByUser
+     * @description Set unified data by specified userId (TOKEN_NATIVE only).
+     */
+    int32_t SetUnifiedDataByUser(int32_t userId, const UDMF::UnifiedData &unifiedData,
+        std::shared_ptr<PasteboardDelayGetter> delayGetter = nullptr);
+    /**
+     * SetUdsdDataByUser
+     * @description Set udsd data by specified userId (TOKEN_NATIVE only).
+     */
+    int32_t SetUdsdDataByUser(int32_t userId, const UDMF::UnifiedData &unifiedData);
 
     /**
      * GetUnifiedDataWithEntry
