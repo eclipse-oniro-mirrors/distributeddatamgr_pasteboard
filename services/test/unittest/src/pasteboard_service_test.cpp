@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -733,7 +733,7 @@ HWTEST_F(PasteboardServiceTest, HandleDelayDataAndRecord001, TestSize.Level1)
     EXPECT_NE(entryGetter, nullptr);
 
     AppInfo appInfo;
-    tempPasteboard->HandleDelayDataAndRecord(pasteData, delayGetter, entryGetter, appInfo);
+    tempPasteboard->HandleDelayDataAndRecord(appInfo.userId, pasteData, delayGetter, entryGetter, appInfo);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "HandleDelayDataAndRecord001 end");
 }
 
@@ -750,7 +750,7 @@ HWTEST_F(PasteboardServiceTest, RemovePasteDataTest001, TestSize.Level1)
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
 
-    tempPasteboard->RemovePasteData(appInfo);
+    tempPasteboard->RemovePasteData(appInfo.userId);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "RemovePasteDataTest001 end");
 }
 
@@ -772,7 +772,7 @@ HWTEST_F(PasteboardServiceTest, RemovePasteDataTest002, TestSize.Level1)
 
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
-    tempPasteboard->RemovePasteData(appInfo);
+    tempPasteboard->RemovePasteData(appInfo.userId);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "RemovePasteDataTest002 end");
 }
 

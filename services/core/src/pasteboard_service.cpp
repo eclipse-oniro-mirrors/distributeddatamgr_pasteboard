@@ -2444,7 +2444,7 @@ int32_t PasteboardService::GetDataTokenId(PasteData &pasteData)
     return originTokenId;
 }
 
-int32_t PasteboardService::SaveData(PasteData &pasteData, int64_t dataSize,
+int32_t PasteboardService::SaveData(int32_t userId, PasteData &pasteData, int64_t dataSize,
     const sptr<IPasteboardDelayGetter> delayGetter, const sptr<IPasteboardEntryGetter> entryGetter)
 {
     PasteboardTrace tracer("PasteboardService, SetPasteData");
@@ -2459,18 +2459,12 @@ int32_t PasteboardService::SaveData(PasteData &pasteData, int64_t dataSize,
     }
     CalculateTimeConsuming::SetBeginTime();
     auto appInfo = GetAppInfo(tokenId);
-    if (appInfo.userId == ERROR_USERID) {
-        setting_.store(false);
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "userId invalid.");
-        return static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR);
-    }
-    pasteData.userId_ = appInfo.userId;
+    pasteData.userId_ = userId;
     pasteData.deviceId_ = DMAdapter::GetInstance().GetLocalNetworkId();
-    SetPasteDataInfo(pasteData, appInfo);
+    SetPasteDataInfo(userId, pasteData, appInfo);
     auto authority = std::make_pair(appInfo.bundleName, appInfo.appIndex);
     std::string bundleIndex = PasteBoardCommon::GetDirByAuthority(authority);
-    bool hasSplited = PasteboardWebController::GetInstance().SplitWebviewPasteData(pasteData, bundleIndex,
-        appInfo.userId);
+    bool hasSplited = PasteboardWebController::GetInstance().SplitWebviewPasteData(pasteData, bundleIndex, userId);
     PasteboardWebController::GetInstance().SetWebviewPasteData(pasteData, bundleIndex);
     PasteboardWebController::GetInstance().CheckAppUriPermission(pasteData);
     if (hasSplited || dataSize > static_cast<int64_t>(maxLocalCapacity_.load() * RECALCULATE_DATA_SIZE)) {
@@ -2483,24 +2477,24 @@ int32_t PasteboardService::SaveData(PasteData &pasteData, int64_t dataSize,
         pasteData.rawDataSize_ = newDataSize;
     }
     setPasteDataUId_.store(IPCSkeleton::GetCallingUid());
-    RemovePasteData(appInfo);
-    clips_.InsertOrAssign(appInfo.userId, std::make_shared<PasteData>(pasteData));
-    IncreaseChangeCount(appInfo.userId);
+    RemovePasteData(userId);
+    clips_.InsertOrAssign(userId, std::make_shared<PasteData>(pasteData));
+    IncreaseChangeCount(userId);
     RadarReportInfo radarReportInfo;
     radarReportInfo.stageRes = static_cast<int32_t>(pasteData.IsDelayData());
     radarReportInfo.bundleName = appInfo.bundleName;
     radarReportInfo.description = pasteData.GetReportDescription();
     radarReportInfo.commonInfo = GetCommonState(dataSize);
     COPY_RADAR_REPORT(DFX_SET_PASTEBOARD, DFX_CHECK_SET_DELAY_COPY, radarReportInfo);
-    HandleDelayDataAndRecord(pasteData, delayGetter, entryGetter, appInfo);
+    HandleDelayDataAndRecord(userId, pasteData, delayGetter, entryGetter, appInfo);
     auto curTime = static_cast<uint64_t>(PasteBoardTime::GetBootTimeMs());
-    copyTime_.InsertOrAssign(appInfo.userId, curTime);
-    SetDataExpirationTimer(appInfo.userId);
+    copyTime_.InsertOrAssign(userId, curTime);
+    SetDataExpirationTimer(userId);
     if (!(pasteData.IsDelayData())) {
-        SetDistributedData(appInfo.userId, pasteData);
-        NotifyObservers(appInfo.bundleName, appInfo.userId, PasteboardEventStatus::PASTEBOARD_WRITE);
+        SetDistributedData(userId, pasteData);
+        NotifyObservers(appInfo.bundleName, userId, PasteboardEventStatus::PASTEBOARD_WRITE);
     }
-    SetPasteDataDot(pasteData, appInfo.userId);
+    SetPasteDataDot(pasteData, userId);
     setting_.store(false);
     SubscribeKeyboardEvent();
     return static_cast<int32_t>(PasteboardError::E_OK);
@@ -2539,12 +2533,12 @@ void PasteboardService::SetDataExpirationTimer(int32_t userId)
     ffrtTimer_->SetTimer(taskName, task, static_cast<uint32_t>(agedTime_.load()));
 }
 
-void PasteboardService::SetPasteDataInfo(PasteData &pasteData, const AppInfo &appInfo)
+void PasteboardService::SetPasteDataInfo(int32_t userId, PasteData &pasteData, const AppInfo &appInfo)
 {
     pasteData.SetBundleInfo(appInfo.bundleName, appInfo.appIndex);
     pasteData.SetOriginAuthority(std::make_pair(appInfo.bundleName, appInfo.appIndex));
     pasteData.SetTime(GetTime());
-    pasteData.SetScreenStatus(GetScreenStatus(appInfo.userId));
+    pasteData.SetScreenStatus(GetScreenStatus(userId));
     auto dataId = ++dataId_;
     pasteData.SetDataId(dataId);
     for (auto &record : pasteData.AllRecords()) {
@@ -2560,20 +2554,21 @@ void PasteboardService::SetPasteDataInfo(PasteData &pasteData, const AppInfo &ap
     }
 }
 
-void PasteboardService::HandleDelayDataAndRecord(PasteData &pasteData, const sptr<IPasteboardDelayGetter> delayGetter,
+void PasteboardService::HandleDelayDataAndRecord(int32_t userId, PasteData &pasteData,
+    const sptr<IPasteboardDelayGetter> delayGetter,
     const sptr<IPasteboardEntryGetter> entryGetter, const AppInfo &appInfo)
 {
     if (pasteData.IsDelayData() && delayGetter != nullptr) {
         sptr<DelayGetterDeathRecipient> deathRecipient = new (std::nothrow)
-            DelayGetterDeathRecipient(appInfo.userId, *this);
+            DelayGetterDeathRecipient(userId, *this);
         delayGetter->AsObject()->AddDeathRecipient(deathRecipient);
-        delayGetters_.InsertOrAssign(appInfo.userId, std::make_pair(delayGetter, deathRecipient));
+        delayGetters_.InsertOrAssign(userId, std::make_pair(delayGetter, deathRecipient));
     }
     if (pasteData.IsDelayRecord() && entryGetter != nullptr) {
         sptr<EntryGetterDeathRecipient> deathRecipient = new (std::nothrow)
-            EntryGetterDeathRecipient(appInfo.userId, *this);
+            EntryGetterDeathRecipient(userId, *this);
         entryGetter->AsObject()->AddDeathRecipient(deathRecipient);
-        entryGetters_.InsertOrAssign(appInfo.userId, std::make_pair(entryGetter, deathRecipient));
+        entryGetters_.InsertOrAssign(userId, std::make_pair(entryGetter, deathRecipient));
     }
 }
 
@@ -3023,8 +3018,9 @@ int32_t PasteboardService::SubscribeDisposableObserver(const sptr<IPasteboardDis
     return ERR_OK;
 }
 
-int32_t PasteboardService::SetPasteData(int fd, int64_t rawDataSize, const std::vector<uint8_t> &buffer,
-    const sptr<IPasteboardDelayGetter> &delayGetter, const sptr<IPasteboardEntryGetter> &entryGetter)
+int32_t PasteboardService::SetPasteDataInner(int32_t userId, const AppInfo &appInfo, int fd, int64_t rawDataSize,
+    const std::vector<uint8_t> &buffer, const sptr<IPasteboardDelayGetter> &delayGetter,
+    const sptr<IPasteboardEntryGetter> &entryGetter)
 {
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(
         fd >= 0, static_cast<int32_t>(PasteboardError::INVALID_PARAM_ERROR), PASTEBOARD_MODULE_SERVICE, "fd invalid");
@@ -3053,7 +3049,7 @@ int32_t PasteboardService::SetPasteData(int fd, int64_t rawDataSize, const std::
     if (DisposableManager::GetInstance().TryProcessDisposableData(pasteData, delayGetter, entryGetter)) {
         return ERR_OK;
     }
-    ret = SaveData(pasteData, rawDataSize, delayGetter, entryGetter);
+    ret = SaveData(userId, pasteData, rawDataSize, delayGetter, entryGetter);
     if (entityObserverMap_.Size() != 0 && pasteData.HasMimeType(MIMETYPE_TEXT_PLAIN)) {
         RecognizePasteData(pasteData);
     }
@@ -3064,33 +3060,110 @@ int32_t PasteboardService::SetPasteData(int fd, int64_t rawDataSize, const std::
     return ERR_OK;
 }
 
+int32_t PasteboardService::SetPasteDataOnlyInner(int32_t userId, const AppInfo &appInfo, int fd, int64_t rawDataSize,
+    const std::vector<uint8_t> &buffer)
+{
+    return SetPasteDataInner(userId, appInfo, fd, rawDataSize, buffer, nullptr, nullptr);
+}
+
+int32_t PasteboardService::SetPasteDataDelayDataInner(int32_t userId, const AppInfo &appInfo, int fd,
+    int64_t rawDataSize, const std::vector<uint8_t> &buffer, const sptr<IPasteboardDelayGetter> &delayGetter)
+{
+    return SetPasteDataInner(userId, appInfo, fd, rawDataSize, buffer, delayGetter, nullptr);
+}
+
+int32_t PasteboardService::SetPasteDataEntryDataInner(int32_t userId, const AppInfo &appInfo, int fd,
+    int64_t rawDataSize, const std::vector<uint8_t> &buffer, const sptr<IPasteboardEntryGetter> &entryGetter)
+{
+    return SetPasteDataInner(userId, appInfo, fd, rawDataSize, buffer, nullptr, entryGetter);
+}
+
+int32_t PasteboardService::SetPasteData(int fd, int64_t rawDataSize, const std::vector<uint8_t> &buffer,
+    const sptr<IPasteboardDelayGetter> &delayGetter, const sptr<IPasteboardEntryGetter> &entryGetter)
+{
+    auto appInfo = GetAppInfo(IPCSkeleton::GetCallingTokenID());
+    if (appInfo.userId == ERROR_USERID) {
+        return static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR);
+    }
+    return SetPasteDataInner(appInfo.userId, appInfo, fd, rawDataSize, buffer, delayGetter, entryGetter);
+}
+
 int32_t PasteboardService::SetPasteDataDelayData(int fd, int64_t rawDataSize, const std::vector<uint8_t> &buffer,
     const sptr<IPasteboardDelayGetter> &delayGetter)
 {
-    return SetPasteData(fd, rawDataSize, buffer, delayGetter, nullptr);
+    auto appInfo = GetAppInfo(IPCSkeleton::GetCallingTokenID());
+    if (appInfo.userId == ERROR_USERID) {
+        return static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR);
+    }
+    return SetPasteDataDelayDataInner(appInfo.userId, appInfo, fd, rawDataSize, buffer, delayGetter);
 }
 
 int32_t PasteboardService::SetPasteDataEntryData(int fd, int64_t rawDataSize, const std::vector<uint8_t> &buffer,
     const sptr<IPasteboardEntryGetter> &entryGetter)
 {
-    return SetPasteData(fd, rawDataSize, buffer, nullptr, entryGetter);
+    auto appInfo = GetAppInfo(IPCSkeleton::GetCallingTokenID());
+    if (appInfo.userId == ERROR_USERID) {
+        return static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR);
+    }
+    return SetPasteDataEntryDataInner(appInfo.userId, appInfo, fd, rawDataSize, buffer, entryGetter);
 }
 
 int32_t PasteboardService::SetPasteDataOnly(int fd, int64_t rawDataSize, const std::vector<uint8_t> &buffer)
 {
-    return SetPasteData(fd, rawDataSize, buffer, nullptr, nullptr);
+    auto appInfo = GetAppInfo(IPCSkeleton::GetCallingTokenID());
+    if (appInfo.userId == ERROR_USERID) {
+        return static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR);
+    }
+    return SetPasteDataOnlyInner(appInfo.userId, appInfo, fd, rawDataSize, buffer);
 }
 
-void PasteboardService::RemovePasteData(const AppInfo &appInfo)
+int32_t PasteboardService::SetPasteDataByUser(int32_t userId, int fd, int64_t memSize,
+    const std::vector<uint8_t> &buffer, const sptr<IPasteboardDelayGetter> &delayGetter,
+    const sptr<IPasteboardEntryGetter> &entryGetter)
 {
-    delayGetters_.ComputeIfPresent(appInfo.userId, [](auto, auto &delayGetter) {
+    AppInfo appInfo;
+    auto ret = GetAndCheckByUserAppInfo(appInfo, userId);
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(ret == ERR_OK, ret, PASTEBOARD_MODULE_SERVICE, "check failed");
+    return SetPasteDataInner(userId, appInfo, fd, memSize, buffer, delayGetter, entryGetter);
+}
+
+int32_t PasteboardService::SetPasteDataOnlyByUser(int32_t userId, int fd, int64_t memSize,
+    const std::vector<uint8_t> &buffer)
+{
+    AppInfo appInfo;
+    auto ret = GetAndCheckByUserAppInfo(appInfo, userId);
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(ret == ERR_OK, ret, PASTEBOARD_MODULE_SERVICE, "check failed");
+    return SetPasteDataOnlyInner(userId, appInfo, fd, memSize, buffer);
+}
+
+int32_t PasteboardService::SetPasteDataDelayDataByUser(int32_t userId, int fd, int64_t memSize,
+    const std::vector<uint8_t> &buffer, const sptr<IPasteboardDelayGetter> &delayGetter)
+{
+    AppInfo appInfo;
+    auto ret = GetAndCheckByUserAppInfo(appInfo, userId);
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(ret == ERR_OK, ret, PASTEBOARD_MODULE_SERVICE, "check failed");
+    return SetPasteDataDelayDataInner(userId, appInfo, fd, memSize, buffer, delayGetter);
+}
+
+int32_t PasteboardService::SetPasteDataEntryDataByUser(int32_t userId, int fd, int64_t memSize,
+    const std::vector<uint8_t> &buffer, const sptr<IPasteboardEntryGetter> &entryGetter)
+{
+    AppInfo appInfo;
+    auto ret = GetAndCheckByUserAppInfo(appInfo, userId);
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(ret == ERR_OK, ret, PASTEBOARD_MODULE_SERVICE, "check failed");
+    return SetPasteDataEntryDataInner(userId, appInfo, fd, memSize, buffer, entryGetter);
+}
+
+void PasteboardService::RemovePasteData(int32_t userId)
+{
+    delayGetters_.ComputeIfPresent(userId, [](auto, auto &delayGetter) {
         RADAR_REPORT(DFX_SET_PASTEBOARD, DFX_CHECK_SET_DELAY_COPY, DFX_SUCCESS, COVER_DELAY_DATA, DFX_SUCCESS);
         if (delayGetter.first != nullptr && delayGetter.second != nullptr) {
             delayGetter.first->AsObject()->RemoveDeathRecipient(delayGetter.second);
         }
         return false;
     });
-    entryGetters_.ComputeIfPresent(appInfo.userId, [](auto, auto &entryGetter) {
+    entryGetters_.ComputeIfPresent(userId, [](auto, auto &entryGetter) {
         if (entryGetter.first != nullptr && entryGetter.second != nullptr) {
             entryGetter.first->AsObject()->RemoveDeathRecipient(entryGetter.second);
         }

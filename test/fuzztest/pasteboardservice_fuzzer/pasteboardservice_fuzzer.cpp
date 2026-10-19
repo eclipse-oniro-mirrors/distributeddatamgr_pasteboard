@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -316,6 +316,51 @@ public:
     int32_t ClearByUser(int32_t uesrId) override
     {
         (void)uesrId;
+        return 0;
+    }
+
+    int32_t SetPasteDataOnlyByUser(int32_t userId, int fd, int64_t memSize,
+        const std::vector<uint8_t> &buffer) override
+    {
+        (void)userId;
+        (void)fd;
+        (void)memSize;
+        (void)buffer;
+        return 0;
+    }
+
+    int32_t SetPasteDataDelayDataByUser(int32_t userId, int fd, int64_t memSize,
+        const std::vector<uint8_t> &buffer, const sptr<IPasteboardDelayGetter> &delayGetter) override
+    {
+        (void)userId;
+        (void)fd;
+        (void)memSize;
+        (void)buffer;
+        (void)delayGetter;
+        return 0;
+    }
+
+    int32_t SetPasteDataEntryDataByUser(int32_t userId, int fd, int64_t memSize,
+        const std::vector<uint8_t> &buffer, const sptr<IPasteboardEntryGetter> &entryGetter) override
+    {
+        (void)userId;
+        (void)fd;
+        (void)memSize;
+        (void)buffer;
+        (void)entryGetter;
+        return 0;
+    }
+
+    int32_t SetPasteDataByUser(int32_t userId, int fd, int64_t memSize,
+        const std::vector<uint8_t> &buffer, const sptr<IPasteboardDelayGetter> &delayGetter,
+        const sptr<IPasteboardEntryGetter> &entryGetter) override
+    {
+        (void)userId;
+        (void)fd;
+        (void)memSize;
+        (void)buffer;
+        (void)delayGetter;
+        (void)entryGetter;
         return 0;
     }
 

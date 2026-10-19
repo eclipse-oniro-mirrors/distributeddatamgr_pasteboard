@@ -46,6 +46,10 @@ interface OHOS.MiscServices.IPasteboardService {
         [in] IPasteboardDelayGetter delayGetter, [in] IPasteboardEntryGetter entryGetter);
     [ipccode 105] void SyncDelayedData();
     [ipccode 106] void ClearByUser([in] int userId);
+    [ipccode 107] void SetPasteDataOnlyByUser([in] int userId, [in] FileDescriptor fd, [in] long memSize, [in] unsigned char[] buffer);
+    [ipccode 108] void SetPasteDataDelayDataByUser([in] int userId, [in] FileDescriptor fd, [in] long memSize, [in] unsigned char[] buffer, [in] IPasteboardDelayGetter delayGetter);
+    [ipccode 109] void SetPasteDataEntryDataByUser([in] int userId, [in] FileDescriptor fd, [in] long memSize, [in] unsigned char[] buffer, [in] IPasteboardEntryGetter entryGetter);
+    [ipccode 110] void SetPasteDataByUser([in] int userId, [in] FileDescriptor fd, [in] long memSize, [in] unsigned char[] buffer, [in] IPasteboardDelayGetter delayGetter, [in] IPasteboardEntryGetter entryGetter);
 
     [ipccode 200] void GetPasteData([out] FileDescriptorSan fd, [out] long memSize, [out] unsigned char[] buffer,
         [in] unsigned int pasteSeqId, [out] int syncTime, [out] int realErrCode);

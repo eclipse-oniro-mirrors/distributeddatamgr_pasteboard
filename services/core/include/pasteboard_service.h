@@ -132,6 +132,15 @@ public:
     int32_t CallbackExit(uint32_t code, int32_t result) override;
     virtual int32_t Clear() override;
     virtual int32_t ClearByUser(int32_t userId) override;
+    virtual int32_t SetPasteDataByUser(int32_t userId, int fd, int64_t memSize,
+        const std::vector<uint8_t> &buffer, const sptr<IPasteboardDelayGetter> &delayGetter,
+        const sptr<IPasteboardEntryGetter> &entryGetter) override;
+    virtual int32_t SetPasteDataOnlyByUser(int32_t userId, int fd, int64_t memSize,
+        const std::vector<uint8_t> &buffer) override;
+    virtual int32_t SetPasteDataDelayDataByUser(int32_t userId, int fd, int64_t memSize,
+        const std::vector<uint8_t> &buffer, const sptr<IPasteboardDelayGetter> &delayGetter) override;
+    virtual int32_t SetPasteDataEntryDataByUser(int32_t userId, int fd, int64_t memSize,
+        const std::vector<uint8_t> &buffer, const sptr<IPasteboardEntryGetter> &entryGetter) override;
     virtual int32_t GetRecordValueByType(uint32_t dataId, uint32_t recordId, int64_t &rawDataSize,
         std::vector<uint8_t> &buffer, int &fd) override;
     virtual int32_t GetPasteData(int &fd, int64_t &size, std::vector<uint8_t> &rawData,
@@ -251,6 +260,15 @@ private:
     void SetInputMethodPid(int32_t userId, pid_t callPid);
     void ClearInputMethodPidByPid(int32_t userId, pid_t callPid);
     int32_t ClearInner(int32_t userId, const AppInfo &appInfo);
+    int32_t SetPasteDataInner(int32_t userId, const AppInfo &appInfo, int fd, int64_t memSize,
+        const std::vector<uint8_t> &buffer, const sptr<IPasteboardDelayGetter> &delayGetter,
+        const sptr<IPasteboardEntryGetter> &entryGetter);
+    int32_t SetPasteDataOnlyInner(int32_t userId, const AppInfo &appInfo, int fd, int64_t memSize,
+        const std::vector<uint8_t> &buffer);
+    int32_t SetPasteDataDelayDataInner(int32_t userId, const AppInfo &appInfo, int fd, int64_t memSize,
+        const std::vector<uint8_t> &buffer, const sptr<IPasteboardDelayGetter> &delayGetter);
+    int32_t SetPasteDataEntryDataInner(int32_t userId, const AppInfo &appInfo, int fd, int64_t memSize,
+        const std::vector<uint8_t> &buffer, const sptr<IPasteboardEntryGetter> &entryGetter);
     bool IsSystemAppByFullTokenID(uint64_t tokenId);
     FocusedAppInfo GetFocusedAppInfo() const;
     int32_t GetDataTokenId(PasteData &pasteData);
@@ -347,12 +365,14 @@ private:
     };
     DistributedMemory setDistributedMemory_;
 
-    int32_t SaveData(PasteData &pasteData, int64_t dataSize, const sptr<IPasteboardDelayGetter> delayGetter = nullptr,
+    int32_t SaveData(int32_t userId, PasteData &pasteData, int64_t dataSize,
+        const sptr<IPasteboardDelayGetter> delayGetter = nullptr,
         const sptr<IPasteboardEntryGetter> entryGetter = nullptr);
-    void SetPasteDataInfo(PasteData &pasteData, const AppInfo &appInfo);
-    void HandleDelayDataAndRecord(PasteData &pasteData, const sptr<IPasteboardDelayGetter> delayGetter,
+    void SetPasteDataInfo(int32_t userId, PasteData &pasteData, const AppInfo &appInfo);
+    void HandleDelayDataAndRecord(int32_t userId, PasteData &pasteData,
+        const sptr<IPasteboardDelayGetter> delayGetter,
         const sptr<IPasteboardEntryGetter> entryGetter, const AppInfo &appInfo);
-    void RemovePasteData(const AppInfo &appInfo);
+    void RemovePasteData(int32_t userId);
     void SetPasteDataDot(PasteData &pasteData, const int32_t &userId);
     std::pair<int32_t, ClipPlugin::GlobalEvent> GetValidDistributeEvent(int32_t user);
     int32_t GetSdkVersion(uint32_t tokenId);

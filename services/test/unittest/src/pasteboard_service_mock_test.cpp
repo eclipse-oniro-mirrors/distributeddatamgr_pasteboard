@@ -3919,7 +3919,7 @@ HWTEST_F(PasteboardServiceMockTest, HandleDelayDataAndRecordTest001, TestSize.Le
     NiceMock<PasteboardServiceInterfaceMock> mock;
     EXPECT_CALL(mock, IsDelayData()).WillOnce(Return(true));
 
-    tempPasteboard->HandleDelayDataAndRecord(pasteData, delayGetter, entryGetter, appInfo);
+    tempPasteboard->HandleDelayDataAndRecord(appInfo.userId, pasteData, delayGetter, entryGetter, appInfo);
 }
 
 /**
@@ -3937,7 +3937,7 @@ HWTEST_F(PasteboardServiceMockTest, HandleDelayDataAndRecordTest002, TestSize.Le
     sptr<IPasteboardEntryGetter> entryGetter = nullptr;
     AppInfo appInfo;
 
-    tempPasteboard->HandleDelayDataAndRecord(pasteData, delayGetter, entryGetter, appInfo);
+    tempPasteboard->HandleDelayDataAndRecord(appInfo.userId, pasteData, delayGetter, entryGetter, appInfo);
 }
 
 /**
@@ -3958,7 +3958,7 @@ HWTEST_F(PasteboardServiceMockTest, HandleDelayDataAndRecordTest003, TestSize.Le
     NiceMock<PasteboardServiceInterfaceMock> mock;
     EXPECT_CALL(mock, IsDelayRecord()).WillOnce(Return(true));
 
-    tempPasteboard->HandleDelayDataAndRecord(pasteData, delayGetter, entryGetter, appInfo);
+    tempPasteboard->HandleDelayDataAndRecord(appInfo.userId, pasteData, delayGetter, entryGetter, appInfo);
 }
 
 /**
@@ -4549,6 +4549,24 @@ HWTEST_F(PasteboardServiceMockTest, GetAndCheckByUserAppInfoTest004, TestSize.Le
     int32_t ret = service.GetAndCheckByUserAppInfo(appInfo, 0);
     EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR));
     ret = service.GetAndCheckByUserAppInfo(appInfo, -1);
+    EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR));
+}
+
+/**
+ * @tc.name: SetPasteDataByUserTest003
+ * @tc.desc: SetPasteDataByUser rejects non-NATIVE (HAP) caller even with valid userId
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceMockTest, SetPasteDataByUserTest003, TestSize.Level1)
+{
+    PasteboardService service;
+    NiceMock<PasteboardServiceInterfaceMock> mock;
+    EXPECT_CALL(mock, GetCallingTokenID()).WillRepeatedly(Return(12345));
+    EXPECT_CALL(mock, GetTokenTypeFlag(testing::_)).WillRepeatedly(Return(ATokenTypeEnum::TOKEN_HAP));
+    EXPECT_CALL(mock, GetForegroundOsAccountLocalId(testing::_, testing::_)).Times(0);
+
+    std::vector<uint8_t> buffer = { 'h', 'e', 'l', 'l', 'o' };
+    int32_t ret = service.SetPasteDataByUser(100, -1, 0, buffer, nullptr, nullptr);
     EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR));
 }
 }
