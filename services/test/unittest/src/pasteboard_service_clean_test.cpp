@@ -290,5 +290,41 @@ HWTEST_F(PasteboardServiceCleanTest, ClearAgedDataTest001, TestSize.Level1)
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ClearAgedDataTest001 end");
 }
 
+/**
+ * @tc.name: ClearByUserInvalidUserIdTest001
+ * @tc.desc: ClearByUser returns INVALID_USERID_ERROR for invalid userId (<=0)
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceCleanTest, ClearByUserInvalidUserIdTest001, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ClearByUserInvalidUserIdTest001 start");
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+    int32_t result = tempPasteboard->ClearByUser(0);
+    EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR));
+    result = tempPasteboard->ClearByUser(-1);
+    EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ClearByUserInvalidUserIdTest001 end");
+}
+
+/**
+ * @tc.name: ClearByUserValidTest001
+ * @tc.desc: ClearByUser succeeds for valid userId with TOKEN_NATIVE caller
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceCleanTest, ClearByUserValidTest001, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ClearByUserValidTest001 start");
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+    constexpr int32_t TEST_USERID = 100;
+    tempPasteboard->clips_.InsertOrAssign(TEST_USERID, std::make_shared<PasteData>());
+    int32_t result = tempPasteboard->ClearByUser(TEST_USERID);
+    EXPECT_EQ(result, ERR_OK);
+    auto [found, data] = tempPasteboard->clips_.Find(TEST_USERID);
+    EXPECT_FALSE(found);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ClearByUserValidTest001 end");
+}
+
 } // namespace MiscServices
 } // namespace OHOS

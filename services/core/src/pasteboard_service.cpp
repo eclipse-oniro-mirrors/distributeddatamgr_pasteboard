@@ -526,10 +526,9 @@ int32_t PasteboardService::Clear()
 int32_t PasteboardService::ClearByUser(int32_t userId)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "enter, clips_.Size=%{public}zu", clips_.Size());
-    auto appInfo = GetAppInfo(IPCSkeleton::GetCallingTokenID());
-    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(appInfo.tokenType == ATokenTypeEnum::TOKEN_NATIVE,
-        static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR), PASTEBOARD_MODULE_SERVICE,
-        "userId is %{public}d", userId);
+    AppInfo appInfo;
+    auto ret = GetAndCheckByUserAppInfo(appInfo, userId);
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(ret == ERR_OK, ret, PASTEBOARD_MODULE_SERVICE, "check failed");
     return ClearInner(userId, appInfo);
 }
 
@@ -547,7 +546,7 @@ int32_t PasteboardService::ClearInner(int32_t userId, const AppInfo &appInfo)
     }
     CleanDistributedData(userId);
     if (hasData) {
-        std::string bundleName = GetAppBundleName(appInfo);
+        std::string bundleName = appInfo.bundleName;
         NotifyObservers(bundleName, userId, PasteboardEventStatus::PASTEBOARD_CLEAR);
     }
     if (!HasActivePasteboardWork()) {
