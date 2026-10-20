@@ -672,6 +672,15 @@ private:
     int32_t GetPasteDataFromServiceByUser(int32_t userId, PasteData &pasteData,
        PasteDataFromServiceInfo &pasteDataFromServiceInfo, std::string progressKey,
        std::shared_ptr<GetDataParams> params);
+    int32_t GetPasteDataInternal(int32_t userId, PasteData &pasteData, const char *traceName);
+    int32_t GetPasteDataFromServiceInternal(int32_t userId, PasteData &pasteData,
+       PasteDataFromServiceInfo &pasteDataFromServiceInfo, std::string progressKey,
+       std::shared_ptr<GetDataParams> params);
+    int32_t SetPasteDataInternal(int32_t userId, PasteData &pasteData,
+       std::shared_ptr<PasteboardDelayGetter> delayGetter,
+       std::map<uint32_t, std::shared_ptr<UDMF::EntryGetter>> entryGetters);
+    int32_t GetDataWithProgressInternal(int32_t userId, PasteData &pasteData,
+       std::shared_ptr<GetDataParams> params, const char *traceName);
     static void UpdateProgress(std::shared_ptr<GetDataParams> params, int progressValue);
     static std::atomic<uint64_t> progressStartTime_;
     static void OnProgressAbnormal(int32_t result);
