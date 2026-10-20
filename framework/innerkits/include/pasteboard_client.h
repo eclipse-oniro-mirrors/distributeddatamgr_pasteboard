@@ -672,14 +672,14 @@ private:
     int32_t GetPasteDataFromServiceByUser(int32_t userId, PasteData &pasteData,
        PasteDataFromServiceInfo &pasteDataFromServiceInfo, std::string progressKey,
        std::shared_ptr<GetDataParams> params);
-    int32_t GetPasteDataInternal(int32_t userId, PasteData &pasteData, const char *traceName);
-    int32_t GetPasteDataFromServiceInternal(int32_t userId, PasteData &pasteData,
+    int32_t GetPasteDataInner(int32_t userId, PasteData &pasteData, const char *traceName);
+    int32_t GetPasteDataFromServiceInner(int32_t userId, PasteData &pasteData,
        PasteDataFromServiceInfo &pasteDataFromServiceInfo, std::string progressKey,
        std::shared_ptr<GetDataParams> params);
-    int32_t SetPasteDataInternal(int32_t userId, PasteData &pasteData,
+    int32_t SetPasteDataInner(int32_t userId, PasteData &pasteData,
        std::shared_ptr<PasteboardDelayGetter> delayGetter,
        std::map<uint32_t, std::shared_ptr<UDMF::EntryGetter>> entryGetters);
-    int32_t GetDataWithProgressInternal(int32_t userId, PasteData &pasteData,
+    int32_t GetDataWithProgressInner(int32_t userId, PasteData &pasteData,
        std::shared_ptr<GetDataParams> params, const char *traceName);
     static void UpdateProgress(std::shared_ptr<GetDataParams> params, int progressValue);
     static std::atomic<uint64_t> progressStartTime_;
@@ -705,7 +705,7 @@ private:
     int32_t ProcessPasteDataFromService(PasteData &pasteData, int64_t rawDataSize, int fd,
         const std::vector<uint8_t> &recvTLV);
     void GetDataReport(PasteData &pasteData, int32_t syncTime, uint32_t currentSeqId,
-        const std::string &currentPid, int32_t ret);
+        const std::string &currentPid, int32_t ret, const char *traceName);
     void SubscribePasteboardSA();
     void UnSubscribePasteboardSA();
     static std::mutex instanceLock_;
