@@ -681,6 +681,10 @@ private:
        std::map<uint32_t, std::shared_ptr<UDMF::EntryGetter>> entryGetters);
     int32_t GetDataWithProgressInner(int32_t userId, PasteData &pasteData,
        std::shared_ptr<GetDataParams> params, const char *traceName);
+    int32_t DispatchSetProxy(int32_t userId, const sptr<IPasteboardService> &proxy,
+       int fd, int64_t tlvSize, const std::vector<uint8_t> &tlv,
+       const sptr<PasteboardDelayGetterClient> &delayGetterAgent,
+       const sptr<PasteboardEntryGetterClient> &entryGetterAgent);
     static void UpdateProgress(std::shared_ptr<GetDataParams> params, int progressValue);
     static std::atomic<uint64_t> progressStartTime_;
     static void OnProgressAbnormal(int32_t result);

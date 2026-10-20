@@ -364,6 +364,31 @@ public:
         return 0;
     }
 
+    int32_t GetPasteDataByUser(int32_t userId, int &fd, int64_t &memSize, std::vector<uint8_t> &buffer,
+        uint32_t pasteSeqId, int32_t &syncTime, int32_t &realErrCode) override
+    {
+        (void)userId;
+        (void)fd;
+        (void)memSize;
+        (void)buffer;
+        (void)pasteSeqId;
+        (void)syncTime;
+        (void)realErrCode;
+        return 0;
+    }
+
+    int32_t GetRecordValueByTypeByUser(int32_t userId, uint32_t dataId, uint32_t recordId,
+        int64_t &rawDataSize, std::vector<uint8_t> &buffer, int &fd) override
+    {
+        (void)userId;
+        (void)dataId;
+        (void)recordId;
+        (void)rawDataSize;
+        (void)buffer;
+        (void)fd;
+        return 0;
+    }
+
     int32_t ShowProgress(const std::string &progressKey, const sptr<IRemoteObject> &observer) override
     {
         (void)progressKey;
