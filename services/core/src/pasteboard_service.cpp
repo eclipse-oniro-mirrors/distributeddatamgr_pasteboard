@@ -528,7 +528,7 @@ int32_t PasteboardService::ClearByUser(int32_t userId)
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "enter, clips_.Size=%{public}zu", clips_.Size());
     AppInfo appInfo;
     auto ret = GetAndCheckByUserAppInfo(appInfo, userId);
-    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(ret == ERR_OK, ret, PASTEBOARD_MODULE_SERVICE, "check failed");
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(ret == ERR_OK, ret, PASTEBOARD_MODULE_SERVICE, "check failed, ret=%{public}d", ret);
     return ClearInner(userId, appInfo);
 }
 
@@ -836,7 +836,7 @@ int32_t PasteboardService::GetRecordValueByTypeByUser(int32_t userId, uint32_t d
 {
     AppInfo appInfo;
     auto ret = GetAndCheckByUserAppInfo(appInfo, userId);
-    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(ret == ERR_OK, ret, PASTEBOARD_MODULE_SERVICE, "check failed");
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(ret == ERR_OK, ret, PASTEBOARD_MODULE_SERVICE, "check failed, ret=%{public}d", ret);
     return GetRecordValueByTypeInner(userId, appInfo, dataId, recordId, rawDataSize, buffer, fd);
 }
 
@@ -1190,7 +1190,7 @@ int32_t PasteboardService::GetAndCheckByUserAppInfo(AppInfo &outAppInfo, int32_t
     // 复用 FillNativeAppInfo 填 bundleName（调 GetNativeTokenInfo，native 调用无跨 SA）
     // outAppInfo.userId 保持 ERROR_USERID（ByUser 不使用，用外部 userId）
     FillNativeAppInfo(tokenId, outAppInfo);
-    return static_cast<int32_t>(PasteboardError::E_OK);
+    return ERR_OK;
 }
 
 void PasteboardService::FillHapAppInfo(uint32_t tokenId, AppInfo &info) const
@@ -1399,7 +1399,7 @@ int32_t PasteboardService::GetPasteDataByUser(int32_t userId, int &fd, int64_t &
 {
     AppInfo appInfo;
     auto ret = GetAndCheckByUserAppInfo(appInfo, userId);
-    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(ret == ERR_OK, ret, PASTEBOARD_MODULE_SERVICE, "check failed");
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(ret == ERR_OK, ret, PASTEBOARD_MODULE_SERVICE, "check failed, ret=%{public}d", ret);
     fd = -1;
     std::string pasteId = PasteData::CreatePasteId("GetPasteDataByUser", pasteSeqId, IPCSkeleton::GetCallingPid());
     UeReportInfo ueReportInfo;
@@ -3186,7 +3186,7 @@ int32_t PasteboardService::SetPasteDataByUser(int32_t userId, int fd, int64_t me
 {
     AppInfo appInfo;
     auto ret = GetAndCheckByUserAppInfo(appInfo, userId);
-    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(ret == ERR_OK, ret, PASTEBOARD_MODULE_SERVICE, "check failed");
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(ret == ERR_OK, ret, PASTEBOARD_MODULE_SERVICE, "check failed, ret=%{public}d", ret);
     return SetPasteDataInner(userId, appInfo, fd, memSize, buffer, delayGetter, entryGetter);
 }
 
@@ -3195,7 +3195,7 @@ int32_t PasteboardService::SetPasteDataOnlyByUser(int32_t userId, int fd, int64_
 {
     AppInfo appInfo;
     auto ret = GetAndCheckByUserAppInfo(appInfo, userId);
-    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(ret == ERR_OK, ret, PASTEBOARD_MODULE_SERVICE, "check failed");
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(ret == ERR_OK, ret, PASTEBOARD_MODULE_SERVICE, "check failed, ret=%{public}d", ret);
     return SetPasteDataOnlyInner(userId, appInfo, fd, memSize, buffer);
 }
 
@@ -3204,7 +3204,7 @@ int32_t PasteboardService::SetPasteDataDelayDataByUser(int32_t userId, int fd, i
 {
     AppInfo appInfo;
     auto ret = GetAndCheckByUserAppInfo(appInfo, userId);
-    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(ret == ERR_OK, ret, PASTEBOARD_MODULE_SERVICE, "check failed");
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(ret == ERR_OK, ret, PASTEBOARD_MODULE_SERVICE, "check failed, ret=%{public}d", ret);
     return SetPasteDataDelayDataInner(userId, appInfo, fd, memSize, buffer, delayGetter);
 }
 
@@ -3213,7 +3213,7 @@ int32_t PasteboardService::SetPasteDataEntryDataByUser(int32_t userId, int fd, i
 {
     AppInfo appInfo;
     auto ret = GetAndCheckByUserAppInfo(appInfo, userId);
-    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(ret == ERR_OK, ret, PASTEBOARD_MODULE_SERVICE, "check failed");
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(ret == ERR_OK, ret, PASTEBOARD_MODULE_SERVICE, "check failed, ret=%{public}d", ret);
     return SetPasteDataEntryDataInner(userId, appInfo, fd, memSize, buffer, entryGetter);
 }
 
