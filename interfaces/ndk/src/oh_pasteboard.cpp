@@ -83,10 +83,17 @@ int OH_PasteboardObserver_Destroy(OH_PasteboardObserver *observer)
     if (!IsSubscriberValid(observer)) {
         return ERR_INVALID_PARAMETER;
     }
+    if (observer->impl != nullptr) {
+        PasteboardClient::GetInstance()->Unsubscribe(
+            static_cast<PasteboardObserverType>(observer->impl->GetType()), observer->impl);
+        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CAPI, "unsubscribe observer in destroy");
+        observer->impl = nullptr;
+    }
     if (observer->finalize != nullptr) {
         (observer->finalize)(observer->context);
         PASTEBOARD_HILOGD(PASTEBOARD_MODULE_CAPI, "context finalized");
     }
+    
     delete observer;
     return ERR_OK;
 }
@@ -169,8 +176,9 @@ int OH_Pasteboard_Subscribe(OH_Pasteboard *pasteboard, int type, const OH_Pasteb
     }
     observerBox->SetInnerObserver(observer);
     observerBox->SetType(static_cast<Pasteboard_NotifyType>(type));
+    const_cast<OH_PasteboardObserver *>(observer)->impl = observerBox;
     bool ret = PasteboardClient::GetInstance()->Subscribe(static_cast<PasteboardObserverType>(type), observerBox);
-    if (ret != ERR_OK) {
+    if (!ret) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CAPI, "subscribe observer failed");
     }
     pasteboard->observers_[observer] = observerBox;
