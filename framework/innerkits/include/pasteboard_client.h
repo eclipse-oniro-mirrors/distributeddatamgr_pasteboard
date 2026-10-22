@@ -329,7 +329,7 @@ public:
     int32_t GetUnifiedData(UDMF::UnifiedData &unifiedData);
 
     /**
-     * GetUdsdData
+     * SetUdsdData
      * @description set unified data with uds entries to the pasteboard.
      * @param unifiedData the object of the PasteDate.
      * @return int32_t.
