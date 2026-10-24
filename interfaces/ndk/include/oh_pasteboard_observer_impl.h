@@ -16,14 +16,19 @@
 #define OH_PASTEBOARD_OBSERVER_IMPL_H
 
 #include "oh_pasteboard_common.h"
+#include <mutex>
 
 struct OH_PasteboardObserver {
     const int64_t cid = SUBSCRIBER_STRUCT_ID;
+    std::atomic<bool> destroyed{ false };
+    mutable std::atomic<int> refCount{ 1 };
     Pasteboard_Notify callback{ nullptr };
     void *context{ nullptr };
     Pasteboard_Finalize finalize{ nullptr };
     OHOS::sptr<OHOS::MiscServices::PasteboardObserverCapiImpl> impl{};
+    mutable std::mutex mutex;
     ~OH_PasteboardObserver();
+    void ReleaseRef();
 };
 
 namespace OHOS {
@@ -36,8 +41,9 @@ public:
     void SetInnerObserver(const OH_PasteboardObserver *observer);
 
 private:
-    const OH_PasteboardObserver *innerObserver_;
-    Pasteboard_NotifyType type_;
+    const OH_PasteboardObserver *innerObserver_{ nullptr };
+    Pasteboard_NotifyType type_{};
+    std::mutex implMutex_;
 };
 } // namespace MiscServices
 } // namespace OHOS

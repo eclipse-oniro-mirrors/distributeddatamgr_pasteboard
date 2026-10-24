@@ -36,9 +36,16 @@ static bool IsPasteboardValid(OH_Pasteboard *pasteboard)
         && !pasteboard->destroyed.load(std::memory_order_acquire);
 }
 
-static bool IsSubscriberValid(OH_PasteboardObserver *observer)
+static bool IsSubscriberValid(const OH_PasteboardObserver *observer)
 {
-    return observer != nullptr && observer->cid == SUBSCRIBER_STRUCT_ID;
+    return observer != nullptr && observer->cid == SUBSCRIBER_STRUCT_ID
+        && !observer->destroyed.load(std::memory_order_acquire);
+}
+
+static bool IsGetDataParamsValid(Pasteboard_GetDataParams *params)
+{
+    return params != nullptr && params->cid == PARAMS_STRUCT_ID
+        && !params->destroyed.load(std::memory_order_acquire);
 }
 
 static bool IsMimeType(const char* type)
@@ -80,35 +87,39 @@ OH_PasteboardObserver *OH_PasteboardObserver_Create()
 
 int OH_PasteboardObserver_Destroy(OH_PasteboardObserver *observer)
 {
-    if (!IsSubscriberValid(observer)) {
+    if (observer == nullptr || observer->cid != SUBSCRIBER_STRUCT_ID) {
+        return ERR_INVALID_PARAMETER;
+    }
+    bool expected = false;
+    if (!observer->destroyed.compare_exchange_strong(expected, true,
+            std::memory_order_acq_rel, std::memory_order_acquire)) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CAPI, "observer already destroyed");
         return ERR_INVALID_PARAMETER;
     }
     if (observer->impl != nullptr) {
+        observer->impl->SetInnerObserver(nullptr);
         PasteboardClient::GetInstance()->Unsubscribe(
             static_cast<PasteboardObserverType>(observer->impl->GetType()), observer->impl);
         PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CAPI, "unsubscribe observer in destroy");
         observer->impl = nullptr;
     }
-    if (observer->finalize != nullptr) {
-        (observer->finalize)(observer->context);
-        PASTEBOARD_HILOGD(PASTEBOARD_MODULE_CAPI, "context finalized");
-    }
-    
-    delete observer;
+    observer->ReleaseRef();
     return ERR_OK;
 }
 
 int OH_PasteboardObserver_SetData(OH_PasteboardObserver *observer, void *context, const Pasteboard_Notify callback,
     const Pasteboard_Finalize finalize)
 {
-    if (observer == nullptr || callback == nullptr) {
+    if (!IsSubscriberValid(observer) || callback == nullptr) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CAPI, "invalid observer or callback");
         return ERR_INVALID_PARAMETER;
     }
-    observer->callback = callback;
     if (context != nullptr && finalize == nullptr) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CAPI, "finalize is null");
         return ERR_INVALID_PARAMETER;
     }
+    std::lock_guard<std::mutex> lock(observer->mutex);
+    observer->callback = callback;
     observer->context = context;
     observer->finalize = finalize;
     return ERR_OK;
@@ -140,6 +151,9 @@ void OH_Pasteboard_Destroy(OH_Pasteboard *pasteboard)
             if (iter.second != nullptr) {
                 observers.push_back(iter.second);
             }
+            if (IsSubscriberValid(iter.first)) {
+                const_cast<OH_PasteboardObserver *>(iter.first)->impl = nullptr;
+            }
         }
         pasteboard->observers_.clear();
         pasteboard->mimeTypes_.clear();
@@ -165,6 +179,10 @@ int OH_Pasteboard_Subscribe(OH_Pasteboard *pasteboard, int type, const OH_Pasteb
     HISTOGRAM_ENUMERATION_SAMPLED(
         "Pasteboard.NotifyType.OH_Pasteboard_Subscribe", type, HISTOGRAM_NOTIFYTYPE_BOUNDARY);
     std::lock_guard<std::mutex> lock(pasteboard->mutex);
+    if (pasteboard->destroyed.load(std::memory_order_acquire)) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CAPI, "pasteboard is destroyed");
+        return ERR_INVALID_PARAMETER;
+    }
     auto iter = pasteboard->observers_.find(observer);
     if (iter != pasteboard->observers_.end()) {
         PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CAPI, "observer exist.");
@@ -193,12 +211,19 @@ int OH_Pasteboard_Unsubscribe(OH_Pasteboard *pasteboard, int type, const OH_Past
         return ERR_INVALID_PARAMETER;
     }
     std::lock_guard<std::mutex> lock(pasteboard->mutex);
+    if (pasteboard->destroyed.load(std::memory_order_acquire)) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CAPI, "pasteboard is destroyed");
+        return ERR_INVALID_PARAMETER;
+    }
     auto iter = pasteboard->observers_.find(observer);
     if (iter == pasteboard->observers_.end()) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CAPI, "couldn't find this observer");
         return ERR_OK;
     }
     PasteboardClient::GetInstance()->Unsubscribe(static_cast<PasteboardObserverType>(type), iter->second);
+    if (IsSubscriberValid(observer)) {
+        const_cast<OH_PasteboardObserver *>(observer)->impl = nullptr;
+    }
     pasteboard->observers_.erase(iter);
     return ERR_OK;
 }
@@ -206,6 +231,10 @@ int OH_Pasteboard_Unsubscribe(OH_Pasteboard *pasteboard, int type, const OH_Past
 uint32_t OH_Pasteboard_GetChangeCount(OH_Pasteboard *pasteboard)
 {
     HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.OH_Pasteboard_GetChangeCount", true);
+    if (!IsPasteboardValid(pasteboard)) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CAPI, "invalid pasteboard");
+        return 0;
+    }
     uint32_t changeCount = 0;
     PasteboardClient::GetInstance()->GetChangeCount(changeCount);
     return changeCount;
@@ -214,6 +243,10 @@ uint32_t OH_Pasteboard_GetChangeCount(OH_Pasteboard *pasteboard)
 bool OH_Pasteboard_IsRemoteData(OH_Pasteboard *pasteboard)
 {
     HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.OH_Pasteboard_IsRemoteData", true);
+    if (!IsPasteboardValid(pasteboard)) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CAPI, "invalid pasteboard");
+        return false;
+    }
     return PasteboardClient::GetInstance()->IsRemoteData();
 }
 
@@ -243,6 +276,10 @@ char **OH_Pasteboard_GetMimeTypes(OH_Pasteboard *pasteboard, unsigned int *count
         return nullptr;
     }
     std::lock_guard<std::mutex> lock(pasteboard->mutex);
+    if (pasteboard->destroyed.load(std::memory_order_acquire)) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CAPI, "pasteboard is destroyed");
+        return nullptr;
+    }
     pasteboard->mimeTypes_ = PasteboardClient::GetInstance()->GetMimeTypes();
     unsigned int typeNum = pasteboard->mimeTypes_.size();
     if (typeNum == 0 || typeNum > MAX_MIMETYPES_NUM) {
@@ -261,7 +298,11 @@ char **OH_Pasteboard_GetMimeTypes(OH_Pasteboard *pasteboard, unsigned int *count
 bool OH_Pasteboard_HasType(OH_Pasteboard *pasteboard, const char *type)
 {
     HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.OH_Pasteboard_HasType", true);
-    if (!IsPasteboardValid(pasteboard) || type == nullptr) {
+    if (!IsPasteboardValid(pasteboard)) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CAPI, "invalid pasteboard");
+        return false;
+    }
+    if (type == nullptr) {
         return false;
     }
     std::string typeStr(type);
@@ -278,6 +319,7 @@ bool OH_Pasteboard_HasData(OH_Pasteboard *pasteboard)
 {
     HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.OH_Pasteboard_HasData", true);
     if (!IsPasteboardValid(pasteboard)) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CAPI, "invalid pasteboard");
         return false;
     }
     return PasteboardClient::GetInstance()->HasPasteData();
@@ -287,6 +329,7 @@ bool OH_Pasteboard_HasRemoteData(OH_Pasteboard *pasteboard)
 {
     HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.OH_Pasteboard_HasRemoteData", true);
     if (!IsPasteboardValid(pasteboard)) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CAPI, "invalid pasteboard");
         return false;
     }
     return PasteboardClient::GetInstance()->HasRemoteData();
@@ -297,6 +340,10 @@ OH_UdmfData *OH_Pasteboard_GetData(OH_Pasteboard *pasteboard, int *status)
     HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.OH_Pasteboard_GetData", true);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CAPI, "enter");
     if (!IsPasteboardValid(pasteboard) || status == nullptr) {
+        if (status != nullptr) {
+            *status = ERR_INVALID_PARAMETER;
+        }
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CAPI, "invalid pasteboard or status");
         return nullptr;
     }
     auto unifiedData = std::make_shared<OHOS::UDMF::UnifiedData>();
@@ -339,8 +386,14 @@ Pasteboard_GetDataParams *OH_Pasteboard_GetDataParams_Create(void)
 
 void OH_Pasteboard_GetDataParams_Destroy(Pasteboard_GetDataParams* params)
 {
-    if (params == nullptr) {
+    if (params == nullptr || params->cid != PARAMS_STRUCT_ID) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CAPI, "invalid params!");
+        return;
+    }
+    bool expected = false;
+    if (!params->destroyed.compare_exchange_strong(expected, true,
+            std::memory_order_acq_rel, std::memory_order_acquire)) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CAPI, "params already destroyed");
         return;
     }
     if (params->destUri != nullptr) {
@@ -354,7 +407,7 @@ void OH_Pasteboard_GetDataParams_Destroy(Pasteboard_GetDataParams* params)
 void OH_Pasteboard_GetDataParams_SetProgressIndicator(Pasteboard_GetDataParams* params,
     Pasteboard_ProgressIndicator progressIndicator)
 {
-    if (params == nullptr) {
+    if (!IsGetDataParamsValid(params)) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CAPI, "invalid params!");
         return;
     }
@@ -363,7 +416,7 @@ void OH_Pasteboard_GetDataParams_SetProgressIndicator(Pasteboard_GetDataParams* 
 
 void OH_Pasteboard_GetDataParams_SetDestUri(Pasteboard_GetDataParams* params, const char* destUri, uint32_t destUriLen)
 {
-    if (params == nullptr || params->destUri == nullptr || destUri == nullptr || destUriLen == 0 ||
+    if (!IsGetDataParamsValid(params) || params->destUri == nullptr || destUri == nullptr || destUriLen == 0 ||
         destUriLen >= MAX_PATH_LEN) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CAPI, "invalid params!");
         return;
@@ -379,7 +432,7 @@ void OH_Pasteboard_GetDataParams_SetDestUri(Pasteboard_GetDataParams* params, co
 void OH_Pasteboard_GetDataParams_SetFileConflictOptions(Pasteboard_GetDataParams* params,
     Pasteboard_FileConflictOptions option)
 {
-    if (params == nullptr) {
+    if (!IsGetDataParamsValid(params)) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CAPI, "invalid params!");
         return;
     }
@@ -389,7 +442,7 @@ void OH_Pasteboard_GetDataParams_SetFileConflictOptions(Pasteboard_GetDataParams
 void OH_Pasteboard_GetDataParams_SetProgressListener(Pasteboard_GetDataParams* params,
     const OH_Pasteboard_ProgressListener listener)
 {
-    if (params == nullptr) {
+    if (!IsGetDataParamsValid(params)) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CAPI, "invalid params!");
         return;
     }
@@ -425,10 +478,11 @@ void OH_Pasteboard_ProgressCancel(Pasteboard_GetDataParams* params)
 OH_UdmfData* OH_Pasteboard_GetDataWithProgress(OH_Pasteboard* pasteboard, Pasteboard_GetDataParams* params, int* status)
 {
     HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.OH_Pasteboard_GetDataWithProgress", true);
-    if (!IsPasteboardValid(pasteboard) || params == nullptr || status == nullptr) {
+    if (!IsPasteboardValid(pasteboard) || !IsGetDataParamsValid(params) || status == nullptr) {
         if (status != nullptr) {
             *status = ERR_INVALID_PARAMETER;
         }
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CAPI, "invalid pasteboard or params or status");
         return nullptr;
     }
     auto unifiedData = std::make_shared<OHOS::UDMF::UnifiedData>();
@@ -495,10 +549,12 @@ int OH_Pasteboard_SetData(OH_Pasteboard *pasteboard, OH_UdmfData *data)
 int OH_Pasteboard_ClearData(OH_Pasteboard *pasteboard)
 {
     HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.OH_Pasteboard_ClearData", true);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CAPI, "enter");
     if (!IsPasteboardValid(pasteboard)) {
         return ERR_INVALID_PARAMETER;
     }
     PasteboardClient::GetInstance()->Clear();
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CAPI, "leave");
     return ERR_OK;
 }
 
@@ -523,6 +579,7 @@ void OH_Pasteboard_SyncDelayedDataAsync(OH_Pasteboard* pasteboard, void (*callba
             errCode = GetMappedCode(ret);
         }
         PASTEBOARD_CHECK_AND_RETURN_LOGE(callback != nullptr, PASTEBOARD_MODULE_CAPI, "callback is null");
+        PASTEBOARD_HILOGD(PASTEBOARD_MODULE_CAPI, "invoke sync callback, errCode=%{public}d", errCode);
         callback(errCode);
     });
     PasteBoardCommonUtils::SetThreadTaskName(thread, "SyncDelayedData");

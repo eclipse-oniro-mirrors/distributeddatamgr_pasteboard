@@ -2092,7 +2092,9 @@ int32_t PasteboardService::PasteComplete(const std::string &deviceId, const std:
     RADAR_REPORT(RadarReporter::DFX_GET_PASTEBOARD, RadarReporter::DFX_DISTRIBUTED_FILE_END, RadarReporter::DFX_SUCCESS,
         RadarReporter::BIZ_STATE, RadarReporter::DFX_END, RadarReporter::CONCURRENT_ID, pasteId);
     std::lock_guard<std::mutex> tmpMutex(p2pMapMutex_);
-    p2pMap_.ComputeIfPresent(deviceId, [pasteId, deviceId, this](const auto &key, auto &value) {
+    bool sessionFound = false;
+    p2pMap_.ComputeIfPresent(deviceId, [&sessionFound, pasteId, deviceId, this](const auto &key, auto &value) {
+        sessionFound = true;
         value.ComputeIfPresent(pasteId, [deviceId](const auto &key, auto &value) {
             return false;
         });
@@ -2102,6 +2104,10 @@ int32_t PasteboardService::PasteComplete(const std::string &deviceId, const std:
         }
         return true;
     });
+    if (!sessionFound) {
+        PASTEBOARD_HILOGW(PASTEBOARD_MODULE_SERVICE, "no matching P2P session, deviceId=%{public}.6s, taskId=%{public}s",
+            deviceId.c_str(), pasteId.c_str());
+    }
     return ERR_OK;
 }
 

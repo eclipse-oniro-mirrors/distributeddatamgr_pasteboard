@@ -16,19 +16,52 @@
 #define LOG_TAG "Pasteboard_Observer_Impl"
 
 #include "oh_pasteboard_observer_impl.h"
+#include <mutex>
 #include "pasteboard_hilog.h"
 
+using OHOS::MiscServices::PASTEBOARD;
+using OHOS::MiscServices::PASTEBOARD_MODULE_CAPI;
+
 OH_PasteboardObserver::~OH_PasteboardObserver() = default;
+
+void OH_PasteboardObserver::ReleaseRef()
+{
+    if (refCount.fetch_sub(1, std::memory_order_acq_rel) == 1) {
+        if (finalize != nullptr) {
+            (finalize)(context);
+            finalize = nullptr;
+            PASTEBOARD_HILOGD(PASTEBOARD_MODULE_CAPI, "context finalized");
+        }
+        delete this;
+    }
+}
 
 namespace OHOS {
 namespace MiscServices {
 void PasteboardObserverCapiImpl::OnPasteboardChanged()
 {
-    if (innerObserver_ == nullptr || innerObserver_->callback == nullptr) {
+    Pasteboard_Notify callback = nullptr;
+    void *context = nullptr;
+    OH_PasteboardObserver *observer = nullptr;
+    {
+        std::lock_guard<std::mutex> lock(implMutex_);
+        if (innerObserver_ == nullptr) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CAPI, "subscriber is nullptr or subscriber callback is nullptr");
+            return;
+        }
+        std::lock_guard<std::mutex> obsLock(innerObserver_->mutex);
+        callback = innerObserver_->callback;
+        context = innerObserver_->context;
+        observer = const_cast<OH_PasteboardObserver *>(innerObserver_);
+        observer->refCount.fetch_add(1, std::memory_order_acq_rel);
+    }
+    if (callback == nullptr) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CAPI, "subscriber is nullptr or subscriber callback is nullptr");
+        observer->ReleaseRef();
         return;
     }
-    (innerObserver_->callback)(innerObserver_->context, type_);
+    callback(context, type_);
+    observer->ReleaseRef();
 }
 
 void PasteboardObserverCapiImpl::SetType(Pasteboard_NotifyType type)
@@ -43,6 +76,7 @@ Pasteboard_NotifyType PasteboardObserverCapiImpl::GetType()
 
 void PasteboardObserverCapiImpl::SetInnerObserver(const OH_PasteboardObserver *innerObserver)
 {
+    std::lock_guard<std::mutex> lock(implMutex_);
     innerObserver_ = innerObserver;
 }
 } // namespace MiscServices
