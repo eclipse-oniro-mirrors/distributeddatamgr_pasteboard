@@ -25,7 +25,7 @@ struct OH_PasteboardObserver {
     Pasteboard_Notify callback{ nullptr };
     void *context{ nullptr };
     Pasteboard_Finalize finalize{ nullptr };
-    OHOS::sptr<OHOS::MiscServices::PasteboardObserverCapiImpl> impl{};
+    mutable OHOS::sptr<OHOS::MiscServices::PasteboardObserverCapiImpl> impl{};
     mutable std::mutex mutex;
     ~OH_PasteboardObserver();
     void ReleaseRef();

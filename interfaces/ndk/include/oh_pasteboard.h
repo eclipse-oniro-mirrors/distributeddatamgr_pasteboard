@@ -189,7 +189,7 @@ OH_PasteboardObserver* OH_PasteboardObserver_Create();
 /**
  * @brief Destroy a {@link OH_PasteboardObserver} instance.
  * The pointer is invalid after this call. Using it after destruction may cause undefined behavior.
- * If the observer is still subscribed to a pasteboard, it will be automatically unsubscribed.
+ * If the observer has not been unsubscribed prior to this call, it will be automatically unsubscribed.
  *
  * @param observer Pointer to the {@link OH_PasteboardObserver} instance to destroy.
  * @return Returns the status code of the execution. For details, see {@link PASTEBOARD_ErrCode}.
@@ -202,7 +202,7 @@ int OH_PasteboardObserver_Destroy(OH_PasteboardObserver* observer);
 
 /**
  * @brief Sets a callback function to return the Pasteboard data changed.
- * The observer must be created by {@link OH_PasteboardObserver_Create} and must not have been destroyed.
+ * The observer must be created by {@link OH_PasteboardObserver_Create} and must not be in a destroyed state.
  *
  * @param observer Pointer to the {@link OH_PasteboardObserver} instance.
  * @param context Pointer to the context set, which is the first parameter in Pasteboard_Notify.
@@ -505,9 +505,8 @@ OH_UdmfData* OH_Pasteboard_GetDataWithProgress(OH_Pasteboard* pasteboard, Pasteb
  * @param pasteboard Pointer to the {@link OH_Pasteboard} instance.
  * @param callback Indicates the pointer to the callback that is called after the synchronization is finished.
  *        The callback is invoked asynchronously on an internal thread and must remain valid until it
- *        has been invoked. There is no mechanism to cancel or await the operation. The callback receives
- *        an {@code int errorCode} parameter indicating the status of the synchronization.
- *        For details, see {@link PASTEBOARD_ErrCode}.
+ *        has been invoked. The callback receives an {@code int errorCode} parameter indicating the
+ *        status of the synchronization. For details, see {@link PASTEBOARD_ErrCode}.
  * @since 21
  */
 void OH_Pasteboard_SyncDelayedDataAsync(OH_Pasteboard* pasteboard, void (*callback)(int errorCode));

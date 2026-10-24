@@ -92,7 +92,7 @@ int OH_PasteboardObserver_Destroy(OH_PasteboardObserver *observer)
     }
     bool expected = false;
     if (!observer->destroyed.compare_exchange_strong(expected, true,
-            std::memory_order_acq_rel, std::memory_order_acquire)) {
+        std::memory_order_acq_rel, std::memory_order_acquire)) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CAPI, "observer already destroyed");
         return ERR_INVALID_PARAMETER;
     }
@@ -152,7 +152,7 @@ void OH_Pasteboard_Destroy(OH_Pasteboard *pasteboard)
                 observers.push_back(iter.second);
             }
             if (IsSubscriberValid(iter.first)) {
-                const_cast<OH_PasteboardObserver *>(iter.first)->impl = nullptr;
+                iter.first->impl = nullptr;
             }
         }
         pasteboard->observers_.clear();
@@ -194,11 +194,11 @@ int OH_Pasteboard_Subscribe(OH_Pasteboard *pasteboard, int type, const OH_Pasteb
     }
     observerBox->SetInnerObserver(observer);
     observerBox->SetType(static_cast<Pasteboard_NotifyType>(type));
-    const_cast<OH_PasteboardObserver *>(observer)->impl = observerBox;
     bool ret = PasteboardClient::GetInstance()->Subscribe(static_cast<PasteboardObserverType>(type), observerBox);
     if (!ret) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CAPI, "subscribe observer failed");
     }
+    observer->impl = observerBox;
     pasteboard->observers_[observer] = observerBox;
     return ERR_OK;
 }
@@ -222,7 +222,7 @@ int OH_Pasteboard_Unsubscribe(OH_Pasteboard *pasteboard, int type, const OH_Past
     }
     PasteboardClient::GetInstance()->Unsubscribe(static_cast<PasteboardObserverType>(type), iter->second);
     if (IsSubscriberValid(observer)) {
-        const_cast<OH_PasteboardObserver *>(observer)->impl = nullptr;
+        observer->impl = nullptr;
     }
     pasteboard->observers_.erase(iter);
     return ERR_OK;
@@ -392,7 +392,7 @@ void OH_Pasteboard_GetDataParams_Destroy(Pasteboard_GetDataParams* params)
     }
     bool expected = false;
     if (!params->destroyed.compare_exchange_strong(expected, true,
-            std::memory_order_acq_rel, std::memory_order_acquire)) {
+        std::memory_order_acq_rel, std::memory_order_acquire)) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CAPI, "params already destroyed");
         return;
     }
@@ -472,6 +472,10 @@ void ProgressNotify(std::shared_ptr<GetDataParams> params)
 void OH_Pasteboard_ProgressCancel(Pasteboard_GetDataParams* params)
 {
     HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.OH_Pasteboard_ProgressCancel", true);
+    if (!IsGetDataParamsValid(params)) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CAPI, "invalid params!");
+        return;
+    }
     ProgressSignalClient::GetInstance().Cancel();
 }
 

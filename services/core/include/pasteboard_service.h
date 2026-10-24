@@ -40,6 +40,7 @@
 #include "pasteboard_service_stub.h"
 #include "pasteboard_switch.h"
 #include "pasteboard_user_context.h"
+#include "p2p_link_manager.h"
 #include "privacy_kit.h"
 #include "security_level.h"
 #include "system_ability.h"
@@ -80,11 +81,6 @@ struct PasteDateTime {
 struct PasteDateResult {
     int32_t syncTime = 0;
     int32_t errorCode = 0;
-};
-
-struct PasteP2pEstablishInfo {
-    std::string networkId;
-    std::shared_ptr<BlockObject<int32_t>> pasteBlock;
 };
 
 struct FocusedAppInfo {
@@ -231,7 +227,6 @@ private:
     static constexpr uint32_t EXPIRATION_INTERVAL = 2 * 60 * 1000;
     static constexpr int MIN_TRANMISSION_TIME = 30 * 1000; // ms
     static constexpr int PRESYNC_MONITOR_TIME = 2 * 60 * 1000; // ms
-    static constexpr int PRE_ESTABLISH_P2P_LINK_TIME = 2 * 60 * 1000; // ms
     static constexpr uint32_t SET_DISTRIBUTED_DATA_INTERVAL = 40 * 1000; // 40 seconds
     static constexpr int32_t ONE_HOUR_MINUTES = 60;
     static constexpr int32_t MAX_AGED_TIME = 24 * 60; // minute
@@ -242,8 +237,6 @@ private:
     static constexpr int32_t INVALID_SUBSCRIBE_ID = -1;
     static const std::string REGISTER_PRESYNC_MONITOR;
     static const std::string UNREGISTER_PRESYNC_MONITOR;
-    static const std::string P2P_ESTABLISH_STR;
-    static const std::string P2P_PRESYNC_ID;
     std::atomic<int32_t> agedTime_ = ONE_HOUR_MINUTES * MINUTES_TO_MILLISECONDS; // 1 hour
     bool SetPasteboardHistory(HistoryInfo &info);
     bool IsFocusedApp(uint32_t tokenId);
@@ -397,15 +390,10 @@ private:
     bool IsBundleOwnUriPermission(const std::string &bundleName, Uri &uri);
     std::string GetAppLabel(uint32_t tokenId);
     sptr<OHOS::AppExecFwk::IBundleMgr> GetAppBundleManager();
-    void OpenP2PLink(const std::string &networkId);
-    std::shared_ptr<BlockObject<int32_t>> CheckAndReuseP2PLink(const std::string &networkId,
-        const std::string &pasteId);
     void EstablishP2PLink(const std::string &networkId, const std::string &pasteId);
     bool IsContainUri(const Event &evt);
     std::shared_ptr<BlockObject<int32_t>> EstablishP2PLinkTask(
         const std::string &pasteId, const ClipPlugin::GlobalEvent &event);
-    void OnEstablishP2PLinkTask(const std::string &networkId, std::shared_ptr<BlockObject<int32_t>> pasteBlock);
-    void ClearP2PEstablishTaskInfo();
     void CloseP2PLink(const std::string &networkId);
     bool HasDistributedDataType(const std::string &mimeType);
 
@@ -482,15 +470,10 @@ private:
     void InitPlugin(std::shared_ptr<ClipPlugin> clipPlugin);
     void OnAccountSwitching(int32_t osAccountId);
     void OnAccountSwitched(int32_t osAccountId);
-    bool OpenP2PLinkForPreEstablish(const std::string &networkId, ClipPlugin *clipPlugin);
-    void PreEstablishP2PLink(const std::string &networkId, ClipPlugin *clipPlugin);
     void PreEstablishP2PLinkCallback(const std::string &networkId, ClipPlugin *clipPlugin);
     void PreSyncSwitchMonitorCallback();
     void RegisterPreSyncMonitor();
     void UnRegisterPreSyncMonitor();
-    void DeletePreSyncP2pFromP2pMap(const std::string &networkId);
-    void DeletePreSyncP2pMap(const std::string &networkId);
-    void AddPreSyncP2pTimeoutTask(const std::string &networkId);
 
     static inline ServiceRunningState state_ = ServiceRunningState::STATE_NOT_START;
     std::shared_ptr<AppExecFwk::EventHandler> serviceHandler_;
@@ -531,13 +514,11 @@ private:
 
     struct PasteboardP2pInfo {
         pid_t callPid;
-        bool isSuccess;
     };
     std::shared_ptr<FFRTTimer> ffrtTimer_;
-    std::mutex p2pMapMutex_;
-    PasteP2pEstablishInfo p2pEstablishInfo_;
-    ConcurrentMap<std::string, ConcurrentMap<std::string, PasteboardP2pInfo>> p2pMap_;
-    std::map<std::string, std::shared_ptr<BlockObject<int32_t>>> preSyncP2pMap_;
+    std::mutex pasteSessionsMutex_;
+    ConcurrentMap<std::string, ConcurrentMap<std::string, PasteboardP2pInfo>> pasteSessions_;
+    P2PLinkManager p2pLinkManager_;
     int32_t subscribeActiveId_ = INVALID_SUBSCRIBE_ID;
     enum GlobalShareOptionSource {
         MDM = 0,
