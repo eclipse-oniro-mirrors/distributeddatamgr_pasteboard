@@ -140,6 +140,13 @@
             "attr":{
                 "priority":"LT"
             }
+        },
+        {
+            "name":"pasteboard_access_tip",
+            "value":"%s read the clipboard",
+            "attr":{
+                "priority":"LT"
+            }
         }
     ]
 }
