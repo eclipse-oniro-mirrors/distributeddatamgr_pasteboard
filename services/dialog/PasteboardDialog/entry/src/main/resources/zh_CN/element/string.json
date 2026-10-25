@@ -140,6 +140,13 @@
             "attr":{
                 "priority":"translate"
             }
+        },
+        {
+            "name":"pasteboard_access_tip",
+            "value":"%s 读取了剪贴板信息",
+            "attr":{
+                "priority":"translate"
+            }
         }
     ]
 }
