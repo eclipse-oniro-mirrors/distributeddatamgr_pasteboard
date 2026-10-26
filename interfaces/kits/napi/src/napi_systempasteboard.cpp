@@ -1436,7 +1436,7 @@ napi_value SystemPasteboardNapi::SystemPasteboardInit(napi_env env, napi_value e
         DECLARE_NAPI_WRITABLE_FUNCTION("hasRemoteData", HasRemoteData),
     };
     napi_value constructor;
-    napi_define_class(env, "SystemPasteboard", NAPI_AUTO_LENGTH, New, nullptr,
+    status = napi_define_class(env, "SystemPasteboard", NAPI_AUTO_LENGTH, New, nullptr,
         sizeof(descriptors) / sizeof(napi_property_descriptor), descriptors, &constructor);
     if (status != napi_ok) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "Failed to define class at SystemPasteboardInit");

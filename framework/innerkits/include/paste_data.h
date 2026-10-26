@@ -45,6 +45,8 @@ struct API_EXPORT PasteDataProperty : public TLVWriteable, public TLVReadable {
     size_t CountTLV() const override;
 };
 
+// PasteData is not thread-safe. All members are unprotected. If a PasteData object is accessed
+// across multiple threads, external synchronization must be provided.
 class API_EXPORT PasteData : public TLVWriteable, public TLVReadable, public Parcelable {
 public:
     static constexpr const std::uint32_t MAX_RECORD_NUM = 512;

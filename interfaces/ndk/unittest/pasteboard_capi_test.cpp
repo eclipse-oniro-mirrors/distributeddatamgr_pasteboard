@@ -16,6 +16,8 @@
 #define LOG_TAG "PasteboardCapiTest"
 
 #include <gtest/gtest.h>
+#include <atomic>
+#include <chrono>
 #include <thread>
 #include <unistd.h>
 
@@ -186,6 +188,28 @@ HWTEST_F(PasteboardCapiTest, OH_PasteboardSubscriber_Create001, TestSize.Level1)
 
     OH_PasteboardObserver_Destroy(observer);
     OH_PasteboardObserver_Destroy(nullptr);
+}
+
+/**
+ * @tc.name: OH_PasteboardObserver_ReleaseRef001
+ * @tc.desc: Test that Destroy with no in-flight callback cleans up immediately (refCount=1)
+ * @tc.type: FUNC
+ * @tc.require: I9R2T2
+ */
+HWTEST_F(PasteboardCapiTest, OH_PasteboardObserver_ReleaseRef001, TestSize.Level1)
+{
+    static std::atomic<bool> finalizeCalled{false};
+    auto callback = [](void* context, Pasteboard_NotifyType type) {};
+    auto finalize = [](void* context) { finalizeCalled.store(true); };
+
+    OH_PasteboardObserver* observer = OH_PasteboardObserver_Create();
+    ASSERT_NE(observer, nullptr);
+    EXPECT_EQ(observer->refCount.load(), 1);
+    OH_PasteboardObserver_SetData(observer, nullptr, callback, finalize);
+
+    int ret = OH_PasteboardObserver_Destroy(observer);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_TRUE(finalizeCalled.load());
 }
 
 /**

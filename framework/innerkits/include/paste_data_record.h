@@ -39,6 +39,8 @@ struct RemoteRecordValue {
     std::vector<std::shared_ptr<PasteDataEntry>> entries_;
 };
 
+// PasteDataRecord is not thread-safe. All members are unprotected. If a PasteDataRecord object is
+// accessed across multiple threads, external synchronization must be provided.
 class API_EXPORT PasteDataRecord : public TLVWriteable, public TLVReadable {
 public:
     static constexpr unsigned int NO_PERMISSION = 0;

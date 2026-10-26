@@ -307,8 +307,9 @@ napi_value PasteDataRecordNapi::ConvertToText(napi_env env, napi_callback_info i
         }
         PasteDataRecordNapi *obj = nullptr;
         napi_status status = napi_unwrap(env, self, reinterpret_cast<void **>(&obj));
-        if (status == napi_ok && obj != nullptr) {
+        if (status != napi_ok || obj == nullptr) {
             PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "unwrap failed");
+        } else {
             exeContext->obj = obj;
         }
         return napi_ok;
@@ -696,25 +697,14 @@ napi_value PasteDataRecordNapi::CreateInstance(
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "new instance failed");
         return nullptr;
     }
-    PasteDataRecordNapi *obj = new (std::nothrow) PasteDataRecordNapi();
-    if (obj == nullptr) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "create PasteDataRecordNapi failed");
+    PasteDataRecordNapi *obj = nullptr;
+    status = napi_unwrap(env, instance, reinterpret_cast<void **>(&obj));
+    if (status != napi_ok || obj == nullptr) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "napi_unwrap failed, status=%{public}d",
+            static_cast<int32_t>(status));
         return nullptr;
     }
     obj->value_ = record;
-    status = napi_wrap(
-        env,
-        instance,
-        obj,
-        PasteDataRecordNapi::Destructor,
-        nullptr,
-        nullptr);
-    if (status != napi_ok) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "napi_wrap failed, status=%{public}d",
-            static_cast<int32_t>(status));
-        delete obj;
-        return nullptr;
-    }
     return instance;
 }
 

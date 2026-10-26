@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -188,6 +188,8 @@ OH_PasteboardObserver* OH_PasteboardObserver_Create();
 
 /**
  * @brief Destroy a {@link OH_PasteboardObserver} instance.
+ * The pointer is invalid after this call. Using it after destruction may cause undefined behavior.
+ * If the observer has not been unsubscribed prior to this call, it will be automatically unsubscribed.
  *
  * @param observer Pointer to the {@link OH_PasteboardObserver} instance to destroy.
  * @return Returns the status code of the execution. For details, see {@link PASTEBOARD_ErrCode}.
@@ -200,6 +202,7 @@ int OH_PasteboardObserver_Destroy(OH_PasteboardObserver* observer);
 
 /**
  * @brief Sets a callback function to return the Pasteboard data changed.
+ * The observer must be created by {@link OH_PasteboardObserver_Create} and must not be in a destroyed state.
  *
  * @param observer Pointer to the {@link OH_PasteboardObserver} instance.
  * @param context Pointer to the context set, which is the first parameter in Pasteboard_Notify.
@@ -234,6 +237,9 @@ OH_Pasteboard* OH_Pasteboard_Create();
 
 /**
  * @brief Destroy a {@link OH_Pasteboard} instance.
+ * The pointer is invalid after this call. Using it after destruction may cause undefined behavior.
+ * If any {@link OH_PasteboardObserver} instances are still subscribed, they will be automatically
+ * unsubscribed during destruction.
  *
  * @param pasteboard Pointer to the {@link OH_Pasteboard} instance to destroy.
  * @see OH_Pasteboard.
@@ -377,6 +383,10 @@ int OH_Pasteboard_ClearData(OH_Pasteboard* pasteboard);
  * @param count Pointer to the count of MIME types.
  * @return Returns char array of MIME types in the Pasteboard.
  * Returns nullptr if the operation is failed.
+ * The returned pointer is owned by the {@link OH_Pasteboard} instance and must not be freed by the
+ * caller. The returned pointer and the MIME type strings it points to are valid only until the next
+ * call to {@link OH_Pasteboard_GetMimeTypes} or until {@link OH_Pasteboard_Destroy} is called.
+ * The MIME type strings are read-only and must not be modified.
  * @see OH_Pasteboard.
  * @since 14
  */
@@ -404,6 +414,7 @@ Pasteboard_GetDataParams *OH_Pasteboard_GetDataParams_Create(void);
 
 /**
  * @brief Destroy a pointer that points to an instance of {@link Pasteboard_GetDataParams}.
+ * The pointer is invalid after this call. Using it after destruction may cause undefined behavior.
  *
  * @param params Represents a pointer to an instance of {@link Pasteboard_GetDataParams}.
  * @see Pasteboard_GetDataParams
@@ -492,8 +503,10 @@ OH_UdmfData* OH_Pasteboard_GetDataWithProgress(OH_Pasteboard* pasteboard, Pasteb
  * @brief Notifies the system pasteboard to synchronize all time-lapse paste data from application.
  *
  * @param pasteboard Pointer to the {@link OH_Pasteboard} instance.
- * @param callback Indicates the pointer to the callback that is called after the synchronize is finished.
- * @param errorCode Indicates the status code of the execution. For details, see {@link PASTEBOARD_ErrCode}.
+ * @param callback Indicates the pointer to the callback that is called after the synchronization is finished.
+ *        The callback is invoked asynchronously on an internal thread and must remain valid until it
+ *        has been invoked. The callback receives an {@code int errorCode} parameter indicating the
+ *        status of the synchronization. For details, see {@link PASTEBOARD_ErrCode}.
  * @since 21
  */
 void OH_Pasteboard_SyncDelayedDataAsync(OH_Pasteboard* pasteboard, void (*callback)(int errorCode));

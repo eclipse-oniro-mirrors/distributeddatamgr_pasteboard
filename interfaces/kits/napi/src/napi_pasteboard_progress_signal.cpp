@@ -76,7 +76,7 @@ napi_value ProgressSignalNapi::ProgressSignalNapiInit(napi_env env, napi_value e
     };
 
     napi_value constructor;
-    napi_define_class(env, "ProgressSignal", NAPI_AUTO_LENGTH, New, nullptr,
+    status = napi_define_class(env, "ProgressSignal", NAPI_AUTO_LENGTH, New, nullptr,
         sizeof(descriptors) / sizeof(napi_property_descriptor), descriptors, &constructor);
     if (status != napi_ok) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "Failed to define class at ProgressSignalNapiInit");

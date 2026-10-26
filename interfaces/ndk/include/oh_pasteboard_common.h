@@ -43,6 +43,7 @@ class PasteboardObserverCapiImpl;
 enum PasteboardNdkStructId : std::int64_t {
     SUBSCRIBER_STRUCT_ID = 1002950,
     PASTEBOARD_STRUCT_ID,
+    PARAMS_STRUCT_ID,
 };
 
 struct OH_Pasteboard {
@@ -59,6 +60,8 @@ struct Pasteboard_ProgressInfo {
 };
 
 struct Pasteboard_GetDataParams {
+    const int64_t cid = PARAMS_STRUCT_ID;
+    std::atomic<bool> destroyed{false};
     char *destUri;
     uint32_t destUriLen;
     Pasteboard_FileConflictOptions fileConflictOptions;

@@ -1052,7 +1052,7 @@ napi_value PasteDataNapi::PasteDataInit(napi_env env, napi_value exports)
     };
 
     napi_value constructor;
-    napi_define_class(env, "PasteData", NAPI_AUTO_LENGTH, New, nullptr,
+    status = napi_define_class(env, "PasteData", NAPI_AUTO_LENGTH, New, nullptr,
         sizeof(descriptors) / sizeof(napi_property_descriptor), descriptors, &constructor);
     if (status != napi_ok) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "Failed to define class at Init");
@@ -1172,25 +1172,14 @@ napi_value PasteDataNapi::CreateInstance(napi_env env, const std::shared_ptr<Mis
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "new instance failed");
         return nullptr;
     }
-    PasteDataNapi *obj = new (std::nothrow) PasteDataNapi();
-    if (obj == nullptr) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "create PasteDataNapi failed");
+    PasteDataNapi *obj = nullptr;
+    status = napi_unwrap(env, instance, reinterpret_cast<void **>(&obj));
+    if (status != napi_ok || obj == nullptr) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "napi_unwrap failed, status=%{public}d",
+            static_cast<int32_t>(status));
         return nullptr;
     }
     obj->value_ = pasteData;
-    status = napi_wrap(
-        env,
-        instance,
-        obj,
-        PasteDataNapi::Destructor,
-        nullptr,
-        nullptr);
-    if (status != napi_ok) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "napi_wrap failed, status=%{public}d",
-            static_cast<int32_t>(status));
-        delete obj;
-        return nullptr;
-    }
     return instance;
 }
 

@@ -24,6 +24,8 @@ config("module_private_config") {
     "${pasteboard_framework_path}/framework/include",
     "${pasteboard_framework_path}/include/ffrt",
   ]
+
+  cflags = [ "-fno-access-control" ]
 }
 
 common_deps = [
