@@ -183,9 +183,9 @@ ohos_shared_library("pasteboard_service") {
     defines += [ "WITH_DLP" ]
   }
 
-  if (pasteboard_security_guard_ext_enabled) {
+  if (pasteboard_security_guard_enabled) {
     sources += [ "core/src/security_guard_adapter.cpp" ]
-    external_deps += [ "security_guard_ext:libsecurity_auth" ]
+    external_deps += [ "security_guard:libsg_collect_sdk" ]
   } else {
     sources += [ "core/src/security_guard_adapter_virtual.cpp" ]
   }

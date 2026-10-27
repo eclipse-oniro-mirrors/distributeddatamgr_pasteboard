@@ -24,8 +24,7 @@
 namespace OHOS {
 namespace Security {
 namespace SecurityGuard {
-class AuthProvider;
-class AuthProviderCallback;
+class AuthProviderSubscribeClient;
 } // namespace SecurityGuard
 } // namespace Security
 
@@ -65,8 +64,7 @@ private:
     std::atomic<int32_t> cachedDefaultStrategy_{0};
     std::atomic<uint32_t> cachedTimeoutMs_{MAX_TIMEOUT_MS};
 
-    std::shared_ptr<Security::SecurityGuard::AuthProvider> authProvider_;
-    Security::SecurityGuard::AuthProviderCallback *authCallback_ = nullptr;
+    std::shared_ptr<Security::SecurityGuard::AuthProviderSubscribeClient> authProvider_;
 };
 
 } // namespace MiscServices

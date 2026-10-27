@@ -18,14 +18,15 @@
 
 #include <gmock/gmock.h>
 
-#include "sg_auth_client.h"
+#include "auth_provider_subscribe_client.h"
 
-class MockAuthProvider : public OHOS::Security::SecurityGuard::AuthProvider {
+class MockAuthProviderSubscribeClient : public OHOS::Security::SecurityGuard::AuthProviderSubscribeClient {
 public:
     MOCK_METHOD(int32_t, RequestAuthResult,
         (const OHOS::Security::SecurityGuard::AuthEventInfo &event,
-         const OHOS::Security::SecurityGuard::AuthResultCallback &callback),
+         OHOS::Security::SecurityGuard::AuthResultCallback callback),
         (override));
+    MOCK_METHOD(void, DeleteProvider, (), (override));
 };
 
 class SgAuthClientMock {
@@ -33,10 +34,10 @@ public:
     SgAuthClientMock();
     ~SgAuthClientMock();
 
-    MOCK_METHOD(int32_t, CreateAuthProvider,
-        (const OHOS::Security::SecurityGuard::AuthProviderCallback *callback,
+    MOCK_METHOD(int32_t, CreateProvider,
+        (const OHOS::Security::SecurityGuard::AuthProviderCallback &callback,
          const std::string &serviceId,
-         std::unique_ptr<OHOS::Security::SecurityGuard::AuthProvider> &provider));
+         std::shared_ptr<OHOS::Security::SecurityGuard::AuthProviderSubscribeClient> &provider));
 
     static SgAuthClientMock *GetMock();
 

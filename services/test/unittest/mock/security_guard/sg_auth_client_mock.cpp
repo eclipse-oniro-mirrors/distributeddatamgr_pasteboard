@@ -19,10 +19,10 @@ SgAuthClientMock::SgAuthClientMock() { mock_ = this; }
 SgAuthClientMock::~SgAuthClientMock() { mock_ = nullptr; }
 SgAuthClientMock *SgAuthClientMock::GetMock() { return mock_; }
 
-int32_t OHOS::Security::SecurityGuard::CreateAuthProvider(
-    const OHOS::Security::SecurityGuard::AuthProviderCallback *callback,
+int32_t OHOS::Security::SecurityGuard::AuthProviderSubscribeClient::CreateProvider(
+    OHOS::Security::SecurityGuard::AuthProviderCallback callback,
     const std::string &serviceId,
-    std::unique_ptr<OHOS::Security::SecurityGuard::AuthProvider> &provider)
+    std::shared_ptr<OHOS::Security::SecurityGuard::AuthProviderSubscribeClient> &provider)
 {
-    return SgAuthClientMock::GetMock()->CreateAuthProvider(callback, serviceId, provider);
+    return SgAuthClientMock::GetMock()->CreateProvider(callback, serviceId, provider);
 }

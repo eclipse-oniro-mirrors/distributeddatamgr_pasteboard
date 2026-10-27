@@ -136,10 +136,10 @@ HWTEST_F(PasteboardSecurityGuardMockTest, QueryStrategy_NoProvider_DefaultAllow_
 HWTEST_F(PasteboardSecurityGuardMockTest, QueryStrategy_NoAuthClientInfo_001, TestSize.Level1)
 {
     NiceMock<SgAuthClientMock> sgMock;
-    auto mockProvider = std::make_unique<MockAuthProvider>();
-    EXPECT_CALL(sgMock, CreateAuthProvider(_, _, _))
-        .WillOnce([&mockProvider](const AuthProviderCallback *, const std::string &,
-            std::unique_ptr<AuthProvider> &provider) { provider = std::move(mockProvider); return 0; });
+    auto mockProvider = std::make_shared<MockAuthProviderSubscribeClient>();
+    EXPECT_CALL(sgMock, CreateProvider(_, _, _))
+        .WillOnce([&mockProvider](const AuthProviderCallback &, const std::string &,
+            std::shared_ptr<AuthProviderSubscribeClient> &provider) { provider = mockProvider; return 0; });
     auto &adapter = SecurityGuardAdapter::GetInstance();
     adapter.hasAuthClientInfo_.store(false);
     adapter.OnProviderCreate();
@@ -155,15 +155,14 @@ HWTEST_F(PasteboardSecurityGuardMockTest, QueryStrategy_NoAuthClientInfo_001, Te
 HWTEST_F(PasteboardSecurityGuardMockTest, QueryStrategy_Allow_001, TestSize.Level1)
 {
     NiceMock<SgAuthClientMock> sgMock;
-    auto mockProvider = std::make_unique<MockAuthProvider>();
-    auto *rawProvider = mockProvider.get();
-    EXPECT_CALL(sgMock, CreateAuthProvider(_, _, _))
-        .WillOnce([&mockProvider](const AuthProviderCallback *, const std::string &,
-            std::unique_ptr<AuthProvider> &provider) { provider = std::move(mockProvider); return 0; });
-    EXPECT_CALL(*rawProvider, RequestAuthResult(_, _))
-        .WillOnce([](const AuthEventInfo &event, const AuthResultCallback &callback) {
+    auto mockProvider = std::make_shared<MockAuthProviderSubscribeClient>();
+    EXPECT_CALL(sgMock, CreateProvider(_, _, _))
+        .WillOnce([&mockProvider](const AuthProviderCallback &, const std::string &,
+            std::shared_ptr<AuthProviderSubscribeClient> &provider) { provider = mockProvider; return 0; });
+    EXPECT_CALL(*mockProvider, RequestAuthResult(_, _))
+        .WillOnce([](const AuthEventInfo &, const AuthResultCallback &callback) {
             AuthResult result;
-            result.mergedAuthStrategy = AuthStrategy::ALLOW;
+            result.SetMergedAuthStrategy(AuthStrategy::ALLOW);
             callback(result);
             return 0;
         });
@@ -182,15 +181,14 @@ HWTEST_F(PasteboardSecurityGuardMockTest, QueryStrategy_Allow_001, TestSize.Leve
 HWTEST_F(PasteboardSecurityGuardMockTest, QueryStrategy_Deny_001, TestSize.Level1)
 {
     NiceMock<SgAuthClientMock> sgMock;
-    auto mockProvider = std::make_unique<MockAuthProvider>();
-    auto *rawProvider = mockProvider.get();
-    EXPECT_CALL(sgMock, CreateAuthProvider(_, _, _))
-        .WillOnce([&mockProvider](const AuthProviderCallback *, const std::string &,
-            std::unique_ptr<AuthProvider> &provider) { provider = std::move(mockProvider); return 0; });
-    EXPECT_CALL(*rawProvider, RequestAuthResult(_, _))
-        .WillOnce([](const AuthEventInfo &event, const AuthResultCallback &callback) {
+    auto mockProvider = std::make_shared<MockAuthProviderSubscribeClient>();
+    EXPECT_CALL(sgMock, CreateProvider(_, _, _))
+        .WillOnce([&mockProvider](const AuthProviderCallback &, const std::string &,
+            std::shared_ptr<AuthProviderSubscribeClient> &provider) { provider = mockProvider; return 0; });
+    EXPECT_CALL(*mockProvider, RequestAuthResult(_, _))
+        .WillOnce([](const AuthEventInfo &, const AuthResultCallback &callback) {
             AuthResult result;
-            result.mergedAuthStrategy = AuthStrategy::DENY;
+            result.SetMergedAuthStrategy(AuthStrategy::DENY);
             callback(result);
             return 0;
         });
@@ -209,12 +207,11 @@ HWTEST_F(PasteboardSecurityGuardMockTest, QueryStrategy_Deny_001, TestSize.Level
 HWTEST_F(PasteboardSecurityGuardMockTest, TimeoutProtectionTest001, TestSize.Level1)
 {
     NiceMock<SgAuthClientMock> sgMock;
-    auto mockProvider = std::make_unique<MockAuthProvider>();
-    auto *rawProvider = mockProvider.get();
-    EXPECT_CALL(sgMock, CreateAuthProvider(_, _, _))
-        .WillOnce([&mockProvider](const AuthProviderCallback *, const std::string &,
-            std::unique_ptr<AuthProvider> &provider) { provider = std::move(mockProvider); return 0; });
-    EXPECT_CALL(*rawProvider, RequestAuthResult(_, _)).WillOnce(Return(0));
+    auto mockProvider = std::make_shared<MockAuthProviderSubscribeClient>();
+    EXPECT_CALL(sgMock, CreateProvider(_, _, _))
+        .WillOnce([&mockProvider](const AuthProviderCallback &, const std::string &,
+            std::shared_ptr<AuthProviderSubscribeClient> &provider) { provider = mockProvider; return 0; });
+    EXPECT_CALL(*mockProvider, RequestAuthResult(_, _)).WillOnce(Return(0));
     auto &adapter = SecurityGuardAdapter::GetInstance();
     adapter.hasAuthClientInfo_.store(true);
     adapter.cachedDefaultStrategy_.store(static_cast<int32_t>(AuthStrategy::ALLOW));
@@ -232,12 +229,11 @@ HWTEST_F(PasteboardSecurityGuardMockTest, TimeoutProtectionTest001, TestSize.Lev
 HWTEST_F(PasteboardSecurityGuardMockTest, TimeoutProtectionTest002, TestSize.Level1)
 {
     NiceMock<SgAuthClientMock> sgMock;
-    auto mockProvider = std::make_unique<MockAuthProvider>();
-    auto *rawProvider = mockProvider.get();
-    EXPECT_CALL(sgMock, CreateAuthProvider(_, _, _))
-        .WillOnce([&mockProvider](const AuthProviderCallback *, const std::string &,
-            std::unique_ptr<AuthProvider> &provider) { provider = std::move(mockProvider); return 0; });
-    EXPECT_CALL(*rawProvider, RequestAuthResult(_, _)).WillOnce(Return(0));
+    auto mockProvider = std::make_shared<MockAuthProviderSubscribeClient>();
+    EXPECT_CALL(sgMock, CreateProvider(_, _, _))
+        .WillOnce([&mockProvider](const AuthProviderCallback &, const std::string &,
+            std::shared_ptr<AuthProviderSubscribeClient> &provider) { provider = mockProvider; return 0; });
+    EXPECT_CALL(*mockProvider, RequestAuthResult(_, _)).WillOnce(Return(0));
     auto &adapter = SecurityGuardAdapter::GetInstance();
     adapter.hasAuthClientInfo_.store(true);
     adapter.cachedDefaultStrategy_.store(static_cast<int32_t>(AuthStrategy::DENY));
@@ -255,12 +251,11 @@ HWTEST_F(PasteboardSecurityGuardMockTest, TimeoutProtectionTest002, TestSize.Lev
 HWTEST_F(PasteboardSecurityGuardMockTest, TimeoutProtectionTest003, TestSize.Level1)
 {
     NiceMock<SgAuthClientMock> sgMock;
-    auto mockProvider = std::make_unique<MockAuthProvider>();
-    auto *rawProvider = mockProvider.get();
-    EXPECT_CALL(sgMock, CreateAuthProvider(_, _, _))
-        .WillOnce([&mockProvider](const AuthProviderCallback *, const std::string &,
-            std::unique_ptr<AuthProvider> &provider) { provider = std::move(mockProvider); return 0; });
-    EXPECT_CALL(*rawProvider, RequestAuthResult(_, _)).Times(0);
+    auto mockProvider = std::make_shared<MockAuthProviderSubscribeClient>();
+    EXPECT_CALL(sgMock, CreateProvider(_, _, _))
+        .WillOnce([&mockProvider](const AuthProviderCallback &, const std::string &,
+            std::shared_ptr<AuthProviderSubscribeClient> &provider) { provider = mockProvider; return 0; });
+    EXPECT_CALL(*mockProvider, RequestAuthResult(_, _)).Times(0);
     auto &adapter = SecurityGuardAdapter::GetInstance();
     adapter.hasAuthClientInfo_.store(false);
     adapter.OnProviderCreate();
@@ -276,15 +271,14 @@ HWTEST_F(PasteboardSecurityGuardMockTest, TimeoutProtectionTest003, TestSize.Lev
 HWTEST_F(PasteboardSecurityGuardMockTest, TimeoutProtectionTest004, TestSize.Level1)
 {
     NiceMock<SgAuthClientMock> sgMock;
-    auto mockProvider = std::make_unique<MockAuthProvider>();
-    auto *rawProvider = mockProvider.get();
-    EXPECT_CALL(sgMock, CreateAuthProvider(_, _, _))
-        .WillOnce([&mockProvider](const AuthProviderCallback *, const std::string &,
-            std::unique_ptr<AuthProvider> &provider) { provider = std::move(mockProvider); return 0; });
-    EXPECT_CALL(*rawProvider, RequestAuthResult(_, _))
-        .WillOnce([](const AuthEventInfo &event, const AuthResultCallback &callback) {
+    auto mockProvider = std::make_shared<MockAuthProviderSubscribeClient>();
+    EXPECT_CALL(sgMock, CreateProvider(_, _, _))
+        .WillOnce([&mockProvider](const AuthProviderCallback &, const std::string &,
+            std::shared_ptr<AuthProviderSubscribeClient> &provider) { provider = mockProvider; return 0; });
+    EXPECT_CALL(*mockProvider, RequestAuthResult(_, _))
+        .WillOnce([](const AuthEventInfo &, const AuthResultCallback &callback) {
             AuthResult result;
-            result.mergedAuthStrategy = AuthStrategy::DENY;
+            result.SetMergedAuthStrategy(AuthStrategy::DENY);
             callback(result);
             return 0;
         });
@@ -304,13 +298,12 @@ HWTEST_F(PasteboardSecurityGuardMockTest, TimeoutProtectionTest004, TestSize.Lev
 HWTEST_F(PasteboardSecurityGuardMockTest, LateCallbackIgnoreTest001, TestSize.Level1)
 {
     NiceMock<SgAuthClientMock> sgMock;
-    auto mockProvider = std::make_unique<MockAuthProvider>();
-    auto *rawProvider = mockProvider.get();
+    auto mockProvider = std::make_shared<MockAuthProviderSubscribeClient>();
     AuthResultCallback capturedCallback;
-    EXPECT_CALL(sgMock, CreateAuthProvider(_, _, _))
-        .WillOnce([&mockProvider](const AuthProviderCallback *, const std::string &,
-            std::unique_ptr<AuthProvider> &provider) { provider = std::move(mockProvider); return 0; });
-    EXPECT_CALL(*rawProvider, RequestAuthResult(_, _))
+    EXPECT_CALL(sgMock, CreateProvider(_, _, _))
+        .WillOnce([&mockProvider](const AuthProviderCallback &, const std::string &,
+            std::shared_ptr<AuthProviderSubscribeClient> &provider) { provider = mockProvider; return 0; });
+    EXPECT_CALL(*mockProvider, RequestAuthResult(_, _))
         .WillOnce(DoAll(SaveArg<1>(&capturedCallback), Return(0)));
     auto &adapter = SecurityGuardAdapter::GetInstance();
     adapter.hasAuthClientInfo_.store(true);
@@ -321,7 +314,7 @@ HWTEST_F(PasteboardSecurityGuardMockTest, LateCallbackIgnoreTest001, TestSize.Le
     EXPECT_EQ(ret, SecurityGuardAdapter::StrategyResult::ALLOW);
     ASSERT_NE(capturedCallback, nullptr);
     AuthResult lateResult;
-    lateResult.mergedAuthStrategy = AuthStrategy::DENY;
+    lateResult.SetMergedAuthStrategy(AuthStrategy::DENY);
     EXPECT_NO_FATAL_FAILURE(capturedCallback(lateResult));
 }
 
@@ -333,12 +326,11 @@ HWTEST_F(PasteboardSecurityGuardMockTest, LateCallbackIgnoreTest001, TestSize.Le
 HWTEST_F(PasteboardSecurityGuardMockTest, QueryStrategy_RequestFailed_DefaultAllow_001, TestSize.Level1)
 {
     NiceMock<SgAuthClientMock> sgMock;
-    auto mockProvider = std::make_unique<MockAuthProvider>();
-    auto *rawProvider = mockProvider.get();
-    EXPECT_CALL(sgMock, CreateAuthProvider(_, _, _))
-        .WillOnce([&mockProvider](const AuthProviderCallback *, const std::string &,
-            std::unique_ptr<AuthProvider> &provider) { provider = std::move(mockProvider); return 0; });
-    EXPECT_CALL(*rawProvider, RequestAuthResult(_, _)).WillOnce(Return(-1));
+    auto mockProvider = std::make_shared<MockAuthProviderSubscribeClient>();
+    EXPECT_CALL(sgMock, CreateProvider(_, _, _))
+        .WillOnce([&mockProvider](const AuthProviderCallback &, const std::string &,
+            std::shared_ptr<AuthProviderSubscribeClient> &provider) { provider = mockProvider; return 0; });
+    EXPECT_CALL(*mockProvider, RequestAuthResult(_, _)).WillOnce(Return(-1));
     auto &adapter = SecurityGuardAdapter::GetInstance();
     adapter.hasAuthClientInfo_.store(true);
     adapter.cachedDefaultStrategy_.store(static_cast<int32_t>(AuthStrategy::ALLOW));
@@ -355,12 +347,11 @@ HWTEST_F(PasteboardSecurityGuardMockTest, QueryStrategy_RequestFailed_DefaultAll
 HWTEST_F(PasteboardSecurityGuardMockTest, QueryStrategy_RequestFailed_DefaultDeny_001, TestSize.Level1)
 {
     NiceMock<SgAuthClientMock> sgMock;
-    auto mockProvider = std::make_unique<MockAuthProvider>();
-    auto *rawProvider = mockProvider.get();
-    EXPECT_CALL(sgMock, CreateAuthProvider(_, _, _))
-        .WillOnce([&mockProvider](const AuthProviderCallback *, const std::string &,
-            std::unique_ptr<AuthProvider> &provider) { provider = std::move(mockProvider); return 0; });
-    EXPECT_CALL(*rawProvider, RequestAuthResult(_, _)).WillOnce(Return(-1));
+    auto mockProvider = std::make_shared<MockAuthProviderSubscribeClient>();
+    EXPECT_CALL(sgMock, CreateProvider(_, _, _))
+        .WillOnce([&mockProvider](const AuthProviderCallback &, const std::string &,
+            std::shared_ptr<AuthProviderSubscribeClient> &provider) { provider = mockProvider; return 0; });
+    EXPECT_CALL(*mockProvider, RequestAuthResult(_, _)).WillOnce(Return(-1));
     auto &adapter = SecurityGuardAdapter::GetInstance();
     adapter.hasAuthClientInfo_.store(true);
     adapter.cachedDefaultStrategy_.store(static_cast<int32_t>(AuthStrategy::DENY));
@@ -371,29 +362,29 @@ HWTEST_F(PasteboardSecurityGuardMockTest, QueryStrategy_RequestFailed_DefaultDen
 
 /**
  * @tc.name: OnProviderCreate_001
- * @tc.desc: OnProviderCreate calls CreateAuthProvider, provider non-null
+ * @tc.desc: OnProviderCreate calls CreateProvider, provider non-null
  * @tc.type: FUNC
  */
 HWTEST_F(PasteboardSecurityGuardMockTest, OnProviderCreate_001, TestSize.Level1)
 {
     NiceMock<SgAuthClientMock> sgMock;
-    auto mockProvider = std::make_unique<MockAuthProvider>();
-    EXPECT_CALL(sgMock, CreateAuthProvider(_, _, _))
-        .WillOnce([&mockProvider](const AuthProviderCallback *, const std::string &,
-            std::unique_ptr<AuthProvider> &provider) { provider = std::move(mockProvider); return 0; });
+    auto mockProvider = std::make_shared<MockAuthProviderSubscribeClient>();
+    EXPECT_CALL(sgMock, CreateProvider(_, _, _))
+        .WillOnce([&mockProvider](const AuthProviderCallback &, const std::string &,
+            std::shared_ptr<AuthProviderSubscribeClient> &provider) { provider = mockProvider; return 0; });
     SecurityGuardAdapter::GetInstance().OnProviderCreate();
     EXPECT_NE(SecurityGuardAdapter::GetInstance().authProvider_, nullptr);
 }
 
 /**
  * @tc.name: OnProviderCreate_Failed_001
- * @tc.desc: CreateAuthProvider returns error → provider stays null
+ * @tc.desc: CreateProvider returns error → provider stays null
  * @tc.type: FUNC
  */
 HWTEST_F(PasteboardSecurityGuardMockTest, OnProviderCreate_Failed_001, TestSize.Level1)
 {
     NiceMock<SgAuthClientMock> sgMock;
-    EXPECT_CALL(sgMock, CreateAuthProvider(_, _, _)).WillOnce(Return(-1));
+    EXPECT_CALL(sgMock, CreateProvider(_, _, _)).WillOnce(Return(-1));
     SecurityGuardAdapter::GetInstance().OnProviderCreate();
     EXPECT_EQ(SecurityGuardAdapter::GetInstance().authProvider_, nullptr);
 }
@@ -406,10 +397,10 @@ HWTEST_F(PasteboardSecurityGuardMockTest, OnProviderCreate_Failed_001, TestSize.
 HWTEST_F(PasteboardSecurityGuardMockTest, OnProviderDestroy_001, TestSize.Level1)
 {
     NiceMock<SgAuthClientMock> sgMock;
-    auto mockProvider = std::make_unique<MockAuthProvider>();
-    EXPECT_CALL(sgMock, CreateAuthProvider(_, _, _))
-        .WillOnce([&mockProvider](const AuthProviderCallback *, const std::string &,
-            std::unique_ptr<AuthProvider> &provider) { provider = std::move(mockProvider); return 0; });
+    auto mockProvider = std::make_shared<MockAuthProviderSubscribeClient>();
+    EXPECT_CALL(sgMock, CreateProvider(_, _, _))
+        .WillOnce([&mockProvider](const AuthProviderCallback &, const std::string &,
+            std::shared_ptr<AuthProviderSubscribeClient> &provider) { provider = mockProvider; return 0; });
     auto &adapter = SecurityGuardAdapter::GetInstance();
     adapter.OnProviderCreate();
     EXPECT_NE(adapter.authProvider_, nullptr);
@@ -449,22 +440,27 @@ HWTEST_F(PasteboardSecurityGuardMockTest, ShouldRestrictDistributedData_HasAuthC
 HWTEST_F(PasteboardSecurityGuardMockTest, OnClientStatusChanged_MultipleClients_DenyPriority_001, TestSize.Level1)
 {
     NiceMock<SgAuthClientMock> sgMock;
-    auto mockProvider = std::make_unique<MockAuthProvider>();
-    EXPECT_CALL(sgMock, CreateAuthProvider(_, _, _))
-        .WillOnce([&mockProvider](const AuthProviderCallback *, const std::string &,
-            std::unique_ptr<AuthProvider> &provider) { provider = std::move(mockProvider); return 0; });
+    auto mockProvider = std::make_shared<MockAuthProviderSubscribeClient>();
+    AuthProviderCallback savedCb;
+    EXPECT_CALL(sgMock, CreateProvider(_, _, _))
+        .WillOnce([&mockProvider, &savedCb](const AuthProviderCallback &cb, const std::string &,
+            std::shared_ptr<AuthProviderSubscribeClient> &provider) {
+            savedCb = cb;
+            provider = mockProvider;
+            return 0; });
     auto &adapter = SecurityGuardAdapter::GetInstance();
     adapter.OnProviderCreate();
     std::vector<AuthClientInfo> clientInfos;
     AuthClientInfo info1{};
-    info1.defaultTimeoutStrategy = AuthStrategy::ALLOW;
-    info1.defaultTimeoutMs = TIMEOUT_MS_300;
+    info1.SetDefaultTimeoutStrategy(AuthStrategy::ALLOW);
+    info1.SetDefaultTimeoutMs(static_cast<int32_t>(TIMEOUT_MS_300));
     AuthClientInfo info2{};
-    info2.defaultTimeoutStrategy = AuthStrategy::DENY;
-    info2.defaultTimeoutMs = TIMEOUT_MS_200;
+    info2.SetDefaultTimeoutStrategy(AuthStrategy::DENY);
+    info2.SetDefaultTimeoutMs(static_cast<int32_t>(TIMEOUT_MS_200));
     clientInfos.push_back(info1);
     clientInfos.push_back(info2);
-    adapter.authCallback_->OnClientStatusChanged(clientInfos);
+    ASSERT_NE(savedCb, nullptr);
+    savedCb(clientInfos);
     EXPECT_EQ(adapter.cachedDefaultStrategy_.load(), static_cast<int32_t>(AuthStrategy::DENY));
     EXPECT_EQ(adapter.cachedTimeoutMs_.load(), TIMEOUT_MS_200);
     EXPECT_TRUE(adapter.hasAuthClientInfo_.load());
@@ -478,22 +474,27 @@ HWTEST_F(PasteboardSecurityGuardMockTest, OnClientStatusChanged_MultipleClients_
 HWTEST_F(PasteboardSecurityGuardMockTest, OnClientStatusChanged_AllAllow_MinTimeout_001, TestSize.Level1)
 {
     NiceMock<SgAuthClientMock> sgMock;
-    auto mockProvider = std::make_unique<MockAuthProvider>();
-    EXPECT_CALL(sgMock, CreateAuthProvider(_, _, _))
-        .WillOnce([&mockProvider](const AuthProviderCallback *, const std::string &,
-            std::unique_ptr<AuthProvider> &provider) { provider = std::move(mockProvider); return 0; });
+    auto mockProvider = std::make_shared<MockAuthProviderSubscribeClient>();
+    AuthProviderCallback savedCb;
+    EXPECT_CALL(sgMock, CreateProvider(_, _, _))
+        .WillOnce([&mockProvider, &savedCb](const AuthProviderCallback &cb, const std::string &,
+            std::shared_ptr<AuthProviderSubscribeClient> &provider) {
+            savedCb = cb;
+            provider = mockProvider;
+            return 0; });
     auto &adapter = SecurityGuardAdapter::GetInstance();
     adapter.OnProviderCreate();
     std::vector<AuthClientInfo> clientInfos;
     AuthClientInfo info1{};
-    info1.defaultTimeoutStrategy = AuthStrategy::ALLOW;
-    info1.defaultTimeoutMs = TIMEOUT_MS_300;
+    info1.SetDefaultTimeoutStrategy(AuthStrategy::ALLOW);
+    info1.SetDefaultTimeoutMs(static_cast<int32_t>(TIMEOUT_MS_300));
     AuthClientInfo info2{};
-    info2.defaultTimeoutStrategy = AuthStrategy::ALLOW;
-    info2.defaultTimeoutMs = TIMEOUT_MS_150;
+    info2.SetDefaultTimeoutStrategy(AuthStrategy::ALLOW);
+    info2.SetDefaultTimeoutMs(static_cast<int32_t>(TIMEOUT_MS_150));
     clientInfos.push_back(info1);
     clientInfos.push_back(info2);
-    adapter.authCallback_->OnClientStatusChanged(clientInfos);
+    ASSERT_NE(savedCb, nullptr);
+    savedCb(clientInfos);
     EXPECT_EQ(adapter.cachedDefaultStrategy_.load(), static_cast<int32_t>(AuthStrategy::ALLOW));
     EXPECT_EQ(adapter.cachedTimeoutMs_.load(), TIMEOUT_MS_150);
 }
@@ -506,17 +507,22 @@ HWTEST_F(PasteboardSecurityGuardMockTest, OnClientStatusChanged_AllAllow_MinTime
 HWTEST_F(PasteboardSecurityGuardMockTest, OnClientStatusChanged_TimeoutCapped_001, TestSize.Level1)
 {
     NiceMock<SgAuthClientMock> sgMock;
-    auto mockProvider = std::make_unique<MockAuthProvider>();
-    EXPECT_CALL(sgMock, CreateAuthProvider(_, _, _))
-        .WillOnce([&mockProvider](const AuthProviderCallback *, const std::string &,
-            std::unique_ptr<AuthProvider> &provider) { provider = std::move(mockProvider); return 0; });
+    auto mockProvider = std::make_shared<MockAuthProviderSubscribeClient>();
+    AuthProviderCallback savedCb;
+    EXPECT_CALL(sgMock, CreateProvider(_, _, _))
+        .WillOnce([&mockProvider, &savedCb](const AuthProviderCallback &cb, const std::string &,
+            std::shared_ptr<AuthProviderSubscribeClient> &provider) {
+            savedCb = cb;
+            provider = mockProvider;
+            return 0; });
     auto &adapter = SecurityGuardAdapter::GetInstance();
     adapter.OnProviderCreate();
     std::vector<AuthClientInfo> clientInfos;
     AuthClientInfo info{};
-    info.defaultTimeoutStrategy = AuthStrategy::ALLOW;
-    info.defaultTimeoutMs = TIMEOUT_MS_EXCEED_MAX;
+    info.SetDefaultTimeoutStrategy(AuthStrategy::ALLOW);
+    info.SetDefaultTimeoutMs(static_cast<int32_t>(TIMEOUT_MS_EXCEED_MAX));
     clientInfos.push_back(info);
-    adapter.authCallback_->OnClientStatusChanged(clientInfos);
+    ASSERT_NE(savedCb, nullptr);
+    savedCb(clientInfos);
     EXPECT_EQ(adapter.cachedTimeoutMs_.load(), SecurityGuardAdapter::MAX_TIMEOUT_MS);
 }

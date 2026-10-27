@@ -25,8 +25,7 @@ SecurityGuardAdapter::SecurityGuardAdapter() = default;
 
 SecurityGuardAdapter::~SecurityGuardAdapter()
 {
-    // authProvider_ (shared_ptr<AuthProvider>) and authCallback_ (AuthProviderCallback*)
-    // are always null in virtual mode
+    // authProvider_ (shared_ptr<AuthProviderSubscribeClient>) is always null in virtual mode.
 }
 
 void SecurityGuardAdapter::OnProviderCreate()
