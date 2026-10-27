@@ -53,9 +53,9 @@ private:
 
     SecurityGuardAdapter();
 
-    StrategyResult FallbackToDefault() const
+    StrategyResult FallbackToDefault(int32_t cachedStrategy) const
     {
-        return cachedDefaultStrategy_.load() == static_cast<int32_t>(StrategyResult::DENY)
+        return cachedStrategy == static_cast<int32_t>(StrategyResult::DENY)
             ? StrategyResult::DENY : StrategyResult::ALLOW;
     }
 

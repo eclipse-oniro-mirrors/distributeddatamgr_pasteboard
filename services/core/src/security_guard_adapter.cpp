@@ -47,6 +47,7 @@ void SecurityGuardAdapter::OnProviderCreate()
     Security::SecurityGuard::AuthProviderCallback callback =
         [this](const std::vector<Security::SecurityGuard::AuthClientInfo> &clientInfos) {
             if (clientInfos.empty()) {
+                std::lock_guard<std::mutex> lock(providerMutex_);
                 hasAuthClientInfo_.store(false);
                 return;
             }
@@ -61,13 +62,16 @@ void SecurityGuardAdapter::OnProviderCreate()
                     minTimeoutMs = timeout;
                 }
             }
-            cachedDefaultStrategy_.store(
-                static_cast<int32_t>(hasDeny ? Security::SecurityGuard::AuthStrategy::DENY
-                                             : Security::SecurityGuard::AuthStrategy::ALLOW));
+            int32_t strategy = static_cast<int32_t>(hasDeny ? Security::SecurityGuard::AuthStrategy::DENY
+                                                            : Security::SecurityGuard::AuthStrategy::ALLOW);
             uint32_t timeoutMs = (minTimeoutMs <= 0 || static_cast<uint32_t>(minTimeoutMs) > MAX_TIMEOUT_MS)
                 ? MAX_TIMEOUT_MS : static_cast<uint32_t>(minTimeoutMs);
-            cachedTimeoutMs_.store(timeoutMs);
-            hasAuthClientInfo_.store(true);
+            {
+                std::lock_guard<std::mutex> lock(providerMutex_);
+                cachedDefaultStrategy_.store(strategy);
+                cachedTimeoutMs_.store(timeoutMs);
+                hasAuthClientInfo_.store(true);
+            }
             PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE,
                 "cached strategy=%{public}d, timeout=%{public}u", hasDeny ? 1 : 0, timeoutMs);
         };
@@ -105,37 +109,42 @@ SecurityGuardAdapter::StrategyResult SecurityGuardAdapter::QueryStrategy(uint32_
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE,
         "QueryStrategy src=%{public}u dst=%{public}u", srcTokenId, dstTokenId);
     std::shared_ptr<Security::SecurityGuard::AuthProviderSubscribeClient> providerRef;
+    bool hasAuthClientInfo = false;
+    int32_t cachedDefaultStrategy = 0;
+    uint32_t cachedTimeoutMs = MAX_TIMEOUT_MS;
     {
         std::lock_guard<std::mutex> lock(providerMutex_);
         providerRef = authProvider_;
+        hasAuthClientInfo = hasAuthClientInfo_.load();
+        cachedDefaultStrategy = cachedDefaultStrategy_.load();
+        cachedTimeoutMs = cachedTimeoutMs_.load();
     }
     if (providerRef == nullptr) {
         PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "provider null, fallback.");
-        if (hasAuthClientInfo_.load()) {
-            return FallbackToDefault();
+        if (hasAuthClientInfo) {
+            return FallbackToDefault(cachedDefaultStrategy);
         }
         return StrategyResult::ALLOW;
     }
-    if (!hasAuthClientInfo_.load()) {
+    if (!hasAuthClientInfo) {
         PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "no authClientInfo, inherit.");
         return StrategyResult::ALLOW;
     }
     std::string content = "{\"srcTokenId\":" + std::to_string(srcTokenId) +
         ",\"dstTokenId\":" + std::to_string(dstTokenId) + "}";
     Security::SecurityGuard::AuthEventInfo event(0, "1.0", content);
-    uint32_t timeoutMs = cachedTimeoutMs_.load();
-    if (timeoutMs == 0 || timeoutMs > SecurityGuardAdapter::MAX_TIMEOUT_MS) {
-        timeoutMs = SecurityGuardAdapter::MAX_TIMEOUT_MS;
+    if (cachedTimeoutMs == 0 || cachedTimeoutMs > SecurityGuardAdapter::MAX_TIMEOUT_MS) {
+        cachedTimeoutMs = SecurityGuardAdapter::MAX_TIMEOUT_MS;
     }
     auto blockObject = std::make_shared<BlockObject<int32_t>>(
-        timeoutMs, static_cast<int32_t>(Security::SecurityGuard::AuthStrategy::TIMEOUT));
+        cachedTimeoutMs, static_cast<int32_t>(Security::SecurityGuard::AuthStrategy::TIMEOUT));
     auto resultCallback = [blockObject](const Security::SecurityGuard::AuthResult &result) {
         blockObject->SetValue(static_cast<int32_t>(result.GetMergedAuthStrategy()));
     };
     int32_t ret = providerRef->RequestAuthResult(event, resultCallback);
     if (ret != 0) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "RequestAuthResult failed, ret=%{public}d", ret);
-        return FallbackToDefault();
+        return FallbackToDefault(cachedDefaultStrategy);
     }
     auto strategy = blockObject->GetValue();
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "strategy result=%{public}d", strategy);
@@ -144,13 +153,14 @@ SecurityGuardAdapter::StrategyResult SecurityGuardAdapter::QueryStrategy(uint32_
     }
     if (strategy == static_cast<int32_t>(Security::SecurityGuard::AuthStrategy::TIMEOUT)) {
         PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "timeout, fallback to default.");
-        return FallbackToDefault();
+        return FallbackToDefault(cachedDefaultStrategy);
     }
     return StrategyResult::ALLOW;
 }
 
 bool SecurityGuardAdapter::ShouldRestrictDistributedData() const
 {
+    std::lock_guard<std::mutex> lock(providerMutex_);
     return hasAuthClientInfo_.load();
 }
 
