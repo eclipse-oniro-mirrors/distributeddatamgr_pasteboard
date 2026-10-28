@@ -40,6 +40,7 @@ public:
     static constexpr int32_t SECURITY_GUARD_SA_ID = 3524;
     static constexpr int64_t PASTEBOARD_EVENT_ID = 0x27810000;
     static constexpr const char *AUTH_EVENT_VERSION = "1.0";
+    static constexpr const char *SERVICE_ID = "pasteboard_service";
 
     static SecurityGuardAdapter &GetInstance();
 

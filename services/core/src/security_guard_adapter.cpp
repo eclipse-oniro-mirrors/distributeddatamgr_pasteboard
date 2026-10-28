@@ -90,7 +90,7 @@ void SecurityGuardAdapter::OnProviderCreate()
         };
     std::shared_ptr<Security::SecurityGuard::AuthProviderSubscribeClient> provider;
     int32_t ret = Security::SecurityGuard::AuthProviderSubscribeClient::CreateProvider(
-        callback, "pasteboard", provider);
+        callback, SERVICE_ID, provider);
     if (ret != 0) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "CreateProvider ret=%{public}d", ret);
         return;
