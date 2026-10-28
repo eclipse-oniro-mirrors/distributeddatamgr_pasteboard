@@ -672,7 +672,7 @@ private:
     int32_t GetPasteDataFromServiceByUser(int32_t userId, PasteData &pasteData,
        PasteDataFromServiceInfo &pasteDataFromServiceInfo, std::string progressKey,
        std::shared_ptr<GetDataParams> params);
-    int32_t GetPasteDataInner(int32_t userId, PasteData &pasteData, const char *traceName);
+    int32_t GetPasteDataInner(int32_t userId, PasteData &pasteData, const std::string &traceName);
     int32_t GetPasteDataFromServiceInner(int32_t userId, PasteData &pasteData,
        PasteDataFromServiceInfo &pasteDataFromServiceInfo, std::string progressKey,
        std::shared_ptr<GetDataParams> params);
@@ -680,7 +680,7 @@ private:
        std::shared_ptr<PasteboardDelayGetter> delayGetter,
        std::map<uint32_t, std::shared_ptr<UDMF::EntryGetter>> entryGetters);
     int32_t GetDataWithProgressInner(int32_t userId, PasteData &pasteData,
-       std::shared_ptr<GetDataParams> params, const char *traceName);
+       std::shared_ptr<GetDataParams> params, const std::string &traceName);
     int32_t DispatchSetProxy(int32_t userId, const sptr<IPasteboardService> &proxy,
        int fd, int64_t tlvSize, const std::vector<uint8_t> &tlv,
        const sptr<PasteboardDelayGetterClient> &delayGetterAgent,
@@ -709,7 +709,7 @@ private:
     int32_t ProcessPasteDataFromService(PasteData &pasteData, int64_t rawDataSize, int fd,
         const std::vector<uint8_t> &recvTLV);
     void GetDataReport(PasteData &pasteData, int32_t syncTime, uint32_t currentSeqId,
-        const std::string &currentPid, int32_t ret, const char *traceName);
+        const std::string &currentPid, int32_t ret, const std::string &traceName);
     void SubscribePasteboardSA();
     void UnSubscribePasteboardSA();
     static std::mutex instanceLock_;

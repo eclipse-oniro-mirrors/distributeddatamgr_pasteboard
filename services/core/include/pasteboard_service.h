@@ -130,35 +130,20 @@ public:
     API_EXPORT ~PasteboardService();
     int32_t CallbackEnter(uint32_t code) override;
     int32_t CallbackExit(uint32_t code, int32_t result) override;
-    virtual int32_t Clear() override;
-    virtual int32_t ClearByUser(int32_t userId) override;
-    virtual int32_t SetPasteDataByUser(int32_t userId, int fd, int64_t memSize,
-        const std::vector<uint8_t> &buffer, const sptr<IPasteboardDelayGetter> &delayGetter,
-        const sptr<IPasteboardEntryGetter> &entryGetter) override;
-    virtual int32_t SetPasteDataOnlyByUser(int32_t userId, int fd, int64_t memSize,
-        const std::vector<uint8_t> &buffer) override;
-    virtual int32_t SetPasteDataDelayDataByUser(int32_t userId, int fd, int64_t memSize,
-        const std::vector<uint8_t> &buffer, const sptr<IPasteboardDelayGetter> &delayGetter) override;
-    virtual int32_t SetPasteDataEntryDataByUser(int32_t userId, int fd, int64_t memSize,
-        const std::vector<uint8_t> &buffer, const sptr<IPasteboardEntryGetter> &entryGetter) override;
-    virtual int32_t GetRecordValueByType(uint32_t dataId, uint32_t recordId, int64_t &rawDataSize,
+    virtual int32_t Clear(int32_t userId) override;
+    virtual int32_t GetRecordValueByType(int32_t userId, uint32_t dataId, uint32_t recordId, int64_t &rawDataSize,
         std::vector<uint8_t> &buffer, int &fd) override;
-    virtual int32_t GetPasteData(int &fd, int64_t &size, std::vector<uint8_t> &rawData,
+    virtual int32_t GetPasteData(int32_t userId, int &fd, int64_t &size, std::vector<uint8_t> &rawData,
         uint32_t pasteSeqId, int32_t &syncTime, int32_t &realErrCode) override;
-    virtual int32_t GetPasteDataByUser(int32_t userId, int &fd, int64_t &memSize,
-        std::vector<uint8_t> &buffer, uint32_t pasteSeqId, int32_t &syncTime,
-        int32_t &realErrCode) override;
-    virtual int32_t GetRecordValueByTypeByUser(int32_t userId, uint32_t dataId, uint32_t recordId,
-        int64_t &rawDataSize, std::vector<uint8_t> &buffer, int &fd) override;
     virtual int32_t HasPasteData(bool &funcResult) override;
     virtual int32_t HasRemoteData(bool &funcResult) override;
-    virtual int32_t SetPasteData(int fd, int64_t memSize, const std::vector<uint8_t> &buffer,
+    virtual int32_t SetPasteData(int32_t userId, int fd, int64_t memSize, const std::vector<uint8_t> &buffer,
         const sptr<IPasteboardDelayGetter> &delayGetter, const sptr<IPasteboardEntryGetter> &entryGetter) override;
-    virtual int32_t SetPasteDataDelayData(int fd, int64_t memSize, const std::vector<uint8_t> &buffer,
+    virtual int32_t SetPasteDataDelayData(int32_t userId, int fd, int64_t memSize, const std::vector<uint8_t> &buffer,
         const sptr<IPasteboardDelayGetter> &delayGetter) override;
-    virtual int32_t SetPasteDataEntryData(int fd, int64_t memSize, const std::vector<uint8_t> &buffer,
+    virtual int32_t SetPasteDataEntryData(int32_t userId, int fd, int64_t memSize, const std::vector<uint8_t> &buffer,
         const sptr<IPasteboardEntryGetter> &entryGetter) override;
-    virtual int32_t SetPasteDataOnly(int fd, int64_t memSize, const std::vector<uint8_t> &buffer) override;
+    virtual int32_t SetPasteDataOnly(int32_t userId, int fd, int64_t memSize, const std::vector<uint8_t> &buffer) override;
     virtual int32_t SyncDelayedData() override;
     virtual int32_t IsRemoteData(bool &funcResult) override;
     virtual int32_t GetMimeTypes(std::vector<std::string> &funcResult) override;
@@ -264,15 +249,15 @@ private:
     void InitBundles(Loader &loader);
     void SetInputMethodPid(int32_t userId, pid_t callPid);
     void ClearInputMethodPidByPid(int32_t userId, pid_t callPid);
-    int32_t ClearInner(int32_t userId, const AppInfo &appInfo);
-    int32_t SetPasteDataInner(int32_t userId, const AppInfo &appInfo, int fd, int64_t memSize,
+    int32_t ClearInner(const AppInfo &appInfo);
+    int32_t SetPasteDataInner(const AppInfo &appInfo, int fd, int64_t memSize,
         const std::vector<uint8_t> &buffer, const sptr<IPasteboardDelayGetter> &delayGetter,
         const sptr<IPasteboardEntryGetter> &entryGetter);
-    int32_t SetPasteDataOnlyInner(int32_t userId, const AppInfo &appInfo, int fd, int64_t memSize,
+    int32_t SetPasteDataOnlyInner(const AppInfo &appInfo, int fd, int64_t memSize,
         const std::vector<uint8_t> &buffer);
-    int32_t SetPasteDataDelayDataInner(int32_t userId, const AppInfo &appInfo, int fd, int64_t memSize,
+    int32_t SetPasteDataDelayDataInner(const AppInfo &appInfo, int fd, int64_t memSize,
         const std::vector<uint8_t> &buffer, const sptr<IPasteboardDelayGetter> &delayGetter);
-    int32_t SetPasteDataEntryDataInner(int32_t userId, const AppInfo &appInfo, int fd, int64_t memSize,
+    int32_t SetPasteDataEntryDataInner(const AppInfo &appInfo, int fd, int64_t memSize,
         const std::vector<uint8_t> &buffer, const sptr<IPasteboardEntryGetter> &entryGetter);
     bool IsSystemAppByFullTokenID(uint64_t tokenId);
     FocusedAppInfo GetFocusedAppInfo() const;
@@ -399,7 +384,7 @@ private:
         RadarReportInfo &radarReportInfo, const std::string &peerNetId);
     void SetUeEvent(const AppInfo &appInfo, PasteData &data, bool isPeerOnline,
         UeReportInfo &ueReportInfo, const std::string &peerNetId);
-    int32_t GetPasteDataInner(int32_t userId, int &fd, int64_t &size, std::vector<uint8_t> &rawData,
+    int32_t GetPasteDataInner(const AppInfo &appInfo, int &fd, int64_t &size, std::vector<uint8_t> &rawData,
         const std::string &pasteId, int32_t &syncTime, UeReportInfo &ueReportInfo);
     void GetPasteDataDot(PasteData &pasteData, const std::string &bundleName, const int32_t &userId);
     int32_t GetLocalData(int32_t userId, const AppInfo &appInfo, PasteData &data);
@@ -467,13 +452,9 @@ private:
     bool IsDataAged(int32_t userId);
     bool VerifyPermission(uint32_t tokenId);
     int32_t IsDataValid(PasteData &pasteData, uint32_t tokenId, int32_t userId);
-    AppInfo GetAppInfo(uint32_t tokenId) const;
+    AppInfo GetAppInfo(uint32_t tokenId, int32_t userId = ERROR_USERID) const;
     void FillHapAppInfo(uint32_t tokenId, AppInfo &info) const;
     void FillNativeAppInfo(uint32_t tokenId, AppInfo &info) const;
-    // 获取并校验 ByUser 调用上下文：仅 TOKEN_NATIVE 允许，HAP/Shell/其它一律拒绝。
-    // userId 仅用于日志归因；返回的 appInfo.userId 无意义（ByUser 应使用外部 userId）。
-    // 返回 ERR_OK 时 outAppInfo.tokenType/bundleName/tokenId 可用，否则返回 INVALID_USERID_ERROR。
-    int32_t GetAndCheckByUserAppInfo(AppInfo &outAppInfo, int32_t userId) const;
     static std::string GetAppBundleName(const AppInfo &appInfo);
     static void SetLocalPasteFlag(bool isCrossPaste, uint32_t tokenId, PasteData &pasteData);
     void RecognizePasteData(PasteData &pasteData);
@@ -498,7 +479,7 @@ private:
     int32_t GetRecordValueByType(uint32_t dataId, uint32_t recordId, PasteDataEntry &value);
     int32_t GetRecordValueByType(int32_t userId, const AppInfo &appInfo, uint32_t dataId, uint32_t recordId,
         PasteDataEntry &value);
-    int32_t GetRecordValueByTypeInner(int32_t userId, const AppInfo &appInfo, uint32_t dataId,
+    int32_t GetRecordValueByTypeInner(const AppInfo &appInfo, uint32_t dataId,
         uint32_t recordId, int64_t &rawDataSize, std::vector<uint8_t> &buffer, int &fd);
     int32_t GetRecordValueByType(int64_t &rawDataSize, std::vector<uint8_t> &buffer, int &fd,
         const PasteDataEntry &entryValue);

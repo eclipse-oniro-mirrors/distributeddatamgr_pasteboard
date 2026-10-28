@@ -36,28 +36,27 @@ interface OHOS.MiscServices.IPasteboardService {
     [ipccode 8] void ResubscribeObserver([in] PasteboardObserverType type, [in] IPasteboardChangedObserver observer);
     [ipccode 9] void DetachPasteboard();
 
-    [ipccode 100] void Clear();
-    [ipccode 101] void SetPasteDataOnly([in] FileDescriptor fd, [in] long memSize, [in] unsigned char[] buffer);
-    [ipccode 102] void SetPasteDataDelayData([in] FileDescriptor fd, [in] long memSize, [in] unsigned char[] buffer,
+    // userId: SA (TOKEN_NATIVE) passes a real userId (>0); HAP passes ERROR_USERID (-1)
+    // so the service derives userId from the calling token.
+    [ipccode 100] void Clear([in] int userId);
+    [ipccode 101] void SetPasteDataOnly(
+        [in] int userId, [in] FileDescriptor fd, [in] long memSize, [in] unsigned char[] buffer);
+    [ipccode 102] void SetPasteDataDelayData(
+        [in] int userId, [in] FileDescriptor fd, [in] long memSize, [in] unsigned char[] buffer,
         [in] IPasteboardDelayGetter delayGetter);
-    [ipccode 103] void SetPasteDataEntryData([in] FileDescriptor fd, [in] long memSize, [in] unsigned char[] buffer,
+    [ipccode 103] void SetPasteDataEntryData(
+        [in] int userId, [in] FileDescriptor fd, [in] long memSize, [in] unsigned char[] buffer,
         [in] IPasteboardEntryGetter entryGetter);
-    [ipccode 104] void SetPasteData([in] FileDescriptor fd, [in] long memSize, [in] unsigned char[] buffer,
+    [ipccode 104] void SetPasteData(
+        [in] int userId, [in] FileDescriptor fd, [in] long memSize, [in] unsigned char[] buffer,
         [in] IPasteboardDelayGetter delayGetter, [in] IPasteboardEntryGetter entryGetter);
     [ipccode 105] void SyncDelayedData();
-    [ipccode 106] void ClearByUser([in] int userId);
-    [ipccode 107] void SetPasteDataOnlyByUser([in] int userId, [in] FileDescriptor fd, [in] long memSize, [in] unsigned char[] buffer);
-    [ipccode 108] void SetPasteDataDelayDataByUser([in] int userId, [in] FileDescriptor fd, [in] long memSize, [in] unsigned char[] buffer, [in] IPasteboardDelayGetter delayGetter);
-    [ipccode 109] void SetPasteDataEntryDataByUser([in] int userId, [in] FileDescriptor fd, [in] long memSize, [in] unsigned char[] buffer, [in] IPasteboardEntryGetter entryGetter);
-    [ipccode 110] void SetPasteDataByUser([in] int userId, [in] FileDescriptor fd, [in] long memSize, [in] unsigned char[] buffer, [in] IPasteboardDelayGetter delayGetter, [in] IPasteboardEntryGetter entryGetter);
 
-    [ipccode 200] void GetPasteData([out] FileDescriptorSan fd, [out] long memSize, [out] unsigned char[] buffer,
+    [ipccode 200] void GetPasteData(
+        [in] int userId, [out] FileDescriptorSan fd, [out] long memSize, [out] unsigned char[] buffer,
         [in] unsigned int pasteSeqId, [out] int syncTime, [out] int realErrCode);
-    [ipccode 201] void GetRecordValueByType([in] unsigned int dataId, [in] unsigned int recordId,
-        [inout] long rawDataSize, [inout] unsigned char[] buffer, [inout] FileDescriptorSan fd);
-    [ipccode 210] void GetPasteDataByUser([in] int userId, [out] FileDescriptorSan fd, [out] long memSize,
-        [out] unsigned char[] buffer, [in] unsigned int pasteSeqId, [out] int syncTime, [out] int realErrCode);
-    [ipccode 211] void GetRecordValueByTypeByUser([in] int userId, [in] unsigned int dataId, [in] unsigned int recordId,
+    [ipccode 201] void GetRecordValueByType(
+        [in] int userId, [in] unsigned int dataId, [in] unsigned int recordId,
         [inout] long rawDataSize, [inout] unsigned char[] buffer, [inout] FileDescriptorSan fd);
     [ipccode 202] void PasteStart([in] String pasteId);
     [ipccode 203] void PasteComplete([in] String deviceId, [in] String pasteId);

@@ -78,9 +78,10 @@ public:
         return 0;
     }
 
-    int32_t SetPasteData(int fd, int64_t memSize, const std::vector<uint8_t> &buffer,
+    int32_t SetPasteData(int32_t userId, int fd, int64_t memSize, const std::vector<uint8_t> &buffer,
         const sptr<IPasteboardDelayGetter> &delayGetter, const sptr<IPasteboardEntryGetter> &entryGetter) override
     {
+        (void)userId;
         (void)fd;
         (void)memSize;
         (void)buffer;
@@ -89,9 +90,10 @@ public:
         return 0;
     }
 
-    int32_t SetPasteDataDelayData(int fd, int64_t memSize, const std::vector<uint8_t> &buffer,
+    int32_t SetPasteDataDelayData(int32_t userId, int fd, int64_t memSize, const std::vector<uint8_t> &buffer,
         const sptr<IPasteboardDelayGetter> &delayGetter) override
     {
+        (void)userId;
         (void)fd;
         (void)memSize;
         (void)buffer;
@@ -99,9 +101,10 @@ public:
         return 0;
     }
 
-    int32_t SetPasteDataEntryData(int fd, int64_t memSize, const std::vector<uint8_t> &buffer,
+    int32_t SetPasteDataEntryData(int32_t userId, int fd, int64_t memSize, const std::vector<uint8_t> &buffer,
         const sptr<IPasteboardEntryGetter> &entryGetter) override
     {
+        (void)userId;
         (void)fd;
         (void)memSize;
         (void)buffer;
@@ -109,17 +112,19 @@ public:
         return 0;
     }
 
-    int32_t SetPasteDataOnly(int fd, int64_t memSize, const std::vector<uint8_t> &buffer) override
+    int32_t SetPasteDataOnly(int32_t userId, int fd, int64_t memSize, const std::vector<uint8_t> &buffer) override
     {
+        (void)userId;
         (void)fd;
         (void)memSize;
         (void)buffer;
         return 0;
     }
 
-    int32_t GetPasteData(int &fd, int64_t &memSize, std::vector<uint8_t> &buffer,
+    int32_t GetPasteData(int32_t userId, int &fd, int64_t &memSize, std::vector<uint8_t> &buffer,
         uint32_t pasteSeqId, int32_t &syncTime, int32_t &realErrCode) override
     {
+        (void)userId;
         (void)fd;
         (void)memSize;
         (void)buffer;
@@ -129,9 +134,10 @@ public:
         return 0;
     }
 
-    int32_t GetRecordValueByType(uint32_t dataId, uint32_t recordId, int64_t &rawDataSize,
+    int32_t GetRecordValueByType(int32_t userId, uint32_t dataId, uint32_t recordId, int64_t &rawDataSize,
         std::vector<uint8_t> &buffer, int &fd) override
     {
+        (void)userId;
         (void)dataId;
         (void)recordId;
         (void)rawDataSize;
@@ -308,84 +314,9 @@ public:
         return 0;
     }
 
-    int32_t Clear() override
-    {
-        return 0;
-    }
-
-    int32_t ClearByUser(int32_t uesrId) override
-    {
-        (void)uesrId;
-        return 0;
-    }
-
-    int32_t SetPasteDataOnlyByUser(int32_t userId, int fd, int64_t memSize,
-        const std::vector<uint8_t> &buffer) override
+    int32_t Clear(int32_t userId) override
     {
         (void)userId;
-        (void)fd;
-        (void)memSize;
-        (void)buffer;
-        return 0;
-    }
-
-    int32_t SetPasteDataDelayDataByUser(int32_t userId, int fd, int64_t memSize,
-        const std::vector<uint8_t> &buffer, const sptr<IPasteboardDelayGetter> &delayGetter) override
-    {
-        (void)userId;
-        (void)fd;
-        (void)memSize;
-        (void)buffer;
-        (void)delayGetter;
-        return 0;
-    }
-
-    int32_t SetPasteDataEntryDataByUser(int32_t userId, int fd, int64_t memSize,
-        const std::vector<uint8_t> &buffer, const sptr<IPasteboardEntryGetter> &entryGetter) override
-    {
-        (void)userId;
-        (void)fd;
-        (void)memSize;
-        (void)buffer;
-        (void)entryGetter;
-        return 0;
-    }
-
-    int32_t SetPasteDataByUser(int32_t userId, int fd, int64_t memSize,
-        const std::vector<uint8_t> &buffer, const sptr<IPasteboardDelayGetter> &delayGetter,
-        const sptr<IPasteboardEntryGetter> &entryGetter) override
-    {
-        (void)userId;
-        (void)fd;
-        (void)memSize;
-        (void)buffer;
-        (void)delayGetter;
-        (void)entryGetter;
-        return 0;
-    }
-
-    int32_t GetPasteDataByUser(int32_t userId, int &fd, int64_t &memSize, std::vector<uint8_t> &buffer,
-        uint32_t pasteSeqId, int32_t &syncTime, int32_t &realErrCode) override
-    {
-        (void)userId;
-        (void)fd;
-        (void)memSize;
-        (void)buffer;
-        (void)pasteSeqId;
-        (void)syncTime;
-        (void)realErrCode;
-        return 0;
-    }
-
-    int32_t GetRecordValueByTypeByUser(int32_t userId, uint32_t dataId, uint32_t recordId,
-        int64_t &rawDataSize, std::vector<uint8_t> &buffer, int &fd) override
-    {
-        (void)userId;
-        (void)dataId;
-        (void)recordId;
-        (void)rawDataSize;
-        (void)buffer;
-        (void)fd;
         return 0;
     }
 

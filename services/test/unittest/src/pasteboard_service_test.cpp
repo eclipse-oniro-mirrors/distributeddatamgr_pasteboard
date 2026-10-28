@@ -1530,7 +1530,8 @@ HWTEST_F(PasteboardServiceTest, clearInner001, TestSize.Level1)
     pasteData->AddTextRecord("hello");
     tempPasteboard->clips_.InsertOrAssign(userId, pasteData);
     auto appInfo = tempPasteboard->GetAppInfo(IPCSkeleton::GetCallingTokenID());
-    tempPasteboard->ClearInner(userId, appInfo);
+    appInfo.userId = userId;
+    tempPasteboard->ClearInner(appInfo);
     auto [hasData, data] = tempPasteboard->clips_.Find(userId);
     EXPECT_EQ(hasData, false);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "clearInner001 end");
@@ -1555,7 +1556,8 @@ HWTEST_F(PasteboardServiceTest, clearInner002, TestSize.Level1)
     tempPasteboard->clips_.InsertOrAssign(userId, pasteData);
     auto appInfo = tempPasteboard->GetAppInfo(IPCSkeleton::GetCallingTokenID());
     int32_t clearUserId = 101;
-    tempPasteboard->ClearInner(clearUserId, appInfo);
+    appInfo.userId = clearUserId;
+    tempPasteboard->ClearInner(appInfo);
     auto [hasData, data] = tempPasteboard->clips_.Find(userId);
     EXPECT_EQ(hasData, true);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "clearInner002 end");

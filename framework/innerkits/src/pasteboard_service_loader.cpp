@@ -229,12 +229,7 @@ int32_t PasteboardServiceLoader::GetRecordValueByTypeInner(
         PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(fd >= 0, static_cast<int32_t>(PasteboardError::SERIALIZATION_ERROR),
             PASTEBOARD_MODULE_CLIENT, "CreateTmpFd failed:%{public}d", fd);
     }
-    int32_t ret;
-    if (userId == ERROR_USERID) {
-        ret = proxyService->GetRecordValueByType(dataId, recordId, tlvSize, sendTLV, fd);
-    } else {
-        ret = proxyService->GetRecordValueByTypeByUser(userId, dataId, recordId, tlvSize, sendTLV, fd);
-    }
+    int32_t ret = proxyService->GetRecordValueByType(userId, dataId, recordId, tlvSize, sendTLV, fd);
     if (ret != ERR_OK) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CLIENT, "GetRecordValueByType failed, ret:%{public}d", ret);
         return ret;

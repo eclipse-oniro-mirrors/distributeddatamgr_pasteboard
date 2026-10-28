@@ -1082,7 +1082,7 @@ HWTEST_F(PasteboardServiceGetDataTest, GetRecordValueByTypeTest001, TestSize.Lev
 
 /**
  * @tc.name: GetPasteDataByUserTest001
- * @tc.desc: GetPasteDataByUser succeeds for valid userId
+ * @tc.desc: GetPasteData succeeds for valid userId via SA path
  * @tc.type: FUNC
  */
 HWTEST_F(PasteboardServiceGetDataTest, GetPasteDataByUserTest001, TestSize.Level1)
@@ -1096,7 +1096,7 @@ HWTEST_F(PasteboardServiceGetDataTest, GetPasteDataByUserTest001, TestSize.Level
     std::vector<uint8_t> buffer;
     int32_t syncTime = 0;
     int32_t realErrCode = 0;
-    int32_t result = tempPasteboard->GetPasteDataByUser(TEST_USERID, fd, memSize, buffer, 0, syncTime, realErrCode);
+    int32_t result = tempPasteboard->GetPasteData(TEST_USERID, fd, memSize, buffer, 0, syncTime, realErrCode);
     if (fd >= 0) {
         close(fd);
     }
@@ -1105,7 +1105,7 @@ HWTEST_F(PasteboardServiceGetDataTest, GetPasteDataByUserTest001, TestSize.Level
 
 /**
  * @tc.name: GetPasteDataByUserTest002
- * @tc.desc: GetPasteDataByUser rejects invalid userId
+ * @tc.desc: GetPasteData rejects invalid userId via SA path
  * @tc.type: FUNC
  */
 HWTEST_F(PasteboardServiceGetDataTest, GetPasteDataByUserTest002, TestSize.Level1)
@@ -1117,7 +1117,7 @@ HWTEST_F(PasteboardServiceGetDataTest, GetPasteDataByUserTest002, TestSize.Level
     std::vector<uint8_t> buffer;
     int32_t syncTime = 0;
     int32_t realErrCode = 0;
-    int32_t result = tempPasteboard->GetPasteDataByUser(0, fd, memSize, buffer, 0, syncTime, realErrCode);
+    int32_t result = tempPasteboard->GetPasteData(0, fd, memSize, buffer, 0, syncTime, realErrCode);
     EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR));
 }
 

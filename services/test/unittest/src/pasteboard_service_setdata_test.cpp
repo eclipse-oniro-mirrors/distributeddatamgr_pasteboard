@@ -1400,7 +1400,7 @@ HWTEST_F(PasteboardServiceSetDataTest, WritePasteDataTest009, TestSize.Level1)
 
 /**
  * @tc.name: SetPasteDataByUserTest001
- * @tc.desc: SetPasteDataByUser rejects invalid userId (0)
+ * @tc.desc: SetPasteData rejects invalid userId (0) via SA path
  * @tc.type: FUNC
  */
 HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataByUserTest001, TestSize.Level1)
@@ -1409,14 +1409,14 @@ HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataByUserTest001, TestSize.Level
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
     std::vector<uint8_t> buffer = { 'h', 'e', 'l', 'l', 'o' };
-    int32_t result = tempPasteboard->SetPasteDataByUser(0, -1, 0, buffer, nullptr, nullptr);
+    int32_t result = tempPasteboard->SetPasteData(0, -1, 0, buffer, nullptr, nullptr);
     EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR));
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetPasteDataByUserTest001 end");
 }
 
 /**
  * @tc.name: SetPasteDataByUserTest002
- * @tc.desc: SetPasteDataByUser rejects invalid userId (negative)
+ * @tc.desc: SetPasteData rejects invalid userId (negative) via SA path
  * @tc.type: FUNC
  */
 HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataByUserTest002, TestSize.Level1)
@@ -1425,14 +1425,14 @@ HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataByUserTest002, TestSize.Level
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
     std::vector<uint8_t> buffer = { 'h', 'e', 'l', 'l', 'o' };
-    int32_t result = tempPasteboard->SetPasteDataByUser(-1, -1, 0, buffer, nullptr, nullptr);
+    int32_t result = tempPasteboard->SetPasteData(-1, -1, 0, buffer, nullptr, nullptr);
     EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR));
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetPasteDataByUserTest002 end");
 }
 
 /**
  * @tc.name: SetPasteDataOnlyByUserTest001
- * @tc.desc: SetPasteDataOnlyByUser rejects invalid userId
+ * @tc.desc: SetPasteDataOnly rejects invalid userId via SA path
  * @tc.type: FUNC
  */
 HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataOnlyByUserTest001, TestSize.Level1)
@@ -1441,14 +1441,14 @@ HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataOnlyByUserTest001, TestSize.L
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
     std::vector<uint8_t> buffer = { 'h', 'e', 'l', 'l', 'o' };
-    int32_t result = tempPasteboard->SetPasteDataOnlyByUser(0, -1, 0, buffer);
+    int32_t result = tempPasteboard->SetPasteDataOnly(0, -1, 0, buffer);
     EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR));
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetPasteDataOnlyByUserTest001 end");
 }
 
 /**
  * @tc.name: SetPasteDataDelayDataByUserTest001
- * @tc.desc: SetPasteDataDelayDataByUser rejects invalid userId
+ * @tc.desc: SetPasteDataDelayData rejects invalid userId via SA path
  * @tc.type: FUNC
  */
 HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataDelayDataByUserTest001, TestSize.Level1)
@@ -1457,14 +1457,14 @@ HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataDelayDataByUserTest001, TestS
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
     std::vector<uint8_t> buffer = { 'h', 'e', 'l', 'l', 'o' };
-    int32_t result = tempPasteboard->SetPasteDataDelayDataByUser(0, -1, 0, buffer, nullptr);
+    int32_t result = tempPasteboard->SetPasteDataDelayData(0, -1, 0, buffer, nullptr);
     EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR));
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetPasteDataDelayDataByUserTest001 end");
 }
 
 /**
  * @tc.name: SetPasteDataEntryDataByUserTest001
- * @tc.desc: SetPasteDataEntryDataByUser rejects invalid userId
+ * @tc.desc: SetPasteDataEntryData rejects invalid userId via SA path
  * @tc.type: FUNC
  */
 HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataEntryDataByUserTest001, TestSize.Level1)
@@ -1473,7 +1473,7 @@ HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataEntryDataByUserTest001, TestS
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
     std::vector<uint8_t> buffer = { 'h', 'e', 'l', 'l', 'o' };
-    int32_t result = tempPasteboard->SetPasteDataEntryDataByUser(0, -1, 0, buffer, nullptr);
+    int32_t result = tempPasteboard->SetPasteDataEntryData(0, -1, 0, buffer, nullptr);
     EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR));
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetPasteDataEntryDataByUserTest001 end");
 }
