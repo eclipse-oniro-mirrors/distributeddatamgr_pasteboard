@@ -185,7 +185,6 @@ SecurityGuardAdapter::StrategyResult SecurityGuardAdapter::QueryStrategy(uint32_
 
 bool SecurityGuardAdapter::ShouldRestrictDistributedData() const
 {
-    std::lock_guard<std::mutex> lock(providerMutex_);
     return hasAuthClientInfo_.load();
 }
 
