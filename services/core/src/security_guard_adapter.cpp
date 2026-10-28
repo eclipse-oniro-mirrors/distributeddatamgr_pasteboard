@@ -29,25 +29,35 @@ SecurityGuardAdapter::SecurityGuardAdapter() = default;
 
 SecurityGuardAdapter::~SecurityGuardAdapter()
 {
-    std::lock_guard<std::mutex> lock(providerMutex_);
-    if (authProvider_ != nullptr) {
-        authProvider_->DeleteProvider();
-        authProvider_.reset();
+    std::shared_ptr<Security::SecurityGuard::AuthProviderSubscribeClient> provider;
+    {
+        std::lock_guard<std::mutex> lock(providerMutex_);
+        destroyed_.store(true);
+        provider = std::move(authProvider_);
+    }
+    if (provider != nullptr) {
+        provider->DeleteProvider();
     }
 }
 
 void SecurityGuardAdapter::OnProviderCreate()
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "begin.");
-    std::lock_guard<std::mutex> lock(providerMutex_);
-    if (authProvider_ != nullptr) {
-        PASTEBOARD_HILOGW(PASTEBOARD_MODULE_SERVICE, "provider already exists.");
-        return;
+    {
+        std::lock_guard<std::mutex> lock(providerMutex_);
+        if (authProvider_ != nullptr) {
+            PASTEBOARD_HILOGW(PASTEBOARD_MODULE_SERVICE, "provider already exists.");
+            return;
+        }
+        destroyed_.store(false);
     }
     Security::SecurityGuard::AuthProviderCallback callback =
         [this](const std::vector<Security::SecurityGuard::AuthClientInfo> &clientInfos) {
             if (clientInfos.empty()) {
                 std::lock_guard<std::mutex> lock(providerMutex_);
+                if (destroyed_.load()) {
+                    return;
+                }
                 hasAuthClientInfo_.store(false);
                 return;
             }
@@ -63,11 +73,14 @@ void SecurityGuardAdapter::OnProviderCreate()
                 }
             }
             int32_t strategy = static_cast<int32_t>(hasDeny ? Security::SecurityGuard::AuthStrategy::DENY
-                                                            : Security::SecurityGuard::AuthStrategy::ALLOW);
+                                                             : Security::SecurityGuard::AuthStrategy::ALLOW);
             uint32_t timeoutMs = (minTimeoutMs <= 0 || static_cast<uint32_t>(minTimeoutMs) > MAX_TIMEOUT_MS)
                 ? MAX_TIMEOUT_MS : static_cast<uint32_t>(minTimeoutMs);
             {
                 std::lock_guard<std::mutex> lock(providerMutex_);
+                if (destroyed_.load()) {
+                    return;
+                }
                 cachedDefaultStrategy_.store(strategy);
                 cachedTimeoutMs_.store(timeoutMs);
                 hasAuthClientInfo_.store(true);
@@ -86,21 +99,33 @@ void SecurityGuardAdapter::OnProviderCreate()
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "CreateProvider ok but provider null");
         return;
     }
-    authProvider_ = std::move(provider);
+    {
+        std::lock_guard<std::mutex> lock(providerMutex_);
+        if (authProvider_ != nullptr) {
+            PASTEBOARD_HILOGW(PASTEBOARD_MODULE_SERVICE, "provider created concurrently, cleanup duplicate.");
+            provider->DeleteProvider();
+            return;
+        }
+        authProvider_ = std::move(provider);
+    }
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "AuthProvider created.");
 }
 
 void SecurityGuardAdapter::OnProviderDestroy()
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "begin.");
-    std::lock_guard<std::mutex> lock(providerMutex_);
-    if (authProvider_ != nullptr) {
-        authProvider_->DeleteProvider();
-        authProvider_.reset();
+    std::shared_ptr<Security::SecurityGuard::AuthProviderSubscribeClient> provider;
+    {
+        std::lock_guard<std::mutex> lock(providerMutex_);
+        destroyed_.store(true);
+        provider = std::move(authProvider_);
+        hasAuthClientInfo_.store(false);
+        cachedDefaultStrategy_.store(static_cast<int32_t>(StrategyResult::ALLOW));
+        cachedTimeoutMs_.store(MAX_TIMEOUT_MS);
     }
-    hasAuthClientInfo_.store(false);
-    cachedDefaultStrategy_.store(static_cast<int32_t>(StrategyResult::ALLOW));
-    cachedTimeoutMs_.store(MAX_TIMEOUT_MS);
+    if (provider != nullptr) {
+        provider->DeleteProvider();
+    }
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "AuthProvider released.");
 }
 

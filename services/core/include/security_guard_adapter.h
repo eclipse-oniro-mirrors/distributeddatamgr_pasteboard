@@ -63,6 +63,7 @@ private:
     std::atomic<bool> hasAuthClientInfo_{false};
     std::atomic<int32_t> cachedDefaultStrategy_{0};
     std::atomic<uint32_t> cachedTimeoutMs_{MAX_TIMEOUT_MS};
+    std::atomic<bool> destroyed_{false};
 
     std::shared_ptr<Security::SecurityGuard::AuthProviderSubscribeClient> authProvider_;
 };

@@ -58,6 +58,7 @@ void PasteboardSecurityGuardMockTest::SetUp(void)
     adapter.hasAuthClientInfo_.store(false);
     adapter.cachedDefaultStrategy_.store(static_cast<int32_t>(AuthStrategy::ALLOW));
     adapter.cachedTimeoutMs_.store(SecurityGuardAdapter::MAX_TIMEOUT_MS);
+    adapter.destroyed_.store(false);
 }
 
 void PasteboardSecurityGuardMockTest::TearDown(void)
@@ -67,6 +68,7 @@ void PasteboardSecurityGuardMockTest::TearDown(void)
     adapter.hasAuthClientInfo_.store(false);
     adapter.cachedDefaultStrategy_.store(static_cast<int32_t>(AuthStrategy::ALLOW));
     adapter.cachedTimeoutMs_.store(SecurityGuardAdapter::MAX_TIMEOUT_MS);
+    adapter.destroyed_.store(false);
 }
 
 /**
@@ -401,11 +403,48 @@ HWTEST_F(PasteboardSecurityGuardMockTest, OnProviderDestroy_001, TestSize.Level1
     EXPECT_CALL(sgMock, CreateProvider(_, _, _))
         .WillOnce([&mockProvider](const AuthProviderCallback &, const std::string &,
             std::shared_ptr<AuthProviderSubscribeClient> &provider) { provider = mockProvider; return 0; });
+    EXPECT_CALL(*mockProvider, DeleteProvider()).Times(1);
     auto &adapter = SecurityGuardAdapter::GetInstance();
     adapter.OnProviderCreate();
     EXPECT_NE(adapter.authProvider_, nullptr);
     adapter.OnProviderDestroy();
     EXPECT_EQ(adapter.authProvider_, nullptr);
+}
+
+/**
+ * @tc.name: OnProviderDestroy_StaleCallbackSkipped_001
+ * @tc.desc: after OnProviderDestroy, stale callback does not update atomics
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardSecurityGuardMockTest, OnProviderDestroy_StaleCallbackSkipped_001, TestSize.Level1)
+{
+    NiceMock<SgAuthClientMock> sgMock;
+    auto mockProvider = std::make_shared<MockAuthProviderSubscribeClient>();
+    AuthProviderCallback savedCb;
+    EXPECT_CALL(sgMock, CreateProvider(_, _, _))
+        .WillOnce([&mockProvider, &savedCb](const AuthProviderCallback &cb, const std::string &,
+            std::shared_ptr<AuthProviderSubscribeClient> &provider) {
+            savedCb = cb;
+            provider = mockProvider;
+            return 0; });
+    EXPECT_CALL(*mockProvider, DeleteProvider()).Times(1);
+    auto &adapter = SecurityGuardAdapter::GetInstance();
+    adapter.OnProviderCreate();
+    ASSERT_NE(savedCb, nullptr);
+    std::vector<AuthClientInfo> clientInfos;
+    AuthClientInfo info{};
+    info.SetDefaultTimeoutStrategy(AuthStrategy::DENY);
+    info.SetDefaultTimeoutMs(static_cast<int32_t>(TIMEOUT_MS_200));
+    clientInfos.push_back(info);
+    savedCb(clientInfos);
+    EXPECT_EQ(adapter.cachedDefaultStrategy_.load(), static_cast<int32_t>(AuthStrategy::DENY));
+    EXPECT_TRUE(adapter.hasAuthClientInfo_.load());
+    adapter.OnProviderDestroy();
+    EXPECT_EQ(adapter.cachedDefaultStrategy_.load(), static_cast<int32_t>(AuthStrategy::ALLOW));
+    EXPECT_FALSE(adapter.hasAuthClientInfo_.load());
+    savedCb(clientInfos);
+    EXPECT_EQ(adapter.cachedDefaultStrategy_.load(), static_cast<int32_t>(AuthStrategy::ALLOW));
+    EXPECT_FALSE(adapter.hasAuthClientInfo_.load());
 }
 
 /**
