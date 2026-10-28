@@ -67,8 +67,8 @@ declare_args() {
     pasteboard_api_metrics_enabled = false
   }
   if (defined(global_parts_info) &&
-      !defined(global_parts_info.security_security_guard)) {
-    pasteboard_security_guard_enabled = false
+      defined(global_parts_info.security_security_guard)) {
+    pasteboard_security_guard_enabled = true
   }
   if (defined(global_parts_info) &&
       defined(global_parts_info.InterConnection_CollaborationFwk) &&
