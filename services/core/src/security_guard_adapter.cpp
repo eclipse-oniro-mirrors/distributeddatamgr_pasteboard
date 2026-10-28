@@ -157,7 +157,7 @@ SecurityGuardAdapter::StrategyResult SecurityGuardAdapter::QueryStrategy(uint32_
     }
     std::string content = "{\"srcTokenId\":" + std::to_string(srcTokenId) +
         ",\"dstTokenId\":" + std::to_string(dstTokenId) + "}";
-    Security::SecurityGuard::AuthEventInfo event(0, "1.0", content);
+    Security::SecurityGuard::AuthEventInfo event(PASTEBOARD_EVENT_ID, "1.0", content);
     if (cachedTimeoutMs == 0 || cachedTimeoutMs > SecurityGuardAdapter::MAX_TIMEOUT_MS) {
         cachedTimeoutMs = SecurityGuardAdapter::MAX_TIMEOUT_MS;
     }

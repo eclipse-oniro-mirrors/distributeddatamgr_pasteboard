@@ -92,6 +92,16 @@ HWTEST_F(PasteboardSecurityGuardMockTest, MaxTimeoutMs_001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: PasteboardEventId_001
+ * @tc.desc: PASTEBOARD_EVENT_ID equals 0x27810000
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardSecurityGuardMockTest, PasteboardEventId_001, TestSize.Level1)
+{
+    EXPECT_EQ(SecurityGuardAdapter::PASTEBOARD_EVENT_ID, 0x27810000);
+}
+
+/**
  * @tc.name: QueryStrategy_NoProvider_NoAuthClientInfo_001
  * @tc.desc: provider null + no authClientInfo → ALLOW (inherit existing behavior)
  * @tc.type: FUNC
@@ -162,7 +172,8 @@ HWTEST_F(PasteboardSecurityGuardMockTest, QueryStrategy_Allow_001, TestSize.Leve
         .WillOnce([&mockProvider](const AuthProviderCallback &, const std::string &,
             std::shared_ptr<AuthProviderSubscribeClient> &provider) { provider = mockProvider; return 0; });
     EXPECT_CALL(*mockProvider, RequestAuthResult(_, _))
-        .WillOnce([](const AuthEventInfo &, const AuthResultCallback &callback) {
+        .WillOnce([](const AuthEventInfo &event, const AuthResultCallback &callback) {
+            EXPECT_EQ(event.GetEventId(), SecurityGuardAdapter::PASTEBOARD_EVENT_ID);
             AuthResult result;
             result.SetMergedAuthStrategy(AuthStrategy::ALLOW);
             callback(result);
