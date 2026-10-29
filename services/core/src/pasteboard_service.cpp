@@ -515,13 +515,10 @@ int32_t PasteboardService::Clear(int32_t userId)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "enter, clips_.Size=%{public}zu", clips_.Size());
     if (IsValidUserId(userId)) {
-        auto appInfo = GetAppInfo(IPCSkeleton::GetCallingTokenID(), userId);
-        PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(appInfo.tokenType == ATokenTypeEnum::TOKEN_NATIVE,
+        AppInfo appInfo;
+        PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(GetAndCheckByUserAppInfo(appInfo, userId) == ERR_OK,
             static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR), PASTEBOARD_MODULE_SERVICE,
-            "ByUser caller not TOKEN_NATIVE, userId=%{public}d", userId);
-        PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(IsValidUserId(appInfo.userId),
-            static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR), PASTEBOARD_MODULE_SERVICE,
-            "ByUser invalid userId=%{public}d", userId);
+            "check failed, userId=%{public}d", userId);
         return ClearInner(appInfo);
     }
     auto appInfo = GetAppInfo(IPCSkeleton::GetCallingTokenID());
@@ -829,13 +826,10 @@ int32_t PasteboardService::GetRecordValueByType(int32_t userId, uint32_t dataId,
     int64_t &rawDataSize, std::vector<uint8_t> &buffer, int &fd)
 {
     if (IsValidUserId(userId)) {
-        auto appInfo = GetAppInfo(IPCSkeleton::GetCallingTokenID(), userId);
-        PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(appInfo.tokenType == ATokenTypeEnum::TOKEN_NATIVE,
+        AppInfo appInfo;
+        PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(GetAndCheckByUserAppInfo(appInfo, userId) == ERR_OK,
             static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR), PASTEBOARD_MODULE_SERVICE,
-            "ByUser caller not TOKEN_NATIVE, userId=%{public}d", userId);
-        PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(IsValidUserId(appInfo.userId),
-            static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR), PASTEBOARD_MODULE_SERVICE,
-            "ByUser invalid userId=%{public}d", userId);
+            "check failed, userId=%{public}d", userId);
         return GetRecordValueByTypeInner(appInfo, dataId, recordId, rawDataSize, buffer, fd);
     }
     auto appInfo = GetAppInfo(IPCSkeleton::GetCallingTokenID());
@@ -1178,6 +1172,18 @@ AppInfo PasteboardService::GetAppInfo(uint32_t tokenId, int32_t userId) const
     return info;
 }
 
+int32_t PasteboardService::GetAndCheckByUserAppInfo(AppInfo &outAppInfo, int32_t userId) const
+{
+    outAppInfo = GetAppInfo(IPCSkeleton::GetCallingTokenID(), userId);
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(outAppInfo.tokenType == ATokenTypeEnum::TOKEN_NATIVE,
+        static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR), PASTEBOARD_MODULE_SERVICE,
+        "ByUser caller not TOKEN_NATIVE, userId=%{public}d", userId);
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(IsValidUserId(outAppInfo.userId),
+        static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR), PASTEBOARD_MODULE_SERVICE,
+        "ByUser invalid userId=%{public}d", userId);
+    return ERR_OK;
+}
+
 void PasteboardService::FillHapAppInfo(uint32_t tokenId, AppInfo &info) const
 {
     HapTokenInfo hapInfo;
@@ -1352,13 +1358,9 @@ int32_t PasteboardService::GetPasteData(int32_t userId, int &fd, int64_t &size, 
     UeReportInfo ueReportInfo;
     AppInfo appInfo;
     if (IsValidUserId(userId)) {
-        appInfo = GetAppInfo(IPCSkeleton::GetCallingTokenID(), userId);
-        PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(appInfo.tokenType == ATokenTypeEnum::TOKEN_NATIVE,
+        PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(GetAndCheckByUserAppInfo(appInfo, userId) == ERR_OK,
             static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR), PASTEBOARD_MODULE_SERVICE,
-            "ByUser caller not TOKEN_NATIVE, userId=%{public}d", userId);
-        PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(IsValidUserId(appInfo.userId),
-            static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR), PASTEBOARD_MODULE_SERVICE,
-            "ByUser invalid userId=%{public}d", userId);
+            "check failed, userId=%{public}d", userId);
     } else {
         appInfo = GetAppInfo(IPCSkeleton::GetCallingTokenID());
         if (appInfo.userId == ERROR_USERID) {
@@ -2473,6 +2475,16 @@ int32_t PasteboardService::GetDataTokenId(PasteData &pasteData)
     return originTokenId;
 }
 
+void PasteboardService::ReportSetPasteDataRadar(const AppInfo &appInfo, PasteData &pasteData, int64_t dataSize)
+{
+    RadarReportInfo radarReportInfo;
+    radarReportInfo.stageRes = static_cast<int32_t>(pasteData.IsDelayData());
+    radarReportInfo.bundleName = appInfo.bundleName;
+    radarReportInfo.description = pasteData.GetReportDescription();
+    radarReportInfo.commonInfo = GetCommonState(dataSize);
+    COPY_RADAR_REPORT(DFX_SET_PASTEBOARD, DFX_CHECK_SET_DELAY_COPY, radarReportInfo);
+}
+
 int32_t PasteboardService::SaveData(int32_t userId, PasteData &pasteData, int64_t dataSize,
     const sptr<IPasteboardDelayGetter> delayGetter, const sptr<IPasteboardEntryGetter> entryGetter)
 {
@@ -2509,12 +2521,7 @@ int32_t PasteboardService::SaveData(int32_t userId, PasteData &pasteData, int64_
     RemovePasteData(userId);
     clips_.InsertOrAssign(userId, std::make_shared<PasteData>(pasteData));
     IncreaseChangeCount(userId);
-    RadarReportInfo radarReportInfo;
-    radarReportInfo.stageRes = static_cast<int32_t>(pasteData.IsDelayData());
-    radarReportInfo.bundleName = appInfo.bundleName;
-    radarReportInfo.description = pasteData.GetReportDescription();
-    radarReportInfo.commonInfo = GetCommonState(dataSize);
-    COPY_RADAR_REPORT(DFX_SET_PASTEBOARD, DFX_CHECK_SET_DELAY_COPY, radarReportInfo);
+    ReportSetPasteDataRadar(appInfo, pasteData, dataSize);
     HandleDelayDataAndRecord(userId, pasteData, delayGetter, entryGetter, appInfo);
     auto curTime = static_cast<uint64_t>(PasteBoardTime::GetBootTimeMs());
     copyTime_.InsertOrAssign(userId, curTime);
@@ -3123,13 +3130,10 @@ int32_t PasteboardService::SetPasteData(int32_t userId, int fd, int64_t memSize,
     const sptr<IPasteboardEntryGetter> &entryGetter)
 {
     if (IsValidUserId(userId)) {
-        auto appInfo = GetAppInfo(IPCSkeleton::GetCallingTokenID(), userId);
-        PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(appInfo.tokenType == ATokenTypeEnum::TOKEN_NATIVE,
+        AppInfo appInfo;
+        PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(GetAndCheckByUserAppInfo(appInfo, userId) == ERR_OK,
             static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR), PASTEBOARD_MODULE_SERVICE,
-            "ByUser caller not TOKEN_NATIVE, userId=%{public}d", userId);
-        PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(IsValidUserId(appInfo.userId),
-            static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR), PASTEBOARD_MODULE_SERVICE,
-            "ByUser invalid userId=%{public}d", userId);
+            "check failed, userId=%{public}d", userId);
         return SetPasteDataInner(appInfo, fd, memSize, buffer, delayGetter, entryGetter);
     }
     return SetPasteDataInner({}, fd, memSize, buffer, delayGetter, entryGetter);
@@ -3139,13 +3143,10 @@ int32_t PasteboardService::SetPasteDataDelayData(int32_t userId, int fd, int64_t
     const std::vector<uint8_t> &buffer, const sptr<IPasteboardDelayGetter> &delayGetter)
 {
     if (IsValidUserId(userId)) {
-        auto appInfo = GetAppInfo(IPCSkeleton::GetCallingTokenID(), userId);
-        PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(appInfo.tokenType == ATokenTypeEnum::TOKEN_NATIVE,
+        AppInfo appInfo;
+        PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(GetAndCheckByUserAppInfo(appInfo, userId) == ERR_OK,
             static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR), PASTEBOARD_MODULE_SERVICE,
-            "ByUser caller not TOKEN_NATIVE, userId=%{public}d", userId);
-        PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(IsValidUserId(appInfo.userId),
-            static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR), PASTEBOARD_MODULE_SERVICE,
-            "ByUser invalid userId=%{public}d", userId);
+            "check failed, userId=%{public}d", userId);
         return SetPasteDataDelayDataInner(appInfo, fd, memSize, buffer, delayGetter);
     }
     return SetPasteDataDelayDataInner({}, fd, memSize, buffer, delayGetter);
@@ -3155,13 +3156,10 @@ int32_t PasteboardService::SetPasteDataEntryData(int32_t userId, int fd, int64_t
     const std::vector<uint8_t> &buffer, const sptr<IPasteboardEntryGetter> &entryGetter)
 {
     if (IsValidUserId(userId)) {
-        auto appInfo = GetAppInfo(IPCSkeleton::GetCallingTokenID(), userId);
-        PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(appInfo.tokenType == ATokenTypeEnum::TOKEN_NATIVE,
+        AppInfo appInfo;
+        PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(GetAndCheckByUserAppInfo(appInfo, userId) == ERR_OK,
             static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR), PASTEBOARD_MODULE_SERVICE,
-            "ByUser caller not TOKEN_NATIVE, userId=%{public}d", userId);
-        PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(IsValidUserId(appInfo.userId),
-            static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR), PASTEBOARD_MODULE_SERVICE,
-            "ByUser invalid userId=%{public}d", userId);
+            "check failed, userId=%{public}d", userId);
         return SetPasteDataEntryDataInner(appInfo, fd, memSize, buffer, entryGetter);
     }
     return SetPasteDataEntryDataInner({}, fd, memSize, buffer, entryGetter);
@@ -3171,13 +3169,10 @@ int32_t PasteboardService::SetPasteDataOnly(int32_t userId, int fd, int64_t memS
     const std::vector<uint8_t> &buffer)
 {
     if (IsValidUserId(userId)) {
-        auto appInfo = GetAppInfo(IPCSkeleton::GetCallingTokenID(), userId);
-        PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(appInfo.tokenType == ATokenTypeEnum::TOKEN_NATIVE,
+        AppInfo appInfo;
+        PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(GetAndCheckByUserAppInfo(appInfo, userId) == ERR_OK,
             static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR), PASTEBOARD_MODULE_SERVICE,
-            "ByUser caller not TOKEN_NATIVE, userId=%{public}d", userId);
-        PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(IsValidUserId(appInfo.userId),
-            static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR), PASTEBOARD_MODULE_SERVICE,
-            "ByUser invalid userId=%{public}d", userId);
+            "check failed, userId=%{public}d", userId);
         return SetPasteDataOnlyInner(appInfo, fd, memSize, buffer);
     }
     return SetPasteDataOnlyInner({}, fd, memSize, buffer);

@@ -358,6 +358,7 @@ private:
     int32_t SaveData(int32_t userId, PasteData &pasteData, int64_t dataSize,
         const sptr<IPasteboardDelayGetter> delayGetter = nullptr,
         const sptr<IPasteboardEntryGetter> entryGetter = nullptr);
+    void ReportSetPasteDataRadar(const AppInfo &appInfo, PasteData &pasteData, int64_t dataSize);
     void SetPasteDataInfo(int32_t userId, PasteData &pasteData, const AppInfo &appInfo);
     void HandleDelayDataAndRecord(int32_t userId, PasteData &pasteData,
         const sptr<IPasteboardDelayGetter> delayGetter,
@@ -453,6 +454,7 @@ private:
     bool VerifyPermission(uint32_t tokenId);
     int32_t IsDataValid(PasteData &pasteData, uint32_t tokenId, int32_t userId);
     AppInfo GetAppInfo(uint32_t tokenId, int32_t userId = ERROR_USERID) const;
+    int32_t GetAndCheckByUserAppInfo(AppInfo &outAppInfo, int32_t userId) const;
     void FillHapAppInfo(uint32_t tokenId, AppInfo &info) const;
     void FillNativeAppInfo(uint32_t tokenId, AppInfo &info) const;
     static std::string GetAppBundleName(const AppInfo &appInfo);
