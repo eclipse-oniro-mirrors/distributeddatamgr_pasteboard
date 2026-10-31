@@ -143,7 +143,8 @@ public:
         const sptr<IPasteboardDelayGetter> &delayGetter) override;
     virtual int32_t SetPasteDataEntryData(int32_t userId, int fd, int64_t memSize, const std::vector<uint8_t> &buffer,
         const sptr<IPasteboardEntryGetter> &entryGetter) override;
-    virtual int32_t SetPasteDataOnly(int32_t userId, int fd, int64_t memSize, const std::vector<uint8_t> &buffer) override;
+    virtual int32_t SetPasteDataOnly(
+        int32_t userId, int fd, int64_t memSize, const std::vector<uint8_t> &buffer) override;
     virtual int32_t SyncDelayedData() override;
     virtual int32_t IsRemoteData(bool &funcResult) override;
     virtual int32_t GetMimeTypes(std::vector<std::string> &funcResult) override;
