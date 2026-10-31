@@ -60,7 +60,7 @@ private:
 class AuthEventInfo {
 public:
     AuthEventInfo() = default;
-    AuthEventInfo(int64_t eventId, const std::string &version = "", const std::string &content = "")
+    explicit AuthEventInfo(int64_t eventId, const std::string &version = "", const std::string &content = "")
         : eventId_(eventId), version_(version), content_(content) {}
     ~AuthEventInfo() = default;
     int64_t GetEventId() const { return eventId_; }

@@ -20,11 +20,13 @@
 #include <cstdint>
 #include <memory>
 #include <mutex>
+#include <vector>
 
 namespace OHOS {
 namespace Security {
 namespace SecurityGuard {
 class AuthProviderSubscribeClient;
+class AuthClientInfo;
 } // namespace SecurityGuard
 } // namespace Security
 
@@ -61,6 +63,8 @@ private:
         return cachedStrategy == static_cast<int32_t>(StrategyResult::DENY)
             ? StrategyResult::DENY : StrategyResult::ALLOW;
     }
+
+    void HandleClientStatus(const std::vector<Security::SecurityGuard::AuthClientInfo> &clientInfos);
 
     mutable std::mutex providerMutex_;
     std::atomic<bool> hasAuthClientInfo_{false};
