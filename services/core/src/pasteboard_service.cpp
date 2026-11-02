@@ -1414,7 +1414,7 @@ int32_t PasteboardService::GetPasteDataInner(const AppInfo &appInfo, int &fd, in
     std::string peerUdid = "";
     RadarReportInfo radarReportInfo;
     radarReportInfo.pasteInfo.pasteId = data.GetPasteId();
-    auto ret = GetData(appInfo.userId, appInfo.tokenId, data, syncTime, isPeerOnline, peerNetId, peerUdid);
+    auto ret = GetData(appInfo, data, syncTime, isPeerOnline, peerNetId, peerUdid);
     data.SetBundleInfo(appInfo.bundleName, appInfo.appIndex);
     SetUeEvent(appInfo, data, isPeerOnline, ueReportInfo, peerNetId);
     SetRadarEvent(appInfo, data, isPeerOnline, radarReportInfo, peerNetId);
@@ -1495,14 +1495,14 @@ void PasteboardService::AddPermissionRecord(uint32_t tokenId, bool isReadGrant, 
     return;
 }
 
-int32_t PasteboardService::CheckAndGrantRemoteUri(int32_t userId, PasteData &data, const AppInfo &appInfo,
+int32_t PasteboardService::CheckAndGrantRemoteUri(PasteData &data, const AppInfo &appInfo,
     const std::string &pasteId, std::shared_ptr<BlockObject<int32_t>> pasteBlock)
 {
     int64_t fileSize = data.GetFileSize();
     bool isRemoteData = data.IsRemote();
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "pasteId=%{public}s, isRemote=%{public}s, fileSize=%{public}" PRId64,
         pasteId.c_str(), isRemoteData ? "true" : "false", fileSize);
-    GetPasteDataDot(data, appInfo.bundleName, userId);
+    GetPasteDataDot(data, appInfo.bundleName, appInfo.userId);
     std::map<uint32_t, std::vector<Uri>> grantUris = CheckUriPermission(
         data, std::make_pair(appInfo.bundleName, appInfo.appIndex));
     if (isRemoteData) {
@@ -1542,11 +1542,11 @@ bool PasteboardService::RemoteDataTaskManager::HasRunningTask()
     return false;
 }
 
-int32_t PasteboardService::GetData(int32_t userId, uint32_t tokenId, PasteData &data, int32_t &syncTime,
+int32_t PasteboardService::GetData(const AppInfo &appInfo, PasteData &data, int32_t &syncTime,
     bool &isPeerOnline, std::string &peerNetId, std::string &peerUdid)
 {
     CalculateTimeConsuming::SetBeginTime();
-    auto appInfo = GetAppInfo(tokenId);
+    int32_t userId = appInfo.userId;
     int32_t result = static_cast<int32_t>(PasteboardError::E_OK);
     std::string pasteId = data.GetPasteId();
     std::shared_ptr<BlockObject<int32_t>> pasteBlock = nullptr;
@@ -1585,7 +1585,7 @@ int32_t PasteboardService::GetData(int32_t userId, uint32_t tokenId, PasteData &
         HandleGetDataError(result, pasteBlock, distEvt.deviceId, pasteId);
         return result;
     }
-    return CheckAndGrantRemoteUri(userId, data, appInfo, pasteId, pasteBlock);
+    return CheckAndGrantRemoteUri(data, appInfo, pasteId, pasteBlock);
 }
 
 void PasteboardService::HandleNotificationsAndStatusChecks(int32_t userId, const AppInfo &appInfo,

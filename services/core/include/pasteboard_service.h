@@ -369,9 +369,9 @@ private:
     std::pair<int32_t, ClipPlugin::GlobalEvent> GetValidDistributeEvent(int32_t user);
     int32_t GetSdkVersion(uint32_t tokenId);
     bool IsPermissionGranted(const std::string &perm, uint32_t tokenId);
-    int32_t CheckAndGrantRemoteUri(int32_t userId, PasteData &data, const AppInfo &appInfo,
+    int32_t CheckAndGrantRemoteUri(PasteData &data, const AppInfo &appInfo,
         const std::string &pasteId, std::shared_ptr<BlockObject<int32_t>> pasteBlock);
-    int32_t GetData(int32_t userId, uint32_t tokenId, PasteData &data, int32_t &syncTime, bool &isPeerOnline,
+    int32_t GetData(const AppInfo &appInfo, PasteData &data, int32_t &syncTime, bool &isPeerOnline,
         std::string &peerNetId, std::string &peerUdid);
     void HandleInitFailure();
     void InitializeDumpCommands();
