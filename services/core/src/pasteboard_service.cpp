@@ -3082,21 +3082,20 @@ int32_t PasteboardService::SetPasteDataInner(const AppInfo &appInfo, int fd, int
     auto tokenId = GetDataTokenId(pasteData);
     pasteData.SetTokenId(tokenId);
 
-    auto dataAppInfo = GetAppInfo(tokenId);
-    int32_t effectiveUserId = appInfo.userId;
-    if (effectiveUserId == ERROR_USERID) {
-        effectiveUserId = dataAppInfo.userId;
+    AppInfo effectiveAppInfo = appInfo;
+    if (tokenId != appInfo.tokenId) {
+        effectiveAppInfo = GetAppInfo(tokenId);
+        effectiveAppInfo.userId = appInfo.userId;
     }
-    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(effectiveUserId != ERROR_USERID,
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(effectiveAppInfo.userId != ERROR_USERID,
         static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR), PASTEBOARD_MODULE_SERVICE,
         "data producer userId invalid.");
-    dataAppInfo.userId = effectiveUserId;
 
     UpdateShareOption(pasteData);
     if (DisposableManager::GetInstance().TryProcessDisposableData(pasteData, delayGetter, entryGetter)) {
         return ERR_OK;
     }
-    ret = SaveData(dataAppInfo, pasteData, rawDataSize, delayGetter, entryGetter);
+    ret = SaveData(effectiveAppInfo, pasteData, rawDataSize, delayGetter, entryGetter);
     if (entityObserverMap_.Size() != 0 && pasteData.HasMimeType(MIMETYPE_TEXT_PLAIN)) {
         RecognizePasteData(pasteData);
     }
@@ -3136,7 +3135,8 @@ int32_t PasteboardService::SetPasteData(int32_t userId, int fd, int64_t memSize,
             "check failed, userId=%{public}d", userId);
         return SetPasteDataInner(appInfo, fd, memSize, buffer, delayGetter, entryGetter);
     }
-    return SetPasteDataInner({}, fd, memSize, buffer, delayGetter, entryGetter);
+    auto callerAppInfo = GetAppInfo(IPCSkeleton::GetCallingTokenID());
+    return SetPasteDataInner(callerAppInfo, fd, memSize, buffer, delayGetter, entryGetter);
 }
 
 int32_t PasteboardService::SetPasteDataDelayData(int32_t userId, int fd, int64_t memSize,
@@ -3149,7 +3149,8 @@ int32_t PasteboardService::SetPasteDataDelayData(int32_t userId, int fd, int64_t
             "check failed, userId=%{public}d", userId);
         return SetPasteDataDelayDataInner(appInfo, fd, memSize, buffer, delayGetter);
     }
-    return SetPasteDataDelayDataInner({}, fd, memSize, buffer, delayGetter);
+    auto callerAppInfo = GetAppInfo(IPCSkeleton::GetCallingTokenID());
+    return SetPasteDataDelayDataInner(callerAppInfo, fd, memSize, buffer, delayGetter);
 }
 
 int32_t PasteboardService::SetPasteDataEntryData(int32_t userId, int fd, int64_t memSize,
@@ -3162,7 +3163,8 @@ int32_t PasteboardService::SetPasteDataEntryData(int32_t userId, int fd, int64_t
             "check failed, userId=%{public}d", userId);
         return SetPasteDataEntryDataInner(appInfo, fd, memSize, buffer, entryGetter);
     }
-    return SetPasteDataEntryDataInner({}, fd, memSize, buffer, entryGetter);
+    auto callerAppInfo = GetAppInfo(IPCSkeleton::GetCallingTokenID());
+    return SetPasteDataEntryDataInner(callerAppInfo, fd, memSize, buffer, entryGetter);
 }
 
 int32_t PasteboardService::SetPasteDataOnly(int32_t userId, int fd, int64_t memSize,
@@ -3175,7 +3177,8 @@ int32_t PasteboardService::SetPasteDataOnly(int32_t userId, int fd, int64_t memS
             "check failed, userId=%{public}d", userId);
         return SetPasteDataOnlyInner(appInfo, fd, memSize, buffer);
     }
-    return SetPasteDataOnlyInner({}, fd, memSize, buffer);
+    auto callerAppInfo = GetAppInfo(IPCSkeleton::GetCallingTokenID());
+    return SetPasteDataOnlyInner(callerAppInfo, fd, memSize, buffer);
 }
 
 void PasteboardService::RemovePasteData(int32_t userId)
