@@ -485,7 +485,7 @@ HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataInfoTest001, TestSize.Level1)
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
 
-    tempPasteboard->SetPasteDataInfo(appInfo.userId, pasteData, appInfo);
+    tempPasteboard->SetPasteDataInfo(pasteData, appInfo);
     std::pair<std::string, int32_t> originAuthority;
     originAuthority.first = bundleName;
     originAuthority.second = appIndex;

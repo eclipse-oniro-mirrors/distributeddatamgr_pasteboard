@@ -3981,7 +3981,7 @@ HWTEST_F(PasteboardServiceMockTest, HandleDelayDataAndRecordTest001, TestSize.Le
     NiceMock<PasteboardServiceInterfaceMock> mock;
     EXPECT_CALL(mock, IsDelayData()).WillOnce(Return(true));
 
-    tempPasteboard->HandleDelayDataAndRecord(appInfo.userId, pasteData, delayGetter, entryGetter, appInfo);
+    tempPasteboard->HandleDelayDataAndRecord(pasteData, delayGetter, entryGetter, appInfo);
 }
 
 /**
@@ -3999,7 +3999,7 @@ HWTEST_F(PasteboardServiceMockTest, HandleDelayDataAndRecordTest002, TestSize.Le
     sptr<IPasteboardEntryGetter> entryGetter = nullptr;
     AppInfo appInfo;
 
-    tempPasteboard->HandleDelayDataAndRecord(appInfo.userId, pasteData, delayGetter, entryGetter, appInfo);
+    tempPasteboard->HandleDelayDataAndRecord(pasteData, delayGetter, entryGetter, appInfo);
 }
 
 /**
@@ -4020,7 +4020,7 @@ HWTEST_F(PasteboardServiceMockTest, HandleDelayDataAndRecordTest003, TestSize.Le
     NiceMock<PasteboardServiceInterfaceMock> mock;
     EXPECT_CALL(mock, IsDelayRecord()).WillOnce(Return(true));
 
-    tempPasteboard->HandleDelayDataAndRecord(appInfo.userId, pasteData, delayGetter, entryGetter, appInfo);
+    tempPasteboard->HandleDelayDataAndRecord(pasteData, delayGetter, entryGetter, appInfo);
 }
 
 /**

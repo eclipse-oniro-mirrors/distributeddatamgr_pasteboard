@@ -356,12 +356,12 @@ private:
     };
     DistributedMemory setDistributedMemory_;
 
-    int32_t SaveData(int32_t userId, PasteData &pasteData, int64_t dataSize,
+    int32_t SaveData(const AppInfo &appInfo, PasteData &pasteData, int64_t dataSize,
         const sptr<IPasteboardDelayGetter> delayGetter = nullptr,
         const sptr<IPasteboardEntryGetter> entryGetter = nullptr);
     void ReportSetPasteDataRadar(const AppInfo &appInfo, PasteData &pasteData, int64_t dataSize);
-    void SetPasteDataInfo(int32_t userId, PasteData &pasteData, const AppInfo &appInfo);
-    void HandleDelayDataAndRecord(int32_t userId, PasteData &pasteData,
+    void SetPasteDataInfo(PasteData &pasteData, const AppInfo &appInfo);
+    void HandleDelayDataAndRecord(PasteData &pasteData,
         const sptr<IPasteboardDelayGetter> delayGetter,
         const sptr<IPasteboardEntryGetter> entryGetter, const AppInfo &appInfo);
     void RemovePasteData(int32_t userId);
@@ -375,7 +375,7 @@ private:
         std::string &peerNetId, std::string &peerUdid);
     void HandleInitFailure();
     void InitializeDumpCommands();
-    void HandleNotificationsAndStatusChecks(int32_t userId, const AppInfo &appInfo,
+    void HandleNotificationsAndStatusChecks(const AppInfo &appInfo,
         const PasteData &data, const std::string &peerNetId, bool &isPeerOnline);
     void PublishServiceState(const PasteData &data, int32_t syncTime,
         const std::string &peerNetId, std::shared_ptr<BlockObject<int32_t>> pasteBlock);
@@ -389,7 +389,7 @@ private:
     int32_t GetPasteDataInner(const AppInfo &appInfo, int &fd, int64_t &size, std::vector<uint8_t> &rawData,
         const std::string &pasteId, int32_t &syncTime, UeReportInfo &ueReportInfo);
     void GetPasteDataDot(PasteData &pasteData, const std::string &bundleName, const int32_t &userId);
-    int32_t GetLocalData(int32_t userId, const AppInfo &appInfo, PasteData &data);
+    int32_t GetLocalData(const AppInfo &appInfo, PasteData &data);
     void UpdateClipOnRead(int32_t userId, const PasteData &data,
         const std::string &originBundleName, uint64_t startTime, uint64_t curTime);
     int32_t GetRemoteData(int32_t userId, const Event &event, PasteData &data, int32_t &syncTime);
@@ -480,7 +480,7 @@ private:
     bool HasRemoteUri(std::shared_ptr<PasteData> pasteData);
     bool IsRemoteData();
     int32_t GetRecordValueByType(uint32_t dataId, uint32_t recordId, PasteDataEntry &value);
-    int32_t GetRecordValueByType(int32_t userId, const AppInfo &appInfo, uint32_t dataId, uint32_t recordId,
+    int32_t GetRecordValueByType(const AppInfo &appInfo, uint32_t dataId, uint32_t recordId,
         PasteDataEntry &value);
     int32_t GetRecordValueByTypeInner(const AppInfo &appInfo, uint32_t dataId,
         uint32_t recordId, int64_t &rawDataSize, std::vector<uint8_t> &buffer, int &fd);
