@@ -955,13 +955,13 @@ int32_t PasteboardService::GetRecordValueByType(const AppInfo &appInfo,
         return static_cast<int32_t>(PasteboardError::E_OK);
     }
 
-    int32_t ret = GetLocalEntryValue(userId, *data, *record, value);
+    int32_t ret = GetLocalEntryValue(appInfo.userId, *data, *record, value);
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(ret == static_cast<int32_t>(PasteboardError::E_OK), ret,
         PASTEBOARD_MODULE_SERVICE, "get local entry failed, type=%{public}s, ret=%{public}d", utdId.c_str(), ret);
 
     std::string mimeType = value.GetMimeType();
     if (mimeType == MIMETYPE_TEXT_HTML) {
-        return ProcessDelayHtmlEntry(*data, effectiveAppInfo, value);
+        return ProcessDelayHtmlEntry(*data, appInfo, value);
     }
     if (mimeType == MIMETYPE_TEXT_URI) {
         bool isInvalid = (isRemoteData || tokenId != data->GetTokenId()) &&
@@ -3083,7 +3083,7 @@ int32_t PasteboardService::SetPasteDataInner(const AppInfo &appInfo, int fd, int
     pasteData.SetTokenId(tokenId);
 
     AppInfo effectiveAppInfo = appInfo;
-    if (tokenId != appInfo.tokenId) {
+    if (static_cast<uint32_t>(tokenId) != appInfo.tokenId) {
         effectiveAppInfo = GetAppInfo(tokenId);
         effectiveAppInfo.userId = appInfo.userId;
     }
