@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -46,6 +46,9 @@ using json = nlohmann::json;
 namespace OHOS {
 namespace MiscServices {
 constexpr const int32_t HITRACE_GETPASTEDATA = 0;
+// Sentinel for the *Inner helpers: when userId == ERROR_USERID, route to the original
+// (non-ByUser) IPC code so HAP callers still go through the un-TOKEN_NATIVE-gated path.
+constexpr int32_t ERROR_USERID = -1;
 std::string g_progressKey;
 constexpr int32_t PASTEBOARD_PROGRESS_UPDATE_PERCENT = 5;
 constexpr int32_t UPDATE_PERCENT_WITHOUT_FILE = 10;
@@ -263,7 +266,7 @@ void PasteboardClient::Clear()
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_CLIENT, "Clear start.");
     auto proxyService = GetPasteboardService();
     PASTEBOARD_CHECK_AND_RETURN_LOGE(proxyService != nullptr, PASTEBOARD_MODULE_CLIENT, "proxyService is nullptr");
-    proxyService->Clear();
+    proxyService->Clear(ERROR_USERID);
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_CLIENT, "Clear end.");
     return;
 }
@@ -273,7 +276,7 @@ void PasteboardClient::ClearByUser(int32_t userId)
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_CLIENT, "ClearByUser start.");
     auto proxyService = GetPasteboardService();
     PASTEBOARD_CHECK_AND_RETURN_LOGE(proxyService != nullptr, PASTEBOARD_MODULE_CLIENT, "proxyService is nullptr");
-    proxyService->ClearByUser(userId);
+    proxyService->Clear(userId);
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_CLIENT, "ClearByUser end.");
     return;
 }
@@ -289,6 +292,11 @@ void PasteboardClient::CloseSharedMemFd(int fd)
 int32_t PasteboardClient::GetPasteData(PasteData &pasteData)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "enter");
+    return GetPasteDataInner(ERROR_USERID, pasteData, "PasteboardClient::GetPasteData");
+}
+
+int32_t PasteboardClient::GetPasteDataInner(int32_t userId, PasteData &pasteData, const std::string &traceName)
+{
     pid_t pid = getpid();
     std::string currentPid = std::to_string(pid);
     uint32_t seqId = getSequenceId_++;
@@ -296,7 +304,7 @@ int32_t PasteboardClient::GetPasteData(PasteData &pasteData)
     RADAR_REPORT(RadarReporter::DFX_GET_PASTEBOARD, RadarReporter::DFX_GET_BIZ_SCENE, RadarReporter::DFX_SUCCESS,
         RadarReporter::BIZ_STATE, RadarReporter::DFX_BEGIN, RadarReporter::CONCURRENT_ID, currentId,
         PACKAGE_NAME, currentPid);
-    StartAsyncTrace(HITRACE_TAG_MISC, "PasteboardClient::GetPasteData", HITRACE_GETPASTEDATA);
+    StartAsyncTrace(HITRACE_TAG_MISC, traceName, HITRACE_GETPASTEDATA);
     auto proxyService = GetPasteboardService();
     if (proxyService == nullptr) {
         RADAR_REPORT(RadarReporter::DFX_GET_PASTEBOARD, RadarReporter::DFX_CHECK_GET_SERVER, RadarReporter::DFX_FAILED,
@@ -309,30 +317,29 @@ int32_t PasteboardClient::GetPasteData(PasteData &pasteData)
     int fd = -1;
     int64_t rawDataSize = 0;
     std::vector<uint8_t> recvTLV;
-    int32_t ret = proxyService->GetPasteData(fd, rawDataSize, recvTLV, seqId, syncTime, realErrCode);
-    int32_t bizStage = (syncTime == 0) ? RadarReporter::DFX_LOCAL_PASTE_END : RadarReporter::DFX_DISTRIBUTED_PASTE_END;
+    int32_t ret = proxyService->GetPasteData(userId, fd, rawDataSize, recvTLV, seqId, syncTime, realErrCode);
     ret = ConvertErrCode(realErrCode);
     int32_t result = ProcessPasteData<PasteData>(pasteData, rawDataSize, fd, recvTLV);
     PasteboardWebController::GetInstance().RetainUri(pasteData);
     PasteboardWebController::GetInstance().RemoveInvalidUri(pasteData);
     PasteboardWebController::GetInstance().RebuildWebviewPasteData(pasteData);
     if (ret != static_cast<int32_t>(PasteboardError::E_OK)) {
-        GetDataReport(pasteData, syncTime, seqId, currentPid, ret);
+        GetDataReport(pasteData, syncTime, seqId, currentPid, ret, traceName);
         return ret;
     } else if (result == static_cast<int32_t>(PasteboardError::SERIALIZATION_ERROR)) {
-        GetDataReport(pasteData, syncTime, seqId, currentPid, result);
+        GetDataReport(pasteData, syncTime, seqId, currentPid, result, traceName);
         return result;
     }
-    GetDataReport(pasteData, syncTime, seqId, currentPid, ret);
+    GetDataReport(pasteData, syncTime, seqId, currentPid, ret, traceName);
     return static_cast<int32_t>(PasteboardError::E_OK);
 }
 
 void PasteboardClient::GetDataReport(PasteData &pasteData, int32_t syncTime, uint32_t currentSeqId,
-    const std::string &currentPid, int32_t ret)
+    const std::string &currentPid, int32_t ret, const std::string &traceName)
 {
     static DeduplicateMemory<RadarReportIdentity> reportMemory(REPORT_DUPLICATE_TIMEOUT);
     int32_t bizStage = (syncTime == 0) ? RadarReporter::DFX_LOCAL_PASTE_END : RadarReporter::DFX_DISTRIBUTED_PASTE_END;
-    FinishAsyncTrace(HITRACE_TAG_MISC, "PasteboardClient::GetPasteData", HITRACE_GETPASTEDATA);
+    FinishAsyncTrace(HITRACE_TAG_MISC, traceName, HITRACE_GETPASTEDATA);
     std::string pasteDataInfoSummary = GetPasteDataInfoSummary(pasteData);
     std::string currentId = std::to_string(currentSeqId);
     if (ret == static_cast<int32_t>(PasteboardError::E_OK)) {
@@ -446,6 +453,21 @@ void PasteboardClient::OnProgressAbnormal(int32_t result)
 int32_t PasteboardClient::GetPasteDataFromService(PasteData &pasteData,
     PasteDataFromServiceInfo &pasteDataFromServiceInfo, std::string progressKey, std::shared_ptr<GetDataParams> params)
 {
+    return GetPasteDataFromServiceInner(
+        ERROR_USERID, pasteData, pasteDataFromServiceInfo, progressKey, params);
+}
+
+int32_t PasteboardClient::GetPasteDataFromServiceByUser(int32_t userId, PasteData &pasteData,
+    PasteDataFromServiceInfo &pasteDataFromServiceInfo, std::string progressKey,
+    std::shared_ptr<GetDataParams> params)
+{
+    return GetPasteDataFromServiceInner(userId, pasteData, pasteDataFromServiceInfo, progressKey, params);
+}
+
+int32_t PasteboardClient::GetPasteDataFromServiceInner(int32_t userId, PasteData &pasteData,
+    PasteDataFromServiceInfo &pasteDataFromServiceInfo, std::string progressKey,
+    std::shared_ptr<GetDataParams> params)
+{
     auto proxyService = GetPasteboardService();
     std::string pasteDataInfoSummary = GetPasteDataInfoSummary(pasteData);
     if (proxyService == nullptr) {
@@ -462,8 +484,7 @@ int32_t PasteboardClient::GetPasteDataFromService(PasteData &pasteData,
     int64_t rawDataSize = 0;
     std::vector<uint8_t> recvTLV(0);
     uint32_t pasteSeqId = pasteDataFromServiceInfo.currentSeqId;
-    int32_t ret = proxyService->GetPasteData(fd, rawDataSize, recvTLV, pasteSeqId, syncTime, realErrCode);
-    int32_t bizStage = (syncTime == 0) ? RadarReporter::DFX_LOCAL_PASTE_END : RadarReporter::DFX_DISTRIBUTED_PASTE_END;
+    int32_t ret = proxyService->GetPasteData(userId, fd, rawDataSize, recvTLV, pasteSeqId, syncTime, realErrCode);
     ret = ConvertErrCode(realErrCode);
     int32_t result = ProcessPasteData<PasteData>(pasteData, rawDataSize, fd, recvTLV);
     ProgressSmoothToTwentyPercent(pasteData, progressKey, params);
@@ -599,6 +620,12 @@ int32_t PasteboardClient::CheckProgressParam(std::shared_ptr<GetDataParams> para
 int32_t PasteboardClient::GetDataWithProgress(PasteData &pasteData, std::shared_ptr<GetDataParams> params)
 {
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_CLIENT, "GetDataWithProgress start.");
+    return GetDataWithProgressInner(ERROR_USERID, pasteData, params, "PasteboardClient::GetDataWithProgress");
+}
+
+int32_t PasteboardClient::GetDataWithProgressInner(int32_t userId, PasteData &pasteData,
+    std::shared_ptr<GetDataParams> params, const std::string &traceName)
+{
     int32_t ret = CheckProgressParam(params);
     if (ret != static_cast<int32_t>(PasteboardError::E_OK)) {
         return ret;
@@ -606,33 +633,31 @@ int32_t PasteboardClient::GetDataWithProgress(PasteData &pasteData, std::shared_
     progressStartTime_ = PasteBoardTime::GetCurrentTimeMicros();
     isPasting_.store(true);
     std::string progressKey;
-    std::string keyDefaultValue = "0";
-    std::shared_ptr<FFRTTimer> ffrtTimer;
-    ffrtTimer = std::make_shared<FFRTTimer>("pasteboard_progress");
+    auto ffrtTimer = std::make_shared<FFRTTimer>("pasteboard_progress");
     if (params->progressIndicator != NONE_PROGRESS_INDICATOR) {
+        std::string keyDefaultValue = "0";
         PasteBoardProgress::InsertValue(progressKey, keyDefaultValue); // 0%
         std::unique_lock<std::mutex> lock(instanceLock_);
         g_progressKey = progressKey;
         lock.unlock();
         params->listener.ProgressNotify = GetProgressByProgressInfo;
         if (ffrtTimer != nullptr) {
-            FFRTTask task = [this, progressKey] {
-                ShowProgress(progressKey);
-            };
+            FFRTTask task = [this, progressKey] { ShowProgress(progressKey); };
             ffrtTimer->SetTimer(progressKey, task, HAP_PULL_UP_TIME);
         }
     }
     PasteDataFromServiceInfo pasteDataFromServiceInfo;
     ProgressRadarReport(pasteData, pasteDataFromServiceInfo);
-    StartAsyncTrace(HITRACE_TAG_MISC, "PasteboardClient::GetDataWithProgress", HITRACE_GETPASTEDATA);
-    ret = GetPasteDataFromService(pasteData, pasteDataFromServiceInfo, progressKey, params);
+    StartAsyncTrace(HITRACE_TAG_MISC, traceName, HITRACE_GETPASTEDATA);
+    ret = GetPasteDataFromServiceInner(userId, pasteData, pasteDataFromServiceInfo, progressKey, params);
     if (ret != static_cast<int32_t>(PasteboardError::E_OK)) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CLIENT, "GetPasteDataFromService is failed: ret=%{public}d.", ret);
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CLIENT,
+            "GetPasteDataFromService is failed: ret=%{public}d.", ret);
         remoteTask_.store(false);
         isPasting_.store(false);
         return ret;
     }
-    FinishAsyncTrace(HITRACE_TAG_MISC, "PasteboardClient::GetDataWithProgress", HITRACE_GETPASTEDATA);
+    FinishAsyncTrace(HITRACE_TAG_MISC, traceName, HITRACE_GETPASTEDATA);
     ret = ProgressAfterTwentyPercent(pasteData, params, progressKey);
     PasteboardWebController::GetInstance().RebuildWebviewPasteData(pasteData);
     if (ffrtTimer != nullptr) {
@@ -649,34 +674,82 @@ int32_t PasteboardClient::GetDataWithProgress(PasteData &pasteData, std::shared_
 int32_t PasteboardClient::GetUnifiedDataWithProgress(UDMF::UnifiedData &unifiedData,
     std::shared_ptr<GetDataParams> params)
 {
-    StartAsyncTrace(HITRACE_TAG_MISC, "PasteboardClient::GetUnifiedDataWithProgress", HITRACE_GETPASTEDATA);
-    PasteData pasteData;
-    int32_t ret = GetDataWithProgress(pasteData, params);
-    unifiedData = *(ConvertUtils::Convert(pasteData));
-    FinishAsyncTrace(HITRACE_TAG_MISC, "PasteboardClient::GetUnifiedDataWithProgress", HITRACE_GETPASTEDATA);
-    return ret;
+    return GetUnifiedDataWithProgressByUser(ERROR_USERID, unifiedData, params);
 }
 
 int32_t PasteboardClient::GetUnifiedData(UDMF::UnifiedData &unifiedData)
 {
-    StartAsyncTrace(HITRACE_TAG_MISC, "PasteboardClient::GetUnifiedData", HITRACE_GETPASTEDATA);
-    PasteData pasteData;
-    int32_t ret = GetPasteData(pasteData);
-    unifiedData = *(PasteboardUtils::GetInstance().Convert(pasteData));
-    FinishAsyncTrace(HITRACE_TAG_MISC, "PasteboardClient::GetUnifiedData", HITRACE_GETPASTEDATA);
-    return ret;
+    return GetUnifiedDataByUser(ERROR_USERID, unifiedData);
 }
 
 int32_t PasteboardClient::GetUdsdData(UDMF::UnifiedData &unifiedData)
 {
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "enter");
-    StartAsyncTrace(HITRACE_TAG_MISC, "PasteboardClient::GetUdsdData", HITRACE_GETPASTEDATA);
-    PasteData pasteData;
-    int32_t ret = GetPasteData(pasteData);
-    unifiedData = *(ConvertUtils::Convert(pasteData));
-    FinishAsyncTrace(HITRACE_TAG_MISC, "PasteboardClient::GetUdsdData", HITRACE_GETPASTEDATA);
+    return GetUdsdDataByUser(ERROR_USERID, unifiedData);
+}
+
+int32_t PasteboardClient::GetPasteDataByUser(int32_t userId, PasteData &pasteData)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "enter, userId=%{public}d", userId);
+    int32_t ret = GetPasteDataInner(userId, pasteData, "PasteboardClient::GetPasteDataByUser");
+    if (ret == static_cast<int32_t>(PasteboardError::E_OK)) {
+        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "leave, ret=%{public}d", ret);
+    }
+    return ret;
+}
+
+int32_t PasteboardClient::GetDataWithProgressByUser(int32_t userId, PasteData &pasteData,
+    std::shared_ptr<GetDataParams> params)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "enter, userId=%{public}d", userId);
+    int32_t ret = GetDataWithProgressInner(
+        userId, pasteData, params, "PasteboardClient::GetDataWithProgressByUser");
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "leave, ret=%{public}d", ret);
     return ret;
+}
+
+int32_t PasteboardClient::GetUnifiedDataByUser(int32_t userId, UDMF::UnifiedData &unifiedData)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "enter, userId=%{public}d", userId);
+    StartAsyncTrace(HITRACE_TAG_MISC, "PasteboardClient::GetUnifiedDataByUser", HITRACE_GETPASTEDATA);
+    PasteData pasteData;
+    int32_t ret = GetPasteDataByUser(userId, pasteData);
+    unifiedData = *(PasteboardUtils::GetInstance().Convert(pasteData));
+    FinishAsyncTrace(HITRACE_TAG_MISC, "PasteboardClient::GetUnifiedDataByUser", HITRACE_GETPASTEDATA);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "leave, ret=%{public}d", ret);
+    return ret;
+}
+
+int32_t PasteboardClient::GetUdsdDataByUser(int32_t userId, UDMF::UnifiedData &unifiedData)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "enter, userId=%{public}d", userId);
+    StartAsyncTrace(HITRACE_TAG_MISC, "PasteboardClient::GetUdsdDataByUser", HITRACE_GETPASTEDATA);
+    PasteData pasteData;
+    int32_t ret = GetPasteDataByUser(userId, pasteData);
+    unifiedData = *(ConvertUtils::Convert(pasteData));
+    FinishAsyncTrace(HITRACE_TAG_MISC, "PasteboardClient::GetUdsdDataByUser", HITRACE_GETPASTEDATA);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "leave, ret=%{public}d", ret);
+    return ret;
+}
+
+int32_t PasteboardClient::GetUnifiedDataWithProgressByUser(int32_t userId, UDMF::UnifiedData &unifiedData,
+    std::shared_ptr<GetDataParams> params)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "enter, userId=%{public}d", userId);
+    StartAsyncTrace(HITRACE_TAG_MISC, "PasteboardClient::GetUnifiedDataWithProgressByUser", HITRACE_GETPASTEDATA);
+    PasteData pasteData;
+    int32_t ret = GetDataWithProgressByUser(userId, pasteData, params);
+    unifiedData = *(ConvertUtils::Convert(pasteData));
+    FinishAsyncTrace(HITRACE_TAG_MISC, "PasteboardClient::GetUnifiedDataWithProgressByUser", HITRACE_GETPASTEDATA);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "leave, ret=%{public}d", ret);
+    return ret;
+}
+
+int32_t PasteboardClient::GetRecordValueByTypeByUser(int32_t userId, uint32_t dataId, uint32_t recordId,
+    PasteDataEntry &value)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "enter, userId=%{public}d, dataId=%{public}u, recordId=%{public}u",
+        userId, dataId, recordId);
+    return PasteboardServiceLoader::GetInstance().GetRecordValueByTypeByUser(userId, dataId, recordId, value);
 }
 
 bool PasteboardClient::HasPasteData()
@@ -764,6 +837,13 @@ int32_t PasteboardClient::SetPasteData(PasteData &pasteData, std::shared_ptr<Pas
     std::map<uint32_t, std::shared_ptr<UDMF::EntryGetter>> entryGetters)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "enter");
+    return SetPasteDataInner(ERROR_USERID, pasteData, delayGetter, entryGetters);
+}
+
+int32_t PasteboardClient::SetPasteDataInner(int32_t userId, PasteData &pasteData,
+    std::shared_ptr<PasteboardDelayGetter> delayGetter,
+    std::map<uint32_t, std::shared_ptr<UDMF::EntryGetter>> entryGetters)
+{
     RADAR_REPORT(RadarReporter::DFX_SET_PASTEBOARD, RadarReporter::DFX_SET_BIZ_SCENE, RadarReporter::DFX_SUCCESS,
         RadarReporter::BIZ_STATE, RadarReporter::DFX_BEGIN);
     auto proxyService = GetPasteboardService();
@@ -786,15 +866,7 @@ int32_t PasteboardClient::SetPasteData(PasteData &pasteData, std::shared_ptr<Pas
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CLIENT, "Write data failed, size=%{public}" PRId64, tlvSize);
         return ret;
     }
-    if (delayGetterAgent != nullptr && entryGetterAgent != nullptr) {
-        ret = proxyService->SetPasteData(fd, tlvSize, pasteDataTlv, delayGetterAgent, entryGetterAgent);
-    } else if (delayGetterAgent != nullptr && entryGetterAgent == nullptr) {
-        ret = proxyService->SetPasteDataDelayData(fd, tlvSize, pasteDataTlv, delayGetterAgent);
-    } else if (delayGetterAgent == nullptr && entryGetterAgent != nullptr) {
-        ret = proxyService->SetPasteDataEntryData(fd, tlvSize, pasteDataTlv, entryGetterAgent);
-    } else {
-        ret = proxyService->SetPasteDataOnly(fd, tlvSize, pasteDataTlv);
-    }
+    ret = DispatchSetProxy(userId, proxyService, fd, tlvSize, pasteDataTlv, delayGetterAgent, entryGetterAgent);
     std::string pasteDataInfoSummary = GetPasteDataInfoSummary(pasteData);
     ret = ConvertErrCode(ret);
     if (ret == static_cast<int32_t>(PasteboardError::E_OK)) {
@@ -809,14 +881,52 @@ int32_t PasteboardClient::SetPasteData(PasteData &pasteData, std::shared_ptr<Pas
     return ret;
 }
 
+int32_t PasteboardClient::DispatchSetProxy(int32_t userId, const sptr<IPasteboardService> &proxy,
+    int fd, int64_t tlvSize, const std::vector<uint8_t> &tlv,
+    const sptr<PasteboardDelayGetterClient> &delayGetterAgent,
+    const sptr<PasteboardEntryGetterClient> &entryGetterAgent)
+{
+    bool hasDelay = delayGetterAgent != nullptr;
+    bool hasEntry = entryGetterAgent != nullptr;
+    if (hasDelay && hasEntry) {
+        return proxy->SetPasteData(userId, fd, tlvSize, tlv, delayGetterAgent, entryGetterAgent);
+    }
+    if (hasDelay) {
+        return proxy->SetPasteDataDelayData(userId, fd, tlvSize, tlv, delayGetterAgent);
+    }
+    if (hasEntry) {
+        return proxy->SetPasteDataEntryData(userId, fd, tlvSize, tlv, entryGetterAgent);
+    }
+    return proxy->SetPasteDataOnly(userId, fd, tlvSize, tlv);
+}
+
 int32_t PasteboardClient::SetUnifiedData(
     const UDMF::UnifiedData &unifiedData, std::shared_ptr<PasteboardDelayGetter> delayGetter)
 {
-    auto pasteData = PasteboardUtils::GetInstance().Convert(unifiedData);
-    return SetPasteData(*pasteData, delayGetter);
+    return SetUnifiedDataByUser(ERROR_USERID, unifiedData, delayGetter);
 }
 
 int32_t PasteboardClient::SetUdsdData(const UDMF::UnifiedData &unifiedData)
+{
+    return SetUdsdDataByUser(ERROR_USERID, unifiedData);
+}
+
+int32_t PasteboardClient::SetPasteDataByUser(int32_t userId, PasteData &pasteData,
+    std::shared_ptr<PasteboardDelayGetter> delayGetter,
+    std::map<uint32_t, std::shared_ptr<UDMF::EntryGetter>> entryGetters)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "enter");
+    return SetPasteDataInner(userId, pasteData, delayGetter, entryGetters);
+}
+
+int32_t PasteboardClient::SetUnifiedDataByUser(
+    int32_t userId, const UDMF::UnifiedData &unifiedData, std::shared_ptr<PasteboardDelayGetter> delayGetter)
+{
+    auto pasteData = PasteboardUtils::GetInstance().Convert(unifiedData);
+    return SetPasteDataByUser(userId, *pasteData, delayGetter);
+}
+
+int32_t PasteboardClient::SetUdsdDataByUser(int32_t userId, const UDMF::UnifiedData &unifiedData)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "enter");
     auto pasteData = ConvertUtils::Convert(unifiedData);
@@ -826,7 +936,7 @@ int32_t PasteboardClient::SetUdsdData(const UDMF::UnifiedData &unifiedData)
             entryGetters.emplace(record->GetRecordId(), record->GetEntryGetter());
         }
     }
-    int32_t ret = SetPasteData(*pasteData, nullptr, entryGetters);
+    int32_t ret = SetPasteDataByUser(userId, *pasteData, nullptr, entryGetters);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "leave, ret=%{public}d", ret);
     return ret;
 }

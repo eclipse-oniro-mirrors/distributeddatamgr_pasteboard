@@ -129,21 +129,21 @@ public:
     API_EXPORT ~PasteboardService();
     int32_t CallbackEnter(uint32_t code) override;
     int32_t CallbackExit(uint32_t code, int32_t result) override;
-    virtual int32_t Clear() override;
-    virtual int32_t ClearByUser(int32_t userId) override;
-    virtual int32_t GetRecordValueByType(uint32_t dataId, uint32_t recordId, int64_t &rawDataSize,
+    virtual int32_t Clear(int32_t userId) override;
+    virtual int32_t GetRecordValueByType(int32_t userId, uint32_t dataId, uint32_t recordId, int64_t &rawDataSize,
         std::vector<uint8_t> &buffer, int &fd) override;
-    virtual int32_t GetPasteData(int &fd, int64_t &size, std::vector<uint8_t> &rawData,
+    virtual int32_t GetPasteData(int32_t userId, int &fd, int64_t &size, std::vector<uint8_t> &rawData,
         uint32_t pasteSeqId, int32_t &syncTime, int32_t &realErrCode) override;
     virtual int32_t HasPasteData(bool &funcResult) override;
     virtual int32_t HasRemoteData(bool &funcResult) override;
-    virtual int32_t SetPasteData(int fd, int64_t memSize, const std::vector<uint8_t> &buffer,
+    virtual int32_t SetPasteData(int32_t userId, int fd, int64_t memSize, const std::vector<uint8_t> &buffer,
         const sptr<IPasteboardDelayGetter> &delayGetter, const sptr<IPasteboardEntryGetter> &entryGetter) override;
-    virtual int32_t SetPasteDataDelayData(int fd, int64_t memSize, const std::vector<uint8_t> &buffer,
+    virtual int32_t SetPasteDataDelayData(int32_t userId, int fd, int64_t memSize, const std::vector<uint8_t> &buffer,
         const sptr<IPasteboardDelayGetter> &delayGetter) override;
-    virtual int32_t SetPasteDataEntryData(int fd, int64_t memSize, const std::vector<uint8_t> &buffer,
+    virtual int32_t SetPasteDataEntryData(int32_t userId, int fd, int64_t memSize, const std::vector<uint8_t> &buffer,
         const sptr<IPasteboardEntryGetter> &entryGetter) override;
-    virtual int32_t SetPasteDataOnly(int fd, int64_t memSize, const std::vector<uint8_t> &buffer) override;
+    virtual int32_t SetPasteDataOnly(
+        int32_t userId, int fd, int64_t memSize, const std::vector<uint8_t> &buffer) override;
     virtual int32_t SyncDelayedData() override;
     virtual int32_t IsRemoteData(bool &funcResult) override;
     virtual int32_t GetMimeTypes(std::vector<std::string> &funcResult) override;
@@ -247,7 +247,16 @@ private:
     void InitBundles(Loader &loader);
     void SetInputMethodPid(int32_t userId, pid_t callPid);
     void ClearInputMethodPidByPid(int32_t userId, pid_t callPid);
-    int32_t ClearInner(int32_t userId, const AppInfo &appInfo);
+    int32_t ClearInner(const AppInfo &appInfo);
+    int32_t SetPasteDataInner(const AppInfo &appInfo, int fd, int64_t memSize,
+        const std::vector<uint8_t> &buffer, const sptr<IPasteboardDelayGetter> &delayGetter,
+        const sptr<IPasteboardEntryGetter> &entryGetter);
+    int32_t SetPasteDataOnlyInner(const AppInfo &appInfo, int fd, int64_t memSize,
+        const std::vector<uint8_t> &buffer);
+    int32_t SetPasteDataDelayDataInner(const AppInfo &appInfo, int fd, int64_t memSize,
+        const std::vector<uint8_t> &buffer, const sptr<IPasteboardDelayGetter> &delayGetter);
+    int32_t SetPasteDataEntryDataInner(const AppInfo &appInfo, int fd, int64_t memSize,
+        const std::vector<uint8_t> &buffer, const sptr<IPasteboardEntryGetter> &entryGetter);
     bool IsSystemAppByFullTokenID(uint64_t tokenId);
     FocusedAppInfo GetFocusedAppInfo() const;
     int32_t GetDataTokenId(PasteData &pasteData);
@@ -344,24 +353,27 @@ private:
     };
     DistributedMemory setDistributedMemory_;
 
-    int32_t SaveData(PasteData &pasteData, int64_t dataSize, const sptr<IPasteboardDelayGetter> delayGetter = nullptr,
+    int32_t SaveData(const AppInfo &appInfo, PasteData &pasteData, int64_t dataSize,
+        const sptr<IPasteboardDelayGetter> delayGetter = nullptr,
         const sptr<IPasteboardEntryGetter> entryGetter = nullptr);
+    void ReportSetPasteDataRadar(const AppInfo &appInfo, PasteData &pasteData, int64_t dataSize);
     void SetPasteDataInfo(PasteData &pasteData, const AppInfo &appInfo);
-    void HandleDelayDataAndRecord(PasteData &pasteData, const sptr<IPasteboardDelayGetter> delayGetter,
+    void HandleDelayDataAndRecord(PasteData &pasteData,
+        const sptr<IPasteboardDelayGetter> delayGetter,
         const sptr<IPasteboardEntryGetter> entryGetter, const AppInfo &appInfo);
-    void RemovePasteData(const AppInfo &appInfo);
+    void RemovePasteData(int32_t userId);
     void SetPasteDataDot(PasteData &pasteData, const int32_t &userId);
     std::pair<int32_t, ClipPlugin::GlobalEvent> GetValidDistributeEvent(int32_t user);
     int32_t GetSdkVersion(uint32_t tokenId);
     bool IsPermissionGranted(const std::string &perm, uint32_t tokenId);
     int32_t CheckAndGrantRemoteUri(PasteData &data, const AppInfo &appInfo,
         const std::string &pasteId, std::shared_ptr<BlockObject<int32_t>> pasteBlock);
-    int32_t GetData(uint32_t tokenId, PasteData &data, int32_t &syncTime, bool &isPeerOnline, std::string &peerNetId,
-        std::string &peerUdid);
+    int32_t GetData(const AppInfo &appInfo, PasteData &data, int32_t &syncTime, bool &isPeerOnline,
+        std::string &peerNetId, std::string &peerUdid);
     void HandleInitFailure();
     void InitializeDumpCommands();
-    void HandleNotificationsAndStatusChecks(const AppInfo &appInfo, const PasteData &data,
-        const std::string &peerNetId, bool &isPeerOnline);
+    void HandleNotificationsAndStatusChecks(const AppInfo &appInfo,
+        const PasteData &data, const std::string &peerNetId, bool &isPeerOnline);
     void PublishServiceState(const PasteData &data, int32_t syncTime,
         const std::string &peerNetId, std::shared_ptr<BlockObject<int32_t>> pasteBlock);
     void HandleGetDataError(int32_t result, std::shared_ptr<BlockObject<int32_t>> pasteBlock,
@@ -371,7 +383,7 @@ private:
         RadarReportInfo &radarReportInfo, const std::string &peerNetId);
     void SetUeEvent(const AppInfo &appInfo, PasteData &data, bool isPeerOnline,
         UeReportInfo &ueReportInfo, const std::string &peerNetId);
-    int32_t GetPasteDataInner(int &fd, int64_t &size, std::vector<uint8_t> &rawData,
+    int32_t GetPasteDataInner(const AppInfo &appInfo, int &fd, int64_t &size, std::vector<uint8_t> &rawData,
         const std::string &pasteId, int32_t &syncTime, UeReportInfo &ueReportInfo);
     void GetPasteDataDot(PasteData &pasteData, const std::string &bundleName, const int32_t &userId);
     int32_t GetLocalData(const AppInfo &appInfo, PasteData &data);
@@ -434,7 +446,8 @@ private:
     bool IsDataAged(int32_t userId);
     bool VerifyPermission(uint32_t tokenId);
     int32_t IsDataValid(PasteData &pasteData, uint32_t tokenId, int32_t userId);
-    AppInfo GetAppInfo(uint32_t tokenId) const;
+    AppInfo GetAppInfo(uint32_t tokenId, int32_t userId = ERROR_USERID) const;
+    int32_t GetAndCheckByUserAppInfo(AppInfo &outAppInfo, int32_t userId) const;
     void FillHapAppInfo(uint32_t tokenId, AppInfo &info) const;
     void FillNativeAppInfo(uint32_t tokenId, AppInfo &info) const;
     static std::string GetAppBundleName(const AppInfo &appInfo);
@@ -462,6 +475,10 @@ private:
     bool HasRemoteUri(std::shared_ptr<PasteData> pasteData);
     bool IsRemoteData();
     int32_t GetRecordValueByType(uint32_t dataId, uint32_t recordId, PasteDataEntry &value);
+    int32_t GetRecordValueByType(const AppInfo &appInfo, uint32_t dataId, uint32_t recordId,
+        PasteDataEntry &value);
+    int32_t GetRecordValueByTypeInner(const AppInfo &appInfo, uint32_t dataId,
+        uint32_t recordId, int64_t &rawDataSize, std::vector<uint8_t> &buffer, int &fd);
     int32_t GetRecordValueByType(int64_t &rawDataSize, std::vector<uint8_t> &buffer, int &fd,
         const PasteDataEntry &entryValue);
     int32_t DealData(int &fd, int64_t &size, std::vector<uint8_t> &rawData, PasteData &data);

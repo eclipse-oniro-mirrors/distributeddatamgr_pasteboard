@@ -30,6 +30,9 @@ namespace MiscServices {
 
 constexpr int32_t LOADSA_TIMEOUT_MS = 4000;
 constexpr int64_t MIN_ASHMEM_DATA_SIZE = 32 * 1024; // 32K
+// Sentinel for GetRecordValueByTypeInner: when userId == ERROR_USERID, route to the
+// original (non-ByUser) IPC code so HAP callers go through the un-TOKEN_NATIVE-gated path.
+constexpr int32_t ERROR_USERID = -1;
 sptr<IPasteboardService> PasteboardServiceLoader::pasteboardServiceProxy_;
 std::condition_variable PasteboardServiceLoader::proxyConVar_;
 sptr<IRemoteObject> clientDeathObserverPtr_;
@@ -189,6 +192,18 @@ void PasteboardServiceLoader::ReleaseDeathRecipient()
 
 int32_t PasteboardServiceLoader::GetRecordValueByType(uint32_t dataId, uint32_t recordId, PasteDataEntry &value)
 {
+    return GetRecordValueByTypeInner(ERROR_USERID, dataId, recordId, value);
+}
+
+int32_t PasteboardServiceLoader::GetRecordValueByTypeByUser(
+    int32_t userId, uint32_t dataId, uint32_t recordId, PasteDataEntry &value)
+{
+    return GetRecordValueByTypeInner(userId, dataId, recordId, value);
+}
+
+int32_t PasteboardServiceLoader::GetRecordValueByTypeInner(
+    int32_t userId, uint32_t dataId, uint32_t recordId, PasteDataEntry &value)
+{
     auto proxyService = GetPasteboardService();
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(proxyService != nullptr,
         static_cast<int32_t>(PasteboardError::OBTAIN_SERVER_SA_ERROR),
@@ -214,12 +229,11 @@ int32_t PasteboardServiceLoader::GetRecordValueByType(uint32_t dataId, uint32_t 
         PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(fd >= 0, static_cast<int32_t>(PasteboardError::SERIALIZATION_ERROR),
             PASTEBOARD_MODULE_CLIENT, "CreateTmpFd failed:%{public}d", fd);
     }
-    int32_t ret = proxyService->GetRecordValueByType(dataId, recordId, tlvSize, sendTLV, fd);
+    int32_t ret = proxyService->GetRecordValueByType(userId, dataId, recordId, tlvSize, sendTLV, fd);
     if (ret != ERR_OK) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CLIENT, "GetRecordValueByType failed, ret:%{public}d", ret);
         return ret;
     }
-
     return ProcessPasteData(value, tlvSize, fd, sendTLV);
 }
 

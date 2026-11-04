@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -337,6 +337,91 @@ public:
     int32_t SetUdsdData(const UDMF::UnifiedData &unifiedData);
 
     /**
+     * SetPasteDataByUser
+     * @description Set pasteboard data by specified userId (TOKEN_NATIVE only).
+     * @param userId target user id.
+     * @return int32_t error code (E_OK on success).
+     */
+    int32_t SetPasteDataByUser(int32_t userId, PasteData &pasteData,
+        std::shared_ptr<PasteboardDelayGetter> delayGetter = nullptr,
+        std::map<uint32_t, std::shared_ptr<UDMF::EntryGetter>> entryGetters = {});
+    /**
+     * SetUnifiedDataByUser
+     * @description Set unified data by specified userId (TOKEN_NATIVE only).
+     */
+    int32_t SetUnifiedDataByUser(int32_t userId, const UDMF::UnifiedData &unifiedData,
+        std::shared_ptr<PasteboardDelayGetter> delayGetter = nullptr);
+    /**
+     * SetUdsdDataByUser
+     * @description Set udsd data by specified userId (TOKEN_NATIVE only).
+     */
+    int32_t SetUdsdDataByUser(int32_t userId, const UDMF::UnifiedData &unifiedData);
+
+    /**
+     * GetPasteDataByUser
+     * @description Get paste data from the pasteboard by specified userId (TOKEN_NATIVE only).
+     * @param userId target user id.
+     * @param pasteData the object of the PasteData.
+     * @return int32_t error code (E_OK on success).
+     */
+    int32_t GetPasteDataByUser(int32_t userId, PasteData &pasteData);
+
+    /**
+     * GetDataWithProgressByUser
+     * @description Get paste data from the system pasteboard by specified userId (TOKEN_NATIVE only)
+     *             with system progress indicator.
+     * @param userId target user id.
+     * @param pasteData the object of the PasteData.
+     * @param params - Indicates the {@link GetDataParams}.
+     * @return int32_t error code (E_OK on success).
+     */
+    int32_t GetDataWithProgressByUser(int32_t userId, PasteData &pasteData,
+        std::shared_ptr<GetDataParams> params);
+
+    /**
+     * GetUnifiedDataByUser
+     * @description Get unified data from the pasteboard by specified userId (TOKEN_NATIVE only).
+     * @param userId target user id.
+     * @param unifiedData the object of the UnifiedData.
+     * @return int32_t error code (E_OK on success).
+     */
+    int32_t GetUnifiedDataByUser(int32_t userId, UDMF::UnifiedData &unifiedData);
+
+    /**
+     * GetUdsdDataByUser
+     * @description Get unified data with uds entries from the pasteboard by specified userId
+     *             (TOKEN_NATIVE only).
+     * @param userId target user id.
+     * @param unifiedData the object of the UnifiedData.
+     * @return int32_t error code (E_OK on success).
+     */
+    int32_t GetUdsdDataByUser(int32_t userId, UDMF::UnifiedData &unifiedData);
+
+    /**
+     * GetUnifiedDataWithProgressByUser
+     * @description Get unified data from the pasteboard by specified userId (TOKEN_NATIVE only)
+     *             with system progress indicator.
+     * @param userId target user id.
+     * @param unifiedData the object of the UnifiedData.
+     * @param params - Indicates the {@link GetDataParams}.
+     * @return int32_t error code (E_OK on success).
+     */
+    int32_t GetUnifiedDataWithProgressByUser(int32_t userId, UDMF::UnifiedData &unifiedData,
+        std::shared_ptr<GetDataParams> params);
+
+    /**
+     * GetRecordValueByTypeByUser
+     * @description Get entry value from the pasteboard by specified userId (TOKEN_NATIVE only).
+     * @param userId target user id.
+     * @param dataId the dataId of the PasteData.
+     * @param recordId the recordId of the PasteRecord.
+     * @param value the value of the PasteDataEntry.
+     * @return int32_t error code (E_OK on success).
+     */
+    int32_t GetRecordValueByTypeByUser(int32_t userId, uint32_t dataId, uint32_t recordId,
+        PasteDataEntry &value);
+
+    /**
      * GetUnifiedDataWithEntry
      * @description get unified data with uds entries from the pasteboard.
      * @param unifiedData the object of the PasteDate.
@@ -584,6 +669,22 @@ private:
        std::shared_ptr<GetDataParams> params);
     int32_t GetPasteDataFromService(PasteData &pasteData, PasteDataFromServiceInfo &pasteDataFromServiceInfo,
        std::string progressKey, std::shared_ptr<GetDataParams> params);
+    int32_t GetPasteDataFromServiceByUser(int32_t userId, PasteData &pasteData,
+       PasteDataFromServiceInfo &pasteDataFromServiceInfo, std::string progressKey,
+       std::shared_ptr<GetDataParams> params);
+    int32_t GetPasteDataInner(int32_t userId, PasteData &pasteData, const std::string &traceName);
+    int32_t GetPasteDataFromServiceInner(int32_t userId, PasteData &pasteData,
+       PasteDataFromServiceInfo &pasteDataFromServiceInfo, std::string progressKey,
+       std::shared_ptr<GetDataParams> params);
+    int32_t SetPasteDataInner(int32_t userId, PasteData &pasteData,
+       std::shared_ptr<PasteboardDelayGetter> delayGetter,
+       std::map<uint32_t, std::shared_ptr<UDMF::EntryGetter>> entryGetters);
+    int32_t GetDataWithProgressInner(int32_t userId, PasteData &pasteData,
+       std::shared_ptr<GetDataParams> params, const std::string &traceName);
+    int32_t DispatchSetProxy(int32_t userId, const sptr<IPasteboardService> &proxy,
+       int fd, int64_t tlvSize, const std::vector<uint8_t> &tlv,
+       const sptr<PasteboardDelayGetterClient> &delayGetterAgent,
+       const sptr<PasteboardEntryGetterClient> &entryGetterAgent);
     static void UpdateProgress(std::shared_ptr<GetDataParams> params, int progressValue);
     static std::atomic<uint64_t> progressStartTime_;
     static void OnProgressAbnormal(int32_t result);
@@ -608,7 +709,7 @@ private:
     int32_t ProcessPasteDataFromService(PasteData &pasteData, int64_t rawDataSize, int fd,
         const std::vector<uint8_t> &recvTLV);
     void GetDataReport(PasteData &pasteData, int32_t syncTime, uint32_t currentSeqId,
-        const std::string &currentPid, int32_t ret);
+        const std::string &currentPid, int32_t ret, const std::string &traceName);
     void SubscribePasteboardSA();
     void UnSubscribePasteboardSA();
     static std::mutex instanceLock_;

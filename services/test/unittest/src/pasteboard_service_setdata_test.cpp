@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -919,7 +919,7 @@ HWTEST_F(PasteboardServiceSetDataTest, SaveData001, TestSize.Level1)
     EXPECT_NE(entryGetter, nullptr);
 
     int64_t dataSize = 0;
-    tempPasteboard->SaveData(pasteData, dataSize, delayGetter, entryGetter);
+    tempPasteboard->SaveData(100, pasteData, dataSize, delayGetter, entryGetter);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SaveData001 end");
 }
 
@@ -937,7 +937,7 @@ HWTEST_F(PasteboardServiceSetDataTest, SaveData002, TestSize.Level1)
     sptr<PasteboardEntryGetterImpl> entryGetter = sptr<PasteboardEntryGetterImpl>::MakeSptr();
     ASSERT_NE(entryGetter, nullptr);
     int64_t dataSize = 0;
-    int32_t ret = tempPasteboard->SaveData(pasteData, dataSize, delayGetter, entryGetter);
+    int32_t ret = tempPasteboard->SaveData(100, pasteData, dataSize, delayGetter, entryGetter);
     EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
 }
 
@@ -955,7 +955,7 @@ HWTEST_F(PasteboardServiceSetDataTest, SaveData003, TestSize.Level1)
     ASSERT_NE(delayGetter, nullptr);
     sptr<PasteboardEntryGetterImpl> entryGetter = nullptr;
     int64_t dataSize = 0;
-    int32_t ret = tempPasteboard->SaveData(pasteData, dataSize, delayGetter, entryGetter);
+    int32_t ret = tempPasteboard->SaveData(100, pasteData, dataSize, delayGetter, entryGetter);
     EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
 }
 
@@ -974,7 +974,7 @@ HWTEST_F(PasteboardServiceSetDataTest, SaveData004, TestSize.Level1)
     sptr<PasteboardEntryGetterImpl> entryGetter = sptr<PasteboardEntryGetterImpl>::MakeSptr();
     ASSERT_NE(entryGetter, nullptr);
     int64_t dataSize = INT64_MAX;
-    int32_t ret = tempPasteboard->SaveData(pasteData, dataSize, delayGetter, entryGetter);
+    int32_t ret = tempPasteboard->SaveData(100, pasteData, dataSize, delayGetter, entryGetter);
     EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
 }
 
@@ -1396,6 +1396,86 @@ HWTEST_F(PasteboardServiceSetDataTest, WritePasteDataTest009, TestSize.Level1)
     auto ret = tempPasteboard->WritePasteData(fd, rawDataSize, buffer, output, hasData);
     EXPECT_EQ(static_cast<int32_t>(PasteboardError::INVALID_DATA_SIZE), ret);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "WritePasteDataTest009 end");
+}
+
+/**
+ * @tc.name: SetPasteDataByUserTest001
+ * @tc.desc: SetPasteData rejects invalid userId (0) via SA path
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataByUserTest001, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetPasteDataByUserTest001 start");
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+    std::vector<uint8_t> buffer = { 'h', 'e', 'l', 'l', 'o' };
+    int32_t result = tempPasteboard->SetPasteData(0, -1, 0, buffer, nullptr, nullptr);
+    EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetPasteDataByUserTest001 end");
+}
+
+/**
+ * @tc.name: SetPasteDataByUserTest002
+ * @tc.desc: SetPasteData rejects invalid userId (negative) via SA path
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataByUserTest002, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetPasteDataByUserTest002 start");
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+    std::vector<uint8_t> buffer = { 'h', 'e', 'l', 'l', 'o' };
+    int32_t result = tempPasteboard->SetPasteData(-1, -1, 0, buffer, nullptr, nullptr);
+    EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetPasteDataByUserTest002 end");
+}
+
+/**
+ * @tc.name: SetPasteDataOnlyByUserTest001
+ * @tc.desc: SetPasteDataOnly rejects invalid userId via SA path
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataOnlyByUserTest001, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetPasteDataOnlyByUserTest001 start");
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+    std::vector<uint8_t> buffer = { 'h', 'e', 'l', 'l', 'o' };
+    int32_t result = tempPasteboard->SetPasteDataOnly(0, -1, 0, buffer);
+    EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetPasteDataOnlyByUserTest001 end");
+}
+
+/**
+ * @tc.name: SetPasteDataDelayDataByUserTest001
+ * @tc.desc: SetPasteDataDelayData rejects invalid userId via SA path
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataDelayDataByUserTest001, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetPasteDataDelayDataByUserTest001 start");
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+    std::vector<uint8_t> buffer = { 'h', 'e', 'l', 'l', 'o' };
+    int32_t result = tempPasteboard->SetPasteDataDelayData(0, -1, 0, buffer, nullptr);
+    EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetPasteDataDelayDataByUserTest001 end");
+}
+
+/**
+ * @tc.name: SetPasteDataEntryDataByUserTest001
+ * @tc.desc: SetPasteDataEntryData rejects invalid userId via SA path
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataEntryDataByUserTest001, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetPasteDataEntryDataByUserTest001 start");
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+    std::vector<uint8_t> buffer = { 'h', 'e', 'l', 'l', 'o' };
+    int32_t result = tempPasteboard->SetPasteDataEntryData(0, -1, 0, buffer, nullptr);
+    EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetPasteDataEntryDataByUserTest001 end");
 }
 } // namespace MiscServices
 } // namespace OHOS

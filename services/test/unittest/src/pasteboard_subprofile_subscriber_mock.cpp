@@ -21,13 +21,13 @@
 
 namespace OHOS::MiscServices {
 
-int32_t PasteboardService::ClearByUser(int32_t userId)
+int32_t PasteboardService::Clear(int32_t userId)
 {
     if (PasteboardServiceInterfaceMock::GetMock() != nullptr) {
         PasteboardServiceInterfaceMock::mockFlag_ = true;
-        return PasteboardServiceInterfaceMock::GetMock()->ClearByUser(userId);
+        return PasteboardServiceInterfaceMock::GetMock()->Clear(userId);
     }
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "ClearByUser real implementation, userId=%{public}d", userId);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "Clear real implementation, userId=%{public}d", userId);
     return ERR_OK;
 }
 
