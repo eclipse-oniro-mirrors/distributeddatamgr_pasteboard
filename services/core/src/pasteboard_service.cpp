@@ -323,6 +323,9 @@ void PasteboardService::OnAddSystemAbility(int32_t systemAbilityId, const std::s
         case DISTRIBUTED_DEVICE_PROFILE_SA_ID:
             OnAddDeviceProfile();
             break;
+        case SecurityGuardAdapter::SECURITY_GUARD_SA_ID:
+            OnAddSecurityGuard();
+            break;
         default:
             break;
     }
@@ -337,9 +340,37 @@ void PasteboardService::OnRemoveSystemAbility(int32_t systemAbilityId, const std
         case DISTRIBUTED_DEVICE_PROFILE_SA_ID:
             OnRemoveDeviceProfile();
             break;
+        case SecurityGuardAdapter::SECURITY_GUARD_SA_ID:
+            OnRemoveSecurityGuard();
+            break;
         default:
             break;
     }
+}
+
+void PasteboardService::OnAddSecurityGuard()
+{
+    SecurityGuardAdapter::GetInstance().OnProviderCreate();
+}
+
+void PasteboardService::OnRemoveSecurityGuard()
+{
+    SecurityGuardAdapter::GetInstance().OnProviderDestroy();
+}
+
+bool PasteboardService::IsBlockedBySecurityGuard(PasteData &data, uint32_t tokenId)
+{
+    if (data.IsRemote()) {
+        return false;
+    }
+    auto strategy = SecurityGuardAdapter::GetInstance().QueryStrategy(data.GetTokenId(), tokenId);
+    if (strategy == SecurityGuardAdapter::StrategyResult::DENY) {
+        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "blocked by strategy");
+        auto errCode = static_cast<int32_t>(PasteboardError::PERMISSION_VERIFICATION_ERROR);
+        HiViewAdapter::ReportUseBehaviour(data, HiViewAdapter::PASTE_STATE, errCode);
+        return true;
+    }
+    return false;
 }
 
 PasteboardService::DelayGetterDeathRecipient::DelayGetterDeathRecipient(int32_t userId, PasteboardService &service)
@@ -897,10 +928,9 @@ int32_t PasteboardService::GetRecordValueByType(int64_t &rawDataSize,
 int32_t PasteboardService::GetRecordValueByType(uint32_t dataId, uint32_t recordId, PasteDataEntry &value)
 {
     auto tokenId = IPCSkeleton::GetCallingTokenID();
-    auto callPid = IPCSkeleton::GetCallingPid();
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE((dataId == delayDataId_ && tokenId == delayTokenId_) ||
         VerifyPermission(tokenId), static_cast<int32_t>(PasteboardError::PERMISSION_VERIFICATION_ERROR),
-        PASTEBOARD_MODULE_SERVICE, "check permission failed, calling pid is %{public}d", callPid);
+        PASTEBOARD_MODULE_SERVICE, "check permission failed, calling pid is %{public}d", IPCSkeleton::GetCallingPid());
 
     auto appInfo = GetAppInfo(tokenId);
     auto [hasData, data] = clips_.Find(appInfo.userId);
@@ -912,6 +942,10 @@ int32_t PasteboardService::GetRecordValueByType(uint32_t dataId, uint32_t record
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(dataId == data->GetDataId(),
         static_cast<int32_t>(PasteboardError::INVALID_DATA_ID), PASTEBOARD_MODULE_SERVICE,
         "dataId=%{public}u mismatch, local=%{public}u", dataId, data->GetDataId());
+
+    if (IsBlockedBySecurityGuard(*data, tokenId)) {
+        return static_cast<int32_t>(PasteboardError::PERMISSION_VERIFICATION_ERROR);
+    }
 
     auto record = data->GetRecordById(recordId);
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(record != nullptr, static_cast<int32_t>(PasteboardError::INVALID_RECORD_ID),
@@ -1378,6 +1412,10 @@ int32_t PasteboardService::GetPasteDataInner(int &fd, int64_t &size, std::vector
         PASTE_RADAR_REPORT(DFX_GET_PASTEBOARD, DFX_GET_DATA_INFO, radarReportInfo);
         return ret;
     }
+    if (IsBlockedBySecurityGuard(data, tokenId)) {
+        return static_cast<int32_t>(PasteboardError::PERMISSION_VERIFICATION_ERROR);
+    }
+
     delayDataId_ = data.GetDataId();
     delayTokenId_ = tokenId;
 
@@ -4023,6 +4061,10 @@ bool PasteboardService::IsNeedLink(PasteData &data)
 
 bool PasteboardService::SetDistributedData(int32_t user, PasteData &data)
 {
+    if (SecurityGuardAdapter::GetInstance().ShouldRestrictDistributedData()) {
+        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "authClientInfo present, data stays on device.");
+        return false;
+    }
     auto networkId = DMAdapter::GetInstance().GetLocalNetworkId();
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(!networkId.empty(), false, PASTEBOARD_MODULE_SERVICE, "networkId is empty.");
     Event event;
