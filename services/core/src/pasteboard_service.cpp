@@ -1457,7 +1457,7 @@ int32_t PasteboardService::GetPasteDataInner(const AppInfo &appInfo, int &fd, in
         PASTE_RADAR_REPORT(DFX_GET_PASTEBOARD, DFX_GET_DATA_INFO, radarReportInfo);
         return ret;
     }
-    if (IsBlockedBySecurityGuard(data, tokenId)) {
+    if (IsBlockedBySecurityGuard(data, appInfo.tokenId)) {
         return static_cast<int32_t>(PasteboardError::PERMISSION_VERIFICATION_ERROR);
     }
 
