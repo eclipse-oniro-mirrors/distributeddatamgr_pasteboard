@@ -389,6 +389,10 @@ private:
     void GenerateDistributedUri(PasteData &data);
     bool IsBundleOwnUriPermission(const std::string &bundleName, Uri &uri);
     std::string GetAppLabel(uint32_t tokenId);
+    void ShowHintToast(bool isValid, uint32_t tokenId, PasteData &pasteData);
+    bool ShouldSkipToast(uint32_t tokenId, PasteData &pasteData);
+    bool CheckAndRecordHint(uint32_t tokenId, int32_t userId);
+    static bool IsDefaultIME(const AppInfo &appInfo);
     sptr<OHOS::AppExecFwk::IBundleMgr> GetAppBundleManager();
     void EstablishP2PLink(const std::string &networkId, const std::string &pasteId);
     bool IsContainUri(const Event &evt);
@@ -565,6 +569,8 @@ private:
     std::mutex eventMutex_;
     mutable std::mutex currentEventMutex_;
     std::mutex entityRecognizeMutex_;
+    std::mutex hintMutex_;
+    std::map<int32_t, std::vector<uint32_t>> hints_;
     SecurityLevel securityLevel_;
     class PasteboardDeathRecipient final : public IRemoteObject::DeathRecipient {
     public:

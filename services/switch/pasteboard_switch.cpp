@@ -97,6 +97,25 @@ bool PastedSwitch::GetDeviceCollabSwitch(int32_t userId)
     return value == SUPPORT_STATUS;
 }
 
+bool PastedSwitch::GetAccessToastSwitch(int32_t userId)
+{
+    std::string value;
+    DataShareDelegate::GetInstance().SetUserId(userId);
+    int32_t ret = DataShareDelegate::GetInstance().GetValue(ACCESS_TOAST_SWITCH, value);
+    if (ret != static_cast<int32_t>(PasteboardError::E_OK)) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE,
+            "get access toast switch failed, ret=%{public}d, userId=%{public}d", ret, userId);
+        return false;
+    }
+    if (value.empty()) {
+        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "empty toast switch, default off, userId=%{public}d", userId);
+        return false;
+    }
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "access toast switch status=%{public}s, userId=%{public}d",
+        value.c_str(), userId);
+    return value == SUPPORT_STATUS;
+}
+
 void PastedSwitch::DeInit()
 {
     DataShareDelegate::GetInstance().UnregisterObserver(DISTRIBUTED_PASTEBOARD_SWITCH, switchObserver_);

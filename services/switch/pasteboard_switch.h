@@ -38,6 +38,7 @@ public:
     void DeInit();
     void SetSwitch(int32_t userId);
     bool GetDeviceCollabSwitch(int32_t userId);
+    bool GetAccessToastSwitch(int32_t userId);
     int32_t userId_;
 private:
     void ReportUeSwitchEvent();

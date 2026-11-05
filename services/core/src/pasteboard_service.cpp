@@ -542,6 +542,11 @@ int32_t PasteboardService::ClearInner(int32_t userId, const AppInfo &appInfo)
         clips_.Erase(userId);
         delayDataId_ = 0;
         delayTokenId_ = 0;
+        std::lock_guard<std::mutex> lck(hintMutex_);
+        auto hintItem = hints_.find(userId);
+        if (hintItem != hints_.end()) {
+            hints_.erase(hintItem);
+        }
     }
     CleanDistributedData(userId);
     if (hasData) {
@@ -1370,6 +1375,10 @@ int32_t PasteboardService::GetPasteDataInner(int &fd, int64_t &size, std::vector
     data.SetBundleInfo(appInfo.bundleName, appInfo.appIndex);
     SetUeEvent(appInfo, data, isPeerOnline, ueReportInfo, peerNetId);
     SetRadarEvent(appInfo, data, isPeerOnline, radarReportInfo, peerNetId);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE,
+        "[TOAST_DBG] GetPasteDataInner call ShowHintToast, ret=%{public}d, tokenId=%{public}u, tokenType=%{public}d",
+        ret, tokenId, appInfo.tokenType);
+    ShowHintToast(ret == static_cast<int32_t>(PasteboardError::E_OK), tokenId, data);
     if (ret != static_cast<int32_t>(PasteboardError::E_OK)) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE,
             "data is invalid, ret is %{public}d, callPid is %{public}d, tokenId is %{public}d", ret, callPid, tokenId);
@@ -2333,6 +2342,13 @@ int32_t PasteboardService::SaveData(PasteData &pasteData, int64_t dataSize,
     setPasteDataUId_.store(IPCSkeleton::GetCallingUid());
     RemovePasteData(appInfo);
     clips_.InsertOrAssign(appInfo.userId, std::make_shared<PasteData>(pasteData));
+    {
+        std::lock_guard<std::mutex> lck(hintMutex_);
+        auto hintItem = hints_.find(appInfo.userId);
+        if (hintItem != hints_.end()) {
+            hints_.erase(hintItem);
+        }
+    }
     IncreaseChangeCount(appInfo.userId);
     RadarReportInfo radarReportInfo;
     radarReportInfo.stageRes = static_cast<int32_t>(pasteData.IsDelayData());
@@ -4819,6 +4835,128 @@ std::string PasteboardService::GetAppLabel(uint32_t tokenId)
     auto &resource = appInfo.labelResource;
     auto label = iBundleMgr->GetStringById(resource.bundleName, resource.moduleName, resource.id, info.userId);
     return label.empty() ? PasteboardDialog::DEFAULT_LABEL : label;
+}
+
+bool PasteboardService::IsDefaultIME(const AppInfo &appInfo)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE,
+        "[TOAST_DBG] IsDefaultIME begin, tokenType=%{public}d, bundleName=%{public}s, userId=%{public}d",
+        appInfo.tokenType, appInfo.bundleName.c_str(), appInfo.userId);
+    if (appInfo.tokenType != ATokenTypeEnum::TOKEN_HAP) {
+        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE,
+            "[TOAST_DBG] IsDefaultIME: not HAP, return true (skip toast)");
+        return true;
+    }
+    auto imc = InputMethodController::GetInstance();
+    if (imc == nullptr) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE,
+            "[TOAST_DBG] IsDefaultIME: InputMethodController is nullptr, return false");
+        return false;
+    }
+    std::shared_ptr<Property> property;
+    int32_t ret = imc->GetDefaultInputMethod(property, appInfo.userId);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE,
+        "[TOAST_DBG] IsDefaultIME: GetDefaultInputMethod ret=%{public}d, property=%{public}d",
+        ret, property != nullptr);
+    if (ret != ErrorCode::NO_ERROR || property == nullptr) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE,
+            "[TOAST_DBG] IsDefaultIME: default input method is null, return false");
+        return false;
+    }
+    bool isIME = property->name == appInfo.bundleName;
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE,
+        "[TOAST_DBG] IsDefaultIME: imeName=%{public}s, bundleName=%{public}s, isIME=%{public}d",
+        property->name.c_str(), appInfo.bundleName.c_str(), isIME);
+    return isIME;
+}
+
+void PasteboardService::ShowHintToast(bool isValid, uint32_t tokenId, PasteData &pasteData)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE,
+        "[TOAST_DBG] ShowHintToast begin, isValid=%{public}d, tokenId=%{public}u", isValid, tokenId);
+    if (!isValid) {
+        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "[TOAST_DBG] skip, data invalid");
+        return;
+    }
+    if (ShouldSkipToast(tokenId, pasteData)) {
+        return;
+    }
+    auto userId = GetCurrentAccountId();
+    if (userId == ERROR_USERID) {
+        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "[TOAST_DBG] skip, userId invalid");
+        return;
+    }
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "[TOAST_DBG] ShowHintToast: userId=%{public}d", userId);
+    if (!switch_.GetAccessToastSwitch(userId)) {
+        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "[TOAST_DBG] skip, access toast switch off");
+        return;
+    }
+    if (CheckAndRecordHint(tokenId, userId)) {
+        return;
+    }
+    auto appName = GetAppLabel(tokenId);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE,
+        "[TOAST_DBG] GetAppLabel returned appName=%{public}s", appName.c_str());
+    PasteboardDialog::ToastMessageInfo message;
+    message.appName = appName;
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE,
+        "[TOAST_DBG] starting thread to call ShowToast, appName=%{public}s",
+        message.appName.c_str());
+    std::thread thread([message]() {
+        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE,
+            "[TOAST_DBG] in thread, calling PasteboardDialog::ShowToast");
+        PasteboardDialog::ShowToast(message);
+        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE,
+            "[TOAST_DBG] in thread, PasteboardDialog::ShowToast returned");
+    });
+    thread.detach();
+}
+
+bool PasteboardService::ShouldSkipToast(uint32_t tokenId, PasteData &pasteData)
+{
+    if (pasteData.IsDraggedData()) {
+        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "[TOAST_DBG] skip, dragged data");
+        return true;
+    }
+    auto dataTokenId = pasteData.GetTokenId();
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE,
+        "[TOAST_DBG] dataTokenId=%{public}u, tokenId=%{public}u, isRemote=%{public}d",
+        dataTokenId, tokenId, pasteData.IsRemote());
+    auto callerAppInfo = GetAppInfo(tokenId);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE,
+        "[TOAST_DBG] caller tokenType=%{public}d, bundleName=%{public}s, userId=%{public}d",
+        callerAppInfo.tokenType, callerAppInfo.bundleName.c_str(), callerAppInfo.userId);
+    bool isIME = IsDefaultIME(callerAppInfo);
+    bool isSelfRead = (dataTokenId == tokenId);
+    bool isRemote = pasteData.IsRemote();
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE,
+        "[TOAST_DBG] isIME=%{public}d, isSelfRead=%{public}d, isRemote=%{public}d",
+        isIME, isSelfRead, isRemote);
+    if (isIME || isSelfRead || isRemote) {
+        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE,
+            "[TOAST_DBG] skip, isIME=%{public}d or isSelfRead=%{public}d or isRemote=%{public}d",
+            isIME, isSelfRead, isRemote);
+        return true;
+    }
+    return false;
+}
+
+bool PasteboardService::CheckAndRecordHint(uint32_t tokenId, int32_t userId)
+{
+    std::lock_guard<std::mutex> lck(hintMutex_);
+    auto hintItem = hints_.find(userId);
+    if (hintItem != hints_.end()) {
+        if (std::find(hintItem->second.begin(), hintItem->second.end(), tokenId)
+            != hintItem->second.end()) {
+            PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE,
+                "[TOAST_DBG] skip, already hinted for tokenId=%{public}u", tokenId);
+            return true;
+        }
+    }
+    hints_[userId].emplace_back(tokenId);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE,
+        "[TOAST_DBG] hints_ added tokenId=%{public}u for userId=%{public}d", tokenId, userId);
+    return false;
 }
 
 sptr<AppExecFwk::IBundleMgr> PasteboardService::GetAppBundleManager()
