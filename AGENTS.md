@@ -34,6 +34,14 @@ Key areas:
   the IPC surface; always consult the IDL files for the authoritative list of
   client-service methods and their `[ipccode N]` transaction codes.
 - `adapter/`: integration with device profile, security level, and data share.
+- `services/account/`: NOT the real account/user state management for pasteboard. It is a thin `AccountManager` that only exposes `GetCurrentAccount()` (returning a string). Real userId/account handling lives in `services/core/src/pasteboard_service.cpp::GetAppInfo` and `services/core/src/pasteboard_user_context.cpp`; do not look here for user-switch, main-display-user, or token-to-user mapping logic.
+- `services/switch/`: pasteboard feature on/off switches (`pasteboard_switch`).
+- `services/load/`: service config and dynamic loader for optional SOs (`loader`, `config`).
+- `services/dialog/`: the pasteboard progress/toast dialog HAP — NOT a permission-confirm or share-option dialog. It builds the `pasteboard_dialog` HAP whose only UI abilities are `PasteboardProgressAbility` (progress bar, used for cross-device paste progress) and `ToastExtensionAbility` (toast). The HAP holds `ohos.permission.MANAGE_SECURE_SETTINGS`, `MANAGE_SETTINGS`, and `GET_BUNDLE_INFO`, but it does not host any permission-confirm or share-option UI.
+- `services/dfx/`: DFX — fault/behaviour/statistic reporters, hiview adapter, dump helper, and trace (`dfx_code_constant.h`, `pasteboard_event_dfx`, `reporter`).
+- `framework/distributed/`: the distributed `ClipPlugin` implementation — NOT just generic sync adapters. It builds the `distributed_clip` shared library (gated by `pasteboard_distributed_clip_enabled` in `pasteboard.gni`), providing `ClipFactory` (extending `ClipPlugin::Factory`) plus the plugin's internals: broadcast manager, store/observer, all-connect adapter, sync callback, and system-ability listener. The service loads it via the `clip/clip_plugin.h` factory interface. When investigating service-side `ClipPlugin` interface calls (how the service reaches distributed-clip sync, P2P link, or broadcast), read this directory first.
+- `tools/ohos-pasteboard/`: `ohos-pasteboard` shell CLI (set/get/clear/has-data/has-data-type/has-remote-data).
+- `utils/native/`: shared low-level utilities — hilog macros, the innerkits error enum (`pasteboard_error.h`), FD sanitizer guard, singleton, and time helper.
 - `etc/` and `profile/`: init and system ability profiles.
 - `test/`, `services/test/`, `framework/test/`, `adapter/test/`, and
   `utils/test`: unit, fuzz, and module tests.
@@ -81,6 +89,34 @@ then routes to handlers. For each subscribed event, the parsed fields are:
 - `COMMON_EVENT_PACKAGE_REMOVED`: `want.GetIntParam("accessTokenId", -1)` and
   userId = `want.GetIntParam("userId", ERROR_USERID)`.
 
+### High-risk / frequent-change paths
+
+- `services/core/src/pasteboard_service.cpp::IsDataValid` (around line 1112): the central data, share-option, cross-border, and expiry validation gate; called from every Set/Get path. Do not weaken it.
+- `services/core/src/pasteboard_service.cpp::VerifyPermission` (around line 1075): the entry-point permission gate enforcing `ohos.permission.READ_PASTEBOARD` and `ohos.permission.SECURE_PASTE`; `AccessTokenKit::GetTokenTypeFlag` lets `TOKEN_NATIVE`/`TOKEN_SHELL` callers bypass.
+- `services/core/src/pasteboard_service.cpp::CheckAndGrantRemoteUri` (around line 1532): branches on `data.IsRemote()` to grant remote URI permission — this is the trust boundary attacked by the `isRemote` TLV-forgery incident (see `docs/20261109-fix-isremote-forgery`).
+- `services/core/src/pasteboard_service.cpp::HandleScreenLocked` (around line 5099) and `screenStatusMap_`: lock-screen state consumed by `IsDataValid`'s cross-border check.
+- `services/core/src/security_guard_adapter.cpp`: security-guard risk reporting adapter.
+- `framework/innerkits/src/paste_data.cpp::PasteDataProperty::DecodeTLV` (around line 813): client-side TLV decode of `props_.isRemote` and `originInfo` — these values are untrusted; the service must force `isRemote=false` at the Set trust boundary.
+- `services/core/include/pasteboard_serv_ipc_interface_code.h`: a hand-maintained header whose `PasteboardServiceInterfaceCode` enum (sequential 0-25) is a DEAD/legacy artifact — it is no longer referenced anywhere and is NOT a source of main service IPC transaction codes. The authoritative main `IPasteboardService` transaction codes live ONLY in `services/IPasteboardService.idl` via `[ipccode N]` (groups: 1-9 observer/lifecycle, 100-105 set, 200-204 get/paste, 300-309 query, 400-404 share option). The header is still included by `services/zidl/` because it defines the AUXILIARY interface codes that are still in use — `PasteboardObserverInterfaceCode`, `PasteboardDisposableInterfaceCode`, `EntityObserverInterfaceCode`, `PasteboardEntryGetterInterfaceCode`. Do not add new main service codes to this header; add them to the IDL instead. Changes to this header still require the `CODEOWNERS` reviewer (`@leonchan5`) because of the auxiliary codes.
+
+## Knowledge Routing
+
+Before editing, state in your work notes: (1) the task category matching a "Where to look" bullet above; (2) any `docs/` incident notes or knowledge docs you read; (3) the high-risk constraints (from Architecture Invariants / Do Not / Ask Before) that apply — or "none touched" if none.
+
+Task/keyword -> read first:
+
+| Keyword / task | Read first |
+| --- | --- |
+| `isRemote`, remote paste, URI grant, TLV forgery, `GrantUriPermissionPrivileged` | `docs/20261109-fix-isremote-forgery/{analysis-report.md,design.md,plan.md}` — the fix forces `isRemote=false` at the Set trust boundary and fail-closes `CheckAndGrantRemoteUri`. |
+| PasteId, paste seq, IDL IPC parameter, `GetPasteId`, `IPCSkeleton::GetCallingPid` | `docs/20260709-modify-paste-id/{1.分析文档.md,2.设计文档.md,3.实现文档.md}` — changes the GetPasteData IDL param from String PasteId to unsigned int PasteSeqId; the service reconstructs the full PasteId from `GetCallingPid()` + seq. |
+| TLV, serialization, `DecodeTLV`/`EncodeTLV`, paste data format | `framework/tlv/` and `framework/innerkits/src/paste_data.cpp`; format must stay cross-version compatible (see Architecture Invariants). |
+| Permission, `VerifyPermission`, `READ_PASTEBOARD`, `SECURE_PASTE`, token type | `services/core/src/pasteboard_service.cpp` around `VerifyPermission` and `framework/framework/include/permission/permission_utils.h`. |
+| Error codes | NDK: `interfaces/ndk/include/oh_pasteboard_err_code.h`; innerkits/C++ enum: `utils/native/include/pasteboard_error.h`; NDK<->innerkits conversion: `interfaces/ndk/include/oh_pasteboard_common.h` and `interfaces/kits/napi/include/systempasteboard_napi.h`. Do not invent codes outside these files. |
+| HiSysEvent / DFX events | `pasteboardEvent.yaml` and `services/dfx/`. |
+| userId, account, user switch, main display user | `services/core/src/pasteboard_service.cpp::GetAppInfo` + `services/core/src/pasteboard_user_context.cpp` (see "Where to look"). |
+| Distributed clip, `ClipPlugin`, `ClipFactory`, remote device, broadcast, store/observer | `framework/distributed/` — the distributed `ClipPlugin` implementation; read first for service-side plugin interface calls. |
+| Capability overview | `README_ZH.md` / `README.md`. |
+
 ## Constraints and Boundaries
 
 ### Architecture Invariants
@@ -122,6 +158,23 @@ then routes to handlers. For each subscribed event, the parsed fields are:
   `pasteboard.gni`.
 - Running commands that may alter connected devices, mounted partitions, or user
   data.
+- Changing the SA profile (`profile/3701.json`) or init config (`etc/init`), which can break service boot.
+- Running `ohos-pasteboard set`/`clear` CLI subcommands, which mutate the live device clipboard.
+
+### Permission & error-code references
+
+- Permissions: `VerifyPermission` (`services/core/src/pasteboard_service.cpp`, around line 1075) enforces `ohos.permission.READ_PASTEBOARD` and `ohos.permission.SECURE_PASTE`; `TOKEN_NATIVE`/`TOKEN_SHELL` callers bypass via `AccessTokenKit::GetTokenTypeFlag`. `ohos.permission.MANAGE_PASTEBOARD_APP_SHARE_OPTION` is enforced separately in `SetAppShareOptions` (around line 3512) and `RemoveAppShareOptions` (around line 3537), not in `VerifyPermission`. The dialog HAP additionally holds `ohos.permission.MANAGE_SECURE_SETTINGS`, `MANAGE_SETTINGS`, and `GET_BUNDLE_INFO`.
+- Error-code sources of truth: NDK `interfaces/ndk/include/oh_pasteboard_err_code.h` (e.g. `ERR_PERMISSION_ERROR=201`, `ERR_INVALID_PARAMETER=401`, `ERR_INNER_ERROR=12900000`); innerkits enum `utils/native/include/pasteboard_error.h` (`PasteboardError`). New error codes must be added in these files plus the conversion maps; do not surface raw inner codes as NDK codes.
+- Security-sensitive component deps (see `bundle.json`) that need escalation when their flow changes: `dataclassification`, `dlp_permission_service`, `security_guard`.
+
+### Known pitfalls / agent failure modes
+
+- Client TLV is untrusted: `props_.isRemote` and `originInfo` arrive from the client via `DecodeTLV`; never branch on client-supplied `isRemote` for a privilege decision — the service must force it false at the Set boundary (see `docs/20261109-fix-isremote-forgery`).
+- Do not bypass `IsDataValid`, `VerifyPermission`, or lock-screen/account/owner checks to make a test pass; these are the trust boundary.
+- Do not hand-edit generated Taihe/CJ/NAPI output (emitted under `out/[product]/...`); edit the IDL/`.taihe` source and the hand-maintained `*.impl.cpp` binding, then regenerate.
+- PasteId is reconstructed by the service from `GetCallingPid()` + seq (per `docs/20260709-modify-paste-id`); do not let the client dictate the full PasteId string.
+- `services/zidl/` is not the complete IPC surface — consult `services/*.idl` for the authoritative transaction codes (`[ipccode N]`).
+- Main service IPC transaction codes do NOT live in two places: they are defined ONLY in `services/IPasteboardService.idl` `[ipccode N]` (consumed by the generated stubs/proxies under `out/[product]/gen/...`). The `PasteboardServiceInterfaceCode` enum in `services/core/include/pasteboard_serv_ipc_interface_code.h` is a dead/legacy artifact with zero references — do not edit it for main service code changes and do not assume a second source of truth exists. The header still carries the auxiliary interface codes (observer/disposable/entity/entry-getter) used by the hand-maintained `services/zidl/` stubs/proxies; changes to those auxiliary codes still need the `CODEOWNERS` reviewer (`@leonchan5`).
 
 ## Build, Test, and Development Commands
 
@@ -230,6 +283,12 @@ values match expectations, while covering as many code branches as possible
 - Test-only change -> build the changed test target and at least one nearby
   related test target.
 
+### Lint, API diff, and test execution
+
+- There is no repo-local cpplint/cpucodecheck target; C/C++ style is enforced externally, and per-target sanitizers (`integer_overflow`, `ubsan`, `boundary_sanitize`, `cfi`, `cfi_cross_dso`, `branch_protector_ret="pac_ret"`) are enabled in `interfaces/cj/BUILD.gn` and other BUILD.gn files — do not strip sanitize or branch-protection flags.
+- For public API changes, diff `interfaces/ndk/pasteboard_interface_map`, `interfaces/kits/pasteboard_js_map`, and `framework/innerkits/pasteboard_kit_map` before and after the change to catch accidental signature/export drift.
+- Tests are GTest `ohos_unittest`. Build them with the targets above and, when a device is available, run on device via the standard OpenHarmony test runner (`hdc install` the test HAP + `aa test`); if no device is available, state that execution is unverified and report build-only results.
+
 ### Done Definition
 
 A task is done only when:
@@ -261,5 +320,9 @@ than 2000 lines of new code; split the work into multiple scoped commits or
 PRs if it would exceed that limit. PRs should include linked issue,
 purpose, change summary, binary-source status, and TDD/XTS/Pretest results.
 Complete log and secure-coding checklists when relevant. Changes to
-`services/IPasteboardService.idl` require the
-reviewer named in `CODEOWNERS`.
+`services/core/include/pasteboard_serv_ipc_interface_code.h` require the
+reviewer named in `CODEOWNERS` (`@leonchan5`) — the header still defines the
+auxiliary interface codes (observer/disposable/entity/entry-getter) used by
+`services/zidl/`. New main `IPasteboardService` transaction codes go in
+`services/IPasteboardService.idl` `[ipccode N]`, NOT in this header (whose
+`PasteboardServiceInterfaceCode` enum is dead/legacy).
