@@ -115,8 +115,8 @@ void DelayManager::GetLocalEntryValue(const std::vector<DelayEntryInfo> &delayEn
             continue;
         }
 
+        std::unique_lock<std::shared_mutex> write(PasteboardService::pasteDataMutex_);
         if (data.rawDataSize_ + tmpEntry.rawDataSize_ < MessageParcelWarp::GetRawDataSize()) {
-            std::unique_lock<std::shared_mutex> write(PasteboardService::pasteDataMutex_);
             entry->SetValue(tmpEntry.GetValue());
             entry->rawDataSize_ = tmpEntry.rawDataSize_;
             data.rawDataSize_ += tmpEntry.rawDataSize_;
