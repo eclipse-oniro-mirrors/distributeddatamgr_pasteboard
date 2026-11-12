@@ -186,7 +186,7 @@ HWTEST_F(PasteboardClientTest, IsRemoteData002, TestSize.Level0)
     pasteData->SetRemote(true);
     PasteboardClient::GetInstance()->SetPasteData(*pasteData);
     bool ret = PasteboardClient::GetInstance()->IsRemoteData();
-    ASSERT_TRUE(ret);
+    ASSERT_FALSE(ret);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "IsRemoteData002 end");
 }
 

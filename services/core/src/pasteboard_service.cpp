@@ -2987,6 +2987,10 @@ int32_t PasteboardService::SetPasteDataInner(const AppInfo &appInfo, int fd, int
 
     auto tokenId = GetDataTokenId(pasteData);
     pasteData.SetTokenId(tokenId);
+    pasteData.SetRemote(false);
+    for (auto &record : pasteData.AllRecords()) {
+        record->SetGrantUriPermission(false);
+    }
 
     AppInfo effectiveAppInfo = appInfo;
     if (static_cast<uint32_t>(tokenId) != appInfo.tokenId) {
