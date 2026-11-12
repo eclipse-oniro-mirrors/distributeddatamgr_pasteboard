@@ -222,8 +222,12 @@ export struct Index {
       console.error(TAG + 'getPromptAction or closeDialog is null.');
       return;
     }
-    promptAction.closeCustomDialog(this.contentNode);
-    this.contentNode.dispose();
+    try {
+      promptAction.closeCustomDialog(this.contentNode);
+      this.contentNode.dispose();
+    } catch (error) {
+      console.error(TAG + `CloseCustomDialog args error code is ${error.code}, message is ${error.message}`);
+    }
     this.win.destroyWindow();
     this.globalContext.dialogSet.delete(this.want.parameters?.['progressKey']);
     console.info(TAG + `dialogSet size is ${this.globalContext.dialogSet.size}`);
