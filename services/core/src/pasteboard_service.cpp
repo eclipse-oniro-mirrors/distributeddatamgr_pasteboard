@@ -2722,7 +2722,11 @@ std::pair<int32_t, ClipPlugin::GlobalEvent> PasteboardService::GetValidDistribut
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(plugin->IsWiFiEnable(),
         std::make_pair(static_cast<int32_t>(PasteboardError::GET_LOCAL_DATA), evt), PASTEBOARD_MODULE_SERVICE,
         "wifi is disabled");
+#ifdef PB_COCKPIT_PLATFORM_ENABLE
     auto events = plugin->GetTopEvents(1, user);
+#else
+    auto events = plugin->GetTopEvents(1, ERROR_USERID);
+#endif
     if (events.empty()) {
         PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "plugin event is empty");
         return std::make_pair(static_cast<int32_t>(PasteboardError::PLUGIN_EVENT_EMPTY), evt);
