@@ -79,5 +79,14 @@ if (pasteboard_distributed_clip_enabled) {
       "-fvisibility=hidden",
       "-fno-access-control",
     ]
+    branch_protector_ret = "pac_ret"
+    sanitize = {
+      integer_overflow = true
+      ubsan = true
+      boundary_sanitize = true
+      cfi = true
+      cfi_cross_dso = true
+      debug = false
+    }
   }
 }
