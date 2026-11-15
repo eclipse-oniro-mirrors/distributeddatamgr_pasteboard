@@ -26,12 +26,6 @@ using namespace OHOS::Security::AccessToken;
 
 namespace OHOS {
 namespace MiscServices {
-namespace {
-bool IsValidUserId(int32_t userId)
-{
-    return userId > 0;
-}
-} // namespace
 
 UserContext UserContextResolver::ResolveCallingUser() const
 {

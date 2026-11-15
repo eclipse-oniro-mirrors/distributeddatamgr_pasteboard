@@ -64,6 +64,7 @@ int32_t PasteboardDialog::ShowToast(const ToastMessageInfo &message)
     want.SetElementName(PASTEBOARD_DIALOG_APP, PASTEBOARD_TOAST_ABILITY);
     want.SetAction(PASTEBOARD_TOAST_ABILITY);
     want.SetParam("appName", message.appName);
+    want.SetParam("displayId", message.displayId);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE,
         "[TOAST_DBG] ShowToast: Want built, app=%{public}s, ability=%{public}s",
         PASTEBOARD_DIALOG_APP, PASTEBOARD_TOAST_ABILITY);

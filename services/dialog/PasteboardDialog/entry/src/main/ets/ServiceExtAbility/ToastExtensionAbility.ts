@@ -22,16 +22,26 @@ const TAG = 'ToastExtensionAbility';
 const DBG = '[TOAST_DBG]';
 const BG_COLOR = '#00000000';
 const SHOW_TOAST_TIME = 3000;
-
-interface IRect {
-  left: number;
-  top: number;
-  width: number;
-  height: number;
-}
+const MAX_APP_NAME_WIDTH = 20;
+const TOAST_BOTTOM_PADDING = 80;
 
 interface ToastStorageItem {
   toastText: string;
+  bottomPadding: number;
+}
+
+function truncateAppName(name: string): string {
+  let width = 0;
+  let result = '';
+  for (let i = 0; i < name.length; i++) {
+    const charWidth = name.charCodeAt(i) > 127 ? 2 : 1;
+    if (width + charWidth > MAX_APP_NAME_WIDTH) {
+      return result + '…';
+    }
+    result += name[i];
+    width += charWidth;
+  }
+  return name;
 }
 
 export default class ToastExtensionAbility extends ServiceExtensionAbility {
@@ -42,71 +52,91 @@ export default class ToastExtensionAbility extends ServiceExtensionAbility {
   onRequest(want: Want, startId: number): void {
     hilog.info(0, TAG, `${DBG} onRequest startId=${startId}`);
     let appName: string = want.parameters?.appName as string;
-    hilog.info(0, TAG, `${DBG} onRequest appName from want = ${appName}`);
     if (!appName) {
-      hilog.warn(0, TAG, `${DBG} onRequest appName is null, fallback to unknown`);
       appName = 'unknown';
     }
-    const toastText: string = this.context.resourceManager.getStringByNameSync('pasteboard_access_tip', appName);
+    appName = truncateAppName(appName);
+    hilog.info(0, TAG, `${DBG} onRequest appName after truncate = ${appName}`);
+    const toastText: string =
+      this.context.resourceManager.getStringByNameSync('pasteboard_access_tip', appName);
     hilog.info(0, TAG, `${DBG} onRequest toastText = ${toastText}`);
-    const displayClass = display.getDefaultDisplaySync();
-    hilog.info(0, TAG, `${DBG} display w=${displayClass.width} h=${displayClass.height}`);
-    const storageItem: ToastStorageItem = {
-      toastText: toastText
-    };
-    const rect: IRect = {
-      left: 0,
-      top: 0,
-      width: displayClass.width,
-      height: displayClass.height
-    };
-    this.createToastWindow(`PasteboardToast${startId}`, rect, storageItem);
+    this.createToastWindow(`PasteboardToast${startId}`, {
+      toastText: toastText,
+      bottomPadding: TOAST_BOTTOM_PADDING
+    });
   }
 
-  private async createToastWindow(name: string, rect: IRect, storageItem: ToastStorageItem): Promise<void> {
+  private async updateBottomPadding(
+    win: window.Window, d: display.Display, storageItem: ToastStorageItem
+  ): Promise<void> {
+    try {
+      const avoidArea = await win.getWindowAvoidArea(
+        window.AvoidAreaType.TYPE_NAVIGATION_INDICATOR);
+      const navBarHeightVp = avoidArea.bottomRect.height / d.densityPixels;
+      storageItem.bottomPadding = TOAST_BOTTOM_PADDING + navBarHeightVp;
+      hilog.info(0, TAG, `${DBG} navBarHeight=${avoidArea.bottomRect.height}`);
+    } catch (e) {
+      hilog.warn(0, TAG, `${DBG} getWindowAvoidArea failed`);
+    }
+  }
+
+  private async setupWindow(
+    win: window.Window, d: display.Display, storage: LocalStorage
+  ): Promise<void> {
+    await win.moveWindowTo(0, 0);
+    await win.resize(d.width, d.height);
+    await win.loadContent('pages/toastIndex', storage);
+    await win.setWindowBackgroundColor(BG_COLOR);
+    await win.setWindowTouchable(false);
+    await win.showWindow();
+    hilog.info(0, TAG, `${DBG} showWindow success`);
+  }
+
+  private async createToastWindow(
+    name: string, storageItem: ToastStorageItem
+  ): Promise<void> {
     hilog.info(0, TAG, `${DBG} createToastWindow begin, name=${name}`);
     let win: window.Window | null = null;
-    const displayChangeCallback = (id: number) => {
-      const d = display.getDefaultDisplaySync();
-      hilog.info(0, TAG, `${DBG} display changed, w=${d.width} h=${d.height}`);
+    let isDestroyed = false;
+    const destroyToast = async () => {
+      if (isDestroyed) {
+        return;
+      }
+      isDestroyed = true;
+      display.off('change', displayChangeCallback);
       if (win) {
-        win.resize(d.width, d.height);
+        await win.destroyWindow();
+      }
+      this.context.terminateSelf();
+    };
+    const initialW = display.getDefaultDisplaySync().width;
+    const initialH = display.getDefaultDisplaySync().height;
+    const displayChangeCallback = (id: number) => {
+      const curr = display.getDefaultDisplaySync();
+      if (curr.width !== initialW || curr.height !== initialH) {
+        hilog.info(0, TAG, `${DBG} display rotated, destroying toast`);
+        destroyToast();
       }
     };
     try {
-      hilog.info(0, TAG, `${DBG} createToastWindow: calling window.createWindow TYPE_SYSTEM_TOAST`);
+      const d = display.getDefaultDisplaySync();
+      hilog.info(0, TAG, `${DBG} display w=${d.width} h=${d.height}`);
       win = await window.createWindow({
         ctx: this.context,
         name,
         windowType: window.WindowType.TYPE_SYSTEM_TOAST
       });
-      hilog.info(0, TAG, `${DBG} createToastWindow: window.createWindow success`);
+      await this.updateBottomPadding(win, d, storageItem);
       const storage: LocalStorage = new LocalStorage(storageItem);
-      await win.moveWindowTo(rect.left, rect.top);
-      await win.resize(rect.width, rect.height);
-      await win.loadContent('pages/toastIndex', storage);
-      hilog.info(0, TAG, `${DBG} createToastWindow: loadContent success`);
-      await win.setWindowBackgroundColor(BG_COLOR);
-      await win.setWindowTouchable(false);
-      await win.showWindow();
-      hilog.info(0, TAG, `${DBG} createToastWindow: showWindow success, toast should be visible`);
+      await this.setupWindow(win, d, storage);
       display.on('change', displayChangeCallback);
-      hilog.info(0, TAG, `${DBG} createToastWindow: display change listener registered`);
-      setTimeout(async () => {
-        hilog.info(0, TAG, `${DBG} createToastWindow: setTimeout fired, destroying window`);
-        display.off('change', displayChangeCallback);
-        hilog.info(0, TAG, `${DBG} createToastWindow: display listener unregistered`);
-        if (win) {
-          await win.destroyWindow();
-          hilog.info(0, TAG, `${DBG} createToastWindow: destroyWindow done`);
-        }
-        this.context.terminateSelf();
-        hilog.info(0, TAG, `${DBG} createToastWindow: terminateSelf called`);
+      setTimeout(() => {
+        hilog.info(0, TAG, `${DBG} setTimeout fired`);
+        destroyToast();
       }, SHOW_TOAST_TIME);
     } catch (err) {
-      hilog.error(0, TAG, `${DBG} createToastWindow: FAILED err=${JSON.stringify(err)}`);
-      display.off('change', displayChangeCallback);
-      this.context.terminateSelf();
+      hilog.error(0, TAG, `${DBG} FAILED err=${JSON.stringify(err)}`);
+      destroyToast();
     }
   }
 

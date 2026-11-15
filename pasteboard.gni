@@ -39,6 +39,7 @@ declare_args() {
   pasteboard_dataclassification_enabled = true
   pasteboard_api_metrics_enabled = true
   pasteboard_cockpit_platform_enabled = false
+  pasteboard_security_guard_enabled = false
   pasteboard_distributed_clip_enabled = false
 
   if (defined(global_parts_info) &&
@@ -64,6 +65,10 @@ declare_args() {
   if (defined(global_parts_info) &&
       !defined(global_parts_info.hiviewdfx_api_metrics)) {
     pasteboard_api_metrics_enabled = false
+  }
+  if (defined(global_parts_info) &&
+      defined(global_parts_info.security_security_guard)) {
+    pasteboard_security_guard_enabled = true
   }
   if (defined(global_parts_info) &&
       defined(global_parts_info.InterConnection_CollaborationFwk) &&

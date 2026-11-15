@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -1078,6 +1078,47 @@ HWTEST_F(PasteboardServiceGetDataTest, GetRecordValueByTypeTest001, TestSize.Lev
     int32_t result = tempPasteboard->GetRecordValueByType(dataId, recordId, rawDataSize, buffer, fd);
     EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::INVALID_PARAM_ERROR));
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GetRecordValueByTypeTest001 end");
+}
+
+/**
+ * @tc.name: GetPasteDataByUserTest001
+ * @tc.desc: GetPasteData succeeds for valid userId via SA path
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceGetDataTest, GetPasteDataByUserTest001, TestSize.Level1)
+{
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+    constexpr int32_t TEST_USERID = 100;
+    tempPasteboard->clips_.InsertOrAssign(TEST_USERID, std::make_shared<PasteData>());
+    int fd = -1;
+    int64_t memSize = 0;
+    std::vector<uint8_t> buffer;
+    int32_t syncTime = 0;
+    int32_t realErrCode = 0;
+    int32_t result = tempPasteboard->GetPasteData(TEST_USERID, fd, memSize, buffer, 0, syncTime, realErrCode);
+    if (fd >= 0) {
+        close(fd);
+    }
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+ * @tc.name: GetPasteDataByUserTest002
+ * @tc.desc: GetPasteData rejects invalid userId via SA path
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceGetDataTest, GetPasteDataByUserTest002, TestSize.Level1)
+{
+    auto tempPasteboard = std::make_shared<PasteboardService>();
+    EXPECT_NE(tempPasteboard, nullptr);
+    int fd = -1;
+    int64_t memSize = 0;
+    std::vector<uint8_t> buffer;
+    int32_t syncTime = 0;
+    int32_t realErrCode = 0;
+    int32_t result = tempPasteboard->GetPasteData(0, fd, memSize, buffer, 0, syncTime, realErrCode);
+    EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR));
 }
 
 } // namespace MiscServices

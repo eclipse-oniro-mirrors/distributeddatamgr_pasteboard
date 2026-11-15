@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -409,7 +409,7 @@ HWTEST_F(PasteboardClientMockTest, GetDataReportTest001, TestSize.Level0)
     const uint32_t currentSeqId = 111;
     const std::string currentPid = "test.app";
     PasteboardClient::GetInstance()->GetDataReport(pasteData, syncTime, currentSeqId, currentPid,
-        static_cast<int32_t>(PasteboardError::E_OK));
+        static_cast<int32_t>(PasteboardError::E_OK), "PasteboardClient::GetDataReport");
     EXPECT_EQ(pasteData.deviceId_.length(), 0);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "GetDataReportTest001 end");
 }
@@ -424,7 +424,8 @@ HWTEST_F(PasteboardClientMockTest, GetDataReportTest002, TestSize.Level0)
     const uint32_t currentSeqId = 222;
     const std::string currentPid = "test.app";
     PasteboardClient::GetInstance()->GetDataReport(
-        pasteData, syncTime, currentSeqId, currentPid, static_cast<int32_t>(PasteboardError::E_OK));
+        pasteData, syncTime, currentSeqId, currentPid, static_cast<int32_t>(PasteboardError::E_OK),
+        "PasteboardClient::GetDataReport");
     EXPECT_NE(pasteData.deviceId_.length(), 0);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "GetDataReportTest002 end");
 }
@@ -438,7 +439,7 @@ HWTEST_F(PasteboardClientMockTest, GetDataReportTest003, TestSize.Level0)
     const uint32_t currentSeqId = 333;
     const std::string currentPid = "test.app";
     PasteboardClient::GetInstance()->GetDataReport(pasteData, syncTime, currentSeqId, currentPid,
-        static_cast<int32_t>(PasteboardError::TASK_PROCESSING));
+        static_cast<int32_t>(PasteboardError::TASK_PROCESSING), "PasteboardClient::GetDataReport");
     EXPECT_EQ(pasteData.deviceId_.length(), 0);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "GetDataReportTest003 end");
 }
@@ -452,7 +453,7 @@ HWTEST_F(PasteboardClientMockTest, GetDataReportTest004, TestSize.Level0)
     const uint32_t currentSeqId = 444;
     const std::string currentPid = "test.app";
     PasteboardClient::GetInstance()->GetDataReport(pasteData, syncTime, currentSeqId, currentPid,
-        static_cast<int32_t>(PasteboardError::INVALID_RETURN_VALUE_ERROR));
+        static_cast<int32_t>(PasteboardError::INVALID_RETURN_VALUE_ERROR), "PasteboardClient::GetDataReport");
     EXPECT_EQ(pasteData.deviceId_.length(), 0);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "GetDataReportTest004 end");
 }

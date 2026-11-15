@@ -24,7 +24,7 @@ namespace OHOS::MiscServices {
 class IPasteboardServiceInterface {
 public:
     virtual ~IPasteboardServiceInterface() = default;
-    virtual int32_t ClearByUser(int32_t userId) = 0;
+    virtual int32_t Clear(int32_t userId) = 0;
 };
 
 class PasteboardServiceInterfaceMock : public IPasteboardServiceInterface {
@@ -41,7 +41,7 @@ public:
         mock_ = mock;
     }
 
-    MOCK_METHOD(int32_t, ClearByUser, (int32_t userId), (override));
+    MOCK_METHOD(int32_t, Clear, (int32_t userId), (override));
     
     static inline bool mockFlag_ = false;
 

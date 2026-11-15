@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -733,7 +733,7 @@ HWTEST_F(PasteboardServiceTest, HandleDelayDataAndRecord001, TestSize.Level1)
     EXPECT_NE(entryGetter, nullptr);
 
     AppInfo appInfo;
-    tempPasteboard->HandleDelayDataAndRecord(pasteData, delayGetter, entryGetter, appInfo);
+    tempPasteboard->HandleDelayDataAndRecord(appInfo.userId, pasteData, delayGetter, entryGetter, appInfo);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "HandleDelayDataAndRecord001 end");
 }
 
@@ -750,7 +750,7 @@ HWTEST_F(PasteboardServiceTest, RemovePasteDataTest001, TestSize.Level1)
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
 
-    tempPasteboard->RemovePasteData(appInfo);
+    tempPasteboard->RemovePasteData(appInfo.userId);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "RemovePasteDataTest001 end");
 }
 
@@ -772,7 +772,7 @@ HWTEST_F(PasteboardServiceTest, RemovePasteDataTest002, TestSize.Level1)
 
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
-    tempPasteboard->RemovePasteData(appInfo);
+    tempPasteboard->RemovePasteData(appInfo.userId);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "RemovePasteDataTest002 end");
 }
 
@@ -1528,7 +1528,8 @@ HWTEST_F(PasteboardServiceTest, clearInner001, TestSize.Level1)
     pasteData->AddTextRecord("hello");
     tempPasteboard->clips_.InsertOrAssign(userId, pasteData);
     auto appInfo = tempPasteboard->GetAppInfo(IPCSkeleton::GetCallingTokenID());
-    tempPasteboard->ClearInner(userId, appInfo);
+    appInfo.userId = userId;
+    tempPasteboard->ClearInner(appInfo);
     auto [hasData, data] = tempPasteboard->clips_.Find(userId);
     EXPECT_EQ(hasData, false);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "clearInner001 end");
@@ -1553,7 +1554,8 @@ HWTEST_F(PasteboardServiceTest, clearInner002, TestSize.Level1)
     tempPasteboard->clips_.InsertOrAssign(userId, pasteData);
     auto appInfo = tempPasteboard->GetAppInfo(IPCSkeleton::GetCallingTokenID());
     int32_t clearUserId = 101;
-    tempPasteboard->ClearInner(clearUserId, appInfo);
+    appInfo.userId = clearUserId;
+    tempPasteboard->ClearInner(appInfo);
     auto [hasData, data] = tempPasteboard->clips_.Find(userId);
     EXPECT_EQ(hasData, true);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "clearInner002 end");

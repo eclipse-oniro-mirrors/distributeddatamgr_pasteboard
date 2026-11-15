@@ -195,7 +195,7 @@ void FuzzSetPasteDataOnly(FuzzedDataProvider &fdp)
         fd = mpw.GetWriteDataFd();
     }
 
-    g_pasteboardService->SetPasteDataOnly(fd, pasteDataTlv.size(), pasteDataTlv);
+    g_pasteboardService->SetPasteDataOnly(ERROR_USERID, fd, pasteDataTlv.size(), pasteDataTlv);
 }
 
 void FuzzSetPasteDataDelayData(FuzzedDataProvider &fdp)
@@ -219,7 +219,7 @@ void FuzzSetPasteDataDelayData(FuzzedDataProvider &fdp)
     }
 
     auto delayGetter = sptr<DelayGetterImpl>::MakeSptr();
-    g_pasteboardService->SetPasteDataDelayData(fd, pasteDataTlv.size(), pasteDataTlv, delayGetter);
+    g_pasteboardService->SetPasteDataDelayData(ERROR_USERID, fd, pasteDataTlv.size(), pasteDataTlv, delayGetter);
 }
 
 void FuzzSetPasteDataEntryData(FuzzedDataProvider &fdp)
@@ -243,7 +243,7 @@ void FuzzSetPasteDataEntryData(FuzzedDataProvider &fdp)
     }
 
     auto entryGetter = sptr<EntryGetterImpl>::MakeSptr();
-    g_pasteboardService->SetPasteDataEntryData(fd, pasteDataTlv.size(), pasteDataTlv, entryGetter);
+    g_pasteboardService->SetPasteDataEntryData(ERROR_USERID, fd, pasteDataTlv.size(), pasteDataTlv, entryGetter);
 }
 
 void FuzzSetPasteData(FuzzedDataProvider &fdp)
@@ -268,7 +268,7 @@ void FuzzSetPasteData(FuzzedDataProvider &fdp)
 
     auto delayGetter = sptr<DelayGetterImpl>::MakeSptr();
     auto entryGetter = sptr<EntryGetterImpl>::MakeSptr();
-    g_pasteboardService->SetPasteData(fd, pasteDataTlv.size(), pasteDataTlv, delayGetter, entryGetter);
+    g_pasteboardService->SetPasteData(ERROR_USERID, fd, pasteDataTlv.size(), pasteDataTlv, delayGetter, entryGetter);
 }
 
 void FuzzGetPasteData(FuzzedDataProvider &fdp)
@@ -289,13 +289,13 @@ void FuzzGetPasteData(FuzzedDataProvider &fdp)
 
     MessageParcelWarp mpw;
     int fd = mpw.CreateTmpFd();
-    g_pasteboardService->GetPasteData(fd, size, rawData, pasteSeqId, syncTime, realErrCode);
+    g_pasteboardService->GetPasteData(ERROR_USERID, fd, size, rawData, pasteSeqId, syncTime, realErrCode);
 }
 
 void FuzzClear(FuzzedDataProvider &fdp)
 {
     fdp.ConsumeBool();
-    g_pasteboardService->Clear();
+    g_pasteboardService->Clear(ERROR_USERID);
 }
 
 void FuzzClearByUser(FuzzedDataProvider &fdp)
@@ -306,7 +306,7 @@ void FuzzClearByUser(FuzzedDataProvider &fdp)
         userId = fdp.ConsumeIntegral<int32_t>();
     }
 
-    g_pasteboardService->ClearByUser(userId);
+    g_pasteboardService->Clear(userId);
 }
 
 void FuzzGetRecordValueByType(FuzzedDataProvider &fdp)
@@ -334,7 +334,7 @@ void FuzzGetRecordValueByType(FuzzedDataProvider &fdp)
         fd = mpw.GetWriteDataFd();
     }
 
-    g_pasteboardService->GetRecordValueByType(dataId, recordId, rawDataSize, buffer, fd);
+    g_pasteboardService->GetRecordValueByType(ERROR_USERID, dataId, recordId, rawDataSize, buffer, fd);
 }
 
 void FuzzHasPasteData(FuzzedDataProvider &fdp)

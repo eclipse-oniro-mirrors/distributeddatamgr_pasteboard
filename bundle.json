@@ -23,6 +23,7 @@
         "pasteboard_dataclassification_enabled",
         "pasteboard_api_metrics_enabled",
         "pasteboard_cockpit_platform_enabled",
+        "pasteboard_security_guard_enabled",
         "pasteboard_distributed_clip_enabled"
       ],
       "adapted_system_type": [
@@ -72,6 +73,7 @@
           "resource_schedule_service",
           "safwk",
           "samgr",
+          "security_guard",
           "screenlock_mgr",
           "time_service",
           "udmf",

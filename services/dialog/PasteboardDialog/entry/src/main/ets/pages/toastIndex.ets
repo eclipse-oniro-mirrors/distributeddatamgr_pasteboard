@@ -16,7 +16,6 @@ import hilog from '@ohos.hilog';
 
 const TAG = 'toastIndex';
 const DBG = '[TOAST_DBG]';
-const TOAST_BOTTOM_PADDING = 68;
 
 let storage = LocalStorage.getShared();
 
@@ -24,6 +23,7 @@ let storage = LocalStorage.getShared();
 @Component
 struct Index {
   @LocalStorageLink('toastText') toastText: string = '';
+  @LocalStorageLink('bottomPadding') bottomPadding: number = 80;
 
   aboutToAppear() {
     hilog.info(0, TAG, `${DBG} aboutToAppear toastText=${this.toastText}`);
@@ -31,29 +31,44 @@ struct Index {
 
   build() {
     Row() {
-      Column() {
-        Text(this.toastText)
-          .fontSize(14)
-          .fontWeight(FontWeight.Regular)
-          .fontColor($r('app.color.white'))
-          .fontFamily($r('app.string.typeface'))
-          .maxLines(2)
-          .textOverflow({ overflow: TextOverflow.None })
-          .wordBreak(WordBreak.BREAK_ALL)
-          .maxFontScale(2)
-          .accessibilityText(this.toastText)
+      GridRow({
+        columns: { xs: 4, sm: 6 },
+        gutter: { x: 24 },
+        breakpoints: { value: ['600vp', '840vp'] }
+      }) {
+        GridCol({ span: { xs: 4, sm: 6 } }) {
+          Row() {
+            Column() {
+              Text(this.toastText)
+                .fontSize(14)
+                .fontWeight(FontWeight.Regular)
+                .fontColor($r('sys.color.font_primary'))
+                .fontFamily($r('app.string.typeface'))
+                .maxLines(2)
+                .textOverflow({ overflow: TextOverflow.Ellipsis })
+                .wordBreak(WordBreak.BREAK_ALL)
+                .maxFontScale(2)
+            }
+            .constraintSize({ minHeight: 36, maxWidth: 400 })
+            .justifyContent(FlexAlign.Center)
+            .alignItems(HorizontalAlign.Center)
+            .backgroundColor($r('sys.color.comp_background_primary'))
+            .backgroundBlurStyle(BlurStyle.COMPONENT_ULTRA_THICK)
+            .borderRadius(18)
+            .shadow(ShadowStyle.OUTER_DEFAULT_MD)
+            .padding({ left: '16vp', right: '16vp', top: '8vp', bottom: '8vp' })
+            .accessibilityText(this.toastText)
+            .accessibilityLevel('no-hide-descendants')
+          }
+          .justifyContent(FlexAlign.Center)
+          .width('100%')
+        }
       }
-      .constraintSize({ minHeight: 36 })
-      .justifyContent(FlexAlign.Center)
-      .alignItems(HorizontalAlign.Center)
-      .backgroundColor($r('app.color.grey'))
-      .borderRadius(18)
-      .padding({ left: 16, right: 16 })
     }
     .alignItems(VerticalAlign.Bottom)
-    .justifyContent(FlexAlign.Center)
     .height('100%')
     .width('100%')
-    .padding({ bottom: TOAST_BOTTOM_PADDING })
+    .backgroundColor(Color.Transparent)
+    .padding({ bottom: this.bottomPadding, left: 24, right: 24 })
   }
 }

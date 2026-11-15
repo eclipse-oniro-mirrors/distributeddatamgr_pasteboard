@@ -27,6 +27,7 @@
 namespace OHOS {
 namespace MiscServices {
 constexpr int32_t ERROR_USERID = -1;
+inline bool IsValidUserId(int32_t userId) { return userId > 0; }
 constexpr uint64_t MAIN_DISPLAY_ID = 0;
 constexpr const char *USER_SWITCH_OLD_ID = "oldId";
 constexpr const char *PACKAGE_REMOVED_USER_ID = "userId";

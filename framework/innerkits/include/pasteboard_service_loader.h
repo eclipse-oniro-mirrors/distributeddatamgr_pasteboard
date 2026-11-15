@@ -43,6 +43,7 @@ public:
     void SetPasteboardServiceProxy(const sptr<IRemoteObject> &remoteObject);
     void ReleaseDeathRecipient();
     int32_t GetRecordValueByType(uint32_t dataId, uint32_t recordId, PasteDataEntry& value);
+    int32_t GetRecordValueByTypeByUser(int32_t userId, uint32_t dataId, uint32_t recordId, PasteDataEntry& value);
     void OnRemoteSaDied(const wptr<IRemoteObject> &object);
     void LoadSystemAbilityFail();
     void LoadSystemAbilitySuccess(const sptr<IRemoteObject> &remoteObject);
@@ -54,6 +55,8 @@ private:
     ~PasteboardServiceLoader();
     int32_t ProcessPasteData(PasteDataEntry &data, int64_t rawDataSize, int fd,
         const std::vector<uint8_t> &recvTLV);
+    int32_t GetRecordValueByTypeInner(int32_t userId, uint32_t dataId, uint32_t recordId,
+        PasteDataEntry &value);
     static sptr<IPasteboardService> pasteboardServiceProxy_;
     static std::condition_variable proxyConVar_;
     static std::mutex instanceLock_;

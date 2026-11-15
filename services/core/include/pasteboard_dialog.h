@@ -35,6 +35,7 @@ public:
     };
     struct ToastMessageInfo {
         std::string appName{ DEFAULT_LABEL };
+        int32_t displayId { 0 };
     };
 
     static constexpr const char *DEFAULT_LABEL = "unknown";
