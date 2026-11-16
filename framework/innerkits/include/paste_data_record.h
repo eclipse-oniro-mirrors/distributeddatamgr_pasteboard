@@ -17,6 +17,7 @@
 #define PASTE_BOARD_RECORD_H
 
 #include "common/constant.h"
+#include "ipasteboard_fuse_getter.h"
 #include "paste_data_entry.h"
 #include "uri.h"
 

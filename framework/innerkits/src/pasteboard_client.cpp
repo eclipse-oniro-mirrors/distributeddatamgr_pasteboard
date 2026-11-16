@@ -834,15 +834,17 @@ int32_t PasteboardClient::WritePasteData(PasteData &pasteData, std::vector<uint8
 }
 
 int32_t PasteboardClient::SetPasteData(PasteData &pasteData, std::shared_ptr<PasteboardDelayGetter> delayGetter,
-    std::map<uint32_t, std::shared_ptr<UDMF::EntryGetter>> entryGetters)
+    std::map<uint32_t, std::shared_ptr<UDMF::EntryGetter>> entryGetters,
+    std::map<uint32_t, sptr<IPasteboardFuseGetter>> fuseGetters)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "enter");
-    return SetPasteDataInner(ERROR_USERID, pasteData, delayGetter, entryGetters);
+    return SetPasteDataInner(ERROR_USERID, pasteData, delayGetter, entryGetters, fuseGetters);
 }
 
 int32_t PasteboardClient::SetPasteDataInner(int32_t userId, PasteData &pasteData,
     std::shared_ptr<PasteboardDelayGetter> delayGetter,
-    std::map<uint32_t, std::shared_ptr<UDMF::EntryGetter>> entryGetters)
+    std::map<uint32_t, std::shared_ptr<UDMF::EntryGetter>> entryGetters,
+    std::map<uint32_t, sptr<IPasteboardFuseGetter>> fuseGetters)
 {
     RADAR_REPORT(RadarReporter::DFX_SET_PASTEBOARD, RadarReporter::DFX_SET_BIZ_SCENE, RadarReporter::DFX_SUCCESS,
         RadarReporter::BIZ_STATE, RadarReporter::DFX_BEGIN);
@@ -866,7 +868,12 @@ int32_t PasteboardClient::SetPasteDataInner(int32_t userId, PasteData &pasteData
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CLIENT, "Write data failed, size=%{public}" PRId64, tlvSize);
         return ret;
     }
-    ret = DispatchSetProxy(userId, proxyService, fd, tlvSize, pasteDataTlv, delayGetterAgent, entryGetterAgent);
+    if (!fuseGetters.empty()) {
+        sptr<PasteboardFuseGetterClient> vfpAgent = sptr<PasteboardFuseGetterClient>::MakeSptr(fuseGetters);
+        ret = proxyService->SetPasteDataVirtualFile(userId, fd, tlvSize, pasteDataTlv, vfpAgent);
+    } else {
+        ret = DispatchSetProxy(userId, proxyService, fd, tlvSize, pasteDataTlv, delayGetterAgent, entryGetterAgent);
+    }
     std::string pasteDataInfoSummary = GetPasteDataInfoSummary(pasteData);
     ret = ConvertErrCode(ret);
     if (ret == static_cast<int32_t>(PasteboardError::E_OK)) {

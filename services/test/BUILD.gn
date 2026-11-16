@@ -25,6 +25,7 @@ config("module_private_config") {
     "${pasteboard_service_path}/dfx/src/fault",
     "${pasteboard_service_path}/dfx/src/statistic",
     "${pasteboard_service_path}/core/include",
+    "${pasteboard_service_path}/zidl/include",
     "include",
     "unittest/include",
     "//foundation/distributeddatamgr/pasteboard/framework/tlv",
@@ -83,6 +84,41 @@ ohos_unittest("PasteboardServiceTest") {
   ]
 }
 
+ohos_unittest("PasteboardFuseManagerMockTest") {
+  module_out_path = module_output_path
+  sanitize = {
+    ubsan = true
+    boundary_sanitize = true
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  cflags = [ "-fno-access-control" ]
+  sources = [
+    "${pasteboard_service_path}/core/src/pasteboard_fuse_manager.cpp",
+    "unittest/mock/virtual_file/fuse_api_mock.cpp",
+    "unittest/mock/virtual_file/fuse_mount_api_mock.cpp",
+    "unittest/src/pasteboard_fuse_manager_mock_test.cpp",
+  ]
+  configs = [ ":module_private_config" ]
+  external_deps = [
+    "ability_base:want",
+    "ability_base:zuri",
+    "c_utils:utils",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+    "ipc:ipc_core",
+    "udmf:udmf_client",
+  ]
+  include_dirs = [ "unittest/mock/virtual_file" ]
+  deps = [
+    "${pasteboard_framework_path}:pasteboard_framework",
+    "${pasteboard_innerkits_path}:pasteboard_client",
+    "${pasteboard_innerkits_path}:pasteboard_data",
+  ]
+}
+
 ohos_unittest("PasteboardSecurityGuardMockTest") {
   module_out_path = module_output_path
   cflags = [ "-fno-access-control" ]
@@ -114,10 +150,12 @@ ohos_unittest("PasteServInterfaceTest") {
   sources = [
     "${pasteboard_root_path}/adapter/data_share/datashare_delegate.cpp",
     "${pasteboard_service_path}/account/src/account_manager.cpp",
+    "${pasteboard_service_path}/core/src/fuse_mount.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_ability_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_delay_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_dialog.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_disposable_manager.cpp",
+    "${pasteboard_service_path}/core/src/pasteboard_fuse_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_hml_manager.cpp",
     "${pasteboard_service_path}/core/src/p2p_link_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_pattern.cpp",
@@ -196,12 +234,14 @@ ohos_unittest("PasteServInterfaceTest") {
     "input:libmmi-client",
     "ipc:ipc_single",
     "json:nlohmann_json_static",
+    "libfuse:libfuse",
     "libxml2:libxml2",
     "memmgr:memmgrclient",
     "os_account:os_account_innerkits",
     "resource_schedule_service:ressched_client",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
+    "storage_service:storage_manager_sa_proxy",
     "udmf:udmf_client",
   ]
   deps = [
@@ -241,9 +281,12 @@ ohos_unittest("PasteServInterfaceTest") {
 
   if (pasteboard_dataclassification_enabled) {
     external_deps += [ "dataclassification:data_transit_mgr" ]
-    sources += [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
+    sources +=
+        [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
   } else {
-    sources += [ "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp" ]
+    sources += [
+      "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp",
+    ]
   }
 }
 
@@ -254,10 +297,12 @@ ohos_unittest("PasteServInterfaceMockTest") {
     "${pasteboard_framework_path}/clip/default_clip.cpp",
     "${pasteboard_root_path}/adapter/data_share/datashare_delegate.cpp",
     "${pasteboard_service_path}/account/src/account_manager.cpp",
+    "${pasteboard_service_path}/core/src/fuse_mount.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_ability_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_delay_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_dialog.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_disposable_manager.cpp",
+    "${pasteboard_service_path}/core/src/pasteboard_fuse_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_hml_manager.cpp",
     "${pasteboard_service_path}/core/src/p2p_link_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_pattern.cpp",
@@ -337,12 +382,14 @@ ohos_unittest("PasteServInterfaceMockTest") {
     "input:libmmi-client",
     "ipc:ipc_single",
     "json:nlohmann_json_static",
+    "libfuse:libfuse",
     "libxml2:libxml2",
     "memmgr:memmgrclient",
     "os_account:os_account_innerkits",
     "resource_schedule_service:ressched_client",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
+    "storage_service:storage_manager_sa_proxy",
     "udmf:udmf_client",
   ]
   deps = [
@@ -382,9 +429,12 @@ ohos_unittest("PasteServInterfaceMockTest") {
 
   if (pasteboard_dataclassification_enabled) {
     external_deps += [ "dataclassification:data_transit_mgr" ]
-    sources += [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
+    sources +=
+        [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
   } else {
-    sources += [ "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp" ]
+    sources += [
+      "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp",
+    ]
   }
 }
 
@@ -400,8 +450,8 @@ ohos_unittest("PasteboardAbilityManagerTest") {
   configs = [ ":module_private_config" ]
   deps = [
     "${pasteboard_innerkits_path}:pasteboard_client",
-    "${pasteboard_service_path}:pasteboard_client_idl",
     "${pasteboard_innerkits_path}:pasteboard_data",
+    "${pasteboard_service_path}:pasteboard_client_idl",
   ]
   external_deps = [
     "ability_base:want",
@@ -762,8 +812,8 @@ ohos_unittest("PasteboardHmlManagerTest") {
   external_deps = [
     "ability_base:base",
     "ability_base:want",
-    "c_utils:utils",
     "cJSON:cjson",
+    "c_utils:utils",
     "ffrt:libffrt",
     "googletest:gtest_main",
     "hilog:libhilog",
@@ -780,15 +830,18 @@ ohos_unittest("PasteServGetLocalDataTest") {
   sources = [
     "${pasteboard_root_path}/adapter/data_share/datashare_delegate.cpp",
     "${pasteboard_service_path}/account/src/account_manager.cpp",
+    "${pasteboard_service_path}/core/src/fuse_mount.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_ability_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_delay_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_dialog.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_disposable_manager.cpp",
+    "${pasteboard_service_path}/core/src/pasteboard_fuse_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_hml_manager.cpp",
     "${pasteboard_service_path}/core/src/p2p_link_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_pattern.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_service.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_user_context.cpp",
+    "${pasteboard_service_path}/core/src/pasteboard_window_manager.cpp",
     "${pasteboard_service_path}/core/src/security_guard_adapter_virtual.cpp",
     "${pasteboard_service_path}/dfx/src/behaviour/pasteboard_behaviour_reporter_impl.cpp",
     "${pasteboard_service_path}/dfx/src/calculate_time_consuming.cpp",
@@ -807,7 +860,6 @@ ohos_unittest("PasteServGetLocalDataTest") {
     "${pasteboard_service_path}/zidl/src/pasteboard_entry_getter_proxy.cpp",
     "${pasteboard_utils_path}/native/src/pasteboard_common.cpp",
     "${pasteboard_utils_path}/native/src/pasteboard_time.cpp",
-    "${pasteboard_service_path}/core/src/pasteboard_window_manager.cpp",
     "unittest/src/pasteboard_service_getlocaldata_test.cpp",
   ]
   defines = []
@@ -862,12 +914,14 @@ ohos_unittest("PasteServGetLocalDataTest") {
     "input:libmmi-client",
     "ipc:ipc_single",
     "json:nlohmann_json_static",
+    "libfuse:libfuse",
     "libxml2:libxml2",
     "memmgr:memmgrclient",
     "os_account:os_account_innerkits",
     "resource_schedule_service:ressched_client",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
+    "storage_service:storage_manager_sa_proxy",
     "udmf:udmf_client",
   ]
   deps = [
@@ -907,9 +961,12 @@ ohos_unittest("PasteServGetLocalDataTest") {
 
   if (pasteboard_dataclassification_enabled) {
     external_deps += [ "dataclassification:data_transit_mgr" ]
-    sources += [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
+    sources +=
+        [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
   } else {
-    sources += [ "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp" ]
+    sources += [
+      "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp",
+    ]
   }
 }
 
@@ -919,15 +976,18 @@ ohos_unittest("PasteServSubscribeTest") {
   sources = [
     "${pasteboard_root_path}/adapter/data_share/datashare_delegate.cpp",
     "${pasteboard_service_path}/account/src/account_manager.cpp",
+    "${pasteboard_service_path}/core/src/fuse_mount.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_ability_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_delay_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_dialog.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_disposable_manager.cpp",
+    "${pasteboard_service_path}/core/src/pasteboard_fuse_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_hml_manager.cpp",
     "${pasteboard_service_path}/core/src/p2p_link_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_pattern.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_service.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_user_context.cpp",
+    "${pasteboard_service_path}/core/src/pasteboard_window_manager.cpp",
     "${pasteboard_service_path}/core/src/security_guard_adapter_virtual.cpp",
     "${pasteboard_service_path}/dfx/src/behaviour/pasteboard_behaviour_reporter_impl.cpp",
     "${pasteboard_service_path}/dfx/src/calculate_time_consuming.cpp",
@@ -946,7 +1006,6 @@ ohos_unittest("PasteServSubscribeTest") {
     "${pasteboard_service_path}/zidl/src/pasteboard_entry_getter_proxy.cpp",
     "${pasteboard_utils_path}/native/src/pasteboard_common.cpp",
     "${pasteboard_utils_path}/native/src/pasteboard_time.cpp",
-    "${pasteboard_service_path}/core/src/pasteboard_window_manager.cpp",
     "unittest/src/pasteboard_service_subscribe_test.cpp",
   ]
   defines = []
@@ -1001,12 +1060,14 @@ ohos_unittest("PasteServSubscribeTest") {
     "input:libmmi-client",
     "ipc:ipc_single",
     "json:nlohmann_json_static",
+    "libfuse:libfuse",
     "libxml2:libxml2",
     "memmgr:memmgrclient",
     "os_account:os_account_innerkits",
     "resource_schedule_service:ressched_client",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
+    "storage_service:storage_manager_sa_proxy",
     "udmf:udmf_client",
   ]
   deps = [
@@ -1046,9 +1107,12 @@ ohos_unittest("PasteServSubscribeTest") {
 
   if (pasteboard_dataclassification_enabled) {
     external_deps += [ "dataclassification:data_transit_mgr" ]
-    sources += [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
+    sources +=
+        [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
   } else {
-    sources += [ "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp" ]
+    sources += [
+      "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp",
+    ]
   }
 }
 
@@ -1058,15 +1122,18 @@ ohos_unittest("PasteServNotifyTest") {
   sources = [
     "${pasteboard_root_path}/adapter/data_share/datashare_delegate.cpp",
     "${pasteboard_service_path}/account/src/account_manager.cpp",
+    "${pasteboard_service_path}/core/src/fuse_mount.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_ability_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_delay_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_dialog.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_disposable_manager.cpp",
+    "${pasteboard_service_path}/core/src/pasteboard_fuse_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_hml_manager.cpp",
     "${pasteboard_service_path}/core/src/p2p_link_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_pattern.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_service.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_user_context.cpp",
+    "${pasteboard_service_path}/core/src/pasteboard_window_manager.cpp",
     "${pasteboard_service_path}/core/src/security_guard_adapter_virtual.cpp",
     "${pasteboard_service_path}/dfx/src/behaviour/pasteboard_behaviour_reporter_impl.cpp",
     "${pasteboard_service_path}/dfx/src/calculate_time_consuming.cpp",
@@ -1085,7 +1152,6 @@ ohos_unittest("PasteServNotifyTest") {
     "${pasteboard_service_path}/zidl/src/pasteboard_entry_getter_proxy.cpp",
     "${pasteboard_utils_path}/native/src/pasteboard_common.cpp",
     "${pasteboard_utils_path}/native/src/pasteboard_time.cpp",
-    "${pasteboard_service_path}/core/src/pasteboard_window_manager.cpp",
     "unittest/src/pasteboard_service_notify_test.cpp",
   ]
   defines = []
@@ -1140,12 +1206,14 @@ ohos_unittest("PasteServNotifyTest") {
     "input:libmmi-client",
     "ipc:ipc_single",
     "json:nlohmann_json_static",
+    "libfuse:libfuse",
     "libxml2:libxml2",
     "memmgr:memmgrclient",
     "os_account:os_account_innerkits",
     "resource_schedule_service:ressched_client",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
+    "storage_service:storage_manager_sa_proxy",
     "udmf:udmf_client",
   ]
   deps = [
@@ -1185,9 +1253,12 @@ ohos_unittest("PasteServNotifyTest") {
 
   if (pasteboard_dataclassification_enabled) {
     external_deps += [ "dataclassification:data_transit_mgr" ]
-    sources += [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
+    sources +=
+        [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
   } else {
-    sources += [ "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp" ]
+    sources += [
+      "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp",
+    ]
   }
 }
 
@@ -1197,15 +1268,18 @@ ohos_unittest("PasteServSetDataTest") {
   sources = [
     "${pasteboard_root_path}/adapter/data_share/datashare_delegate.cpp",
     "${pasteboard_service_path}/account/src/account_manager.cpp",
+    "${pasteboard_service_path}/core/src/fuse_mount.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_ability_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_delay_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_dialog.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_disposable_manager.cpp",
+    "${pasteboard_service_path}/core/src/pasteboard_fuse_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_hml_manager.cpp",
     "${pasteboard_service_path}/core/src/p2p_link_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_pattern.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_service.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_user_context.cpp",
+    "${pasteboard_service_path}/core/src/pasteboard_window_manager.cpp",
     "${pasteboard_service_path}/core/src/security_guard_adapter_virtual.cpp",
     "${pasteboard_service_path}/dfx/src/behaviour/pasteboard_behaviour_reporter_impl.cpp",
     "${pasteboard_service_path}/dfx/src/calculate_time_consuming.cpp",
@@ -1224,7 +1298,6 @@ ohos_unittest("PasteServSetDataTest") {
     "${pasteboard_service_path}/zidl/src/pasteboard_entry_getter_proxy.cpp",
     "${pasteboard_utils_path}/native/src/pasteboard_common.cpp",
     "${pasteboard_utils_path}/native/src/pasteboard_time.cpp",
-    "${pasteboard_service_path}/core/src/pasteboard_window_manager.cpp",
     "unittest/src/pasteboard_service_setdata_test.cpp",
   ]
   defines = []
@@ -1279,12 +1352,14 @@ ohos_unittest("PasteServSetDataTest") {
     "input:libmmi-client",
     "ipc:ipc_single",
     "json:nlohmann_json_static",
+    "libfuse:libfuse",
     "libxml2:libxml2",
     "memmgr:memmgrclient",
     "os_account:os_account_innerkits",
     "resource_schedule_service:ressched_client",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
+    "storage_service:storage_manager_sa_proxy",
     "udmf:udmf_client",
   ]
   deps = [
@@ -1324,9 +1399,12 @@ ohos_unittest("PasteServSetDataTest") {
 
   if (pasteboard_dataclassification_enabled) {
     external_deps += [ "dataclassification:data_transit_mgr" ]
-    sources += [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
+    sources +=
+        [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
   } else {
-    sources += [ "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp" ]
+    sources += [
+      "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp",
+    ]
   }
 }
 
@@ -1336,15 +1414,18 @@ ohos_unittest("PasteServGetDataTest") {
   sources = [
     "${pasteboard_root_path}/adapter/data_share/datashare_delegate.cpp",
     "${pasteboard_service_path}/account/src/account_manager.cpp",
+    "${pasteboard_service_path}/core/src/fuse_mount.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_ability_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_delay_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_dialog.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_disposable_manager.cpp",
+    "${pasteboard_service_path}/core/src/pasteboard_fuse_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_hml_manager.cpp",
     "${pasteboard_service_path}/core/src/p2p_link_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_pattern.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_service.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_user_context.cpp",
+    "${pasteboard_service_path}/core/src/pasteboard_window_manager.cpp",
     "${pasteboard_service_path}/core/src/security_guard_adapter_virtual.cpp",
     "${pasteboard_service_path}/dfx/src/behaviour/pasteboard_behaviour_reporter_impl.cpp",
     "${pasteboard_service_path}/dfx/src/calculate_time_consuming.cpp",
@@ -1363,7 +1444,6 @@ ohos_unittest("PasteServGetDataTest") {
     "${pasteboard_service_path}/zidl/src/pasteboard_entry_getter_proxy.cpp",
     "${pasteboard_utils_path}/native/src/pasteboard_common.cpp",
     "${pasteboard_utils_path}/native/src/pasteboard_time.cpp",
-    "${pasteboard_service_path}/core/src/pasteboard_window_manager.cpp",
     "unittest/src/pasteboard_service_getdata_test.cpp",
   ]
   defines = []
@@ -1418,12 +1498,14 @@ ohos_unittest("PasteServGetDataTest") {
     "input:libmmi-client",
     "ipc:ipc_single",
     "json:nlohmann_json_static",
+    "libfuse:libfuse",
     "libxml2:libxml2",
     "memmgr:memmgrclient",
     "os_account:os_account_innerkits",
     "resource_schedule_service:ressched_client",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
+    "storage_service:storage_manager_sa_proxy",
     "udmf:udmf_client",
   ]
   deps = [
@@ -1463,9 +1545,12 @@ ohos_unittest("PasteServGetDataTest") {
 
   if (pasteboard_dataclassification_enabled) {
     external_deps += [ "dataclassification:data_transit_mgr" ]
-    sources += [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
+    sources +=
+        [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
   } else {
-    sources += [ "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp" ]
+    sources += [
+      "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp",
+    ]
   }
 }
 
@@ -1475,10 +1560,12 @@ ohos_unittest("PasteServEventTest") {
   sources = [
     "${pasteboard_root_path}/adapter/data_share/datashare_delegate.cpp",
     "${pasteboard_service_path}/account/src/account_manager.cpp",
+    "${pasteboard_service_path}/core/src/fuse_mount.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_ability_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_delay_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_dialog.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_disposable_manager.cpp",
+    "${pasteboard_service_path}/core/src/pasteboard_fuse_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_hml_manager.cpp",
     "${pasteboard_service_path}/core/src/p2p_link_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_pattern.cpp",
@@ -1558,12 +1645,14 @@ ohos_unittest("PasteServEventTest") {
     "input:libmmi-client",
     "ipc:ipc_single",
     "json:nlohmann_json_static",
+    "libfuse:libfuse",
     "libxml2:libxml2",
     "memmgr:memmgrclient",
     "os_account:os_account_innerkits",
     "resource_schedule_service:ressched_client",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
+    "storage_service:storage_manager_sa_proxy",
     "udmf:udmf_client",
   ]
   deps = [
@@ -1603,9 +1692,12 @@ ohos_unittest("PasteServEventTest") {
 
   if (pasteboard_dataclassification_enabled) {
     external_deps += [ "dataclassification:data_transit_mgr" ]
-    sources += [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
+    sources +=
+        [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
   } else {
-    sources += [ "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp" ]
+    sources += [
+      "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp",
+    ]
   }
 }
 
@@ -1615,10 +1707,12 @@ ohos_unittest("PasteServGetTest") {
   sources = [
     "${pasteboard_root_path}/adapter/data_share/datashare_delegate.cpp",
     "${pasteboard_service_path}/account/src/account_manager.cpp",
+    "${pasteboard_service_path}/core/src/fuse_mount.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_ability_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_delay_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_dialog.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_disposable_manager.cpp",
+    "${pasteboard_service_path}/core/src/pasteboard_fuse_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_hml_manager.cpp",
     "${pasteboard_service_path}/core/src/p2p_link_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_pattern.cpp",
@@ -1697,12 +1791,14 @@ ohos_unittest("PasteServGetTest") {
     "input:libmmi-client",
     "ipc:ipc_single",
     "json:nlohmann_json_static",
+    "libfuse:libfuse",
     "libxml2:libxml2",
     "memmgr:memmgrclient",
     "os_account:os_account_innerkits",
     "resource_schedule_service:ressched_client",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
+    "storage_service:storage_manager_sa_proxy",
     "udmf:udmf_client",
   ]
   deps = [
@@ -1742,9 +1838,12 @@ ohos_unittest("PasteServGetTest") {
 
   if (pasteboard_dataclassification_enabled) {
     external_deps += [ "dataclassification:data_transit_mgr" ]
-    sources += [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
+    sources +=
+        [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
   } else {
-    sources += [ "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp" ]
+    sources += [
+      "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp",
+    ]
   }
 }
 
@@ -1754,10 +1853,12 @@ ohos_unittest("PasteServCheckTest") {
   sources = [
     "${pasteboard_root_path}/adapter/data_share/datashare_delegate.cpp",
     "${pasteboard_service_path}/account/src/account_manager.cpp",
+    "${pasteboard_service_path}/core/src/fuse_mount.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_ability_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_delay_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_dialog.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_disposable_manager.cpp",
+    "${pasteboard_service_path}/core/src/pasteboard_fuse_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_hml_manager.cpp",
     "${pasteboard_service_path}/core/src/p2p_link_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_pattern.cpp",
@@ -1836,12 +1937,14 @@ ohos_unittest("PasteServCheckTest") {
     "input:libmmi-client",
     "ipc:ipc_single",
     "json:nlohmann_json_static",
+    "libfuse:libfuse",
     "libxml2:libxml2",
     "memmgr:memmgrclient",
     "os_account:os_account_innerkits",
     "resource_schedule_service:ressched_client",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
+    "storage_service:storage_manager_sa_proxy",
     "udmf:udmf_client",
   ]
   deps = [
@@ -1881,9 +1984,12 @@ ohos_unittest("PasteServCheckTest") {
 
   if (pasteboard_dataclassification_enabled) {
     external_deps += [ "dataclassification:data_transit_mgr" ]
-    sources += [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
+    sources +=
+        [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
   } else {
-    sources += [ "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp" ]
+    sources += [
+      "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp",
+    ]
   }
 }
 
@@ -1893,10 +1999,12 @@ ohos_unittest("PasteServCleanTest") {
   sources = [
     "${pasteboard_root_path}/adapter/data_share/datashare_delegate.cpp",
     "${pasteboard_service_path}/account/src/account_manager.cpp",
+    "${pasteboard_service_path}/core/src/fuse_mount.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_ability_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_delay_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_dialog.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_disposable_manager.cpp",
+    "${pasteboard_service_path}/core/src/pasteboard_fuse_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_hml_manager.cpp",
     "${pasteboard_service_path}/core/src/p2p_link_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_pattern.cpp",
@@ -1975,12 +2083,14 @@ ohos_unittest("PasteServCleanTest") {
     "input:libmmi-client",
     "ipc:ipc_single",
     "json:nlohmann_json_static",
+    "libfuse:libfuse",
     "libxml2:libxml2",
     "memmgr:memmgrclient",
     "os_account:os_account_innerkits",
     "resource_schedule_service:ressched_client",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
+    "storage_service:storage_manager_sa_proxy",
     "udmf:udmf_client",
   ]
   deps = [
@@ -2020,9 +2130,12 @@ ohos_unittest("PasteServCleanTest") {
 
   if (pasteboard_dataclassification_enabled) {
     external_deps += [ "dataclassification:data_transit_mgr" ]
-    sources += [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
+    sources +=
+        [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
   } else {
-    sources += [ "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp" ]
+    sources += [
+      "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp",
+    ]
   }
 }
 
@@ -2032,10 +2145,12 @@ ohos_unittest("PasteServRemoteTest") {
   sources = [
     "${pasteboard_root_path}/adapter/data_share/datashare_delegate.cpp",
     "${pasteboard_service_path}/account/src/account_manager.cpp",
+    "${pasteboard_service_path}/core/src/fuse_mount.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_ability_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_delay_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_dialog.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_disposable_manager.cpp",
+    "${pasteboard_service_path}/core/src/pasteboard_fuse_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_hml_manager.cpp",
     "${pasteboard_service_path}/core/src/p2p_link_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_pattern.cpp",
@@ -2114,12 +2229,14 @@ ohos_unittest("PasteServRemoteTest") {
     "input:libmmi-client",
     "ipc:ipc_single",
     "json:nlohmann_json_static",
+    "libfuse:libfuse",
     "libxml2:libxml2",
     "memmgr:memmgrclient",
     "os_account:os_account_innerkits",
     "resource_schedule_service:ressched_client",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
+    "storage_service:storage_manager_sa_proxy",
     "udmf:udmf_client",
   ]
   deps = [
@@ -2159,9 +2276,12 @@ ohos_unittest("PasteServRemoteTest") {
 
   if (pasteboard_dataclassification_enabled) {
     external_deps += [ "dataclassification:data_transit_mgr" ]
-    sources += [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
+    sources +=
+        [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
   } else {
-    sources += [ "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp" ]
+    sources += [
+      "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp",
+    ]
   }
 }
 
@@ -2254,10 +2374,12 @@ ohos_unittest("PasteboardSubProfileSubscriberTest") {
   sources = [
     "${pasteboard_root_path}/adapter/data_share/datashare_delegate.cpp",
     "${pasteboard_service_path}/account/src/account_manager.cpp",
+    "${pasteboard_service_path}/core/src/fuse_mount.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_ability_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_delay_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_dialog.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_disposable_manager.cpp",
+    "${pasteboard_service_path}/core/src/pasteboard_fuse_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_hml_manager.cpp",
     "${pasteboard_service_path}/core/src/p2p_link_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_pattern.cpp",
@@ -2346,12 +2468,14 @@ ohos_unittest("PasteboardSubProfileSubscriberTest") {
     "input:libmmi-client",
     "ipc:ipc_single",
     "json:nlohmann_json_static",
+    "libfuse:libfuse",
     "libxml2:libxml2",
     "memmgr:memmgrclient",
     "os_account:os_account_innerkits",
     "resource_schedule_service:ressched_client",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
+    "storage_service:storage_manager_sa_proxy",
     "udmf:udmf_client",
   ]
   defines = [ "PB_COCKPIT_PLATFORM_ENABLE" ]
@@ -2385,9 +2509,11 @@ ohos_unittest("PasteboardSubProfileSubscriberTest") {
 
   if (pasteboard_dataclassification_enabled) {
     external_deps += [ "dataclassification:data_transit_mgr" ]
-    sources += [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
+    sources +=
+        [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
   } else {
-    sources += [ "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp",
+    sources += [
+      "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp",
     ]
   }
 }
@@ -2447,6 +2573,7 @@ group("unittest") {
     ":PasteboardDisposableManagerTest",
     ":PasteboardEntryGetterProxyTest",
     ":PasteboardEntryGetterStubTest",
+    ":PasteboardFuseManagerMockTest",
     ":PasteboardHmlManagerTest",
     ":PasteboardLinkedListTest",
     ":PasteboardLoadTest",

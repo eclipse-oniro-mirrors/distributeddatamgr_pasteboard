@@ -111,6 +111,17 @@ public:
         return 0;
     }
 
+    int32_t SetPasteDataVirtualFile(int32_t userId, int fd, int64_t memSize,
+        const std::vector<uint8_t> &buffer, const sptr<IPasteboardFuseGetter> &fuseGetter) override
+    {
+        (void)userId;
+        (void)fd;
+        (void)memSize;
+        (void)buffer;
+        (void)fuseGetter;
+        return 0;
+    }
+
     int32_t SetPasteDataOnly(int32_t userId, int fd, int64_t memSize, const std::vector<uint8_t> &buffer) override
     {
         (void)userId;

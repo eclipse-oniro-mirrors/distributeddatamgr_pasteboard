@@ -61,6 +61,7 @@
 #include "reporter.h"
 #include "distributed_module_config.h"
 #include "file_mount_manager.h"
+#include "pasteboard_fuse_manager.h"
 #ifdef PB_SCREENLOCK_MGR_ENABLE
 #include "screenlock_manager.h"
 #endif // PB_SCREENLOCK_MGR_ENABLE
@@ -122,6 +123,11 @@ constexpr int32_t SET_VALUE_SUCCESS = 1;
 constexpr uid_t ANCO_SERVICE_BROKER_UID = 5557;
 constexpr float RECALCULATE_DATA_SIZE = 0.9;
 constexpr uint16_t MAX_TRANSFER_SIZE = 1300;
+constexpr size_t MAX_VIRTUAL_FILE_ID_BYTES = 1024;
+constexpr size_t MAX_VIRTUAL_FILE_NAME_BYTES = 255;
+constexpr size_t MAX_VIRTUAL_FILE_COUNT = 4096;
+constexpr const char *FUSE_URI_SCHEME = "file";
+constexpr const char *FUSE_URI_PATH = "/data/service/el2/clipboard_fuse/files";
 
 const bool G_REGISTER_RESULT = SystemAbility::MakeAndRegisterAbility(new PasteboardService());
 const std::string CONSTRAINT = "constraint.distributed.transmission.outgoing";
@@ -142,6 +148,7 @@ PasteboardService::PasteboardService(): SystemAbility(PASTEBOARD_SERVICE_ID, tru
 {
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_SERVICE, "PasteboardService Start.");
     PasteboardService::state_ = ServiceRunningState::STATE_NOT_START;
+    fuse_ = std::make_unique<PasteboardFuseManager>();
 }
 
 PasteboardService::~PasteboardService()
@@ -1463,6 +1470,13 @@ int32_t PasteboardService::GetPasteDataInner(const AppInfo &appInfo, int &fd, in
 
     delayDataId_ = data.GetDataId();
     delayTokenId_ = appInfo.tokenId;
+    if (HasVirtualFileData()) {
+        int32_t fuseRet = fuse_->OnGetData(appInfo.userId);
+        if (fuseRet != 0) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "OnGetData failed, ret:%{public}d, userId:%{public}d",
+                fuseRet, appInfo.userId);
+        }
+    }
 
     ret = DealData(fd, size, rawData, data);
     radarReportInfo.commonInfo = GetCommonState(size);
@@ -2439,6 +2453,7 @@ int32_t PasteboardService::SaveData(const AppInfo &appInfo, PasteData &pasteData
 
 void PasteboardService::ClearAgedData(int32_t userId)
 {
+    fuse_->OnAged(userId);
     auto data = clips_.Find(userId);
     if (data.first) {
         clips_.Erase(userId);
@@ -3093,6 +3108,13 @@ int32_t PasteboardService::SetPasteDataOnly(int32_t userId, int fd, int64_t memS
 
 void PasteboardService::RemovePasteData(int32_t userId)
 {
+    fuseGetters_.ComputeIfPresent(userId, [](auto, auto &value) {
+        if (value.first != nullptr && value.second != nullptr) {
+            value.first->AsObject()->RemoveDeathRecipient(value.second);
+        }
+        return true;
+    });
+    fuse_->OnRemoveData(userId);
     delayGetters_.ComputeIfPresent(userId, [](auto, auto &delayGetter) {
         RADAR_REPORT(DFX_SET_PASTEBOARD, DFX_CHECK_SET_DELAY_COPY, DFX_SUCCESS, COVER_DELAY_DATA, DFX_SUCCESS);
         if (delayGetter.first != nullptr && delayGetter.second != nullptr) {
@@ -3106,6 +3128,241 @@ void PasteboardService::RemovePasteData(int32_t userId)
         }
         return false;
     });
+}
+
+int32_t PasteboardService::SetPasteDataVirtualFile(int32_t userId, int fd, int64_t memSize,
+    const std::vector<uint8_t> &buffer, const sptr<IPasteboardFuseGetter> &fuseGetter)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetPasteDataVirtualFile called");
+    AppInfo appInfo;
+    if (IsValidUserId(userId)) {
+        PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(GetAndCheckByUserAppInfo(appInfo, userId) == ERR_OK,
+            static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR), PASTEBOARD_MODULE_SERVICE,
+            "check failed, userId=%{public}d", userId);
+    } else {
+        appInfo = GetAppInfo(IPCSkeleton::GetCallingTokenID());
+    }
+    int32_t result = SetPasteDataInner(appInfo, fd, memSize, buffer, nullptr, nullptr);
+    if (result != ERR_OK) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "SetPasteData failed, result:%{public}d", result);
+        return result;
+    }
+    auto clipData = clips_.Find(appInfo.userId);
+    if (clipData.first && clipData.second != nullptr) {
+        HandleVirtualFile(*clipData.second, fuseGetter, appInfo);
+    }
+    return ERR_OK;
+}
+
+static bool HasPathSeparator(const std::string &s)
+{
+    return s.find('/') != std::string::npos || s.find('\\') != std::string::npos ||
+           s.find('\0') != std::string::npos;
+}
+
+static bool ValidateVirtualFileEntry(const std::string &fileId, const std::string &fileName,
+    size_t virtualFileCount, bool &limitReached)
+{
+    if (fileId.empty() && fileName.empty()) {
+        return false;
+    }
+    if (virtualFileCount >= MAX_VIRTUAL_FILE_COUNT) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "virtual file count exceeds limit:%{public}zu",
+            MAX_VIRTUAL_FILE_COUNT);
+        limitReached = true;
+        return false;
+    }
+    if (fileId.size() > MAX_VIRTUAL_FILE_ID_BYTES) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "virtual file skipped, fileId too long:%{public}zu",
+            fileId.size());
+        return false;
+    }
+    if (fileName.size() > MAX_VIRTUAL_FILE_NAME_BYTES) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "virtual file skipped, fileName too long:%{public}zu",
+            fileName.size());
+        return false;
+    }
+    if (HasPathSeparator(fileId) || HasPathSeparator(fileName)) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "virtual file skipped, path separator detected");
+        return false;
+    }
+    return true;
+}
+
+bool PasteboardService::ProcessVirtualFileEntries(PasteDataRecord &record, uint32_t dataId,
+    size_t &virtualFileCount, bool &limitReached)
+{
+    bool hasVirtualFile = false;
+    auto entries = record.GetEntries();
+    for (auto &entry : entries) {
+        if (!entry) {
+            continue;
+        }
+        auto value = entry->GetValue();
+        if (!std::holds_alternative<std::shared_ptr<UDMF::Object>>(value)) {
+            continue;
+        }
+        auto obj = std::get<std::shared_ptr<UDMF::Object>>(value);
+        if (!obj) {
+            continue;
+        }
+        std::string fileId;
+        std::string fileName;
+        int32_t fileType = 0;
+        obj->GetValue("id", fileId);
+        obj->GetValue("name", fileName);
+        obj->GetValue("type", fileType);
+        if (!ValidateVirtualFileEntry(fileId, fileName, virtualFileCount, limitReached)) {
+            if (limitReached) {
+                break;
+            }
+            continue;
+        }
+        auto uri = GenerateVirtualUri(dataId, record.GetRecordId(), fileName);
+        record.SetUri(std::make_shared<Uri>(uri));
+        hasVirtualFile = true;
+        virtualFileCount++;
+        PASTEBOARD_HILOGD(PASTEBOARD_MODULE_SERVICE, "generated virtual uri:%{public}s, recordId:%{public}u",
+            uri.c_str(), record.GetRecordId());
+    }
+    return hasVirtualFile;
+}
+
+void PasteboardService::HandleVirtualFile(PasteData &pasteData,
+    const sptr<IPasteboardFuseGetter> &fuseGetter, const AppInfo &appInfo)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "HandleVirtualFile called, userId:%{public}d", appInfo.userId);
+    bool hasVirtualFile = false;
+    bool limitReached = false;
+    size_t virtualFileCount = 0;
+    uint32_t dataId = pasteData.GetDataId();
+    for (auto &record : pasteData.AllRecords()) {
+        if (limitReached) {
+            break;
+        }
+        if (!record) {
+            continue;
+        }
+        if (ProcessVirtualFileEntries(*record, dataId, virtualFileCount, limitReached)) {
+            hasVirtualFile = true;
+        }
+    }
+    if (hasVirtualFile && fuseGetter != nullptr) {
+        auto fileInfos = CollectVirtualFileInfos(pasteData, fuseGetter, appInfo, dataId, virtualFileCount);
+        fuse_->SetProvider(appInfo.userId, fuseGetter, dataId, fileInfos);
+        auto deathRecipient = sptr<FuseGetterDeathRecipient>::MakeSptr(appInfo.userId, *this);
+        fuseGetter->AsObject()->AddDeathRecipient(deathRecipient);
+        fuseGetters_.InsertOrAssign(appInfo.userId, std::make_pair(fuseGetter, deathRecipient));
+        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "virtual file provider registered, userId:%{public}d",
+            appInfo.userId);
+    }
+}
+
+std::vector<FileInfo> PasteboardService::CollectVirtualFileInfos(const PasteData &pasteData,
+    const sptr<IPasteboardFuseGetter> &fuseGetter, const AppInfo &appInfo, uint32_t dataId,
+    size_t virtualFileCount)
+{
+    std::vector<FileInfo> fileInfos;
+    size_t collectedCount = 0;
+    for (auto &record : pasteData.AllRecords()) {
+        if (collectedCount >= virtualFileCount) {
+            break;
+        }
+        if (!record) {
+            continue;
+        }
+        for (auto &entry : record->GetEntries()) {
+            if (collectedCount >= virtualFileCount) {
+                break;
+            }
+            auto info = CreateFileInfoFromEntry(entry, fuseGetter, appInfo, dataId, record->GetRecordId());
+            if (info != nullptr) {
+                fileInfos.push_back(*info);
+                collectedCount++;
+            }
+        }
+    }
+    return fileInfos;
+}
+
+std::shared_ptr<FileInfo> PasteboardService::CreateFileInfoFromEntry(const std::shared_ptr<PasteDataEntry> &entry,
+    const sptr<IPasteboardFuseGetter> &fuseGetter, const AppInfo &appInfo,
+    uint32_t dataId, uint32_t recordId)
+{
+    if (!entry) {
+        return nullptr;
+    }
+    auto value = entry->GetValue();
+    if (!std::holds_alternative<std::shared_ptr<UDMF::Object>>(value)) {
+        return nullptr;
+    }
+    auto obj = std::get<std::shared_ptr<UDMF::Object>>(value);
+    if (!obj) {
+        return nullptr;
+    }
+    std::string fileId;
+    std::string fileName;
+    obj->GetValue("id", fileId);
+    obj->GetValue("name", fileName);
+    if (fileId.empty() && fileName.empty()) {
+        return nullptr;
+    }
+    if (HasPathSeparator(fileId) || HasPathSeparator(fileName)) {
+        return nullptr;
+    }
+    if (fileId.size() > MAX_VIRTUAL_FILE_ID_BYTES || fileName.size() > MAX_VIRTUAL_FILE_NAME_BYTES) {
+        return nullptr;
+    }
+    int64_t fileSize = 0;
+    int64_t modifyTime = 0;
+    obj->GetValue("size", fileSize);
+    obj->GetValue("modifyTime", modifyTime);
+    auto info = std::make_shared<FileInfo>();
+    info->userId = appInfo.userId;
+    info->dataId = dataId;
+    info->recordId = recordId;
+    info->fileId = fileId;
+    info->fileName = fileName;
+    info->fileSize = fileSize;
+    info->modifyTime = modifyTime;
+    info->isDir = false;
+    info->provider = fuseGetter;
+    return info;
+}
+
+std::string PasteboardService::GenerateVirtualUri(uint32_t dataId, uint32_t recordId, const std::string &fileName)
+{
+    return std::string(FUSE_URI_SCHEME) + "://" + FUSE_URI_PATH + "/" +
+        std::to_string(dataId) + "/" + std::to_string(recordId) + "/" + fileName;
+}
+
+bool PasteboardService::HasVirtualFileData()
+{
+    auto appInfo = GetAppInfo(IPCSkeleton::GetCallingTokenID());
+    if (appInfo.userId == ERROR_USERID) {
+        return false;
+    }
+    return fuse_->HasProvider(appInfo.userId);
+}
+
+PasteboardService::FuseGetterDeathRecipient::FuseGetterDeathRecipient(
+    int32_t userId, PasteboardService &service) : userId_(userId), service_(service)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE,
+        "Construct FuseGetterDeathRecipient, userId:%{public}d", userId);
+}
+
+void PasteboardService::FuseGetterDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
+{
+    (void)remote;
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "virtual file provider died, userId:%{public}d", userId_);
+    service_.fuseGetters_.ComputeIfPresent(userId_, [](auto, auto &value) {
+        if (value.first != nullptr && value.second != nullptr) {
+            value.first->AsObject()->RemoveDeathRecipient(value.second);
+        }
+        return false;
+    });
+    service_.fuse_->OnProviderDied(userId_);
 }
 
 int32_t PasteboardService::GetCurrentAccountId() const
@@ -5343,6 +5600,7 @@ void PasteboardService::RemoveObserverByPid(int32_t userId, pid_t pid, ObserverM
 
 int32_t PasteboardService::AppExit(pid_t pid, int32_t userId)
 {
+    fuse_->OnAppExit(pid, userId);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "pid %{public}d exit, userId %{public}d.", pid, userId);
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(userId != ERROR_USERID,
         static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR), PASTEBOARD_MODULE_SERVICE, "invalid userId");

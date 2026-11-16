@@ -21,7 +21,8 @@ import("//build/test.gni")
 ohos_fuzztest("PasteboardConcurrentFuzzTest") {
   module_out_path = "pasteboard/pasteboard/concurrent"
 
-  fuzz_config_file = "${pasteboard_root_path}/test/fuzztest/pasteboardconcurrent_fuzzer"
+  fuzz_config_file =
+      "${pasteboard_root_path}/test/fuzztest/pasteboardconcurrent_fuzzer"
 
   branch_protector_ret = "pac_ret"
   sanitize = {
@@ -63,16 +64,19 @@ ohos_fuzztest("PasteboardConcurrentFuzzTest") {
   ]
 
   sources = [
-    "pasteboardconcurrent_fuzzer.cpp",
     "${pasteboard_root_path}/test/fuzztest/mock/permission/mock_native_token.cpp",
+    "pasteboardconcurrent_fuzzer.cpp",
   ]
   sources += [
+    "${pasteboard_innerkits_path}/src/paste_data_info.cpp",
     "${pasteboard_root_path}/adapter/data_share/datashare_delegate.cpp",
     "${pasteboard_service_path}/account/src/account_manager.cpp",
+    "${pasteboard_service_path}/core/src/fuse_mount.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_ability_manager.cpp",
-    "${pasteboard_service_path}/core/src/pasteboard_dialog.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_delay_manager.cpp",
+    "${pasteboard_service_path}/core/src/pasteboard_dialog.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_disposable_manager.cpp",
+    "${pasteboard_service_path}/core/src/pasteboard_fuse_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_hml_manager.cpp",
     "${pasteboard_service_path}/core/src/p2p_link_manager.cpp",
     "${pasteboard_service_path}/core/src/pasteboard_pattern.cpp",
@@ -99,7 +103,6 @@ ohos_fuzztest("PasteboardConcurrentFuzzTest") {
     "${pasteboard_service_path}/zidl/src/pasteboard_entry_getter_proxy.cpp",
     "${pasteboard_utils_path}/native/src/pasteboard_common.cpp",
     "${pasteboard_utils_path}/native/src/pasteboard_time.cpp",
-    "${pasteboard_innerkits_path}/src/paste_data_info.cpp",
   ]
 
   deps = [
@@ -140,12 +143,14 @@ ohos_fuzztest("PasteboardConcurrentFuzzTest") {
     "input:libmmi-client",
     "ipc:ipc_single",
     "json:nlohmann_json_static",
+    "libfuse:libfuse",
     "libxml2:libxml2",
     "memmgr:memmgrclient",
     "os_account:os_account_innerkits",
     "resource_schedule_service:ressched_client",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
+    "storage_service:storage_manager_sa_proxy",
     "udmf:udmf_client",
   ]
 
@@ -176,9 +181,12 @@ ohos_fuzztest("PasteboardConcurrentFuzzTest") {
   }
   if (pasteboard_dataclassification_enabled) {
     external_deps += [ "dataclassification:data_transit_mgr" ]
-    sources += [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
+    sources +=
+        [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
   } else {
-    sources += [ "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp" ]
+    sources += [
+      "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp",
+    ]
   }
 }
 

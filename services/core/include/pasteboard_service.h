@@ -30,6 +30,7 @@
 #include "ffrt/ffrt_utils.h"
 #include "i_paste_data_processor.h"
 #include "ientity_recognition_observer.h"
+#include "ipasteboard_fuse_getter.h"
 #include "input_manager.h"
 #include "loader.h"
 #include "pasteboard_account_state_subscriber.h"
@@ -50,6 +51,10 @@
 
 namespace OHOS {
 namespace MiscServices {
+
+class PasteboardFuseManager;
+struct FileInfo;
+
 constexpr int32_t RESULT_OK = 0;
 constexpr int64_t SIZE_K = 1024;
 constexpr int64_t MIN_LOCAL_CAPACITY = 1; // 1M
@@ -144,6 +149,8 @@ public:
         const sptr<IPasteboardEntryGetter> &entryGetter) override;
     virtual int32_t SetPasteDataOnly(
         int32_t userId, int fd, int64_t memSize, const std::vector<uint8_t> &buffer) override;
+    virtual int32_t SetPasteDataVirtualFile(int32_t userId, int fd, int64_t memSize,
+        const std::vector<uint8_t> &buffer, const sptr<IPasteboardFuseGetter> &fuseGetter) override;
     virtual int32_t SyncDelayedData() override;
     virtual int32_t IsRemoteData(bool &funcResult) override;
     virtual int32_t GetMimeTypes(std::vector<std::string> &funcResult) override;
@@ -282,6 +289,17 @@ private:
         PasteboardService &service_;
     };
 
+    class FuseGetterDeathRecipient final : public IRemoteObject::DeathRecipient {
+    public:
+        explicit FuseGetterDeathRecipient(int32_t userId, PasteboardService &service);
+        virtual ~FuseGetterDeathRecipient() = default;
+        void OnRemoteDied(const wptr<IRemoteObject> &remote) override;
+
+    private:
+        int32_t userId_ = ERROR_USERID;
+        PasteboardService &service_;
+    };
+
     class RemoteDataTaskManager {
     public:
         struct TaskContext {
@@ -361,6 +379,18 @@ private:
     void HandleDelayDataAndRecord(PasteData &pasteData,
         const sptr<IPasteboardDelayGetter> delayGetter,
         const sptr<IPasteboardEntryGetter> entryGetter, const AppInfo &appInfo);
+    void HandleVirtualFile(PasteData &pasteData, const sptr<IPasteboardFuseGetter> &fuseGetter,
+        const AppInfo &appInfo);
+    std::vector<FileInfo> CollectVirtualFileInfos(const PasteData &pasteData,
+        const sptr<IPasteboardFuseGetter> &fuseGetter, const AppInfo &appInfo, uint32_t dataId,
+        size_t virtualFileCount);
+    std::shared_ptr<FileInfo> CreateFileInfoFromEntry(const std::shared_ptr<PasteDataEntry> &entry,
+        const sptr<IPasteboardFuseGetter> &fuseGetter, const AppInfo &appInfo,
+        uint32_t dataId, uint32_t recordId);
+    bool ProcessVirtualFileEntries(PasteDataRecord &record, uint32_t dataId,
+        size_t &virtualFileCount, bool &limitReached);
+    std::string GenerateVirtualUri(uint32_t dataId, uint32_t recordId, const std::string &fileName);
+    bool HasVirtualFileData();
     void RemovePasteData(int32_t userId);
     void SetPasteDataDot(PasteData &pasteData, const int32_t &userId);
     std::pair<int32_t, ClipPlugin::GlobalEvent> GetValidDistributeEvent(int32_t user);
@@ -512,6 +542,9 @@ private:
     ConcurrentMap<pid_t, std::vector<EntityObserverInfo>> entityObserverMap_;
     ConcurrentMap<int32_t, std::pair<sptr<IPasteboardEntryGetter>, sptr<EntryGetterDeathRecipient>>> entryGetters_;
     ConcurrentMap<int32_t, std::pair<sptr<IPasteboardDelayGetter>, sptr<DelayGetterDeathRecipient>>> delayGetters_;
+    ConcurrentMap<int32_t, std::pair<sptr<IPasteboardFuseGetter>, sptr<FuseGetterDeathRecipient>>>
+        fuseGetters_;
+    std::unique_ptr<PasteboardFuseManager> fuse_;
     ConcurrentMap<int32_t, uint64_t> copyTime_;
     std::set<uint32_t> readBundles_;
     std::shared_ptr<PasteBoardCommonEventSubscriber> commonEventSubscriber_ = nullptr;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -151,6 +151,20 @@ struct GetDataParams {
     progressSignal: Optional<ProgressSignal>;
 }
 
+struct VirtualFileInfo {
+    id: String;
+    name: String;
+    size: i64;
+    modifyTime: i64;
+    fileType: i32;
+}
+
+interface VirtualFileProvider {
+    OnRead(recordId: u32, id: String, offset: i64, length: i32): @arraybuffer Array<u8>;
+    OnStat(recordId: u32, id: String): VirtualFileInfo;
+    OnCancel(recordId: u32, idList: Array<String>): void;
+}
+
 interface SystemPasteboard {
     OnUpdate(callback: () => void): void;
     OffUpdate(callback: Optional<() => void>): void;
@@ -203,6 +217,10 @@ interface SystemPasteboard {
 
     @gen_promise("getDataWithProgress")
     GetDataWithProgressImpl(params: GetDataParams): PasteData;
+
+    @gen_promise("setVirtualFileData")
+    SetVirtualFileDataImpl(fileInfos: Array<VirtualFileInfo>, provider: VirtualFileProvider): void;
+    SetVirtualFileDataSync(fileInfos: Array<VirtualFileInfo>, provider: VirtualFileProvider): void;
 }
 
 @overload("createData")

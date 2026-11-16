@@ -65,6 +65,12 @@ enum EntityObserverInterfaceCode {
 enum PasteboardEntryGetterInterfaceCode {
     GET_RECORD_VALUE_BY_TYPE = 0,
 };
+
+enum PasteboardFuseGetterInterfaceCode {
+    ON_READ = 0,
+    ON_STAT = 1,
+    ON_CANCEL = 2,
+};
 } // namespace PasteboardServ
 } // namespace Security
 } // namespace OHOS

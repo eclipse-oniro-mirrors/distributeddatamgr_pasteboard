@@ -17,6 +17,10 @@
 #include "ohos.pasteboard.pasteboard.proj.hpp"
 #include "stdexcept"
 #include "taihe/runtime.hpp"
+#include <chrono>
+#include <condition_variable>
+#include <memory>
+#include <mutex>
 #include <thread>
 
 #include "ani_common_want.h"
@@ -603,6 +607,177 @@ private:
     std::shared_ptr<PasteData> pasteData_;
 };
 
+constexpr const char *VIRTUAL_FILE_UTD = "general.virtual-file";
+constexpr const char *VIRTUAL_FILE_MIMETYPE = "text/uri";
+constexpr size_t MAX_VIRTUAL_FILE_ID_BYTES = 1024;
+constexpr size_t MAX_VIRTUAL_FILE_NAME_BYTES = 255;
+constexpr size_t MAX_VIRTUAL_FILE_COUNT = 4096;
+constexpr int TAIHE_CALLBACK_TIMEOUT_S = 5;
+
+static bool HasPathSeparator(const std::string &s)
+{
+    return s.find('/') != std::string::npos || s.find('\\') != std::string::npos ||
+           s.find('\0') != std::string::npos;
+}
+
+static bool ValidateVirtualFileEntry(const std::string &fileId, const std::string &fileName)
+{
+    if (fileId.empty() && fileName.empty()) {
+        return false;
+    }
+    if (fileId.size() > MAX_VIRTUAL_FILE_ID_BYTES) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "virtual file skipped, fileId too long:%{public}zu",
+            fileId.size());
+        return false;
+    }
+    if (fileName.size() > MAX_VIRTUAL_FILE_NAME_BYTES) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "virtual file skipped, fileName too long:%{public}zu",
+            fileName.size());
+        return false;
+    }
+    if (HasPathSeparator(fileId) || HasPathSeparator(fileName)) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "virtual file skipped, path separator detected");
+        return false;
+    }
+    return true;
+}
+
+class TaiheFuseGetter final : public PasteboardFuseGetterClient {
+public:
+    explicit TaiheFuseGetter(PasteboardTaihe::weak::VirtualFileProvider provider)
+        : PasteboardFuseGetterClient({}), provider_(provider)
+    {
+    }
+    ~TaiheFuseGetter() override = default;
+    TaiheFuseGetter(const TaiheFuseGetter &) = delete;
+    TaiheFuseGetter &operator=(const TaiheFuseGetter &) = delete;
+
+    int32_t OnRead(uint32_t recordId, const std::string &id, int64_t offset, int32_t length,
+        std::vector<uint8_t> &data) override
+    {
+        struct ReadResult {
+            taihe::array<uint8_t> data;
+            bool done = false;
+            std::mutex mtx;
+            std::condition_variable cv;
+        };
+        auto result = std::make_shared<ReadResult>();
+        auto provider = provider_;
+        std::thread([provider, result, recordId, id, offset, length]() {
+            result->data = provider->OnRead(recordId, taihe::string(id), offset, length);
+            {
+                std::lock_guard<std::mutex> lock(result->mtx);
+                result->done = true;
+            }
+            result->cv.notify_one();
+        }).detach();
+        {
+            std::unique_lock<std::mutex> lock(result->mtx);
+            result->cv.wait_for(lock, std::chrono::seconds(TAIHE_CALLBACK_TIMEOUT_S),
+                [&result]() { return result->done; });
+        }
+        if (!result->done) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "OnRead callback timeout, id:%{public}s", id.c_str());
+            return OHOS::ERR_INVALID_VALUE;
+        }
+        data.assign(result->data.begin(), result->data.end());
+        return OHOS::ERR_OK;
+    }
+
+    int32_t OnStat(uint32_t recordId, const std::string &id, FuseFileStat &stat) override
+    {
+        struct StatResult {
+            PasteboardTaihe::VirtualFileInfo info;
+            bool done = false;
+            std::mutex mtx;
+            std::condition_variable cv;
+        };
+        auto result = std::make_shared<StatResult>();
+        auto provider = provider_;
+        std::thread([provider, result, recordId, id]() {
+            result->info = provider->OnStat(recordId, taihe::string(id));
+            {
+                std::lock_guard<std::mutex> lock(result->mtx);
+                result->done = true;
+            }
+            result->cv.notify_one();
+        }).detach();
+        {
+            std::unique_lock<std::mutex> lock(result->mtx);
+            result->cv.wait_for(lock, std::chrono::seconds(TAIHE_CALLBACK_TIMEOUT_S),
+                [&result]() { return result->done; });
+        }
+        if (!result->done) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "OnStat callback timeout, id:%{public}s", id.c_str());
+            return OHOS::ERR_INVALID_VALUE;
+        }
+        stat.id = std::string(result->info.id);
+        stat.name = std::string(result->info.name);
+        stat.size = result->info.size;
+        stat.modifyTime = result->info.modifyTime;
+        stat.type = result->info.fileType;
+        return OHOS::ERR_OK;
+    }
+
+    int32_t OnCancel(uint32_t recordId, const std::vector<std::string> &idList) override
+    {
+        std::vector<taihe::string> idVec;
+        for (const auto &item : idList) {
+            idVec.push_back(taihe::string(item));
+        }
+        provider_->OnCancel(recordId, taihe::array<taihe::string>(idVec));
+        return OHOS::ERR_OK;
+    }
+
+private:
+    PasteboardTaihe::weak::VirtualFileProvider provider_;
+};
+
+static std::shared_ptr<PasteData> BuildVirtualFilePasteData(
+    taihe::array_view<PasteboardTaihe::VirtualFileInfo> fileInfos,
+    PasteboardTaihe::weak::VirtualFileProvider provider,
+    std::map<uint32_t, OHOS::sptr<IPasteboardFuseGetter>> &fuseGetters)
+{
+    auto pasteData = std::make_shared<PasteData>();
+    auto taiheGetter = OHOS::sptr<TaiheFuseGetter>::MakeSptr(provider);
+    size_t validCount = 0;
+    for (const auto &fileInfo : fileInfos) {
+        if (validCount >= MAX_VIRTUAL_FILE_COUNT) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "virtual file count exceeds limit:%{public}zu",
+                MAX_VIRTUAL_FILE_COUNT);
+            break;
+        }
+        std::string fileId = std::string(fileInfo.id);
+        std::string fileName = std::string(fileInfo.name);
+        if (!ValidateVirtualFileEntry(fileId, fileName)) {
+            continue;
+        }
+        auto obj = std::make_shared<OHOS::UDMF::Object>();
+        obj->value_["id"] = fileId;
+        obj->value_["name"] = fileName;
+        obj->value_["size"] = fileInfo.size;
+        obj->value_["modifyTime"] = fileInfo.modifyTime;
+        obj->value_["type"] = fileInfo.fileType;
+
+        auto entry = std::make_shared<PasteDataEntry>();
+        entry->SetUtdId(VIRTUAL_FILE_UTD);
+        entry->SetMimeType(VIRTUAL_FILE_MIMETYPE);
+        entry->SetValue(obj);
+
+        PasteDataRecord::Builder builder(VIRTUAL_FILE_MIMETYPE);
+        auto record = builder.Build();
+        record->AddEntry(VIRTUAL_FILE_UTD, entry);
+        pasteData->AddRecord(record);
+        fuseGetters[record->GetRecordId()] = taiheGetter;
+        validCount++;
+    }
+    if (validCount == 0) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "no valid virtual file entries");
+        return nullptr;
+    }
+    return pasteData;
+}
+
 class SystemPasteboardImpl {
 public:
     SystemPasteboardImpl() {}
@@ -1147,6 +1322,51 @@ public:
         dataImpl->SetPasteData(pasteData);
         dataImpl = nullptr;
         return data;
+    }
+
+    void SetVirtualFileDataImpl(taihe::array_view<PasteboardTaihe::VirtualFileInfo> fileInfos,
+        PasteboardTaihe::weak::VirtualFileProvider provider)
+    {
+        std::map<uint32_t, OHOS::sptr<IPasteboardFuseGetter>> fuseGetters;
+        auto pasteData = BuildVirtualFilePasteData(fileInfos, provider, fuseGetters);
+        if (pasteData == nullptr) {
+            return;
+        }
+        int32_t ret = PasteboardClient::GetInstance()->SetPasteData(*pasteData, nullptr, {}, fuseGetters);
+        if (ret == static_cast<int>(PasteboardError::TASK_PROCESSING)) {
+            taihe::set_business_error(ret, "Another copy or paste operation is in progress.");
+        } else if (ret == static_cast<int>(PasteboardError::PROHIBIT_COPY)) {
+            taihe::set_business_error(ret, "Replication is prohibited.");
+        }
+    }
+
+    void SetVirtualFileDataSync(taihe::array_view<PasteboardTaihe::VirtualFileInfo> fileInfos,
+        PasteboardTaihe::weak::VirtualFileProvider provider)
+    {
+        std::map<uint32_t, OHOS::sptr<IPasteboardFuseGetter>> fuseGetters;
+        auto pasteData = BuildVirtualFilePasteData(fileInfos, provider, fuseGetters);
+        if (pasteData == nullptr) {
+            return;
+        }
+        auto block = std::make_shared<OHOS::BlockObject<std::shared_ptr<int32_t>>>(SYNC_TIMEOUT);
+        std::thread thread([block, pasteData, fuseGetters]() {
+            int32_t ret = PasteboardClient::GetInstance()->SetPasteData(*pasteData, nullptr, {}, fuseGetters);
+            auto ptr = std::make_shared<int32_t>(ret);
+            block->SetValue(ptr);
+        });
+        PasteBoardCommonUtils::SetThreadTaskName(thread, "TSetVirtualFileDataSync");
+        thread.detach();
+        std::shared_ptr<int32_t> value = block->GetValue();
+        if (value == nullptr) {
+            taihe::set_business_error(static_cast<int>(JSErrorCode::REQUEST_TIME_OUT), "Request timed out.");
+            return;
+        }
+        int32_t ret = *value;
+        if (ret == static_cast<int>(PasteboardError::TASK_PROCESSING)) {
+            taihe::set_business_error(ret, "Another copy or paste operation is in progress.");
+        } else if (ret == static_cast<int>(PasteboardError::PROHIBIT_COPY)) {
+            taihe::set_business_error(ret, "Replication is prohibited.");
+        }
     }
 
 private:

@@ -479,7 +479,8 @@ bool CommonUtils::IsFileUri(const std::string &utdId)
            utdId == UDMF::UtdUtils::GetUtdIdFromUtdEnum(UDType::AUDIO) ||
            utdId == UDMF::UtdUtils::GetUtdIdFromUtdEnum(UDType::IMAGE) ||
            utdId == UDMF::UtdUtils::GetUtdIdFromUtdEnum(UDType::FOLDER) ||
-           utdId == UDMF::UtdUtils::GetUtdIdFromUtdEnum(UDType::VIDEO);
+           utdId == UDMF::UtdUtils::GetUtdIdFromUtdEnum(UDType::VIDEO) ||
+           utdId == "general.virtual-file";
 } // LCOV_EXCL_STOP
 } // namespace MiscServices
 } // namespace OHOS

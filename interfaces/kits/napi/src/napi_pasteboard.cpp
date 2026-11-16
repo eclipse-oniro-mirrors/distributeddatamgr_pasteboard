@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,11 +16,793 @@
 #include "napi_pasteboard_common.h"
 #include "pasteboard_hilog.h"
 #include "pasteboard_napi.h"
+#include "pasteboard_fuse_getter_client.h"
+#include "paste_data_record.h"
+#include "uri.h"
+#include <atomic>
+#include <chrono>
+#include <cmath>
+#include <condition_variable>
+#include <limits>
+#include <memory>
+#include <mutex>
 using namespace OHOS::MiscServices;
 using namespace OHOS::Media;
 
 namespace OHOS {
 namespace MiscServicesNapi {
+
+constexpr size_t MAX_VIRTUAL_FILE_ID_BYTES = 1024;
+constexpr size_t MAX_VIRTUAL_FILE_NAME_BYTES = 255;
+constexpr size_t MAX_CONCURRENT_FUSE_READS = 8;
+constexpr size_t READ_ARG_COUNT = 3;
+constexpr size_t PROMISE_HANDLER_COUNT = 2;
+
+static bool IsValidFileId(const std::string &id)
+{
+    return !id.empty() && id.size() <= MAX_VIRTUAL_FILE_ID_BYTES && id.find('\0') == std::string::npos;
+}
+
+static bool IsValidFileName(const std::string &name)
+{
+    return !name.empty() && name.size() <= MAX_VIRTUAL_FILE_NAME_BYTES && name != "." && name != ".." &&
+           name.find_first_of("/\\") == std::string::npos && name.find('\0') == std::string::npos;
+}
+
+static bool ParseVirtualFileSize(napi_env env, napi_value value, int64_t &size)
+{
+    napi_valuetype vt = napi_undefined;
+    napi_typeof(env, value, &vt);
+    if (vt == napi_undefined) {
+        size = 0;
+        return true;
+    }
+    double number = 0;
+    const double upperBound = -static_cast<double>(std::numeric_limits<int64_t>::min());
+    if (napi_get_value_double(env, value, &number) != napi_ok || !std::isfinite(number) || number < 0 ||
+        number >= upperBound || std::trunc(number) != number) {
+        return false;
+    }
+    size = static_cast<int64_t>(number);
+    return true;
+}
+
+struct FuseReadContext {
+    std::string id;
+    int64_t offset;
+    int32_t length;
+    std::vector<uint8_t> data;
+    int32_t result = ERR_INVALID_VALUE;
+    std::mutex mtx;
+    std::condition_variable cv;
+    bool done = false;
+};
+
+struct FuseStatContext {
+    std::string id;
+    FuseFileStat stat;
+    int32_t result = ERR_INVALID_VALUE;
+    std::mutex mtx;
+    std::condition_variable cv;
+    bool done = false;
+};
+
+struct FuseCancelContext {
+    std::vector<std::string> idList;
+};
+
+enum class FuseOperation { READ, STAT, CANCEL };
+
+struct FuseCallData {
+    FuseOperation op;
+    std::weak_ptr<FuseReadContext> readCtx;
+    std::weak_ptr<FuseStatContext> statCtx;
+    FuseCancelContext *cancelCtx = nullptr;
+};
+
+struct FuseTsfnContext {
+    napi_env env = nullptr;
+    napi_ref onRead = nullptr;
+    napi_ref onStat = nullptr;
+    napi_ref onCancel = nullptr;
+};
+
+static std::atomic<size_t> g_activeFuseReads{0};
+
+class FuseReadSlotGuard final {
+public:
+    FuseReadSlotGuard() = default;
+    ~FuseReadSlotGuard()
+    {
+        g_activeFuseReads.fetch_sub(1, std::memory_order_release);
+    }
+    static bool TryAcquire()
+    {
+        size_t current = g_activeFuseReads.load(std::memory_order_acquire);
+        while (current < MAX_CONCURRENT_FUSE_READS) {
+            if (g_activeFuseReads.compare_exchange_weak(current, current + 1, std::memory_order_acq_rel)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    FuseReadSlotGuard(const FuseReadSlotGuard &) = delete;
+    FuseReadSlotGuard &operator=(const FuseReadSlotGuard &) = delete;
+};
+
+static void FuseTsfnFinalizer(napi_env env, void *finalizeData, void *finalizeHint)
+{
+    (void)env;
+    (void)finalizeHint;
+    auto *ctx = static_cast<FuseTsfnContext *>(finalizeData);
+    if (ctx != nullptr) {
+        if (ctx->onRead != nullptr) {
+            napi_delete_reference(env, ctx->onRead);
+        }
+        if (ctx->onStat != nullptr) {
+            napi_delete_reference(env, ctx->onStat);
+        }
+        if (ctx->onCancel != nullptr) {
+            napi_delete_reference(env, ctx->onCancel);
+        }
+        delete ctx;
+    }
+}
+
+class NapiFuseGetter final : public PasteboardFuseGetterClient {
+public:
+    NapiFuseGetter(napi_env env, napi_ref onRead, napi_ref onStat, napi_ref onCancel)
+        : PasteboardFuseGetterClient({}), env_(env)
+    {
+        auto *tsfnCtx = new FuseTsfnContext{env, onRead, onStat, onCancel};
+        napi_value name = nullptr;
+        napi_create_string_utf8(env, "PasteboardFuseGetter", NAPI_AUTO_LENGTH, &name);
+        napi_status status = napi_create_threadsafe_function(env, nullptr, nullptr, name, 0, 1, tsfnCtx,
+            FuseTsfnFinalizer, tsfnCtx, CallJs, &tsfn_);
+        if (status != napi_ok) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "create threadsafe function failed");
+            delete tsfnCtx;
+            tsfn_ = nullptr;
+        }
+    }
+    ~NapiFuseGetter()
+    {
+        if (tsfn_ != nullptr) {
+            napi_release_threadsafe_function(tsfn_, napi_tsfn_abort);
+            tsfn_ = nullptr;
+        }
+    }
+    NapiFuseGetter(const NapiFuseGetter &) = delete;
+    NapiFuseGetter &operator=(const NapiFuseGetter &) = delete;
+    NapiFuseGetter(NapiFuseGetter &&) = delete;
+    NapiFuseGetter &operator=(NapiFuseGetter &&) = delete;
+
+    int32_t OnRead(uint32_t recordId, const std::string &id, int64_t offset, int32_t length,
+        std::vector<uint8_t> &data) override
+    {
+        (void)recordId;
+        if (tsfn_ == nullptr) {
+            return ERR_INVALID_VALUE;
+        }
+        if (!FuseReadSlotGuard::TryAcquire()) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "OnRead concurrency limit reached");
+            return ERR_INVALID_VALUE;
+        }
+        FuseReadSlotGuard slotGuard;
+        auto ctx = std::make_shared<FuseReadContext>();
+        ctx->id = id;
+        ctx->offset = offset;
+        ctx->length = length;
+        auto *callData = new FuseCallData{FuseOperation::READ, std::weak_ptr<FuseReadContext>(ctx), {}, nullptr};
+        napi_status status = napi_acquire_threadsafe_function(tsfn_);
+        if (status != napi_ok) {
+            delete callData;
+            return ERR_INVALID_VALUE;
+        }
+        status = napi_call_threadsafe_function(tsfn_, callData, napi_tsfn_blocking);
+        napi_release_threadsafe_function(tsfn_, napi_tsfn_release);
+        if (status != napi_ok) {
+            delete callData;
+            return ERR_INVALID_VALUE;
+        }
+        {
+            std::unique_lock<std::mutex> lock(ctx->mtx);
+            ctx->cv.wait_for(lock, fuseCallbackTimeout, [&ctx]() { return ctx->done; });
+        }
+        if (!ctx->done) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "OnRead timeout, id:%{public}s", id.c_str());
+            return ERR_INVALID_VALUE;
+        }
+        data = std::move(ctx->data);
+        return ctx->result;
+    }
+    int32_t OnStat(uint32_t recordId, const std::string &id, FuseFileStat &stat) override
+    {
+        (void)recordId;
+        if (tsfn_ == nullptr) {
+            return ERR_INVALID_VALUE;
+        }
+        auto ctx = std::make_shared<FuseStatContext>();
+        ctx->id = id;
+        auto *callData = new FuseCallData{FuseOperation::STAT, {}, std::weak_ptr<FuseStatContext>(ctx), nullptr};
+        napi_status status = napi_acquire_threadsafe_function(tsfn_);
+        if (status != napi_ok) {
+            delete callData;
+            return ERR_INVALID_VALUE;
+        }
+        status = napi_call_threadsafe_function(tsfn_, callData, napi_tsfn_blocking);
+        napi_release_threadsafe_function(tsfn_, napi_tsfn_release);
+        if (status != napi_ok) {
+            delete callData;
+            return ERR_INVALID_VALUE;
+        }
+        {
+            std::unique_lock<std::mutex> lock(ctx->mtx);
+            ctx->cv.wait_for(lock, fuseCallbackTimeout, [&ctx]() { return ctx->done; });
+        }
+        if (!ctx->done) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "OnStat timeout, id:%{public}s", id.c_str());
+            return ERR_INVALID_VALUE;
+        }
+        stat = std::move(ctx->stat);
+        return ctx->result;
+    }
+    int32_t OnCancel(uint32_t recordId, const std::vector<std::string> &idList) override
+    {
+        (void)recordId;
+        if (tsfn_ == nullptr) {
+            return ERR_INVALID_VALUE;
+        }
+        auto *cancelCtx = new FuseCancelContext{idList};
+        auto *callData = new FuseCallData{FuseOperation::CANCEL, {}, {}, cancelCtx};
+        napi_status status = napi_acquire_threadsafe_function(tsfn_);
+        if (status != napi_ok) {
+            delete callData;
+            delete cancelCtx;
+            return ERR_INVALID_VALUE;
+        }
+        status = napi_call_threadsafe_function(tsfn_, callData, napi_tsfn_nonblocking);
+        napi_release_threadsafe_function(tsfn_, napi_tsfn_release);
+        if (status != napi_ok) {
+            delete callData;
+            delete cancelCtx;
+            return ERR_INVALID_VALUE;
+        }
+        return ERR_OK;
+    }
+private:
+    static constexpr auto fuseCallbackTimeout = std::chrono::seconds(5);
+
+    static bool SignalDone(FuseReadContext *ctx)
+    {
+        {
+            std::lock_guard<std::mutex> lock(ctx->mtx);
+            if (ctx->done) {
+                return false;
+            }
+            ctx->done = true;
+        }
+        ctx->cv.notify_one();
+        return true;
+    }
+
+    static bool SignalDone(FuseStatContext *ctx)
+    {
+        {
+            std::lock_guard<std::mutex> lock(ctx->mtx);
+            if (ctx->done) {
+                return false;
+            }
+            ctx->done = true;
+        }
+        ctx->cv.notify_one();
+        return true;
+    }
+
+    static napi_value GetCallback(napi_env env, napi_ref ref)
+    {
+        if (ref == nullptr) {
+            return nullptr;
+        }
+        napi_value cb = nullptr;
+        napi_get_reference_value(env, ref, &cb);
+        return cb;
+    }
+
+    static void CallJs(napi_env env, napi_value jsCallback, void *context, void *data)
+    {
+        (void)jsCallback;
+        auto *tsfnCtx = static_cast<FuseTsfnContext *>(context);
+        auto *callData = static_cast<FuseCallData *>(data);
+        if (callData == nullptr) {
+            return;
+        }
+        auto callDataGuard = std::unique_ptr<FuseCallData>(callData);
+        if (env == nullptr || tsfnCtx == nullptr) {
+            HandleTeardown(callData);
+            return;
+        }
+        switch (callData->op) {
+            case FuseOperation::READ:
+                CallJsOnRead(env, tsfnCtx, callData);
+                break;
+            case FuseOperation::STAT:
+                CallJsOnStat(env, tsfnCtx, callData);
+                break;
+            case FuseOperation::CANCEL:
+                CallJsOnCancel(env, tsfnCtx, callData);
+                break;
+        }
+    }
+
+    static void HandleTeardown(FuseCallData *callData)
+    {
+        if (callData->op == FuseOperation::READ) {
+            auto readCtx = callData->readCtx.lock();
+            if (readCtx != nullptr) {
+                SignalDone(readCtx.get());
+            }
+        } else if (callData->op == FuseOperation::STAT) {
+            auto statCtx = callData->statCtx.lock();
+            if (statCtx != nullptr) {
+                SignalDone(statCtx.get());
+            }
+        } else if (callData->op == FuseOperation::CANCEL) {
+            delete callData->cancelCtx;
+            callData->cancelCtx = nullptr;
+        }
+    }
+
+    static void CallJsOnRead(napi_env env, FuseTsfnContext *tsfnCtx, FuseCallData *callData)
+    {
+        auto ctx = callData->readCtx.lock();
+        if (ctx == nullptr) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "CallJsOnRead: caller already timed out");
+            return;
+        }
+        napi_value onRead = GetCallback(env, tsfnCtx->onRead);
+        if (onRead == nullptr) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "CallJsOnRead: onRead callback null");
+            SignalDone(ctx.get());
+            return;
+        }
+        napi_value args[3] = { nullptr };
+        napi_create_string_utf8(env, ctx->id.c_str(), NAPI_AUTO_LENGTH, &args[0]);
+        napi_create_bigint_int64(env, ctx->offset, &args[1]);
+        napi_create_int32(env, ctx->length, &args[READ_ARG_COUNT - 1]);
+        napi_value jsResult = nullptr;
+        napi_status status = napi_call_function(env, nullptr, onRead, 3, args, &jsResult);
+        if (status != napi_ok || jsResult == nullptr) {
+            SignalDone(ctx.get());
+            return;
+        }
+        bool isPromise = false;
+        napi_is_promise(env, jsResult, &isPromise);
+        if (isPromise) {
+            AttachPromiseHandlers(env, jsResult, ctx);
+            return;
+        }
+        CompleteRead(env, jsResult, ctx.get());
+    }
+
+    static void CallJsOnStat(napi_env env, FuseTsfnContext *tsfnCtx, FuseCallData *callData)
+    {
+        auto ctx = callData->statCtx.lock();
+        if (ctx == nullptr) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "CallJsOnStat: caller already timed out");
+            return;
+        }
+        napi_value onStat = GetCallback(env, tsfnCtx->onStat);
+        if (onStat == nullptr) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "CallJsOnStat: onStat callback null");
+            SignalDone(ctx.get());
+            return;
+        }
+        napi_value arg = nullptr;
+        napi_create_string_utf8(env, ctx->id.c_str(), NAPI_AUTO_LENGTH, &arg);
+        napi_value jsResult = nullptr;
+        napi_status status = napi_call_function(env, nullptr, onStat, 1, &arg, &jsResult);
+        if (status != napi_ok || jsResult == nullptr) {
+            SignalDone(ctx.get());
+            return;
+        }
+        bool isPromise = false;
+        napi_is_promise(env, jsResult, &isPromise);
+        if (isPromise) {
+            AttachPromiseHandlers(env, jsResult, ctx);
+            return;
+        }
+        CompleteStat(env, jsResult, ctx.get());
+    }
+
+    static void CallJsOnCancel(napi_env env, FuseTsfnContext *tsfnCtx, FuseCallData *callData)
+    {
+        auto *cancelCtx = callData->cancelCtx;
+        if (cancelCtx == nullptr) {
+            return;
+        }
+        napi_value onCancel = GetCallback(env, tsfnCtx->onCancel);
+        if (onCancel == nullptr) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "CallJsOnCancel: onCancel callback null");
+            delete cancelCtx;
+            callData->cancelCtx = nullptr;
+            return;
+        }
+        napi_value jsIdList = nullptr;
+        napi_create_array_with_length(env, cancelCtx->idList.size(), &jsIdList);
+        for (size_t i = 0; i < cancelCtx->idList.size(); i++) {
+            napi_value elem = nullptr;
+            napi_create_string_utf8(env, cancelCtx->idList[i].c_str(), NAPI_AUTO_LENGTH, &elem);
+            napi_set_element(env, jsIdList, i, elem);
+        }
+        napi_value promise = nullptr;
+        napi_call_function(env, nullptr, onCancel, 1, &jsIdList, &promise);
+        delete cancelCtx;
+        callData->cancelCtx = nullptr;
+    }
+
+    static void CompleteRead(napi_env env, napi_value value, FuseReadContext *ctx)
+    {
+        napi_typedarray_type type = napi_int8_array;
+        size_t length = 0;
+        void *bytes = nullptr;
+        napi_value buffer = nullptr;
+        size_t offset = 0;
+        napi_status status = napi_get_typedarray_info(env, value, &type, &length, &bytes, &buffer, &offset);
+        if (status == napi_ok && type == napi_uint8_array) {
+            size_t maxLen = static_cast<size_t>(ctx->length);
+            size_t copyLen = std::min(length, maxLen);
+            if (copyLen > 0 && bytes != nullptr) {
+                auto *begin = reinterpret_cast<uint8_t *>(bytes) + offset;
+                ctx->data.assign(begin, begin + copyLen);
+            }
+            ctx->result = ERR_OK;
+        } else {
+            bool isArrayBuffer = false;
+            napi_is_arraybuffer(env, value, &isArrayBuffer);
+            if (isArrayBuffer) {
+                void *bufData = nullptr;
+                size_t bufLen = 0;
+                napi_get_arraybuffer_info(env, value, &bufData, &bufLen);
+                size_t maxLen = static_cast<size_t>(ctx->length);
+                size_t copyLen = std::min(bufLen, maxLen);
+                if (copyLen > 0 && bufData != nullptr) {
+                    ctx->data.assign(reinterpret_cast<uint8_t *>(bufData),
+                                     reinterpret_cast<uint8_t *>(bufData) + copyLen);
+                }
+                ctx->result = ERR_OK;
+            }
+        }
+        SignalDone(ctx);
+    }
+
+    static void CompleteStat(napi_env env, napi_value jsResult, FuseStatContext *ctx)
+    {
+        napi_value jsId = nullptr;
+        napi_value jsName = nullptr;
+        napi_value jsSize = nullptr;
+        napi_value jsModifyTime = nullptr;
+        napi_value jsType = nullptr;
+        napi_get_named_property(env, jsResult, "id", &jsId);
+        napi_get_named_property(env, jsResult, "name", &jsName);
+        napi_get_named_property(env, jsResult, "size", &jsSize);
+        napi_get_named_property(env, jsResult, "modifyTime", &jsModifyTime);
+        napi_get_named_property(env, jsResult, "type", &jsType);
+        if (jsId != nullptr) {
+            size_t len = 0;
+            napi_get_value_string_utf8(env, jsId, nullptr, 0, &len);
+            ctx->stat.id.resize(len);
+            napi_get_value_string_utf8(env, jsId, ctx->stat.id.data(), len + 1, &len);
+        }
+        if (jsName != nullptr) {
+            size_t len = 0;
+            napi_get_value_string_utf8(env, jsName, nullptr, 0, &len);
+            ctx->stat.name.resize(len);
+            napi_get_value_string_utf8(env, jsName, ctx->stat.name.data(), len + 1, &len);
+        }
+        if (jsSize != nullptr) {
+            int64_t size = 0;
+            if (ParseVirtualFileSize(env, jsSize, size)) {
+                ctx->stat.size = size;
+            }
+        }
+        if (jsModifyTime != nullptr) {
+            napi_get_value_int64(env, jsModifyTime, &ctx->stat.modifyTime);
+        }
+        if (jsType != nullptr) {
+            napi_valuetype vt;
+            napi_typeof(env, jsType, &vt);
+            if (vt == napi_string) {
+                size_t len = 0;
+                constexpr size_t typeStrLen = 8;
+                char typeStr[typeStrLen] = {0};
+                napi_get_value_string_utf8(env, jsType, typeStr, typeStrLen - 1, &len);
+                ctx->stat.type = (strcmp(typeStr, "dir") == 0) ? 1 : 0;
+            }
+        }
+        ctx->result = ERR_OK;
+        SignalDone(ctx);
+    }
+
+    struct PromiseToken {
+        std::shared_ptr<FuseReadContext> readCtx;
+        std::shared_ptr<FuseStatContext> statCtx;
+        bool isRead = false;
+    };
+
+    static void PromiseTokenFinalizer(napi_env env, void *data, void *hint)
+    {
+        (void)env;
+        (void)hint;
+        auto *token = static_cast<PromiseToken *>(data);
+        delete token;
+    }
+
+    static void AttachPromiseHandlers(napi_env env, napi_value promise, std::shared_ptr<FuseReadContext> ctx)
+    {
+        auto *token = new PromiseToken{ctx, nullptr, true};
+        napi_value thenFunc = nullptr;
+        napi_create_function(env, "onFulfilled", NAPI_AUTO_LENGTH, OnReadPromiseResolved, token, &thenFunc);
+        napi_add_finalizer(env, thenFunc, token, PromiseTokenFinalizer, nullptr, nullptr);
+        napi_value catchFunc = nullptr;
+        napi_create_function(env, "onRejected", NAPI_AUTO_LENGTH, OnPromiseRejected, token, &catchFunc);
+        napi_value thenValue = nullptr;
+        napi_get_named_property(env, promise, "then", &thenValue);
+        napi_value handlers[] = { thenFunc, catchFunc };
+        napi_call_function(env, promise, thenValue, PROMISE_HANDLER_COUNT, handlers, nullptr);
+    }
+
+    static void AttachPromiseHandlers(napi_env env, napi_value promise, std::shared_ptr<FuseStatContext> ctx)
+    {
+        auto *token = new PromiseToken{nullptr, ctx, false};
+        napi_value thenFunc = nullptr;
+        napi_create_function(env, "onFulfilled", NAPI_AUTO_LENGTH, OnStatPromiseResolved, token, &thenFunc);
+        napi_add_finalizer(env, thenFunc, token, PromiseTokenFinalizer, nullptr, nullptr);
+        napi_value catchFunc = nullptr;
+        napi_create_function(env, "onRejected", NAPI_AUTO_LENGTH, OnPromiseRejected, token, &catchFunc);
+        napi_value thenValue = nullptr;
+        napi_get_named_property(env, promise, "then", &thenValue);
+        napi_value handlers[] = { thenFunc, catchFunc };
+        napi_call_function(env, promise, thenValue, PROMISE_HANDLER_COUNT, handlers, nullptr);
+    }
+
+    static napi_value OnReadPromiseResolved(napi_env env, napi_callback_info info)
+    {
+        size_t argc = 1;
+        napi_value argv[1] = { nullptr };
+        napi_value thisVar = nullptr;
+        void *data = nullptr;
+        napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
+        auto *token = static_cast<PromiseToken *>(data);
+        if (token == nullptr || token->readCtx == nullptr) {
+            return nullptr;
+        }
+        if (argv[0] != nullptr) {
+            CompleteRead(env, argv[0], token->readCtx.get());
+        } else {
+            SignalDone(token->readCtx.get());
+        }
+        return nullptr;
+    }
+
+    static napi_value OnStatPromiseResolved(napi_env env, napi_callback_info info)
+    {
+        size_t argc = 1;
+        napi_value argv[1] = { nullptr };
+        napi_value thisVar = nullptr;
+        void *data = nullptr;
+        napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
+        auto *token = static_cast<PromiseToken *>(data);
+        if (token == nullptr || token->statCtx == nullptr) {
+            return nullptr;
+        }
+        if (argv[0] != nullptr) {
+            CompleteStat(env, argv[0], token->statCtx.get());
+        } else {
+            SignalDone(token->statCtx.get());
+        }
+        return nullptr;
+    }
+
+    static napi_value OnPromiseRejected(napi_env env, napi_callback_info info)
+    {
+        size_t argc = 1;
+        napi_value argv[1] = { nullptr };
+        napi_value thisVar = nullptr;
+        void *data = nullptr;
+        napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
+        auto *token = static_cast<PromiseToken *>(data);
+        if (token == nullptr) {
+            return nullptr;
+        }
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "Fuse callback promise rejected");
+        if (token->isRead && token->readCtx != nullptr) {
+            SignalDone(token->readCtx.get());
+        } else if (!token->isRead && token->statCtx != nullptr) {
+            SignalDone(token->statCtx.get());
+        }
+        return nullptr;
+    }
+
+    napi_env env_ = nullptr;
+    napi_threadsafe_function tsfn_ = nullptr;
+};
+
+static bool IsVirtualFileInfo(napi_env env, napi_value value)
+{
+    napi_valuetype type = napi_undefined;
+    napi_typeof(env, value, &type);
+    if (type != napi_object) {
+        return false;
+    }
+    bool hasOnRead = false;
+    bool hasItemInfo = false;
+    napi_has_named_property(env, value, "onRead", &hasOnRead);
+    napi_has_named_property(env, value, "itemInfo", &hasItemInfo);
+    return hasOnRead && hasItemInfo;
+}
+
+struct VirtualFileItemInfo {
+    std::string fileId;
+    std::string fileName;
+    int64_t fileSize = 0;
+    double modifyTime = 0;
+    int32_t fileType = 0;
+};
+
+static std::string ReadStringProperty(napi_env env, napi_value obj, const char *name)
+{
+    napi_value prop = nullptr;
+    napi_get_named_property(env, obj, name, &prop);
+    if (prop == nullptr) {
+        return "";
+    }
+    size_t len = 0;
+    napi_get_value_string_utf8(env, prop, nullptr, 0, &len);
+    std::string value;
+    value.resize(len);
+    napi_get_value_string_utf8(env, prop, value.data(), len + 1, &len);
+    return value;
+}
+
+static void ReadDateProperty(napi_env env, napi_value obj, const char *name, double &value)
+{
+    napi_value prop = nullptr;
+    napi_get_named_property(env, obj, name, &prop);
+    if (prop == nullptr) {
+        return;
+    }
+    napi_valuetype vt;
+    napi_typeof(env, prop, &vt);
+    if (vt == napi_object) {
+        bool isDate = false;
+        napi_is_date(env, prop, &isDate);
+        if (isDate) {
+            napi_get_date_value(env, prop, &value);
+        }
+    }
+}
+
+static void ReadIntProperty(napi_env env, napi_value obj, const char *name, int32_t &value)
+{
+    napi_value prop = nullptr;
+    napi_get_named_property(env, obj, name, &prop);
+    if (prop == nullptr) {
+        return;
+    }
+    napi_valuetype vt;
+    napi_typeof(env, prop, &vt);
+    if (vt == napi_number) {
+        napi_get_value_int32(env, prop, &value);
+    }
+}
+
+static bool ParseItemInfo(napi_env env, napi_value itemInfo, VirtualFileItemInfo &info)
+{
+    info.fileId = ReadStringProperty(env, itemInfo, "id");
+    info.fileName = ReadStringProperty(env, itemInfo, "name");
+    if (!IsValidFileId(info.fileId)) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "fileId is invalid");
+        napi_throw_error(env, "401", "Parameter error: fileId is invalid");
+        return false;
+    }
+    if (!IsValidFileName(info.fileName)) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "fileName is invalid");
+        napi_throw_error(env, "401", "Parameter error: fileName is invalid");
+        return false;
+    }
+    napi_value jsSize = nullptr;
+    napi_get_named_property(env, itemInfo, "size", &jsSize);
+    if (jsSize != nullptr) {
+        if (!ParseVirtualFileSize(env, jsSize, info.fileSize)) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "fileSize is invalid");
+            napi_throw_error(env, "401", "Parameter error: fileSize is invalid");
+            return false;
+        }
+    }
+    ReadDateProperty(env, itemInfo, "modifyTime", info.modifyTime);
+    ReadIntProperty(env, itemInfo, "type", info.fileType);
+    return true;
+}
+
+static napi_value BuildVirtualFileResult(napi_env env, const std::string &mimeType,
+    const VirtualFileItemInfo &info, napi_ref onReadRef, napi_ref onStatRef, napi_ref onCancelRef)
+{
+    auto provider = sptr<NapiFuseGetter>::MakeSptr(env, onReadRef, onStatRef, onCancelRef);
+
+    auto obj = std::make_shared<UDMF::Object>();
+    obj->value_["id"] = info.fileId;
+    obj->value_["name"] = info.fileName;
+    obj->value_["size"] = info.fileSize;
+    obj->value_["modifyTime"] = static_cast<int64_t>(info.modifyTime);
+    obj->value_["type"] = info.fileType;
+
+    auto entry = std::make_shared<PasteDataEntry>();
+    entry->SetUtdId("general.virtual-file");
+    entry->SetMimeType(mimeType);
+    entry->SetValue(std::shared_ptr<UDMF::Object>(obj));
+
+    PasteDataRecord::Builder builder(mimeType);
+    auto record = builder.Build();
+    record->AddEntry("general.virtual-file", entry);
+
+    auto pasteData = std::make_shared<PasteData>();
+    pasteData->AddRecord(record);
+
+    std::map<uint32_t, sptr<IPasteboardFuseGetter>> providers;
+    providers[record->GetRecordId()] = provider;
+
+    napi_value result = nullptr;
+    napi_create_int32(env, 0, &result);
+    return result;
+}
+
+static napi_value CreateVirtualFileData(napi_env env, const std::string &mimeType, napi_value vfiValue)
+{
+    napi_value itemInfo = nullptr;
+    napi_get_named_property(env, vfiValue, "itemInfo", &itemInfo);
+    napi_value onRead = nullptr;
+    napi_value onStat = nullptr;
+    napi_value onCancel = nullptr;
+    napi_get_named_property(env, vfiValue, "onRead", &onRead);
+    napi_get_named_property(env, vfiValue, "onStat", &onStat);
+    napi_get_named_property(env, vfiValue, "onCancel", &onCancel);
+
+    napi_valuetype onReadType = napi_undefined;
+    napi_typeof(env, onRead, &onReadType);
+    if (onReadType != napi_function) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "onRead is required and must be a function");
+        napi_throw_error(env, "401", "Parameter error: onRead is required");
+        return nullptr;
+    }
+    napi_valuetype itemInfoType = napi_undefined;
+    napi_typeof(env, itemInfo, &itemInfoType);
+    if (itemInfoType != napi_object) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "itemInfo is required and must be an object");
+        napi_throw_error(env, "401", "Parameter error: itemInfo is required");
+        return nullptr;
+    }
+
+    VirtualFileItemInfo info;
+    if (!ParseItemInfo(env, itemInfo, info)) {
+        return nullptr;
+    }
+
+    napi_ref onReadRef = nullptr;
+    napi_ref onStatRef = nullptr;
+    napi_ref onCancelRef = nullptr;
+    napi_create_reference(env, onRead, 1, &onReadRef);
+    if (onStat != nullptr) {
+        napi_valuetype vt;
+        napi_typeof(env, onStat, &vt);
+        if (vt == napi_function) {
+            napi_create_reference(env, onStat, 1, &onStatRef);
+        }
+    }
+    napi_create_reference(env, onCancel, 1, &onCancelRef);
+
+    return BuildVirtualFileResult(env, mimeType, info, onReadRef, onStatRef, onCancelRef);
+}
 constexpr size_t MAX_ARGS = 6;
 constexpr size_t ARGC_TYPE_SET1 = 1;
 constexpr size_t ARGC_TYPE_SET2 = 2;
@@ -564,6 +1346,17 @@ napi_value PasteboardNapi::JSCreateData(napi_env env, napi_callback_info info)
     auto it = createDataMap_.find(mimeType);
     if (it != createDataMap_.end()) {
         return (it->second)(env, argv[1]);
+    }
+
+    if (IsVirtualFileInfo(env, argv[1])) {
+        if (mimeType != "text/uri") {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "VirtualFile data requires mimeType text/uri, got:%{public}s",
+                mimeType.c_str());
+            napi_throw_error(env, "401", "Parameter error: VirtualFile data requires mimeType 'text/uri'");
+            return nullptr;
+        }
+        PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "Creating VirtualFile data");
+        return CreateVirtualFileData(env, mimeType, argv[1]);
     }
 
     void *data = nullptr;

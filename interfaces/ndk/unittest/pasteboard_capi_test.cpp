@@ -2449,5 +2449,244 @@ HWTEST_F(PasteboardCapiTest, OH_Pasteboard_SetData_SetUdsdDataFailed, TestSize.L
     EXPECT_EQ(ret, ERR_INVALID_PARAMETER);
     OH_Pasteboard_Destroy(pasteboard);
 }
+
+static int VirtualFileReadCallback(void* context, uint32_t recordId, const char* fileId, int64_t offset,
+    int32_t length, uint8_t** data, uint32_t* dataLen)
+{
+    if (data == nullptr || dataLen == nullptr) {
+        return -1;
+    }
+    static uint8_t buf[] = "test data";
+    *data = buf;
+    *dataLen = sizeof(buf) - 1;
+    return 0;
+}
+
+static int VirtualFileStatCallback(void* context, uint32_t recordId, const char* fileId, int64_t* fileSize,
+    int64_t* modifyTime, int32_t* fileType)
+{
+    if (fileSize == nullptr || modifyTime == nullptr || fileType == nullptr) {
+        return -1;
+    }
+    constexpr int64_t testFileSize = 100;
+    constexpr int64_t testModifyTime = 1000;
+    *fileSize = testFileSize;
+    *modifyTime = testModifyTime;
+    *fileType = PASTEBOARD_VIRTUAL_FILE_TYPE_FILE;
+    return 0;
+}
+
+static void VirtualFileCancelCallback(void* context, uint32_t recordId, const char** fileIds, uint32_t count)
+{
+}
+
+static void VirtualFileFinalize(void* context)
+{
+}
+
+/**
+ * @tc.name: OH_PasteboardVirtualFileProvider_Create_001
+ * @tc.desc: create returns non-null, destroy returns ERR_OK
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PasteboardCapiTest, OH_PasteboardVirtualFileProvider_Create_001, TestSize.Level1)
+{
+    OH_PasteboardVirtualFileProvider* provider = OH_PasteboardVirtualFileProvider_Create();
+    ASSERT_NE(provider, nullptr);
+    int ret = OH_PasteboardVirtualFileProvider_Destroy(provider);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: OH_PasteboardVirtualFileProvider_Destroy_001
+ * @tc.desc: destroy with null or already destroyed returns ERR_INVALID_PARAMETER
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PasteboardCapiTest, OH_PasteboardVirtualFileProvider_Destroy_001, TestSize.Level1)
+{
+    int ret = OH_PasteboardVirtualFileProvider_Destroy(nullptr);
+    EXPECT_EQ(ret, ERR_INVALID_PARAMETER);
+
+    OH_PasteboardVirtualFileProvider* provider = OH_PasteboardVirtualFileProvider_Create();
+    ASSERT_NE(provider, nullptr);
+    ret = OH_PasteboardVirtualFileProvider_Destroy(provider);
+    EXPECT_EQ(ret, ERR_OK);
+    ret = OH_PasteboardVirtualFileProvider_Destroy(provider);
+    EXPECT_EQ(ret, ERR_INVALID_PARAMETER);
+}
+
+/**
+ * @tc.name: OH_PasteboardVirtualFileProvider_SetCallbacks_001
+ * @tc.desc: set valid callbacks returns ERR_OK; null provider or null onRead returns ERR_INVALID_PARAMETER
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PasteboardCapiTest, OH_PasteboardVirtualFileProvider_SetCallbacks_001, TestSize.Level1)
+{
+    OH_PasteboardVirtualFileProvider* provider = OH_PasteboardVirtualFileProvider_Create();
+    ASSERT_NE(provider, nullptr);
+
+    int ret = OH_PasteboardVirtualFileProvider_SetCallbacks(provider, nullptr, VirtualFileReadCallback,
+        VirtualFileStatCallback, VirtualFileCancelCallback, nullptr);
+    EXPECT_EQ(ret, ERR_OK);
+
+    ret = OH_PasteboardVirtualFileProvider_SetCallbacks(nullptr, nullptr, VirtualFileReadCallback,
+        VirtualFileStatCallback, VirtualFileCancelCallback, nullptr);
+    EXPECT_EQ(ret, ERR_INVALID_PARAMETER);
+
+    ret = OH_PasteboardVirtualFileProvider_SetCallbacks(provider, nullptr, nullptr,
+        VirtualFileStatCallback, VirtualFileCancelCallback, nullptr);
+    EXPECT_EQ(ret, ERR_INVALID_PARAMETER);
+
+    int ctxVal = 42;
+    ret = OH_PasteboardVirtualFileProvider_SetCallbacks(provider, &ctxVal, VirtualFileReadCallback,
+        VirtualFileStatCallback, VirtualFileCancelCallback, nullptr);
+    EXPECT_EQ(ret, ERR_INVALID_PARAMETER);
+
+    ret = OH_PasteboardVirtualFileProvider_SetCallbacks(provider, &ctxVal, VirtualFileReadCallback,
+        VirtualFileStatCallback, VirtualFileCancelCallback, VirtualFileFinalize);
+    EXPECT_EQ(ret, ERR_OK);
+
+    OH_PasteboardVirtualFileProvider_Destroy(provider);
+}
+
+/**
+ * @tc.name: OH_Pasteboard_SetVirtualFileData_Invalid_001
+ * @tc.desc: null pasteboard / null fileInfos / null provider returns ERR_INVALID_PARAMETER
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PasteboardCapiTest, OH_Pasteboard_SetVirtualFileData_Invalid_001, TestSize.Level1)
+{
+    OH_Pasteboard* pasteboard = OH_Pasteboard_Create();
+    ASSERT_NE(pasteboard, nullptr);
+
+    OH_PasteboardVirtualFileProvider* provider = OH_PasteboardVirtualFileProvider_Create();
+    ASSERT_NE(provider, nullptr);
+    OH_PasteboardVirtualFileProvider_SetCallbacks(provider, nullptr, VirtualFileReadCallback,
+        VirtualFileStatCallback, VirtualFileCancelCallback, nullptr);
+
+    Pasteboard_VirtualFileInfo info = {
+        .fileId = "test_file_id",
+        .fileName = "test.txt",
+        .fileSize = 100,
+        .modifyTime = 1000,
+        .fileType = PASTEBOARD_VIRTUAL_FILE_TYPE_FILE,
+    };
+
+    int ret = OH_Pasteboard_SetVirtualFileData(nullptr, &info, 1, provider);
+    EXPECT_EQ(ret, ERR_INVALID_PARAMETER);
+
+    ret = OH_Pasteboard_SetVirtualFileData(pasteboard, nullptr, 1, provider);
+    EXPECT_EQ(ret, ERR_INVALID_PARAMETER);
+
+    ret = OH_Pasteboard_SetVirtualFileData(pasteboard, &info, 0, provider);
+    EXPECT_EQ(ret, ERR_INVALID_PARAMETER);
+
+    ret = OH_Pasteboard_SetVirtualFileData(pasteboard, &info, 1, nullptr);
+    EXPECT_EQ(ret, ERR_INVALID_PARAMETER);
+
+    OH_PasteboardVirtualFileProvider* emptyProvider = OH_PasteboardVirtualFileProvider_Create();
+    ASSERT_NE(emptyProvider, nullptr);
+    ret = OH_Pasteboard_SetVirtualFileData(pasteboard, &info, 1, emptyProvider);
+    EXPECT_EQ(ret, ERR_INVALID_PARAMETER);
+    OH_PasteboardVirtualFileProvider_Destroy(emptyProvider);
+
+    Pasteboard_VirtualFileInfo invalidInfo = {
+        .fileId = nullptr,
+        .fileName = "test.txt",
+        .fileSize = 100,
+        .modifyTime = 1000,
+        .fileType = PASTEBOARD_VIRTUAL_FILE_TYPE_FILE,
+    };
+    ret = OH_Pasteboard_SetVirtualFileData(pasteboard, &invalidInfo, 1, provider);
+    EXPECT_EQ(ret, ERR_INVALID_PARAMETER);
+
+    Pasteboard_VirtualFileInfo invalidInfo2 = {
+        .fileId = "test_file_id",
+        .fileName = "",
+        .fileSize = 100,
+        .modifyTime = 1000,
+        .fileType = PASTEBOARD_VIRTUAL_FILE_TYPE_FILE,
+    };
+    ret = OH_Pasteboard_SetVirtualFileData(pasteboard, &invalidInfo2, 1, provider);
+    EXPECT_EQ(ret, ERR_INVALID_PARAMETER);
+
+    OH_PasteboardVirtualFileProvider_Destroy(provider);
+    OH_Pasteboard_Destroy(pasteboard);
+}
+
+/**
+ * @tc.name: OH_Pasteboard_SetVirtualFileData_001
+ * @tc.desc: build fileInfos with one file, set callbacks, call SetVirtualFileData
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PasteboardCapiTest, OH_Pasteboard_SetVirtualFileData_001, TestSize.Level1)
+{
+    OH_Pasteboard* pasteboard = OH_Pasteboard_Create();
+    ASSERT_NE(pasteboard, nullptr);
+
+    OH_PasteboardVirtualFileProvider* provider = OH_PasteboardVirtualFileProvider_Create();
+    ASSERT_NE(provider, nullptr);
+    OH_PasteboardVirtualFileProvider_SetCallbacks(provider, nullptr, VirtualFileReadCallback,
+        VirtualFileStatCallback, VirtualFileCancelCallback, nullptr);
+
+    Pasteboard_VirtualFileInfo info = {
+        .fileId = "vfile_001",
+        .fileName = "test.txt",
+        .fileSize = 100,
+        .modifyTime = 1000,
+        .fileType = PASTEBOARD_VIRTUAL_FILE_TYPE_FILE,
+    };
+
+    int ret = OH_Pasteboard_SetVirtualFileData(pasteboard, &info, 1, provider);
+    EXPECT_TRUE(ret == ERR_OK || ret == ERR_INNER_ERROR || ret == ERR_PERMISSION_ERROR);
+
+    OH_PasteboardVirtualFileProvider_Destroy(provider);
+    OH_Pasteboard_Destroy(pasteboard);
+}
+
+/**
+ * @tc.name: OH_Pasteboard_SetVirtualFileData_002
+ * @tc.desc: build fileInfos with multiple files, set callbacks, call SetVirtualFileData
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PasteboardCapiTest, OH_Pasteboard_SetVirtualFileData_002, TestSize.Level1)
+{
+    OH_Pasteboard* pasteboard = OH_Pasteboard_Create();
+    ASSERT_NE(pasteboard, nullptr);
+
+    OH_PasteboardVirtualFileProvider* provider = OH_PasteboardVirtualFileProvider_Create();
+    ASSERT_NE(provider, nullptr);
+    OH_PasteboardVirtualFileProvider_SetCallbacks(provider, nullptr, VirtualFileReadCallback,
+        VirtualFileStatCallback, VirtualFileCancelCallback, nullptr);
+
+    Pasteboard_VirtualFileInfo infos[] = {
+        {
+            .fileId = "vfile_001",
+            .fileName = "file1.txt",
+            .fileSize = 100,
+            .modifyTime = 1000,
+            .fileType = PASTEBOARD_VIRTUAL_FILE_TYPE_FILE,
+        },
+        {
+            .fileId = "vfile_002",
+            .fileName = "file2.txt",
+            .fileSize = 200,
+            .modifyTime = 2000,
+            .fileType = PASTEBOARD_VIRTUAL_FILE_TYPE_FILE,
+        },
+    };
+
+    int ret = OH_Pasteboard_SetVirtualFileData(pasteboard, infos, sizeof(infos) / sizeof(infos[0]), provider);
+    EXPECT_TRUE(ret == ERR_OK || ret == ERR_INNER_ERROR || ret == ERR_PERMISSION_ERROR);
+
+    OH_PasteboardVirtualFileProvider_Destroy(provider);
+    OH_Pasteboard_Destroy(pasteboard);
+}
 } // namespace Test
 } // namespace OHOS
