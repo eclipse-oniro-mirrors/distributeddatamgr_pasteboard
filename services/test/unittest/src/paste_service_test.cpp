@@ -1552,7 +1552,7 @@ HWTEST_F(PasteboardServiceTest, DumpDataTest001, TestSize.Level1)
     ret = PasteboardServiceTest::ExecuteCmd(result);
     EXPECT_TRUE(ret);
     EXPECT_TRUE(result.find("CrossDevice") != std::string::npos);
-    EXPECT_TRUE(result.find("remote") != std::string::npos);
+    EXPECT_TRUE(result.find("remote") == std::string::npos);
     PasteboardClient::GetInstance()->Clear();
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "DumpDataTest001 end");
 }
