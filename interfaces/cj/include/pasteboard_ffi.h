@@ -64,10 +64,12 @@ FFI_EXPORT int32_t FfiOHOSPasteDataAddArrayRecord(
     int64_t id, const char *mimeType, uint8_t *buffPtr, int64_t bufferSize);
 FFI_EXPORT RetDataCArrString FfiOHOSPasteDataGetMimeTypes(int64_t id);
 FFI_EXPORT RetDataI64 FfiOHOSPasteDataGetRecord(int64_t id, int32_t index, CPasteDataRecord *retPtr);
+FFI_EXPORT RetDataI64 FfiOHOSPasteDataGetRecordV2(int64_t id, int32_t index, CPasteDataRecord *retPtr);
 FFI_EXPORT RetDataUI FfiOHOSPasteDataGetRecordCount(int64_t id);
 FFI_EXPORT int32_t FfiOHOSPasteDataRemoveRecord(int64_t id, int32_t index);
 FFI_EXPORT int32_t FfiOHOSPasteDataReplaceRecord(int64_t id, int64_t recordId, int32_t index);
 FFI_EXPORT RetDataI64 FfiOHOSGetSystemPasteboard();
+FFI_EXPORT RetDataI64 FfiOHOSGetSystemPasteboardV2();
 FFI_EXPORT int32_t FfiOHOSSystemPasteboardSetData(int64_t id, int64_t pasteDataId);
 FFI_EXPORT RetDataI64 FfiOHOSSystemPasteboardGetData(int64_t id);
 FFI_EXPORT RetDataBool FfiOHOSSystemPasteboardHasData(int64_t id);
@@ -75,6 +77,11 @@ FFI_EXPORT void FfiOHOSSystemPasteboardClearData(int64_t id);
 FFI_EXPORT RetDataBool FfiOHOSSystemPasteboardIsRemoteData(int64_t id);
 FFI_EXPORT RetDataBool FfiOHOSSystemPasteboardHasDataType(int64_t id, const char *mimeType);
 FFI_EXPORT RetDataCString FfiOHOSSystemPasteboardGetDataSource(int64_t id);
+FFI_EXPORT int32_t FfiOHOSSystemPasteboardSetDataV2(int64_t id, int64_t pasteDataId);
+FFI_EXPORT RetDataI64 FfiOHOSSystemPasteboardGetDataV2(int64_t id);
+FFI_EXPORT RetDataBool FfiOHOSSystemPasteboardIsRemoteDataV2(int64_t id);
+FFI_EXPORT RetDataBool FfiOHOSSystemPasteboardHasDataTypeV2(int64_t id, const char *mimeType);
+FFI_EXPORT RetDataCString FfiOHOSSystemPasteboardGetDataSourceV2(int64_t id);
 
 constexpr int8_t STRING_VALUE_TYPE = 0;
 constexpr int8_t PIXELMAP_VALUE_TYPE = 1;
@@ -91,6 +98,12 @@ typedef struct {
     CPasteDataEntry *head;
     int64_t size;
 } CArrPasteDataEntry;
+
+FFI_EXPORT RetDataI64 FfiOHOSCreateMultiTypePasteData(const CArrPasteDataEntry *entries);
+FFI_EXPORT void FfiOHOSFreeCString(char *value);
+FFI_EXPORT void FfiOHOSFreeCArrString(CArrString *value);
+FFI_EXPORT void FfiOHOSFreePasteDataProperty(CPasteDataProperty *property);
+FFI_EXPORT void FfiOHOSFreePasteDataRecord(CPasteDataRecord *record);
 }
 
 #endif
