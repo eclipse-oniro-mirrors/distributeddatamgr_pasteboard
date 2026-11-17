@@ -947,6 +947,22 @@ int32_t PasteboardService::GetRecordValueByType(uint32_t dataId, uint32_t record
     return GetRecordValueByType(appInfo, dataId, recordId, value);
 }
 
+int32_t PasteboardService::FindRecordEntry(std::shared_ptr<PasteData> data, uint32_t recordId,
+    const std::string &utdId, std::shared_ptr<PasteDataRecord> &record,
+    std::shared_ptr<PasteDataEntry> &entry, bool &isRemoteData)
+{
+    std::shared_lock<std::shared_mutex> read(pasteDataMutex_);
+    record = data->GetRecordById(recordId);
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(record != nullptr, static_cast<int32_t>(PasteboardError::INVALID_RECORD_ID),
+        PASTEBOARD_MODULE_SERVICE, "recordId=%{public}u invalid, max=%{public}zu", recordId, data->GetRecordCount());
+
+    entry = record->GetEntry(utdId);
+    isRemoteData = data->IsRemote();
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(entry != nullptr, static_cast<int32_t>(PasteboardError::INVALID_MIMETYPE),
+        PASTEBOARD_MODULE_SERVICE, "entry is null, recordId=%{public}u, type=%{public}s", recordId, utdId.c_str());
+    return static_cast<int32_t>(PasteboardError::E_OK);
+}
+
 int32_t PasteboardService::GetRecordValueByType(const AppInfo &appInfo,
     uint32_t dataId, uint32_t recordId, PasteDataEntry &value)
 {
@@ -969,16 +985,13 @@ int32_t PasteboardService::GetRecordValueByType(const AppInfo &appInfo,
     if (IsBlockedBySecurityGuard(*data, tokenId)) {
         return static_cast<int32_t>(PasteboardError::PERMISSION_VERIFICATION_ERROR);
     }
-
-    auto record = data->GetRecordById(recordId);
-    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(record != nullptr, static_cast<int32_t>(PasteboardError::INVALID_RECORD_ID),
-        PASTEBOARD_MODULE_SERVICE, "recordId=%{public}u invalid, max=%{public}zu", recordId, data->GetRecordCount());
-
     std::string utdId = value.GetUtdId();
-    auto entry = record->GetEntry(utdId);
-    bool isRemoteData = data->IsRemote();
-    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(entry != nullptr, static_cast<int32_t>(PasteboardError::INVALID_MIMETYPE),
-        PASTEBOARD_MODULE_SERVICE, "entry is null, recordId=%{public}u, type=%{public}s", recordId, utdId.c_str());
+    std::shared_ptr<PasteDataRecord> record;
+    std::shared_ptr<PasteDataEntry> entry;
+    bool isRemoteData = false;
+    auto findRet = FindRecordEntry(data, recordId, utdId, record, entry, isRemoteData);
+    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(findRet == static_cast<int32_t>(PasteboardError::E_OK), findRet,
+        PASTEBOARD_MODULE_SERVICE, "find record entry failed");
 
     if (isRemoteData && !entry->HasContent(utdId)) {
         int32_t ret = GetRemoteEntryValue(appInfo, *data, *record, value);
@@ -1747,7 +1760,10 @@ int32_t PasteboardService::GetRemoteData(int32_t userId, const Event &event, Pas
             static_cast<int32_t>(PasteboardError::INVALID_EVENT_ERROR) : distRet;
         auto it = clips_.Find(userId);
         if (it.first) {
-            data = *it.second;
+            {
+                std::shared_lock<std::shared_mutex> read(pasteDataMutex_);
+                data = *it.second;
+            }
             ret = static_cast<int32_t>(PasteboardError::E_OK);
         }
         taskMgr_.ClearRemoteDataTask(event);
@@ -1911,7 +1927,11 @@ int32_t PasteboardService::GetDelayPasteRecord(int32_t userId, PasteData &data)
         static_cast<int32_t>(PasteboardError::NO_DELAY_GETTER), PASTEBOARD_MODULE_SERVICE,
         "entry getter not find, userId=%{public}d, dataId=%{public}u", userId, data.GetDataId());
 
-    auto delayEntryInfos = DelayManager::GetPrimaryDelayEntryInfo(data);
+    std::vector<DelayEntryInfo> delayEntryInfos;
+    {
+        std::shared_lock<std::shared_mutex> read(pasteDataMutex_);
+        delayEntryInfos = DelayManager::GetPrimaryDelayEntryInfo(data);
+    }
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGI(!delayEntryInfos.empty(), static_cast<int32_t>(PasteboardError::E_OK),
         PASTEBOARD_MODULE_SERVICE, "no delay entry");
     DelayManager::GetLocalEntryValue(delayEntryInfos, getter.first, data);
@@ -2295,6 +2315,7 @@ bool PasteboardService::HasPasteData()
 
 bool PasteboardService::HasRemoteUri(std::shared_ptr<PasteData> data)
 {
+    std::shared_lock<std::shared_mutex> read(pasteDataMutex_);
     for (const auto &record : data->AllRecords()) {
         if (record == nullptr) {
             continue;
@@ -2553,6 +2574,7 @@ int32_t PasteboardService::GetPasteDataInfo(PasteDataInfo &pasteDataInfo)
         return static_cast<int32_t>(PasteboardError::NO_DATA_ERROR);
     }
     auto &pasteData = *(it.second);
+    std::shared_lock<std::shared_mutex> read(pasteDataMutex_);
     auto ret = IsDataValid(pasteData, IPCSkeleton::GetCallingTokenID(), userId);
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(ret == static_cast<int32_t>(PasteboardError::E_OK), ret,
         PASTEBOARD_MODULE_SERVICE, "pasteData is invalid, ret is %{public}d", ret);
@@ -2659,6 +2681,7 @@ bool PasteboardService::HasUtdType(const std::string &utdType)
             userId, utdType.c_str());
         return false;
     }
+    std::shared_lock<std::shared_mutex> read(pasteDataMutex_);
     auto ret = IsDataValid(*(it.second), tokenId, appInfo.userId);
     if (ret != static_cast<int32_t>(PasteboardError::E_OK)) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE,
@@ -2702,7 +2725,10 @@ int32_t PasteboardService::DetectPatterns(const std::vector<Pattern> &patternsTo
     std::shared_ptr<PasteData> pasteData = it.second;
     const std::set<Pattern> patterns(patternsToCheck.begin(), patternsToCheck.end());
     std::set<Pattern> result = {};
-    result = OHOS::MiscServices::PatternDetection::Detect(patterns, *pasteData, hasHTML, hasPlain);
+    {
+        std::shared_lock<std::shared_mutex> read(pasteDataMutex_);
+        result = OHOS::MiscServices::PatternDetection::Detect(patterns, *pasteData, hasHTML, hasPlain);
+    }
     funcResult.assign(result.begin(), result.end());
     return ERR_OK;
 }
@@ -2811,6 +2837,7 @@ std::vector<std::string> PasteboardService::GetLocalMimeTypes()
         return {};
     }
     auto tokenId = IPCSkeleton::GetCallingTokenID();
+    std::shared_lock<std::shared_mutex> read(pasteDataMutex_);
     auto ret = IsDataValid(*(it.second), tokenId, userId);
     if (ret != static_cast<int32_t>(PasteboardError::E_OK)) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE,
@@ -2834,6 +2861,8 @@ bool PasteboardService::HasLocalDataType(const std::string &mimeType, uint32_t t
             userId, mimeType.c_str());
         return false;
     }
+    auto screenStatus = GetScreenStatus(userId);
+    std::shared_lock<std::shared_mutex> read(pasteDataMutex_);
     auto ret = IsDataValid(*(it.second), tokenId, userId);
     if (ret != static_cast<int32_t>(PasteboardError::E_OK)) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE,
@@ -2842,7 +2871,6 @@ bool PasteboardService::HasLocalDataType(const std::string &mimeType, uint32_t t
             tokenId, userId, mimeType.c_str(), ret);
         return false;
     }
-    auto screenStatus = GetScreenStatus(userId);
     if (it.second->GetScreenStatus() > screenStatus) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE,
             "current screen is %{public}d, set data screen is %{public}d."
@@ -3766,6 +3794,7 @@ std::string PasteboardService::DumpUserData(int32_t userId)
     if (!it.first || it.second == nullptr) {
         return "No copy data.\n";
     }
+    std::shared_lock<std::shared_mutex> read(pasteDataMutex_);
     size_t recordCounts = it.second->GetRecordCount();
     auto property = it.second->GetProperty();
     std::string shareOption;
@@ -4347,9 +4376,15 @@ int32_t PasteboardService::GetDistributedDelayEntry(const Event &evt, uint32_t r
         static_cast<int32_t>(PasteboardError::INVALID_DATA_ID), PASTEBOARD_MODULE_SERVICE,
         "dataId=%{public}u mismatch, local=%{public}u", evt.dataId, data->GetDataId());
 
-    auto record = data->GetRecordById(recordId);
-    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(record != nullptr, static_cast<int32_t>(PasteboardError::INVALID_RECORD_ID),
-        PASTEBOARD_MODULE_SERVICE, "recordId=%{public}u invalid, max=%{public}zu", recordId, data->GetRecordCount());
+    std::shared_ptr<PasteDataRecord> record;
+    {
+        std::shared_lock<std::shared_mutex> read(pasteDataMutex_);
+        record = data->GetRecordById(recordId);
+        PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(record != nullptr,
+            static_cast<int32_t>(PasteboardError::INVALID_RECORD_ID), PASTEBOARD_MODULE_SERVICE,
+            "recordId=%{public}u invalid, max=%{public}zu",
+            recordId, data->GetRecordCount());
+    }
 
     PasteDataEntry entry;
     entry.SetUtdId(utdId);
@@ -4524,16 +4559,19 @@ int32_t PasteboardService::GetLocalEntryValue(int32_t userId, PasteData &data, P
     PasteDataEntry &value)
 {
     std::string utdId = value.GetUtdId();
-    auto entry = record.GetEntry(utdId);
-    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(entry != nullptr, static_cast<int32_t>(PasteboardError::INVALID_MIMETYPE),
-        PASTEBOARD_MODULE_SERVICE, "entry is null, recordId=%{public}u, type=%{public}s", record.GetRecordId(),
-        utdId.c_str());
+    {
+        std::shared_lock<std::shared_mutex> read(pasteDataMutex_);
+        auto entry = record.GetEntry(utdId);
+        PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(entry != nullptr, static_cast<int32_t>(PasteboardError::INVALID_MIMETYPE),
+            PASTEBOARD_MODULE_SERVICE, "entry is null, recordId=%{public}u, type=%{public}s", record.GetRecordId(),
+            utdId.c_str());
 
-    std::string mimeType = entry->GetMimeType();
-    value.SetMimeType(mimeType);
-    if (entry->HasContent(utdId)) {
-        value.SetValue(entry->GetValue());
-        return static_cast<int32_t>(PasteboardError::E_OK);
+        std::string mimeType = entry->GetMimeType();
+        value.SetMimeType(mimeType);
+        if (entry->HasContent(utdId)) {
+            value.SetValue(entry->GetValue());
+            return static_cast<int32_t>(PasteboardError::E_OK);
+        }
     }
 
     auto [hasGetter, getter] = entryGetters_.Find(userId);
@@ -4731,7 +4769,11 @@ int32_t PasteboardService::GetFullDelayPasteData(int32_t userId, PasteData &data
         static_cast<int32_t>(PasteboardError::NO_DELAY_GETTER), PASTEBOARD_MODULE_SERVICE,
         "entry getter not find, userId=%{public}d, dataId=%{public}u", userId, data.GetDataId());
 
-    auto delayEntryInfos = DelayManager::GetAllDelayEntryInfo(data);
+    std::vector<DelayEntryInfo> delayEntryInfos;
+    {
+        std::shared_lock<std::shared_mutex> read(pasteDataMutex_);
+        delayEntryInfos = DelayManager::GetAllDelayEntryInfo(data);
+    }
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGI(!delayEntryInfos.empty(), static_cast<int32_t>(PasteboardError::E_OK),
         PASTEBOARD_MODULE_SERVICE, "no delay entry");
     DelayManager::GetLocalEntryValue(delayEntryInfos, getter.first, data);
@@ -4742,16 +4784,19 @@ int32_t PasteboardService::GetFullDelayPasteData(int32_t userId, PasteData &data
         PasteboardWebController::GetInstance().SetWebviewPasteData(data, bundleIndex);
         PasteboardWebController::GetInstance().CheckAppUriPermission(data);
     }
-    clips_.ComputeIfPresent(userId, [&data](auto, auto &value) {
-        if (data.GetDataId() != value->GetDataId()) {
-            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE,
-                "set data fail, data is out time, pre dataId is %{public}d, cur dataId is %{public}d",
-                data.GetDataId(), value->GetDataId());
+    {
+        std::shared_lock<std::shared_mutex> read(pasteDataMutex_);
+        clips_.ComputeIfPresent(userId, [&data](auto, auto &value) {
+            if (data.GetDataId() != value->GetDataId()) {
+                PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE,
+                    "set data fail, data is out time, pre dataId is %{public}d, cur dataId is %{public}d",
+                    data.GetDataId(), value->GetDataId());
+                return true;
+            }
+            value = std::make_shared<PasteData>(data);
             return true;
-        }
-        value = std::make_shared<PasteData>(data);
-        return true;
-    });
+        });
+    }
     return static_cast<int32_t>(PasteboardError::E_OK);
 }
 

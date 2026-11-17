@@ -477,6 +477,8 @@ private:
     int32_t GetRecordValueByType(uint32_t dataId, uint32_t recordId, PasteDataEntry &value);
     int32_t GetRecordValueByType(const AppInfo &appInfo, uint32_t dataId, uint32_t recordId,
         PasteDataEntry &value);
+    int32_t FindRecordEntry(std::shared_ptr<PasteData> data, uint32_t recordId, const std::string &utdId,
+        std::shared_ptr<PasteDataRecord> &record, std::shared_ptr<PasteDataEntry> &entry, bool &isRemoteData);
     int32_t GetRecordValueByTypeInner(const AppInfo &appInfo, uint32_t dataId,
         uint32_t recordId, int64_t &rawDataSize, std::vector<uint8_t> &buffer, int &fd);
     int32_t GetRecordValueByType(int64_t &rawDataSize, std::vector<uint8_t> &buffer, int &fd,
