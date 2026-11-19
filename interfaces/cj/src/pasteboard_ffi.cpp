@@ -17,6 +17,11 @@
 #include "pasteboard_hilog.h"
 #include "pasteboard_log.h"
 #include "system_pasteboard_impl.h"
+#include <thread>
+
+#include "common/block_object.h"
+#include "common/pasteboard_common_utils.h"
+#include "pasteboard_client.h"
 
 #ifndef CJ_EXPORT
 #ifndef __WINDOWS__
@@ -85,7 +90,7 @@ RetDataI64 FfiOHOSCreateArrayBufPasteData(const char *mimeType, uint8_t *buffPtr
     return ret;
 }
 
-char *PasteBoardMallocCString(const std::string &origin)
+static char *PasteBoardMallocCString(const std::string &origin)
 {
     auto len = origin.length() + 1;
     char *res = static_cast<char *>(malloc(sizeof(char) * len));
@@ -101,7 +106,51 @@ char *PasteBoardMallocCString(const std::string &origin)
     return res;
 }
 
-void FillCPasteDataRecord(CPasteDataRecord *retPtr, std::shared_ptr<PasteDataRecord> record)
+void FfiOHOSFreeCString(char *value)
+{
+    free(value);
+}
+
+void FfiOHOSFreeCArrString(CArrString *value)
+{
+    if (value == nullptr) {
+        return;
+    }
+    for (int64_t i = 0; i < value->size; i++) {
+        delete[] value->head[i];
+    }
+    delete[] value->head;
+    value->head = nullptr;
+    value->size = 0;
+}
+
+void FfiOHOSFreePasteDataProperty(CPasteDataProperty *property)
+{
+    if (property == nullptr) {
+        return;
+    }
+    FfiOHOSFreeCString(property->tag);
+    FfiOHOSFreeCArrString(&property->mimeTypes);
+    property->tag = nullptr;
+    property->mimeTypes = { .head = nullptr, .size = 0 };
+}
+
+void FfiOHOSFreePasteDataRecord(CPasteDataRecord *record)
+{
+    if (record == nullptr) {
+        return;
+    }
+    FfiOHOSFreeCString(record->htmlText);
+    FfiOHOSFreeCString(record->mimeType);
+    FfiOHOSFreeCString(record->plainText);
+    FfiOHOSFreeCString(record->uri);
+    record->htmlText = nullptr;
+    record->mimeType = nullptr;
+    record->plainText = nullptr;
+    record->uri = nullptr;
+}
+
+static void FillCPasteDataRecord(CPasteDataRecord *retPtr, const std::shared_ptr<PasteDataRecord> &record)
 {
     if (retPtr == nullptr || record == nullptr) {
         return;
@@ -462,7 +511,7 @@ int32_t FfiOHOSPasteDataGetProperty(int64_t id, CPasteDataProperty *retPtr)
     return SUCCESS_CODE;
 }
 
-static std::vector<std::string> CArrStringToVector(CArrString src)
+static std::vector<std::string> CArrStringToVector(const CArrString &src)
 {
     LOGI("CArrStringToVector start");
     std::vector<std::string> res;
@@ -745,6 +794,43 @@ RetDataI64 FfiOHOSPasteDataGetRecord(int64_t id, int32_t index, CPasteDataRecord
     return ret;
 }
 
+RetDataI64 FfiOHOSPasteDataGetRecordV2(int64_t id, int32_t index, CPasteDataRecord *retPtr)
+{
+    LOGI("[PasteData] FfiOHOSPasteDataGetRecordV2 start");
+    RetDataI64 ret = { .code = ERR_INVALID_INSTANCE_CODE, .data = 0 };
+    auto instance = FFIData::GetData<PasteDataImpl>(id);
+    if (!instance) {
+        LOGE("[PasteData] GetRecordV2: instance not exist %{public}" PRId64, id);
+        return ret;
+    }
+
+    auto pasteData = instance->GetRealPasteData();
+    if (pasteData == nullptr) {
+        LOGE("[PasteData] GetRecordV2: pasteData not exist");
+        return ret;
+    }
+
+    if ((std::size_t)index >= pasteData->GetRecordCount()) {
+        ret.code = OUT_OF_RANGE;
+        return ret;
+    }
+    std::shared_ptr<PasteDataRecord> record = pasteData->GetRecordAt((std::size_t)index);
+    if (record == nullptr) {
+        ret.code = OUT_OF_RANGE;
+        return ret;
+    }
+
+    auto pasteDataRecordImpl = FFI::FFIData::Create<PasteDataRecordImpl>(record);
+    if (!pasteDataRecordImpl || pasteDataRecordImpl->GetID() == 0) {
+        return ret;
+    }
+    FillCPasteDataRecord(retPtr, record);
+    ret.data = pasteDataRecordImpl->GetID();
+    ret.code = SUCCESS_CODE;
+    LOGI("[PasteData] FfiOHOSPasteDataGetRecordV2 success");
+    return ret;
+}
+
 RetDataUI FfiOHOSPasteDataGetRecordCount(int64_t id)
 {
     LOGI("[PasteData] FfiOHOSPasteDataGetRecordCount start");
@@ -850,6 +936,20 @@ RetDataI64 FfiOHOSGetSystemPasteboard()
     LOGI("[SystemPasteboard] FfiOHOSGetSystemPasteboard start");
     ret.code = SystemPasteboardImpl::GetSystemPasteboardImpl(ret.data);
     LOGI("[SystemPasteboard] FfiOHOSGetSystemPasteboard success");
+    return ret;
+}
+
+RetDataI64 FfiOHOSGetSystemPasteboardV2()
+{
+    RetDataI64 ret = { .code = ERR_INVALID_INSTANCE_CODE, .data = 0 };
+    auto instance = FFI::FFIData::Create<SystemPasteboardImpl>();
+    if (instance == nullptr || instance->GetID() == 0) {
+        LOGE("[SystemPasteboard] FfiOHOSGetSystemPasteboardV2 create instance failed");
+        return ret;
+    }
+    ret.code = SUCCESS_CODE;
+    ret.data = instance->GetID();
+    LOGI("[SystemPasteboard] FfiOHOSGetSystemPasteboardV2 success");
     return ret;
 }
 
@@ -984,8 +1084,6 @@ RetDataCString FfiOHOSSystemPasteboardGetDataSource(int64_t id)
 
 static std::shared_ptr<EntryValue> CreateEntryValue(const CPasteDataEntry &entry)
 {
-    constexpr int64_t MAX_BUFFER_SIZE = 100 * 1024 * 1024; // 100MB
-
     switch (entry.valueType) {
         case STRING_VALUE_TYPE: {
             if (entry.value == nullptr) {
@@ -1009,7 +1107,7 @@ static std::shared_ptr<EntryValue> CreateEntryValue(const CPasteDataEntry &entry
             return std::make_shared<EntryValue>(pixelMapImpl->GetRealPixelMap());
         }
         case ARRAYBUF_VALUE_TYPE: {
-            if (entry.value == nullptr || entry.size < 0 || entry.size > MAX_BUFFER_SIZE) {
+            if (entry.value == nullptr || entry.size < 0) {
                 LOGE("[PasteData] CreateEntryValue: invalid arrayBuf, size=%{public}" PRId64, entry.size);
                 return nullptr;
             }
@@ -1030,8 +1128,7 @@ static bool ValidateEntriesAndMimeTypes(const CArrPasteDataEntry *entries)
         return false;
     }
 
-    constexpr int64_t MAX_ENTRY_NUM = 512;
-    if (entries->size <= 0 || entries->head == nullptr || entries->size > MAX_ENTRY_NUM) {
+    if (entries->size <= 0 || entries->head == nullptr) {
         LOGE("[PasteData] ValidateEntriesAndMimeTypes: invalid entries, size=%{public}" PRId64, entries->size);
         return false;
     }
@@ -1106,6 +1203,130 @@ CJ_EXPORT RetDataI64 FfiOHOSCreateMultiTypePasteData(const CArrPasteDataEntry *e
     }
     ret.code = SUCCESS_CODE;
     LOGD("[PasteData] FfiOHOSCreateMultiTypePasteData success, id=%{public}" PRId64, ret.data);
+    return ret;
+}
+
+constexpr uint32_t CJ_SYNC_TIMEOUT = 3500;
+constexpr int32_t CJ_NO_PERMISSION = 201;
+constexpr int32_t CJ_REQUEST_TIME_OUT = 12900005;
+
+int32_t FfiOHOSSystemPasteboardSetDataV2(int64_t id, int64_t pasteDataId)
+{
+    auto instance = FFIData::GetData<SystemPasteboardImpl>(id);
+    if (!instance) {
+        LOGE("[SystemPasteboard] SetDataV2: instance not exist %{public}" PRId64, id);
+        return ERR_INVALID_INSTANCE_CODE;
+    }
+    auto pasteDataInstance = FFIData::GetData<PasteDataImpl>(pasteDataId);
+    if (!pasteDataInstance) {
+        LOGE("[SystemPasteboard] SetDataV2: data instance not exist %{public}" PRId64, pasteDataId);
+        return ERR_INVALID_INSTANCE_CODE;
+    }
+    auto pasteData = pasteDataInstance->GetRealPasteData();
+    if (pasteData == nullptr) {
+        return PASTEBOARD_INVALID_PARAMETERS;
+    }
+    int32_t code = PasteboardClient::GetInstance()->SetPasteData(*pasteData);
+    if (code == static_cast<int32_t>(PasteboardError::E_OK)) {
+        return SUCCESS_CODE;
+    }
+    return code;
+}
+
+RetDataI64 FfiOHOSSystemPasteboardGetDataV2(int64_t id)
+{
+    auto ret = FfiOHOSSystemPasteboardGetData(id);
+    if (ret.code == static_cast<int32_t>(PasteboardError::PERMISSION_VERIFICATION_ERROR)) {
+        ret.code = CJ_NO_PERMISSION;
+    }
+    return ret;
+}
+
+RetDataBool FfiOHOSSystemPasteboardIsRemoteDataV2(int64_t id)
+{
+    RetDataBool ret = { .code = ERR_INVALID_INSTANCE_CODE, .data = false };
+    auto instance = FFIData::GetData<SystemPasteboardImpl>(id);
+    if (!instance) {
+        return ret;
+    }
+    auto block = std::make_shared<BlockObject<std::shared_ptr<bool>>>(CJ_SYNC_TIMEOUT);
+    std::thread thread([block]() {
+        auto value = std::make_shared<bool>(PasteboardClient::GetInstance()->IsRemoteData());
+        block->SetValue(value);
+    });
+    PasteBoardCommonUtils::SetThreadTaskName(thread, "CJIsRemoteDataV2");
+    thread.detach();
+    auto value = block->GetValue();
+    if (value == nullptr) {
+        ret.code = CJ_REQUEST_TIME_OUT;
+        return ret;
+    }
+    ret.data = *value;
+    ret.code = SUCCESS_CODE;
+    return ret;
+}
+
+RetDataBool FfiOHOSSystemPasteboardHasDataTypeV2(int64_t id, const char *mimeType)
+{
+    RetDataBool ret = { .code = ERR_INVALID_INSTANCE_CODE, .data = false };
+    if (mimeType == nullptr) {
+        ret.code = PASTEBOARD_INVALID_PARAMETERS;
+        return ret;
+    }
+    auto instance = FFIData::GetData<SystemPasteboardImpl>(id);
+    if (!instance) {
+        return ret;
+    }
+    std::string mimeTypeStr = mimeType;
+    auto block = std::make_shared<BlockObject<std::shared_ptr<bool>>>(CJ_SYNC_TIMEOUT);
+    std::thread thread([block, mimeTypeStr]() {
+        auto value = std::make_shared<bool>(PasteboardClient::GetInstance()->HasDataType(mimeTypeStr));
+        block->SetValue(value);
+    });
+    PasteBoardCommonUtils::SetThreadTaskName(thread, "CJHasDataTypeV2");
+    thread.detach();
+    auto value = block->GetValue();
+    if (value == nullptr) {
+        ret.code = CJ_REQUEST_TIME_OUT;
+        return ret;
+    }
+    ret.data = *value;
+    ret.code = SUCCESS_CODE;
+    return ret;
+}
+
+RetDataCString FfiOHOSSystemPasteboardGetDataSourceV2(int64_t id)
+{
+    RetDataCString ret = { .code = CJ_REQUEST_TIME_OUT, .data = nullptr };
+    auto instance = FFIData::GetData<SystemPasteboardImpl>(id);
+    if (!instance) {
+        return ret;
+    }
+    auto block = std::make_shared<BlockObject<std::shared_ptr<std::pair<int32_t, std::string>>>>(CJ_SYNC_TIMEOUT);
+    std::thread thread([block]() {
+        std::string bundleName;
+        int32_t code = PasteboardClient::GetInstance()->GetDataSource(bundleName);
+        auto value = std::make_shared<std::pair<int32_t, std::string>>(code, bundleName);
+        block->SetValue(value);
+    });
+    PasteBoardCommonUtils::SetThreadTaskName(thread, "CJGetDataSourceV2");
+    thread.detach();
+    auto value = block->GetValue();
+    if (value == nullptr) {
+        ret.code = CJ_REQUEST_TIME_OUT;
+        return ret;
+    }
+    if (value->first != static_cast<int32_t>(PasteboardError::E_OK)) {
+        LOGE("[SystemPasteboard] GetDataSourceV2 failed %{public}d", value->first);
+        ret.code = CJ_REQUEST_TIME_OUT;
+        return ret;
+    }
+    ret.data = PasteBoardMallocCString(value->second);
+    if (ret.data == nullptr) {
+        ret.code = CJ_REQUEST_TIME_OUT;
+        return ret;
+    }
+    ret.code = SUCCESS_CODE;
     return ret;
 }
 }
