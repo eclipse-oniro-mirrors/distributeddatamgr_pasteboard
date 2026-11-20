@@ -2558,10 +2558,117 @@ ohos_unittest("P2PLinkManagerTest") {
   }
 }
 
+ohos_unittest("FuseMountTest") {
+  module_out_path = module_output_path
+  cflags = [ "-fno-access-control" ]
+  sources = [
+    "${pasteboard_service_path}/core/src/fuse_mount.cpp",
+    "unittest/mock/virtual_file/fuse_mount_sys_mock.cpp",
+    "${pasteboard_root_path}/framework/test/mock/system_ability_manager_client_mock.cpp",
+    "unittest/src/fuse_mount_test.cpp",
+  ]
+  configs = [ ":module_private_config" ]
+  include_dirs = [
+    "unittest/mock/virtual_file",
+    "${pasteboard_root_path}/framework/test/include",
+  ]
+  external_deps = [
+    "c_utils:utils",
+    "googletest:gmock",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+    "ipc:ipc_core",
+    "samgr:samgr_proxy",
+    "storage_service:storage_manager_sa_proxy",
+  ]
+  deps = [
+    "${pasteboard_framework_path}:pasteboard_framework",
+    "${pasteboard_innerkits_path}:pasteboard_client",
+    "${pasteboard_innerkits_path}:pasteboard_data",
+  ]
+}
+
+ohos_unittest("PasteboardFuseGetterClientTest") {
+  module_out_path = module_output_path
+  cflags = [ "-fno-access-control" ]
+  sources = [
+    "${pasteboard_service_path}/zidl/src/pasteboard_fuse_getter_client.cpp",
+    "${pasteboard_service_path}/zidl/src/pasteboard_fuse_getter_stub.cpp",
+    "unittest/src/pasteboard_fuse_getter_client_test.cpp",
+  ]
+  configs = [ ":module_private_config" ]
+  external_deps = [
+    "access_token:libaccesstoken_sdk",
+    "c_utils:utils",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+    "ipc:ipc_core",
+  ]
+  deps = [
+    "${pasteboard_framework_path}:pasteboard_framework",
+    "${pasteboard_innerkits_path}:pasteboard_client",
+    "${pasteboard_innerkits_path}:pasteboard_data",
+  ]
+}
+
+ohos_unittest("PasteboardFuseGetterProxyTest") {
+  module_out_path = module_output_path
+  cflags = [ "-fno-access-control" ]
+  sources = [
+    "${pasteboard_service_path}/zidl/src/pasteboard_fuse_getter_proxy.cpp",
+    "unittest/src/pasteboard_fuse_getter_proxy_test.cpp",
+  ]
+  configs = [ ":module_private_config" ]
+  external_deps = [
+    "ability_base:want",
+    "ability_base:zuri",
+    "c_utils:utils",
+    "ffrt:libffrt",
+    "googletest:gmock",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+    "init:libbegetutil",
+    "ipc:ipc_core",
+    "ipc:ipc_single",
+    "udmf:udmf_client",
+  ]
+  deps = [
+    "${pasteboard_framework_path}:pasteboard_framework",
+    "${pasteboard_innerkits_path}:pasteboard_client",
+    "${pasteboard_innerkits_path}:pasteboard_data",
+  ]
+}
+
+ohos_unittest("PasteboardFuseGetterStubTest") {
+  module_out_path = module_output_path
+  cflags = [ "-fno-access-control" ]
+  sources = [
+    "${pasteboard_service_path}/zidl/src/pasteboard_fuse_getter_stub.cpp",
+    "unittest/mock/virtual_file/fuse_getter_ipc_mock.cpp",
+    "unittest/src/pasteboard_fuse_getter_stub_test.cpp",
+  ]
+  configs = [ ":module_private_config" ]
+  include_dirs = [ "unittest/mock/virtual_file" ]
+  external_deps = [
+    "access_token:libaccesstoken_sdk",
+    "c_utils:utils",
+    "googletest:gmock",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+  ]
+  deps = [
+    "${pasteboard_framework_path}:pasteboard_framework",
+    "${pasteboard_innerkits_path}:pasteboard_client",
+    "${pasteboard_innerkits_path}:pasteboard_data",
+  ]
+}
+
 group("unittest") {
   testonly = true
   deps = [
     ":EntityRecognitionObserverStubTest",
+    ":FuseMountTest",
     ":HiViewAdapterTest",
     ":P2PLinkManagerTest",
     ":PasteboardAbilityManagerTest",
@@ -2573,6 +2680,9 @@ group("unittest") {
     ":PasteboardDisposableManagerTest",
     ":PasteboardEntryGetterProxyTest",
     ":PasteboardEntryGetterStubTest",
+    ":PasteboardFuseGetterClientTest",
+    ":PasteboardFuseGetterProxyTest",
+    ":PasteboardFuseGetterStubTest",
     ":PasteboardFuseManagerMockTest",
     ":PasteboardHmlManagerTest",
     ":PasteboardLinkedListTest",

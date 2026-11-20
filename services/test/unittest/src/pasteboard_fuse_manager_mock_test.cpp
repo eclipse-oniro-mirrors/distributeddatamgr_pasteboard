@@ -601,7 +601,7 @@ HWTEST_F(PasteboardFuseManagerTest, ReaddirHandler_NonRoot_001, TestSize.Level1)
 HWTEST_F(PasteboardFuseManagerTest, GetMountPath_001, TestSize.Level1)
 {
     std::string path = fuse_->GetMountPath(TEST_USER_ID);
-    EXPECT_NE(path.find("pasteboard"), std::string::npos);
+    EXPECT_NE(path.find("clipboard"), std::string::npos);
     EXPECT_NE(path.find(std::to_string(TEST_USER_ID)), std::string::npos);
 }
 
@@ -707,24 +707,24 @@ HWTEST_F(PasteboardFuseManagerTest, MultiUser_Isolation_001, TestSize.Level1)
     constexpr int32_t USER_B = 200;
     constexpr int32_t PID_A = 1111;
     constexpr int32_t PID_B = 2222;
-    const std::string ALIAS_A = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
-    const std::string ALIAS_B = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
+    constexpr uint32_t DATA_ID_A = 1;
+    constexpr uint32_t DATA_ID_B = 2;
     fuse_->authorizedPastePids_[USER_A].insert(PID_A);
     fuse_->authorizedPastePids_[USER_B].insert(PID_B);
     std::vector<FileInfo> infosA = {{0, 0, TEST_RECORD_ID, "file_a", "a.txt", 100, 0, false, nullptr}};
     std::vector<FileInfo> infosB = {{0, 0, TEST_RECORD_ID, "file_b", "b.txt", 200, 0, false, nullptr}};
-    fuse_->SetProvider(USER_A, nullptr, ALIAS_A, infosA);
-    fuse_->SetProvider(USER_B, nullptr, ALIAS_B, infosB);
+    fuse_->SetProvider(USER_A, nullptr, DATA_ID_A, infosA);
+    fuse_->SetProvider(USER_B, nullptr, DATA_ID_B, infosB);
     PasteboardFuseManager::SessionContext ctxA{ fuse_, USER_A };
     fuseMock_->mockContext_.pid = PID_B;
     fuseMock_->mockContext_.private_data = &ctxA;
     EXPECT_CALL(*fuseMock_, fuse_get_context()).WillRepeatedly(Return(&fuseMock_->mockContext_));
     struct stat stbuf;
-    std::string pathA = "/" + ALIAS_A + "/a.txt";
+    std::string pathA = "/" + std::to_string(DATA_ID_A) + "/" + std::to_string(TEST_RECORD_ID) + "/a.txt";
     int ret = PasteboardFuseManager::StatHandler(pathA.c_str(), &stbuf, nullptr);
     EXPECT_EQ(ret, -EACCES);
     fuseMock_->mockContext_.pid = PID_A;
-    std::string pathB = "/" + ALIAS_B + "/b.txt";
+    std::string pathB = "/" + std::to_string(DATA_ID_B) + "/" + std::to_string(TEST_RECORD_ID) + "/b.txt";
     ret = PasteboardFuseManager::StatHandler(pathB.c_str(), &stbuf, nullptr);
     EXPECT_EQ(ret, -ENOENT);
 }
@@ -738,23 +738,24 @@ HWTEST_F(PasteboardFuseManagerTest, GetFileInfo_ScopedByUser_001, TestSize.Level
 {
     constexpr int32_t USER_A = 100;
     constexpr int32_t USER_B = 200;
-    const std::string ALIAS_A = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
-    const std::string ALIAS_B = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
+    constexpr uint32_t DATA_ID_A = 1;
+    constexpr uint32_t DATA_ID_B = 2;
+    constexpr uint32_t SHARED_RECORD_ID = 5;
     const std::string SAME_FILE_NAME = "shared.txt";
-    std::vector<FileInfo> infosA = {{0, 0, "shared_file", SAME_FILE_NAME, "", 111, 0, false, nullptr}};
-    std::vector<FileInfo> infosB = {{0, 0, "shared_file", SAME_FILE_NAME, "", 222, 0, false, nullptr}};
-    fuse_->SetProvider(USER_A, nullptr, ALIAS_A, infosA);
-    fuse_->SetProvider(USER_B, nullptr, ALIAS_B, infosB);
+    std::vector<FileInfo> infosA = {{0, 0, SHARED_RECORD_ID, "shared_file", SAME_FILE_NAME, 111, 0, false, nullptr}};
+    std::vector<FileInfo> infosB = {{0, 0, SHARED_RECORD_ID, "shared_file", SAME_FILE_NAME, 222, 0, false, nullptr}};
+    fuse_->SetProvider(USER_A, nullptr, DATA_ID_A, infosA);
+    fuse_->SetProvider(USER_B, nullptr, DATA_ID_B, infosB);
     std::lock_guard<std::mutex> lock(fuse_->mutex_);
-    auto infoA = fuse_->GetFileInfoLocked(USER_A, ALIAS_A, SAME_FILE_NAME);
+    auto infoA = fuse_->GetFileInfoLocked(USER_A, DATA_ID_A, SHARED_RECORD_ID, SAME_FILE_NAME);
     ASSERT_NE(infoA, nullptr);
     EXPECT_EQ(infoA->userId, USER_A);
     EXPECT_EQ(infoA->fileSize, 111);
-    auto infoB = fuse_->GetFileInfoLocked(USER_B, ALIAS_B, SAME_FILE_NAME);
+    auto infoB = fuse_->GetFileInfoLocked(USER_B, DATA_ID_B, SHARED_RECORD_ID, SAME_FILE_NAME);
     ASSERT_NE(infoB, nullptr);
     EXPECT_EQ(infoB->userId, USER_B);
     EXPECT_EQ(infoB->fileSize, 222);
-    auto infoMiss = fuse_->GetFileInfoLocked(USER_A, ALIAS_A, "nonexistent.txt");
+    auto infoMiss = fuse_->GetFileInfoLocked(USER_A, DATA_ID_A, SHARED_RECORD_ID, "nonexistent.txt");
     EXPECT_EQ(infoMiss, nullptr);
 }
 
@@ -817,5 +818,386 @@ HWTEST_F(PasteboardFuseManagerTest, ReaddirHandler_DataIdDir_001, TestSize.Level
     int ret = PasteboardFuseManager::ReaddirHandler(path.c_str(), nullptr,
         reinterpret_cast<void *>(&TestFiller), 0, nullptr, 0);
     EXPECT_EQ(ret, 0);
+}
+
+// ===== ParsePath Comprehensive Branch Tests =====
+
+/**
+ * @tc.name: ParsePath_001
+ * @tc.desc: ParsePath returns PATH_INVALID for nullptr and non-slash-prefixed paths
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardFuseManagerTest, ParsePath_001, TestSize.Level1)
+{
+    uint32_t dataId = 0;
+    uint32_t recordId = 0;
+    std::string fileName;
+    EXPECT_EQ(PasteboardFuseManager::ParsePath(nullptr, dataId, recordId, fileName),
+        PasteboardFuseManager::PATH_INVALID);
+    EXPECT_EQ(PasteboardFuseManager::ParsePath("noslash", dataId, recordId, fileName),
+        PasteboardFuseManager::PATH_INVALID);
+}
+
+/**
+ * @tc.name: ParsePath_002
+ * @tc.desc: ParsePath returns PATH_ROOT for "/" and PATH_DATA_ID_DIR for /<dataId> forms
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardFuseManagerTest, ParsePath_002, TestSize.Level1)
+{
+    uint32_t dataId = 0;
+    uint32_t recordId = 0;
+    std::string fileName;
+    EXPECT_EQ(PasteboardFuseManager::ParsePath("/", dataId, recordId, fileName),
+        PasteboardFuseManager::PATH_ROOT);
+    EXPECT_EQ(PasteboardFuseManager::ParsePath("/123", dataId, recordId, fileName),
+        PasteboardFuseManager::PATH_DATA_ID_DIR);
+    EXPECT_EQ(dataId, 123u);
+    EXPECT_EQ(PasteboardFuseManager::ParsePath("/123/", dataId, recordId, fileName),
+        PasteboardFuseManager::PATH_DATA_ID_DIR);
+    EXPECT_EQ(PasteboardFuseManager::ParsePath("/123/456", dataId, recordId, fileName),
+        PasteboardFuseManager::PATH_DATA_ID_DIR);
+    EXPECT_EQ(dataId, 123u);
+    EXPECT_EQ(recordId, 456u);
+}
+
+/**
+ * @tc.name: ParsePath_003
+ * @tc.desc: ParsePath returns PATH_RECORD_ID_DIR for /<dataId>/<recordId>/ and PATH_FILE for file path
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardFuseManagerTest, ParsePath_003, TestSize.Level1)
+{
+    uint32_t dataId = 0;
+    uint32_t recordId = 0;
+    std::string fileName;
+    EXPECT_EQ(PasteboardFuseManager::ParsePath("/123/456/", dataId, recordId, fileName),
+        PasteboardFuseManager::PATH_RECORD_ID_DIR);
+    EXPECT_EQ(dataId, 123u);
+    EXPECT_EQ(recordId, 456u);
+    EXPECT_EQ(PasteboardFuseManager::ParsePath("/123/456/file.txt", dataId, recordId, fileName),
+        PasteboardFuseManager::PATH_FILE);
+    EXPECT_EQ(fileName, "file.txt");
+}
+
+/**
+ * @tc.name: ParsePath_004
+ * @tc.desc: ParsePath returns PATH_INVALID for non-numeric dataId or recordId segments
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardFuseManagerTest, ParsePath_004, TestSize.Level1)
+{
+    uint32_t dataId = 0;
+    uint32_t recordId = 0;
+    std::string fileName;
+    EXPECT_EQ(PasteboardFuseManager::ParsePath("/abc", dataId, recordId, fileName),
+        PasteboardFuseManager::PATH_INVALID);
+    EXPECT_EQ(PasteboardFuseManager::ParsePath("/123/abc", dataId, recordId, fileName),
+        PasteboardFuseManager::PATH_INVALID);
+    EXPECT_EQ(PasteboardFuseManager::ParsePath("/123/abc/file", dataId, recordId, fileName),
+        PasteboardFuseManager::PATH_INVALID);
+}
+
+// ===== StatHandler PATH_RECORD_ID_DIR and DataIdDir NotFound Branches =====
+
+/**
+ * @tc.name: StatHandler_RecordIdDir_001
+ * @tc.desc: should return 0 and set S_IFDIR when stat a recordId directory /<dataId>/<recordId>/
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardFuseManagerTest, StatHandler_RecordIdDir_001, TestSize.Level1)
+{
+    SetupAuthorizedContext(TEST_PID);
+    std::vector<FileInfo> infos = {{0, 0, TEST_RECORD_ID, TEST_FILE_ID, TEST_FILE_NAME, 100, 0, false, nullptr}};
+    fuse_->SetProvider(TEST_USER_ID, nullptr, TEST_DATA_ID, infos);
+    struct stat stbuf;
+    std::string path = "/" + std::to_string(TEST_DATA_ID) + "/" + std::to_string(TEST_RECORD_ID) + "/";
+    int ret = PasteboardFuseManager::StatHandler(path.c_str(), &stbuf, nullptr);
+    EXPECT_EQ(ret, 0);
+    EXPECT_TRUE(stbuf.st_mode & S_IFDIR);
+}
+
+/**
+ * @tc.name: StatHandler_RecordIdDir_NotFound_001
+ * @tc.desc: should return -ENOENT when stat a recordId directory that has no matching records
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardFuseManagerTest, StatHandler_RecordIdDir_NotFound_001, TestSize.Level1)
+{
+    SetupAuthorizedContext(TEST_PID);
+    struct stat stbuf;
+    int ret = PasteboardFuseManager::StatHandler("/999/888/", &stbuf, nullptr);
+    EXPECT_EQ(ret, -ENOENT);
+}
+
+/**
+ * @tc.name: StatHandler_DataIdDir_NotFound_001
+ * @tc.desc: should return -ENOENT when stat a dataId directory that has no matching data
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardFuseManagerTest, StatHandler_DataIdDir_NotFound_001, TestSize.Level1)
+{
+    SetupAuthorizedContext(TEST_PID);
+    struct stat stbuf;
+    int ret = PasteboardFuseManager::StatHandler("/999", &stbuf, nullptr);
+    EXPECT_EQ(ret, -ENOENT);
+}
+
+// ===== OpenHandler EISDIR Branch Tests =====
+
+/**
+ * @tc.name: OpenHandler_DirPath_001
+ * @tc.desc: should return -EISDIR when opening a dataId directory path
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardFuseManagerTest, OpenHandler_DirPath_001, TestSize.Level1)
+{
+    SetupAuthorizedContext(TEST_PID);
+    std::vector<FileInfo> infos = {{0, 0, TEST_RECORD_ID, TEST_FILE_ID, TEST_FILE_NAME, 100, 0, false, nullptr}};
+    fuse_->SetProvider(TEST_USER_ID, nullptr, TEST_DATA_ID, infos);
+    struct fuse_file_info fi{};
+    std::string path = "/" + std::to_string(TEST_DATA_ID);
+    int ret = PasteboardFuseManager::OpenHandler(path.c_str(), &fi);
+    EXPECT_EQ(ret, -EISDIR);
+}
+
+/**
+ * @tc.name: OpenHandler_RecordIdDir_001
+ * @tc.desc: should return -EISDIR when opening a recordId directory path
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardFuseManagerTest, OpenHandler_RecordIdDir_001, TestSize.Level1)
+{
+    SetupAuthorizedContext(TEST_PID);
+    struct fuse_file_info fi{};
+    std::string path = "/" + std::to_string(TEST_DATA_ID) + "/" + std::to_string(TEST_RECORD_ID) + "/";
+    int ret = PasteboardFuseManager::OpenHandler(path.c_str(), &fi);
+    EXPECT_EQ(ret, -EISDIR);
+}
+
+// ===== ReaddirHandler PATH_RECORD_ID_DIR Branch Tests =====
+
+/**
+ * @tc.name: ReaddirHandler_RecordIdDir_001
+ * @tc.desc: should return 0 and list files when readdir on /<dataId>/<recordId>/
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardFuseManagerTest, ReaddirHandler_RecordIdDir_001, TestSize.Level1)
+{
+    SetupAuthorizedContext(TEST_PID);
+    std::vector<FileInfo> infos = {
+        {0, 0, TEST_RECORD_ID, "file_a", "a.txt", 100, 0, false, nullptr},
+        {0, 0, TEST_RECORD_ID, "file_b", "b.txt", 200, 0, false, nullptr}
+    };
+    fuse_->SetProvider(TEST_USER_ID, nullptr, TEST_DATA_ID, infos);
+    std::string path = "/" + std::to_string(TEST_DATA_ID) + "/" + std::to_string(TEST_RECORD_ID) + "/";
+    int ret = PasteboardFuseManager::ReaddirHandler(path.c_str(), nullptr,
+        reinterpret_cast<void *>(&TestFiller), 0, nullptr, 0);
+    EXPECT_EQ(ret, 0);
+}
+
+/**
+ * @tc.name: ReaddirHandler_RecordIdDir_NotFound_001
+ * @tc.desc: should return -ENOENT when readdir on a recordId directory with no matching data
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardFuseManagerTest, ReaddirHandler_RecordIdDir_NotFound_001, TestSize.Level1)
+{
+    SetupAuthorizedContext(TEST_PID);
+    std::string path = "/999/888/";
+    int ret = PasteboardFuseManager::ReaddirHandler(path.c_str(), nullptr,
+        reinterpret_cast<void *>(&TestFiller), 0, nullptr, 0);
+    EXPECT_EQ(ret, -ENOENT);
+}
+
+// ===== OnAppExit Copy-App Path and Paste-App Remaining-Pid Branches =====
+
+/**
+ * @tc.name: OnAppExit_CopyApp_001
+ * @tc.desc: when the exiting app is the copy app (provider exists), cleanup provider + stop session
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardFuseManagerTest, OnAppExit_CopyApp_001, TestSize.Level1)
+{
+    auto *getter = new MockFuseGetter();
+    std::vector<FileInfo> infos = {{0, 0, TEST_RECORD_ID, TEST_FILE_ID, TEST_FILE_NAME, 1024, 0, false, nullptr}};
+    fuse_->SetProvider(TEST_USER_ID, getter, TEST_DATA_ID, infos);
+    fuse_->authorizedPastePids_[TEST_USER_ID].insert(TEST_PID);
+    fuse_->OnAppExit(TEST_PID, TEST_USER_ID);
+    EXPECT_FALSE(fuse_->HasProvider(TEST_USER_ID));
+    EXPECT_EQ(fuse_->authorizedPastePids_.count(TEST_USER_ID), 0u);
+    EXPECT_EQ(fuse_->fileInfos_.count(TEST_USER_ID), 0u);
+}
+
+/**
+ * @tc.name: OnAppExit_PasteApp_RemainingPids_001
+ * @tc.desc: when a paste app exits but other authorized pids remain, do NOT clear the pid set
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardFuseManagerTest, OnAppExit_PasteApp_RemainingPids_001, TestSize.Level1)
+{
+    constexpr int32_t OTHER_PID = 5555;
+    fuse_->authorizedPastePids_[TEST_USER_ID].insert(TEST_PID);
+    fuse_->authorizedPastePids_[TEST_USER_ID].insert(OTHER_PID);
+    fuse_->OnAppExit(TEST_PID, TEST_USER_ID);
+    EXPECT_EQ(fuse_->authorizedPastePids_[TEST_USER_ID].count(TEST_PID), 0u);
+    EXPECT_EQ(fuse_->authorizedPastePids_[TEST_USER_ID].count(OTHER_PID), 1u);
+}
+
+// ===== OnGetData Session-Exists and StopSessionLoop No-Session Branches =====
+
+/**
+ * @tc.name: OnGetData_SessionExists_001
+ * @tc.desc: should return 0 without mounting when a FUSE session already exists for the userId
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardFuseManagerTest, OnGetData_SessionExists_001, TestSize.Level1)
+{
+    fuse_->authorizedPastePids_[TEST_USER_ID].insert(TEST_PID);
+    fuse_->fuseSessions_[TEST_USER_ID].running.store(false);
+    EXPECT_CALL(*mountMock_, MountUdmfClipFuse(_, _, _)).Times(0);
+    int32_t ret = fuse_->OnGetData(TEST_USER_ID);
+    EXPECT_EQ(ret, 0);
+}
+
+/**
+ * @tc.name: StopSessionLoop_NoSession_001
+ * @tc.desc: StopSessionLoop should be a no-op (no crash) when no session exists for the userId
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardFuseManagerTest, StopSessionLoop_NoSession_001, TestSize.Level1)
+{
+    fuse_->StopSessionLoop(TEST_USER_ID);
+    SUCCEED();
+}
+
+// ===== ReadHandler Zero-Size Branch =====
+
+/**
+ * @tc.name: ReadHandler_ZeroSize_001
+ * @tc.desc: should return 0 immediately when requested read size is 0
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardFuseManagerTest, ReadHandler_ZeroSize_001, TestSize.Level1)
+{
+    SetupAuthorizedContext(TEST_PID);
+    auto *getter = new MockFuseGetter();
+    auto info = std::make_shared<FileInfo>();
+    info->userId = TEST_USER_ID;
+    info->fileId = TEST_FILE_ID;
+    info->provider = getter;
+    int fd = fuse_->nextFd_++;
+    fuse_->fdMap_[fd] = {TEST_PID, info};
+    struct fuse_file_info fi{};
+    fi.fh = static_cast<uint64_t>(fd);
+    char buf[16];
+    int ret = PasteboardFuseManager::ReadHandler("/test", buf, 0, 0, &fi);
+    EXPECT_EQ(ret, 0);
+}
+
+// ===== GetFileInfoLocked NotFound and NoUser Branch =====
+
+/**
+ * @tc.name: GetFileInfo_NoUser_001
+ * @tc.desc: GetFileInfoLocked should return nullptr when userId has no file infos
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardFuseManagerTest, GetFileInfo_NoUser_001, TestSize.Level1)
+{
+    std::lock_guard<std::mutex> lock(fuse_->mutex_);
+    auto info = fuse_->GetFileInfoLocked(TEST_USER_ID, TEST_DATA_ID, TEST_RECORD_ID, TEST_FILE_NAME);
+    EXPECT_EQ(info, nullptr);
+}
+
+// ===== New-Commit Branch Coverage: dataId/recordId existence validation =====
+
+/**
+ * @tc.name: ReaddirHandler_RecordIdDir_DataIdNotFound_001
+ * @tc.desc: ReaddirHandler on /<dataId>/<recordId>/ should return -ENOENT when fileInfos exist
+ *           but no entry matches the requested dataId (new validation branch added in latest commit)
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardFuseManagerTest, ReaddirHandler_RecordIdDir_DataIdNotFound_001, TestSize.Level1)
+{
+    SetupAuthorizedContext(TEST_PID);
+    std::vector<FileInfo> infos = {{0, 0, TEST_RECORD_ID, TEST_FILE_ID, TEST_FILE_NAME, 100, 0, false, nullptr}};
+    fuse_->SetProvider(TEST_USER_ID, nullptr, TEST_DATA_ID, infos);
+    constexpr uint32_t ABSENT_DATA_ID = 999;
+    std::string path = "/" + std::to_string(ABSENT_DATA_ID) + "/" + std::to_string(TEST_RECORD_ID) + "/";
+    int ret = PasteboardFuseManager::ReaddirHandler(path.c_str(), nullptr,
+        reinterpret_cast<void *>(&TestFiller), 0, nullptr, 0);
+    EXPECT_EQ(ret, -ENOENT);
+}
+
+/**
+ * @tc.name: ReaddirHandler_RecordIdDir_RecordIdNotFound_001
+ * @tc.desc: ReaddirHandler on /<dataId>/<recordId>/ should return -ENOENT when fileInfos exist
+ *           and dataId matches but recordId does not (new validation branch)
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardFuseManagerTest, ReaddirHandler_RecordIdDir_RecordIdNotFound_001, TestSize.Level1)
+{
+    SetupAuthorizedContext(TEST_PID);
+    std::vector<FileInfo> infos = {{0, 0, TEST_RECORD_ID, TEST_FILE_ID, TEST_FILE_NAME, 100, 0, false, nullptr}};
+    fuse_->SetProvider(TEST_USER_ID, nullptr, TEST_DATA_ID, infos);
+    constexpr uint32_t ABSENT_RECORD_ID = 888;
+    std::string path = "/" + std::to_string(TEST_DATA_ID) + "/" + std::to_string(ABSENT_RECORD_ID) + "/";
+    int ret = PasteboardFuseManager::ReaddirHandler(path.c_str(), nullptr,
+        reinterpret_cast<void *>(&TestFiller), 0, nullptr, 0);
+    EXPECT_EQ(ret, -ENOENT);
+}
+
+/**
+ * @tc.name: ReaddirHandler_DataIdDir_DataIdNotFound_001
+ * @tc.desc: ReadDataIdDirLocked should return -ENOENT when fileInfos exist but no entry
+ *           matches the requested dataId (new validation branch added in latest commit)
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardFuseManagerTest, ReaddirHandler_DataIdDir_DataIdNotFound_001, TestSize.Level1)
+{
+    SetupAuthorizedContext(TEST_PID);
+    std::vector<FileInfo> infos = {{0, 0, TEST_RECORD_ID, TEST_FILE_ID, TEST_FILE_NAME, 100, 0, false, nullptr}};
+    fuse_->SetProvider(TEST_USER_ID, nullptr, TEST_DATA_ID, infos);
+    constexpr uint32_t ABSENT_DATA_ID = 999;
+    std::string path = "/" + std::to_string(ABSENT_DATA_ID);
+    int ret = PasteboardFuseManager::ReaddirHandler(path.c_str(), nullptr,
+        reinterpret_cast<void *>(&TestFiller), 0, nullptr, 0);
+    EXPECT_EQ(ret, -ENOENT);
+}
+
+/**
+ * @tc.name: StatHandler_DataIdDir_DataIdNotFound_001
+ * @tc.desc: StatHandler on /<dataId> should return -ENOENT when fileInfos exist but no entry
+ *           matches the requested dataId (existing second-level validation, not previously covered)
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardFuseManagerTest, StatHandler_DataIdDir_DataIdNotFound_001, TestSize.Level1)
+{
+    SetupAuthorizedContext(TEST_PID);
+    std::vector<FileInfo> infos = {{0, 0, TEST_RECORD_ID, TEST_FILE_ID, TEST_FILE_NAME, 100, 0, false, nullptr}};
+    fuse_->SetProvider(TEST_USER_ID, nullptr, TEST_DATA_ID, infos);
+    constexpr uint32_t ABSENT_DATA_ID = 999;
+    struct stat stbuf;
+    std::string path = "/" + std::to_string(ABSENT_DATA_ID);
+    int ret = PasteboardFuseManager::StatHandler(path.c_str(), &stbuf, nullptr);
+    EXPECT_EQ(ret, -ENOENT);
+}
+
+/**
+ * @tc.name: StatHandler_RecordIdDir_RecordIdNotFound_001
+ * @tc.desc: StatHandler on /<dataId>/<recordId>/ should return -ENOENT when fileInfos exist
+ *           and dataId matches but recordId does not (existing second-level validation)
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardFuseManagerTest, StatHandler_RecordIdDir_RecordIdNotFound_001, TestSize.Level1)
+{
+    SetupAuthorizedContext(TEST_PID);
+    std::vector<FileInfo> infos = {{0, 0, TEST_RECORD_ID, TEST_FILE_ID, TEST_FILE_NAME, 100, 0, false, nullptr}};
+    fuse_->SetProvider(TEST_USER_ID, nullptr, TEST_DATA_ID, infos);
+    constexpr uint32_t ABSENT_RECORD_ID = 888;
+    struct stat stbuf;
+    std::string path = "/" + std::to_string(TEST_DATA_ID) + "/" + std::to_string(ABSENT_RECORD_ID) + "/";
+    int ret = PasteboardFuseManager::StatHandler(path.c_str(), &stbuf, nullptr);
+    EXPECT_EQ(ret, -ENOENT);
 }
 } // namespace

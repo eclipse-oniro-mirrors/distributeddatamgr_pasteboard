@@ -118,7 +118,7 @@ private:
     static constexpr int32_t MILLISEC_PER_SEC = 1000;
     static constexpr int32_t SEMAPHORE_MAX_COUNT = 5;
     static constexpr const char *const MOUNT_BASE = "/mnt/data";
-    static constexpr const char *const MOUNT_SUFFIX = "/udmf_clipboard/clipboard_fuse/files";
+    static constexpr const char *const MOUNT_SUFFIX = "/clipboard_fuse/files";
     static constexpr int32_t PATH_ROOT = 0;
     static constexpr int32_t PATH_DATA_ID_DIR = 1;
     static constexpr int32_t PATH_RECORD_ID_DIR = 2;

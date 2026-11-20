@@ -141,4 +141,31 @@ void fuse_opt_free_args(struct fuse_args *args)
     }
     mock->fuse_opt_free_args(args);
 }
+
+struct fuse_session *fuse_get_session(struct fuse *f)
+{
+    auto mock = FuseApiMock::GetMock();
+    if (mock == nullptr) {
+        return nullptr;
+    }
+    return mock->fuse_get_session(f);
+}
+
+int fuse_session_custom_io(struct fuse_session *se, void *io, size_t io_size, int fd)
+{
+    auto mock = FuseApiMock::GetMock();
+    if (mock == nullptr) {
+        return -1;
+    }
+    return mock->fuse_session_custom_io(se, io, io_size, fd);
+}
+
+int fuse_session_loop_mt(struct fuse_session *se, struct fuse_loop_config *config)
+{
+    auto mock = FuseApiMock::GetMock();
+    if (mock == nullptr) {
+        return -1;
+    }
+    return mock->fuse_session_loop_mt(se, config);
+}
 // NOLINTEND
