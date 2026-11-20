@@ -49,6 +49,9 @@ enum PasteboardNdkStructId : std::int64_t {
 struct OH_Pasteboard {
     const int64_t cid = PASTEBOARD_STRUCT_ID;
     std::atomic<bool> destroyed{false};
+    // refCount tracks active API callers plus the creation reference.
+    // AcquirePasteboard/ReleasePasteboard in oh_pasteboard.cpp manage it.
+    std::atomic<int> refCount{1};
     std::mutex mutex;
     std::map<const OH_PasteboardObserver *, OHOS::sptr<OHOS::MiscServices::PasteboardObserverCapiImpl>> observers_;
     std::vector<std::string> mimeTypes_;

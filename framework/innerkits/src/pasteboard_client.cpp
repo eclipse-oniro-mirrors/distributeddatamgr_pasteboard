@@ -610,9 +610,11 @@ int32_t PasteboardClient::CheckProgressParam(std::shared_ptr<GetDataParams> para
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(params != nullptr,
         static_cast<int32_t>(PasteboardError::INVALID_PARAM_ERROR),
         PASTEBOARD_MODULE_CLIENT, "Invalid param!");
-    PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(!isPasting_,
-        static_cast<int32_t>(PasteboardError::TASK_PROCESSING),
-        PASTEBOARD_MODULE_CLIENT, "task copying!");
+    bool expected = false;
+    if (!isPasting_.compare_exchange_strong(expected, true, std::memory_order_acq_rel)) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CLIENT, "task copying!");
+        return static_cast<int32_t>(PasteboardError::TASK_PROCESSING);
+    }
     ProgressSignalClient::GetInstance().Init();
     return static_cast<int32_t>(PasteboardError::E_OK);
 }
@@ -631,7 +633,6 @@ int32_t PasteboardClient::GetDataWithProgressInner(int32_t userId, PasteData &pa
         return ret;
     }
     progressStartTime_ = PasteBoardTime::GetCurrentTimeMicros();
-    isPasting_.store(true);
     std::string progressKey;
     auto ffrtTimer = std::make_shared<FFRTTimer>("pasteboard_progress");
     if (params->progressIndicator != NONE_PROGRESS_INDICATOR) {
@@ -663,9 +664,9 @@ int32_t PasteboardClient::GetDataWithProgressInner(int32_t userId, PasteData &pa
     if (ffrtTimer != nullptr) {
         ffrtTimer->CancelTimer(progressKey);
     }
-    if (remoteTask_.load()) {
+    bool expectedRemote = true;
+    if (remoteTask_.compare_exchange_strong(expectedRemote, false, std::memory_order_acq_rel)) {
         ret = static_cast<int32_t>(PasteboardError::PROGRESS_ABNORMAL);
-        remoteTask_.store(false);
     }
     isPasting_.store(false);
     return ret;
