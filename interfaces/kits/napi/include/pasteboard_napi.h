@@ -63,6 +63,7 @@ private:
     static napi_value JSCreateKvData(
         napi_env env, const std::string &mimeType, const std::vector<uint8_t> &arrayBuffer);
     static napi_value JSCreateData(napi_env env, napi_callback_info info);
+    static napi_value CreateDelayDataFromArray(napi_env env, napi_value argv[], size_t argc);
     static napi_value JSgetSystemPasteboard(napi_env env, napi_callback_info info);
 };
 } // namespace MiscServicesNapi

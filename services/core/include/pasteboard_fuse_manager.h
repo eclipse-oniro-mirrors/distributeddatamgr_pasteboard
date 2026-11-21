@@ -32,6 +32,8 @@
 
 struct fuse;
 struct fuse_file_info;
+struct fuse_conn_info;
+struct fuse_config;
 
 namespace OHOS {
 namespace MiscServices {
@@ -77,12 +79,14 @@ private:
     bool CleanupPasteAppLocked(pid_t pid, int32_t userId);
     void CleanupLocked(int32_t userId);
     bool CheckAuthorization(int32_t userId);
-    bool CheckAuthorizationLocked(int32_t userId, pid_t callerPid);
+    bool CheckAuthorizationLocked(int32_t userId, uid_t callerUid);
     std::shared_ptr<FileInfo> GetFileInfoLocked(int32_t userId, uint32_t dataId,
         uint32_t recordId, const std::string &fileName);
     static int ParsePath(const char *path, uint32_t &dataId, uint32_t &recordId, std::string &fileName);
     int32_t CreateFuseSessionLocked(int32_t userId, const std::string &mountPath, int32_t fuseFd);
     std::string GetMountPath(int32_t userId);
+
+    static void *InitHandler(struct fuse_conn_info *conn, struct fuse_config *cfg);
 
     static int StatHandler(const char *path, struct stat *stbuf, struct fuse_file_info *fi);
     static int OpenHandler(const char *path, struct fuse_file_info *fi);
@@ -94,9 +98,8 @@ private:
     static int StatDirLocked(const std::vector<FileInfo> &infos, uint32_t dataId, uint32_t recordId,
         struct stat *stbuf);
     int ReadDataIdDirLocked(int32_t userId, uint32_t dataId, void *filler, void *buf);
-    int ReadRootDirLocked(int32_t userId, fuse_fill_dir_t fillFunc, void *buf);
-    int ReadRecordIdDirLocked(int32_t userId, uint32_t dataId, uint32_t recordId, fuse_fill_dir_t fillFunc,
-        void *buf);
+    int ReadRootDirLocked(int32_t userId, void *filler, void *buf);
+    int ReadRecordIdDirLocked(int32_t userId, uint32_t dataId, uint32_t recordId, void *filler, void *buf);
     static bool ParseUint(const char *begin, const char *end, uint32_t &out);
     static int ReadWithRetry(const sptr<IPasteboardFuseGetter> &provider, uint32_t recordId,
         const std::string &fileId, int64_t offset, int32_t readLen, std::vector<uint8_t> &data);
@@ -136,11 +139,11 @@ private:
 
     std::mutex mutex_;
     std::map<int32_t, FuseSession> fuseSessions_;
-    std::map<int32_t, std::set<pid_t>> authorizedPastePids_;
+    std::map<int32_t, std::set<uid_t>> authorizedPastePids_;
     std::map<int32_t, sptr<IPasteboardFuseGetter>> providers_;
     std::map<int32_t, std::vector<FileInfo>> fileInfos_;
     struct FdEntry {
-        pid_t openerPid = 0;
+        uid_t openerUid = 0;
         std::shared_ptr<FileInfo> fileInfo;
     };
     std::map<int32_t, FdEntry> fdMap_;

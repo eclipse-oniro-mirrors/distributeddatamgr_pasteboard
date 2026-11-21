@@ -33,6 +33,8 @@ public:
     virtual ~IPasteboardFuseGetter() = default;
     virtual int32_t OnRead(uint32_t recordId, const std::string &id, int64_t offset, int32_t length,
         std::vector<uint8_t> &data) = 0;
+    virtual int32_t OnReadAsync(uint32_t recordId, const std::string &id, int64_t offset, int32_t length,
+        const sptr<IRemoteObject> &callback) = 0;
     virtual int32_t OnStat(uint32_t recordId, const std::string &id, FuseFileStat &stat) = 0;
     virtual int32_t OnCancel(uint32_t recordId, const std::vector<std::string> &idList) = 0;
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.miscservices.pasteboard.IPasteboardFuseGetter");

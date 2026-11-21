@@ -17,6 +17,7 @@
 
 #include "accesstoken_kit.h"
 #include "ipc_skeleton.h"
+#include "pasteboard_fuse_read_callback_proxy.h"
 #include "pasteboard_hilog.h"
 #include "pasteboard_serv_ipc_interface_code.h"
 
@@ -38,6 +39,8 @@ PasteboardFuseGetterStub::PasteboardFuseGetterStub()
 {
     memberFuncMap_[static_cast<uint32_t>(PasteboardFuseGetterInterfaceCode::ON_READ)] =
         &PasteboardFuseGetterStub::HandleRead;
+    memberFuncMap_[static_cast<uint32_t>(PasteboardFuseGetterInterfaceCode::ON_READ_ASYNC)] =
+        &PasteboardFuseGetterStub::HandleReadAsync;
     memberFuncMap_[static_cast<uint32_t>(PasteboardFuseGetterInterfaceCode::ON_STAT)] =
         &PasteboardFuseGetterStub::HandleStat;
     memberFuncMap_[static_cast<uint32_t>(PasteboardFuseGetterInterfaceCode::ON_CANCEL)] =
@@ -90,6 +93,27 @@ int32_t PasteboardFuseGetterStub::HandleRead(MessageParcel &data, MessageParcel 
             PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CLIENT, "Failed to write file data");
             return ERR_INVALID_VALUE;
         }
+    }
+    return ERR_OK;
+}
+
+int32_t PasteboardFuseGetterStub::HandleReadAsync(MessageParcel &data, MessageParcel &reply)
+{
+    uint32_t recordId = data.ReadUint32();
+    std::string id = data.ReadString();
+    int64_t offset = data.ReadInt64();
+    int32_t length = data.ReadInt32();
+    auto callbackRemote = data.ReadRemoteObject();
+    if (callbackRemote == nullptr) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CLIENT, "HandleReadAsync: callback remote is null");
+        return ERR_INVALID_VALUE;
+    }
+    std::vector<uint8_t> fileData;
+    int32_t result = OnRead(recordId, id, offset, length, fileData);
+    auto callbackProxy = new (std::nothrow) PasteboardFuseReadCallbackProxy(callbackRemote);
+    if (callbackProxy != nullptr) {
+        callbackProxy->OnResult(result, fileData);
+        delete callbackProxy;
     }
     return ERR_OK;
 }

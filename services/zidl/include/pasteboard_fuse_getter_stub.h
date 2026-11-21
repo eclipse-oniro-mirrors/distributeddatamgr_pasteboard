@@ -28,8 +28,11 @@ public:
     PasteboardFuseGetterStub();
     ~PasteboardFuseGetterStub() = default;
     int OnRemoteRequest(uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) override;
+    int32_t OnReadAsync(uint32_t recordId, const std::string &id, int64_t offset, int32_t length,
+        const sptr<IRemoteObject> &callback) override { return 0; }
 private:
     int32_t HandleRead(MessageParcel& data, MessageParcel& reply);
+    int32_t HandleReadAsync(MessageParcel& data, MessageParcel& reply);
     int32_t HandleStat(MessageParcel& data, MessageParcel& reply);
     int32_t HandleCancel(MessageParcel& data, MessageParcel& reply);
     using Handler = int32_t (PasteboardFuseGetterStub::*)(MessageParcel& data, MessageParcel& reply);
