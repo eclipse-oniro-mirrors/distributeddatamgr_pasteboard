@@ -90,7 +90,8 @@ void PasteboardFuseGetterStubTest::TearDownTestCase(void) {}
 
 void PasteboardFuseGetterStubTest::SetUp(void)
 {
-    ON_CALL(ipcMock_, GetCallingPid()).WillByDefault(Return(1000));
+    constexpr int32_t TEST_CALLING_PID = 1000;
+    ON_CALL(ipcMock_, GetCallingPid()).WillByDefault(Return(TEST_CALLING_PID));
 }
 
 void PasteboardFuseGetterStubTest::TearDown(void) {}

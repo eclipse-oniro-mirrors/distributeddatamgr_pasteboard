@@ -1306,6 +1306,19 @@ napi_value PasteboardNapi::JSCreateKvData(
     return instance;
 }
 
+napi_value PasteboardNapi::CreateDelayDataFromArray(napi_env env, napi_value argv[], size_t argc)
+{
+    napi_ref provider = nullptr;
+    std::vector<std::string> mimeTypes;
+    if (!CheckArgsArray(env, argv[0], mimeTypes) || !CheckArgsFunc(env, argv[1], provider)) {
+        return nullptr;
+    }
+    std::shared_ptr<PastedataRecordEntryGetterInstance> entryGetter =
+        std::make_shared<PastedataRecordEntryGetterInstance>(env, provider);
+    entryGetter->GetStub()->SetEntryGetterWrapper(entryGetter);
+    return CreateMultiTypeDelayData(env, mimeTypes, entryGetter->GetStub());
+}
+
 napi_value PasteboardNapi::JSCreateData(napi_env env, napi_callback_info info)
 {
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "JSCreateData is called!");
@@ -1329,36 +1342,22 @@ napi_value PasteboardNapi::JSCreateData(napi_env env, napi_callback_info info)
     bool isArray = false;
     NAPI_CALL(env, napi_is_array(env, argv[0], &isArray));
     if (isArray) {
-        napi_ref provider = nullptr;
-        std::vector<std::string> mimeTypes;
-        if (!CheckArgsArray(env, argv[0], mimeTypes) || !CheckArgsFunc(env, argv[1], provider)) {
-            return nullptr;
-        }
-        std::shared_ptr<PastedataRecordEntryGetterInstance> entryGetter =
-            std::make_shared<PastedataRecordEntryGetterInstance>(env, provider);
-        entryGetter->GetStub()->SetEntryGetterWrapper(entryGetter);
-        return CreateMultiTypeDelayData(env, mimeTypes, entryGetter->GetStub());
+        return CreateDelayDataFromArray(env, argv, argc);
     }
     if (!CheckArgs(env, argv, argc, mimeType)) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "CheckArgs failed!");
         return nullptr;
     }
     auto it = createDataMap_.find(mimeType);
     if (it != createDataMap_.end()) {
         return (it->second)(env, argv[1]);
     }
-
     if (IsVirtualFileInfo(env, argv[1])) {
         if (mimeType != "text/uri") {
-            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "VirtualFile data requires mimeType text/uri, got:%{public}s",
-                mimeType.c_str());
             napi_throw_error(env, "401", "Parameter error: VirtualFile data requires mimeType 'text/uri'");
             return nullptr;
         }
-        PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "Creating VirtualFile data");
         return CreateVirtualFileData(env, mimeType, argv[1]);
     }
-
     void *data = nullptr;
     size_t dataLen = 0;
     NAPI_CALL(env, napi_get_arraybuffer_info(env, argv[1], &data, &dataLen));

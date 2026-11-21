@@ -46,8 +46,8 @@ sptr<StorageManager::IStorageManager> GetStorageManagerProxy()
 
 int32_t PrepareMountPoint(const std::string &mountPoint)
 {
-    constexpr mode_t MOUNT_POINT_MODE = S_IRWXU | S_IXGRP | S_IXOTH;
-    if (mkdir(mountPoint.c_str(), MOUNT_POINT_MODE) == 0) {
+    constexpr mode_t mountPointMode = S_IRWXU | S_IXGRP | S_IXOTH;
+    if (mkdir(mountPoint.c_str(), mountPointMode) == 0) {
         return 0;
     }
     int32_t error = errno;

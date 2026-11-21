@@ -516,9 +516,9 @@ void OH_Pasteboard_SyncDelayedDataAsync(OH_Pasteboard* pasteboard, void (*callba
 /**
  * @brief Writes virtual file data to the Pasteboard.
  *
- * The data must contain at least one FileUri record. The callbacks provide file content
- * on demand when the paste target reads the virtual file. Use UDMF NDK APIs
- * ({@link OH_UdmfData_Create}, {@link OH_UdmfRecord_AddFileUri}, etc.) to build the data.
+ * Use UDMF NDK APIs ({@link OH_UdmfData_Create}, {@link OH_UdmfRecord_AddFileUri}, etc.)
+ * to build the data. The {@code callbacks} provide file content on demand when a paste
+ * target reads the virtual file through the FUSE filesystem.
  *
  * @param pasteboard Pointer to the {@link OH_Pasteboard} instance.
  * @param data Pointer to the {@link OH_UdmfData} instance containing FileUri records.
@@ -528,7 +528,7 @@ void OH_Pasteboard_SyncDelayedDataAsync(OH_Pasteboard* pasteboard, void (*callba
  * @return Returns the status code of the execution. For details, see {@link PASTEBOARD_ErrCode}.
  *         Returns {@link ERR_OK} if the operation is successful.
  *         Returns {@link ERR_INVALID_PARAMETER} if invalid args are detected.
- * @since 24
+ * @since 26
  */
 int OH_Pasteboard_SetVirtualFileData(OH_Pasteboard* pasteboard, OH_UdmfData* data,
     const OH_UDMF_VirtualFileCallbacks* callbacks, void* context,

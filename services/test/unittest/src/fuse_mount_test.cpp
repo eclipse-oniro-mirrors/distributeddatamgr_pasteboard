@@ -22,6 +22,8 @@
 #include <string>
 #include <sys/stat.h>
 
+#include "securec.h"
+
 #include "fuse_mount.h"
 #include "fuse_mount_sys_mock.h"
 #include "system_ability_manager_client_mock.h"
@@ -158,7 +160,7 @@ HWTEST_F(FuseMountTest, MountUdmfClipFuse_003, TestSize.Level1)
         }));
     EXPECT_CALL(*sysMock_, lstat(_, _))
         .WillOnce(Invoke([](const char *, struct stat *buf) {
-            memset(buf, 0, sizeof(*buf));
+            memset_s(buf, sizeof(*buf), 0, sizeof(*buf));
             buf->st_mode = S_IFDIR;
             return 0;
         }));
@@ -189,7 +191,7 @@ HWTEST_F(FuseMountTest, MountUdmfClipFuse_004, TestSize.Level1)
         }));
     EXPECT_CALL(*sysMock_, lstat(_, _))
         .WillOnce(Invoke([](const char *, struct stat *buf) {
-            memset(buf, 0, sizeof(*buf));
+            memset_s(buf, sizeof(*buf), 0, sizeof(*buf));
             buf->st_mode = S_IFREG;
             return 0;
         }));

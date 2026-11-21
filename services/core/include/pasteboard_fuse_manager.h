@@ -81,6 +81,7 @@ private:
     std::shared_ptr<FileInfo> GetFileInfoLocked(int32_t userId, uint32_t dataId,
         uint32_t recordId, const std::string &fileName);
     static int ParsePath(const char *path, uint32_t &dataId, uint32_t &recordId, std::string &fileName);
+    int32_t CreateFuseSessionLocked(int32_t userId, const std::string &mountPath, int32_t fuseFd);
     std::string GetMountPath(int32_t userId);
 
     static int StatHandler(const char *path, struct stat *stbuf, struct fuse_file_info *fi);
@@ -90,7 +91,15 @@ private:
     static int ReaddirHandler(const char *path, void *buf, void *filler, off_t offset,
         struct fuse_file_info *fi, int flags);
     static void FillFileStat(const FileInfo &info, struct stat *stbuf);
+    static int StatDirLocked(const std::vector<FileInfo> &infos, uint32_t dataId, uint32_t recordId,
+        struct stat *stbuf);
     int ReadDataIdDirLocked(int32_t userId, uint32_t dataId, void *filler, void *buf);
+    int ReadRootDirLocked(int32_t userId, fuse_fill_dir_t fillFunc, void *buf);
+    int ReadRecordIdDirLocked(int32_t userId, uint32_t dataId, uint32_t recordId, fuse_fill_dir_t fillFunc,
+        void *buf);
+    static bool ParseUint(const char *begin, const char *end, uint32_t &out);
+    static int ReadWithRetry(const sptr<IPasteboardFuseGetter> &provider, uint32_t recordId,
+        const std::string &fileId, int64_t offset, int32_t readLen, std::vector<uint8_t> &data);
 
     struct SessionContext {
         PasteboardFuseManager *manager = nullptr;

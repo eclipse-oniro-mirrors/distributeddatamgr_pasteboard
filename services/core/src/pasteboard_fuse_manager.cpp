@@ -72,9 +72,6 @@ int32_t PasteboardFuseManager::OnGetData(int32_t userId)
         std::lock_guard<std::mutex> lock(mutex_);
         authorizedPastePids_[userId].insert(pid);
         if (fuseSessions_.count(userId) > 0) {
-            PASTEBOARD_HILOGD(PASTEBOARD_MODULE_SERVICE,
-                "FUSE session exists for userId:%{public}d, running:%{public}d", userId,
-                fuseSessions_[userId].running.load());
             return 0;
         }
     }
@@ -82,49 +79,55 @@ int32_t PasteboardFuseManager::OnGetData(int32_t userId)
     int32_t fuseFd = -1;
     int32_t ret = MountFuse(userId, mountPath, fuseFd);
     if (ret != 0 || fuseFd < 0) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE,
-            "MountFuse failed, ret:%{public}d, fuseFd:%{public}d", ret, fuseFd);
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "MountFuse failed, ret:%{public}d", ret);
         return ret;
     }
     {
         std::lock_guard<std::mutex> lock(mutex_);
         if (fuseSessions_.count(userId) > 0) {
-            PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE,
-                "FUSE session already created by another thread, cleaning up duplicate mount");
             UMountFuse(userId, mountPath);
             return 0;
         }
-        struct fuse_args args = { 0, nullptr, 0 };
-        fuse_opt_add_arg(&args, "");
-        fuse_opt_add_arg(&args, "-o");
-        fuse_opt_add_arg(&args, ("max_read=" + std::to_string(MAX_READ_SIZE)).c_str());
-        struct fuse_operations ops = {};
-        ops.getattr = StatHandler;
-        ops.open = OpenHandler;
-        ops.read = ReadHandler;
-        ops.release = ReleaseHandler;
-        ops.readdir = [](const char *path, void *buf, fuse_fill_dir_t filler, off_t offset,
-            struct fuse_file_info *fi, enum fuse_readdir_flags flags) -> int {
-            return ReaddirHandler(path, buf, reinterpret_cast<void *>(filler), offset, fi,
-                static_cast<int>(flags));
-        };
-        auto &session = fuseSessions_[userId];
-        session.context.manager = this;
-        session.context.userId = userId;
-        struct fuse *fuseHandle = fuse_new(&args, &ops, sizeof(ops), &session.context);
-        fuse_opt_free_args(&args);
-        if (fuseHandle == nullptr) {
-            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "fuse_new failed");
-            UMountFuse(userId, mountPath);
-            fuseSessions_.erase(userId);
-            return -1;
-        }
-        session.handle = fuseHandle;
-        session.mountPath = mountPath;
-        session.fuseFd = fuseFd;
-        StartSessionLoop(userId, fuseHandle);
+        ret = CreateFuseSessionLocked(userId, mountPath, fuseFd);
     }
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "FUSE mounted and session started for userId:%{public}d", userId);
+    if (ret != 0) {
+        return ret;
+    }
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "FUSE mounted for userId:%{public}d", userId);
+    return 0;
+}
+
+int32_t PasteboardFuseManager::CreateFuseSessionLocked(int32_t userId, const std::string &mountPath, int32_t fuseFd)
+{
+    struct fuse_args args = { 0, nullptr, 0 };
+    fuse_opt_add_arg(&args, "");
+    fuse_opt_add_arg(&args, "-o");
+    fuse_opt_add_arg(&args, ("max_read=" + std::to_string(MAX_READ_SIZE)).c_str());
+    struct fuse_operations ops = {};
+    ops.getattr = StatHandler;
+    ops.open = OpenHandler;
+    ops.read = ReadHandler;
+    ops.release = ReleaseHandler;
+    ops.readdir = [](const char *path, void *buf, fuse_fill_dir_t filler, off_t offset,
+        struct fuse_file_info *fi, enum fuse_readdir_flags flags) -> int {
+        return ReaddirHandler(path, buf, reinterpret_cast<void *>(filler), offset, fi,
+            static_cast<int>(flags));
+    };
+    auto &session = fuseSessions_[userId];
+    session.context.manager = this;
+    session.context.userId = userId;
+    struct fuse *fuseHandle = fuse_new(&args, &ops, sizeof(ops), &session.context);
+    fuse_opt_free_args(&args);
+    if (fuseHandle == nullptr) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "fuse_new failed");
+        UMountFuse(userId, mountPath);
+        fuseSessions_.erase(userId);
+        return -1;
+    }
+    session.handle = fuseHandle;
+    session.mountPath = mountPath;
+    session.fuseFd = fuseFd;
+    StartSessionLoop(userId, fuseHandle);
     return 0;
 }
 
@@ -354,6 +357,21 @@ std::shared_ptr<FileInfo> PasteboardFuseManager::GetFileInfoLocked(int32_t userI
     return nullptr;
 }
 
+bool PasteboardFuseManager::ParseUint(const char *begin, const char *end, uint32_t &out)
+{
+    if (begin >= end || *begin == '\0') {
+        return false;
+    }
+    errno = 0;
+    char *endPtr = nullptr;
+    unsigned long val = strtoul(begin, &endPtr, 10);
+    if (errno != 0 || endPtr != end || val > UINT32_MAX) {
+        return false;
+    }
+    out = static_cast<uint32_t>(val);
+    return true;
+}
+
 int PasteboardFuseManager::ParsePath(const char *path, uint32_t &dataId, uint32_t &recordId, std::string &fileName)
 {
     if (path == nullptr || path[0] != '/') {
@@ -363,27 +381,14 @@ int PasteboardFuseManager::ParsePath(const char *path, uint32_t &dataId, uint32_
     if (rest[0] == '\0') {
         return PATH_ROOT;
     }
-    auto parseUint = [](const char *begin, const char *end, uint32_t &out) -> bool {
-        if (begin >= end || *begin == '\0') {
-            return false;
-        }
-        errno = 0;
-        char *endPtr = nullptr;
-        unsigned long val = strtoul(begin, &endPtr, 10);
-        if (errno != 0 || endPtr != end) {
-            return false;
-        }
-        out = static_cast<uint32_t>(val);
-        return true;
-    };
     const char *firstSlash = strchr(rest, '/');
     if (firstSlash == nullptr) {
-        if (!parseUint(rest, rest + strlen(rest), dataId)) {
+        if (!ParseUint(rest, rest + strlen(rest), dataId)) {
             return PATH_INVALID;
         }
         return PATH_DATA_ID_DIR;
     }
-    if (!parseUint(rest, firstSlash, dataId)) {
+    if (!ParseUint(rest, firstSlash, dataId)) {
         return PATH_INVALID;
     }
     const char *afterFirst = firstSlash + 1;
@@ -392,12 +397,12 @@ int PasteboardFuseManager::ParsePath(const char *path, uint32_t &dataId, uint32_
     }
     const char *secondSlash = strchr(afterFirst, '/');
     if (secondSlash == nullptr) {
-        if (!parseUint(afterFirst, afterFirst + strlen(afterFirst), recordId)) {
+        if (!ParseUint(afterFirst, afterFirst + strlen(afterFirst), recordId)) {
             return PATH_INVALID;
         }
         return PATH_DATA_ID_DIR;
     }
-    if (!parseUint(afterFirst, secondSlash, recordId)) {
+    if (!ParseUint(afterFirst, secondSlash, recordId)) {
         return PATH_INVALID;
     }
     const char *afterSecond = secondSlash + 1;
@@ -406,6 +411,24 @@ int PasteboardFuseManager::ParsePath(const char *path, uint32_t &dataId, uint32_
     }
     fileName = std::string(afterSecond);
     return PATH_FILE;
+}
+
+int PasteboardFuseManager::StatDirLocked(const std::vector<FileInfo> &infos, uint32_t dataId,
+    uint32_t recordId, struct stat *stbuf)
+{
+    bool found = false;
+    for (const auto &info : infos) {
+        if (info.dataId == dataId && (recordId == 0 || info.recordId == recordId)) {
+            found = true;
+            break;
+        }
+    }
+    if (!found) {
+        return -ENOENT;
+    }
+    stbuf->st_mode = S_IFDIR | FUSE_DIR_MODE;
+    stbuf->st_nlink = FUSE_DIR_NLINK;
+    return 0;
 }
 
 int PasteboardFuseManager::StatHandler(const char *path, struct stat *stbuf, struct fuse_file_info *fi)
@@ -422,7 +445,6 @@ int PasteboardFuseManager::StatHandler(const char *path, struct stat *stbuf, str
         return -EACCES;
     }
     if (memset_s(stbuf, sizeof(struct stat), 0, sizeof(struct stat)) != EOK) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "memset_s failed");
         return -EIO;
     }
     uint32_t dataId = 0;
@@ -434,43 +456,15 @@ int PasteboardFuseManager::StatHandler(const char *path, struct stat *stbuf, str
         stbuf->st_nlink = FUSE_DIR_NLINK;
         return 0;
     }
+    auto it = self->fileInfos_.find(userId);
+    if (it == self->fileInfos_.end()) {
+        return -ENOENT;
+    }
     if (pathType == PATH_DATA_ID_DIR) {
-        auto it = self->fileInfos_.find(userId);
-        if (it == self->fileInfos_.end()) {
-            return -ENOENT;
-        }
-        bool found = false;
-        for (const auto &info : it->second) {
-            if (info.dataId == dataId) {
-                found = true;
-                break;
-            }
-        }
-        if (!found) {
-            return -ENOENT;
-        }
-        stbuf->st_mode = S_IFDIR | FUSE_DIR_MODE;
-        stbuf->st_nlink = FUSE_DIR_NLINK;
-        return 0;
+        return StatDirLocked(it->second, dataId, 0, stbuf);
     }
     if (pathType == PATH_RECORD_ID_DIR) {
-        auto it = self->fileInfos_.find(userId);
-        if (it == self->fileInfos_.end()) {
-            return -ENOENT;
-        }
-        bool found = false;
-        for (const auto &info : it->second) {
-            if (info.dataId == dataId && info.recordId == recordId) {
-                found = true;
-                break;
-            }
-        }
-        if (!found) {
-            return -ENOENT;
-        }
-        stbuf->st_mode = S_IFDIR | FUSE_DIR_MODE;
-        stbuf->st_nlink = FUSE_DIR_NLINK;
-        return 0;
+        return StatDirLocked(it->second, dataId, recordId, stbuf);
     }
     if (pathType == PATH_FILE) {
         auto fileInfo = self->GetFileInfoLocked(userId, dataId, recordId, fileName);
@@ -529,6 +523,30 @@ int PasteboardFuseManager::OpenHandler(const char *path, struct fuse_file_info *
     return 0;
 }
 
+int PasteboardFuseManager::ReadWithRetry(const sptr<IPasteboardFuseGetter> &provider, uint32_t recordId,
+    const std::string &fileId, int64_t offset, int32_t readLen, std::vector<uint8_t> &data)
+{
+    int32_t ret = -1;
+    for (int32_t attempt = 0; attempt <= MAX_READ_RETRIES; ++attempt) {
+        if (attempt > 0) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(READ_RETRY_DELAY_MS * attempt));
+        }
+        data.clear();
+        ret = provider->OnRead(recordId, fileId, offset, readLen, data);
+        if (ret == 0) {
+            break;
+        }
+        PASTEBOARD_HILOGW(PASTEBOARD_MODULE_SERVICE,
+            "OnRead attempt %{public}d failed, ret:%{public}d, offset:%{public}ld", attempt + 1, ret,
+            static_cast<long>(offset));
+    }
+    if (ret != 0) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE,
+            "OnRead failed after %{public}d attempts, ret:%{public}d", MAX_READ_RETRIES + 1, ret);
+    }
+    return ret;
+}
+
 int PasteboardFuseManager::ReadHandler(const char *path, char *buf, size_t size, off_t offset,
     struct fuse_file_info *fi)
 {
@@ -560,36 +578,17 @@ int PasteboardFuseManager::ReadHandler(const char *path, char *buf, size_t size,
     }
     self->readSemaphore_.acquire();
     std::vector<uint8_t> data;
-    int32_t ret = -1;
-    for (int32_t attempt = 0; attempt <= MAX_READ_RETRIES; ++attempt) {
-        if (attempt > 0) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(READ_RETRY_DELAY_MS * attempt));
-        }
-        data.clear();
-        ret = fileInfo->provider->OnRead(fileInfo->recordId, fileInfo->fileId, offset, readLen, data);
-        if (ret == 0) {
-            break;
-        }
-        PASTEBOARD_HILOGW(PASTEBOARD_MODULE_SERVICE,
-            "OnRead attempt %{public}d failed, ret:%{public}d, offset:%{public}ld", attempt + 1, ret,
-            static_cast<long>(offset));
-    }
+    int32_t ret = ReadWithRetry(fileInfo->provider, fileInfo->recordId, fileInfo->fileId, offset, readLen, data);
     self->readSemaphore_.release();
     if (ret != 0) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE,
-            "OnRead failed after %{public}d attempts, ret:%{public}d", MAX_READ_RETRIES + 1, ret);
         return -EIO;
     }
     size_t copyLen = std::min(data.size(), size);
     if (copyLen > 0) {
         if (memcpy_s(buf, size, data.data(), copyLen) != EOK) {
-            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "memcpy_s failed");
             return -EIO;
         }
     }
-    PASTEBOARD_HILOGD(PASTEBOARD_MODULE_SERVICE,
-        "ReadHandler path:%{public}s, offset:%{public}ld, size:%{public}zu, read:%{public}zu",
-        path, static_cast<long>(offset), size, copyLen);
     return static_cast<int>(copyLen);
 }
 
@@ -629,48 +628,59 @@ int PasteboardFuseManager::ReaddirHandler(const char *path, void *buf, void *fil
     std::string fileName;
     int pathType = ParsePath(path, dataId, recordId, fileName);
     if (pathType == PATH_ROOT) {
-        fillFunc(buf, ".", nullptr, 0, FUSE_FILL_DIR_DEFAULTS);
-        fillFunc(buf, "..", nullptr, 0, FUSE_FILL_DIR_DEFAULTS);
-        auto it = self->fileInfos_.find(userId);
-        if (it != self->fileInfos_.end()) {
-            std::set<uint32_t> listedDataIds;
-            for (const auto &info : it->second) {
-                if (listedDataIds.insert(info.dataId).second) {
-                    fillFunc(buf, std::to_string(info.dataId).c_str(), nullptr, 0, FUSE_FILL_DIR_DEFAULTS);
-                }
-            }
-        }
-        return 0;
+        return self->ReadRootDirLocked(userId, fillFunc, buf);
     }
     if (pathType == PATH_DATA_ID_DIR) {
         return self->ReadDataIdDirLocked(userId, dataId, filler, buf);
     }
     if (pathType == PATH_RECORD_ID_DIR) {
-        auto fillFunc2 = reinterpret_cast<fuse_fill_dir_t>(filler);
-        auto it = self->fileInfos_.find(userId);
-        if (it == self->fileInfos_.end()) {
-            return -ENOENT;
-        }
-        bool found = false;
-        for (const auto &info : it->second) {
-            if (info.dataId == dataId && info.recordId == recordId) {
-                found = true;
-                break;
-            }
-        }
-        if (!found) {
-            return -ENOENT;
-        }
-        fillFunc2(buf, ".", nullptr, 0, FUSE_FILL_DIR_DEFAULTS);
-        fillFunc2(buf, "..", nullptr, 0, FUSE_FILL_DIR_DEFAULTS);
-        for (const auto &info : it->second) {
-            if (info.dataId == dataId && info.recordId == recordId) {
-                fillFunc2(buf, info.fileName.c_str(), nullptr, 0, FUSE_FILL_DIR_DEFAULTS);
-            }
-        }
-        return 0;
+        return self->ReadRecordIdDirLocked(userId, dataId, recordId, fillFunc, buf);
     }
     return -ENOENT;
+}
+
+int PasteboardFuseManager::ReadRootDirLocked(int32_t userId, fuse_fill_dir_t fillFunc, void *buf)
+{
+    fillFunc(buf, ".", nullptr, 0, FUSE_FILL_DIR_DEFAULTS);
+    fillFunc(buf, "..", nullptr, 0, FUSE_FILL_DIR_DEFAULTS);
+    auto it = fileInfos_.find(userId);
+    if (it == fileInfos_.end()) {
+        return 0;
+    }
+    std::set<uint32_t> listedDataIds;
+    for (const auto &info : it->second) {
+        if (listedDataIds.insert(info.dataId).second) {
+            fillFunc(buf, std::to_string(info.dataId).c_str(), nullptr, 0, FUSE_FILL_DIR_DEFAULTS);
+        }
+    }
+    return 0;
+}
+
+int PasteboardFuseManager::ReadRecordIdDirLocked(int32_t userId, uint32_t dataId, uint32_t recordId,
+    fuse_fill_dir_t fillFunc, void *buf)
+{
+    auto it = fileInfos_.find(userId);
+    if (it == fileInfos_.end()) {
+        return -ENOENT;
+    }
+    bool found = false;
+    for (const auto &info : it->second) {
+        if (info.dataId == dataId && info.recordId == recordId) {
+            found = true;
+            break;
+        }
+    }
+    if (!found) {
+        return -ENOENT;
+    }
+    fillFunc(buf, ".", nullptr, 0, FUSE_FILL_DIR_DEFAULTS);
+    fillFunc(buf, "..", nullptr, 0, FUSE_FILL_DIR_DEFAULTS);
+    for (const auto &info : it->second) {
+        if (info.dataId == dataId && info.recordId == recordId) {
+            fillFunc(buf, info.fileName.c_str(), nullptr, 0, FUSE_FILL_DIR_DEFAULTS);
+        }
+    }
+    return 0;
 }
 
 int PasteboardFuseManager::ReadDataIdDirLocked(int32_t userId, uint32_t dataId, void *filler, void *buf)

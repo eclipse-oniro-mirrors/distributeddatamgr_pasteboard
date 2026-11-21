@@ -38,7 +38,7 @@ using namespace OHOS::MiscServices;
 using OHOS::sptr;
 
 namespace {
-constexpr int NDK_CALLBACK_TIMEOUT_S = 5;
+constexpr int CALLBACK_TIMEOUT_S = 5;
 
 static bool IsPasteboardValid(OH_Pasteboard *pasteboard)
 {
@@ -109,7 +109,7 @@ public:
         }).detach();
         {
             std::unique_lock<std::mutex> lock(result->mtx);
-            result->cv.wait_for(lock, std::chrono::seconds(NDK_CALLBACK_TIMEOUT_S),
+            result->cv.wait_for(lock, std::chrono::seconds(CALLBACK_TIMEOUT_S),
                 [&result]() { return result->done; });
         }
         if (!result->done) {
@@ -151,7 +151,7 @@ public:
         }).detach();
         {
             std::unique_lock<std::mutex> lock(result->mtx);
-            result->cv.wait_for(lock, std::chrono::seconds(NDK_CALLBACK_TIMEOUT_S),
+            result->cv.wait_for(lock, std::chrono::seconds(CALLBACK_TIMEOUT_S),
                 [&result]() { return result->done; });
         }
         if (!result->done) {
