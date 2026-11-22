@@ -578,6 +578,7 @@ int32_t PasteboardService::ClearInner(const AppInfo &appInfo)
         delayDataId_ = 0;
         delayTokenId_ = 0;
     }
+    RemovePasteData(appInfo.userId);
     CleanDistributedData(appInfo.userId);
     if (hasData) {
         std::string bundleName = appInfo.bundleName;
