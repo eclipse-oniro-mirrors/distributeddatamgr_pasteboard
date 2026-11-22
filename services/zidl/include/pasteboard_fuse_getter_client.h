@@ -28,8 +28,6 @@ public:
     ~PasteboardFuseGetterClient() = default;
     int32_t OnRead(uint32_t recordId, const std::string &id, int64_t offset, int32_t length,
         std::vector<uint8_t> &data) override;
-    int32_t OnReadAsync(uint32_t recordId, const std::string &id, int64_t offset, int32_t length,
-        const sptr<IRemoteObject> &callback) override { return 0; }
     int32_t OnStat(uint32_t recordId, const std::string &id, FuseFileStat &stat) override;
     int32_t OnCancel(uint32_t recordId, const std::vector<std::string> &idList) override;
 

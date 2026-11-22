@@ -139,7 +139,6 @@ ohos_shared_library("pasteboard_client") {
     "${pasteboard_service_path}/zidl/src/pasteboard_entry_getter_stub.cpp",
     "${pasteboard_service_path}/zidl/src/pasteboard_fuse_getter_client.cpp",
     "${pasteboard_service_path}/zidl/src/pasteboard_fuse_getter_stub.cpp",
-    "${pasteboard_service_path}/zidl/src/pasteboard_fuse_read_callback_proxy.cpp",
     "${pasteboard_service_path}/zidl/src/pasteboard_observer_stub.cpp",
     "${pasteboard_utils_path}/native/src/pasteboard_time.cpp",
     "src/entity_recognition_observer.cpp",

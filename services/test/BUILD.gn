@@ -2594,7 +2594,6 @@ ohos_unittest("PasteboardFuseGetterClientTest") {
   sources = [
     "${pasteboard_service_path}/zidl/src/pasteboard_fuse_getter_client.cpp",
     "${pasteboard_service_path}/zidl/src/pasteboard_fuse_getter_stub.cpp",
-    "${pasteboard_service_path}/zidl/src/pasteboard_fuse_read_callback_proxy.cpp",
     "unittest/src/pasteboard_fuse_getter_client_test.cpp",
   ]
   configs = [ ":module_private_config" ]
@@ -2617,7 +2616,6 @@ ohos_unittest("PasteboardFuseGetterProxyTest") {
   cflags = [ "-fno-access-control" ]
   sources = [
     "${pasteboard_service_path}/zidl/src/pasteboard_fuse_getter_proxy.cpp",
-    "${pasteboard_service_path}/zidl/src/pasteboard_fuse_read_callback_stub.cpp",
     "unittest/src/pasteboard_fuse_getter_proxy_test.cpp",
   ]
   configs = [ ":module_private_config" ]
@@ -2646,7 +2644,6 @@ ohos_unittest("PasteboardFuseGetterStubTest") {
   cflags = [ "-fno-access-control" ]
   sources = [
     "${pasteboard_service_path}/zidl/src/pasteboard_fuse_getter_stub.cpp",
-    "${pasteboard_service_path}/zidl/src/pasteboard_fuse_read_callback_proxy.cpp",
     "unittest/mock/virtual_file/fuse_getter_ipc_mock.cpp",
     "unittest/src/pasteboard_fuse_getter_stub_test.cpp",
   ]

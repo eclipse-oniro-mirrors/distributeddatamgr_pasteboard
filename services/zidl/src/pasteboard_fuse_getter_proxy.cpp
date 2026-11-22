@@ -15,7 +15,6 @@
 
 #include "pasteboard_fuse_getter_proxy.h"
 
-#include "pasteboard_fuse_read_callback_stub.h"
 #include "pasteboard_hilog.h"
 #include "pasteboard_serv_ipc_interface_code.h"
 
@@ -32,53 +31,32 @@ int32_t PasteboardFuseGetterProxy::OnRead(
     if (remote == nullptr) {
         return ERR_INVALID_VALUE;
     }
-    sptr<PasteboardFuseReadCallbackStub> callback = new (std::nothrow) PasteboardFuseReadCallbackStub();
-    if (callback == nullptr) {
-        return ERR_INVALID_VALUE;
-    }
     MessageParcel request;
     MessageParcel reply;
-    MessageOption option(MessageOption::TF_ASYNC, FUSE_IPC_TIMEOUT_MS);
+    MessageOption option(MessageOption::TF_SYNC, FUSE_IPC_TIMEOUT_MS);
     if (!request.WriteInterfaceToken(GetDescriptor())) {
         return ERR_INVALID_VALUE;
     }
     if (!request.WriteUint32(recordId) || !request.WriteString(id) || !request.WriteInt64(offset) ||
-        !request.WriteInt32(length) || !request.WriteRemoteObject(callback->AsObject())) {
+        !request.WriteInt32(length)) {
         return ERR_INVALID_VALUE;
     }
     int32_t ret = remote->SendRequest(
-        static_cast<uint32_t>(PasteboardFuseGetterInterfaceCode::ON_READ_ASYNC), request, reply, option);
+        static_cast<uint32_t>(PasteboardFuseGetterInterfaceCode::ON_READ), request, reply, option);
     if (ret != ERR_OK) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CLIENT, "OnReadAsync SendRequest failed, ret:%{public}d", ret);
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CLIENT, "OnRead SendRequest failed, ret:%{public}d", ret);
         return ret;
     }
-    ret = callback->WaitForResult(FUSE_IPC_TIMEOUT_MS);
-    if (ret != 0) {
+    ret = reply.ReadInt32();
+    if (ret != ERR_OK) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CLIENT, "OnRead remote failed, ret:%{public}d", ret);
         return ret;
     }
-    data = callback->TakeData();
-    return ret;
-}
-
-int32_t PasteboardFuseGetterProxy::OnReadAsync(
-    uint32_t recordId, const std::string &id, int64_t offset, int32_t length, const sptr<IRemoteObject> &callback)
-{
-    MessageParcel request;
-    MessageParcel reply;
-    MessageOption option(MessageOption::TF_ASYNC, FUSE_IPC_TIMEOUT_MS);
-    if (!request.WriteInterfaceToken(GetDescriptor())) {
-        return ERR_INVALID_VALUE;
+    uint32_t size = reply.ReadUint32();
+    if (size > 0) {
+        reply.ReadUInt8Vector(&data);
     }
-    if (!request.WriteUint32(recordId) || !request.WriteString(id) || !request.WriteInt64(offset) ||
-        !request.WriteInt32(length) || !request.WriteRemoteObject(callback)) {
-        return ERR_INVALID_VALUE;
-    }
-    auto remote = Remote();
-    if (remote == nullptr) {
-        return ERR_INVALID_VALUE;
-    }
-    return remote->SendRequest(
-        static_cast<uint32_t>(PasteboardFuseGetterInterfaceCode::ON_READ_ASYNC), request, reply, option);
+    return ERR_OK;
 }
 
 int32_t PasteboardFuseGetterProxy::OnStat(uint32_t recordId, const std::string &id, FuseFileStat &stat)

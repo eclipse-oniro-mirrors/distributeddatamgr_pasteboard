@@ -68,7 +68,6 @@ enum PasteboardEntryGetterInterfaceCode {
 
 enum PasteboardFuseGetterInterfaceCode {
     ON_READ = 0,
-    ON_READ_ASYNC = 1,
     ON_STAT = 2,
     ON_CANCEL = 3,
 };

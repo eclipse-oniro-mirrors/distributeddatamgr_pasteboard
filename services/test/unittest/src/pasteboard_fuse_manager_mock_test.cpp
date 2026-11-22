@@ -56,11 +56,6 @@ public:
         cancelCalled_ = true;
         return cancelRet_;
     }
-    int32_t OnReadAsync(uint32_t recordId, const std::string &id, int64_t offset, int32_t length,
-        const OHOS::sptr<OHOS::IRemoteObject> &callback) override
-    {
-        return -1;
-    }
 
     std::vector<uint8_t> readData_{1, 2, 3, 4, 5};
     int32_t readRet_ = 0;
