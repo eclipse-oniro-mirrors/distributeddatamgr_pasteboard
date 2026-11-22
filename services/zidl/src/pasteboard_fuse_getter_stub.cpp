@@ -32,7 +32,11 @@ static bool IsNativeCallingToken()
         return false;
     }
     auto tokenType = Security::AccessToken::AccessTokenKit::GetTokenTypeFlag(tokenId);
-    return tokenType == Security::AccessToken::ATokenTypeEnum::TOKEN_NATIVE;
+    if (tokenType != Security::AccessToken::ATokenTypeEnum::TOKEN_NATIVE) {
+        return false;
+    }
+    constexpr uid_t CLIPBOARD_UID = 3816;
+    return IPCSkeleton::GetCallingUid() == CLIPBOARD_UID;
 }
 
 PasteboardFuseGetterStub::PasteboardFuseGetterStub()
@@ -78,6 +82,11 @@ int32_t PasteboardFuseGetterStub::HandleRead(MessageParcel &data, MessageParcel 
     std::string id = data.ReadString();
     int64_t offset = data.ReadInt64();
     int32_t length = data.ReadInt32();
+    if (length < 0 || length > 5 * 1024 * 1024 || offset < 0) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CLIENT, "HandleRead invalid params, length:%{public}d, offset:%{public}lld",
+            length, static_cast<long long>(offset));
+        return ERR_INVALID_VALUE;
+    }
     std::vector<uint8_t> fileData;
     auto result = OnRead(recordId, id, offset, length, fileData);
     if (!reply.WriteInt32(result)) {
@@ -103,6 +112,10 @@ int32_t PasteboardFuseGetterStub::HandleReadAsync(MessageParcel &data, MessagePa
     std::string id = data.ReadString();
     int64_t offset = data.ReadInt64();
     int32_t length = data.ReadInt32();
+    if (length < 0 || length > 5 * 1024 * 1024 || offset < 0) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CLIENT, "HandleReadAsync invalid params");
+        return ERR_INVALID_VALUE;
+    }
     auto callbackRemote = data.ReadRemoteObject();
     if (callbackRemote == nullptr) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CLIENT, "HandleReadAsync: callback remote is null");

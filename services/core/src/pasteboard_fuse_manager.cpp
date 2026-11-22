@@ -96,7 +96,9 @@ int32_t PasteboardFuseManager::OnGetData(int32_t userId)
     {
         std::lock_guard<std::mutex> lock(mutex_);
         if (fuseSessions_.count(userId) > 0) {
-            UMountFuse(userId, mountPath);
+            if (fuseFd >= 0) {
+                close(fuseFd);
+            }
             return 0;
         }
         ret = CreateFuseSessionLocked(userId, mountPath, fuseFd);
@@ -241,6 +243,7 @@ void PasteboardFuseManager::CleanupLocked(int32_t userId)
 {
     providers_.erase(userId);
     fileInfos_.erase(userId);
+    authorizedPastePids_.erase(userId);
     for (auto it = fdMap_.begin(); it != fdMap_.end();) {
         if (it->second.fileInfo && it->second.fileInfo->userId == userId) {
             it = fdMap_.erase(it);
@@ -605,10 +608,13 @@ int PasteboardFuseManager::ReadHandler(const char *path, char *buf, size_t size,
     if (readLen <= 0) {
         return 0;
     }
-    self->readSemaphore_.acquire();
+    struct SemGuard {
+        std::counting_semaphore<SEMAPHORE_MAX_COUNT> &sem;
+        SemGuard(std::counting_semaphore<SEMAPHORE_MAX_COUNT> &s) : sem(s) { sem.acquire(); }
+        ~SemGuard() { sem.release(); }
+    } semGuard(self->readSemaphore_);
     std::vector<uint8_t> data;
     int32_t ret = ReadWithRetry(fileInfo->provider, fileInfo->recordId, fileInfo->fileId, offset, readLen, data);
-    self->readSemaphore_.release();
     if (ret != 0) {
         return -EIO;
     }
