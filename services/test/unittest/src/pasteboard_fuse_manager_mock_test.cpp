@@ -56,6 +56,11 @@ public:
         cancelCalled_ = true;
         return cancelRet_;
     }
+    int32_t OnReadAsync(uint32_t recordId, const std::string &id, int64_t offset, int32_t length,
+        const OHOS::sptr<OHOS::IRemoteObject> &callback) override
+    {
+        return -1;
+    }
 
     std::vector<uint8_t> readData_{1, 2, 3, 4, 5};
     int32_t readRet_ = 0;
@@ -112,14 +117,17 @@ void PasteboardFuseManagerTest::TearDown(void)
 void PasteboardFuseManagerTest::SetupAuthorizedContext(int32_t pid)
 {
     fuseMock_->mockContext_.pid = pid;
+    fuseMock_->mockContext_.uid = static_cast<uid_t>(pid);
     fuseMock_->mockContext_.private_data = &sessionCtx_;
     fuse_->authorizedPastePids_[TEST_USER_ID].insert(pid);
+    fuse_->authorizedPasteUids_[TEST_USER_ID].insert(static_cast<uid_t>(pid));
     EXPECT_CALL(*fuseMock_, fuse_get_context()).WillRepeatedly(Return(&fuseMock_->mockContext_));
 }
 
 void PasteboardFuseManagerTest::SetupUnauthorizedContext()
 {
     fuseMock_->mockContext_.pid = UNAUTHORIZED_PID;
+    fuseMock_->mockContext_.uid = static_cast<uid_t>(UNAUTHORIZED_PID);
     fuseMock_->mockContext_.private_data = &sessionCtx_;
     EXPECT_CALL(*fuseMock_, fuse_get_context()).WillRepeatedly(Return(&fuseMock_->mockContext_));
 }
@@ -128,14 +136,14 @@ void PasteboardFuseManagerTest::SetupUnauthorizedContext()
 
 /**
  * @tc.name: OnGetData_001
- * @tc.desc: should return error when fuse_new returns nullptr after mount success
+ * @tc.desc: should return error when fuse_session_new returns nullptr after mount success
  * @tc.type: FUNC
  */
 HWTEST_F(PasteboardFuseManagerTest, OnGetData_001, TestSize.Level1)
 {
     EXPECT_CALL(*mountMock_, MountUdmfClipFuse(TEST_USER_ID, _, _))
         .WillOnce(DoAll(SetArgReferee<2>(99), Return(0)));
-    EXPECT_CALL(*fuseMock_, fuse_new(_, _, _, _)).WillOnce(Return(nullptr));
+    EXPECT_CALL(*fuseMock_, fuse_session_new(_, _, _, _)).WillOnce(Return(nullptr));
     int32_t ret = fuse_->OnGetData(TEST_USER_ID);
     EXPECT_NE(ret, 0);
 }
@@ -840,7 +848,7 @@ HWTEST_F(PasteboardFuseManagerTest, ParsePath_001, TestSize.Level1)
 
 /**
  * @tc.name: ParsePath_002
- * @tc.desc: ParsePath returns PATH_ROOT for "/" and PATH_DATA_ID_DIR for /<dataId> forms
+ * @tc.desc: ParsePath returns PATH_ROOT for "/" and PATH_DATA_DIR for /<dataId> forms
  * @tc.type: FUNC
  */
 HWTEST_F(PasteboardFuseManagerTest, ParsePath_002, TestSize.Level1)
@@ -851,19 +859,19 @@ HWTEST_F(PasteboardFuseManagerTest, ParsePath_002, TestSize.Level1)
     EXPECT_EQ(PasteboardFuseManager::ParsePath("/", dataId, recordId, fileName),
         PasteboardFuseManager::PATH_ROOT);
     EXPECT_EQ(PasteboardFuseManager::ParsePath("/123", dataId, recordId, fileName),
-        PasteboardFuseManager::PATH_DATA_ID_DIR);
+        PasteboardFuseManager::PATH_DATA_DIR);
     EXPECT_EQ(dataId, 123u);
     EXPECT_EQ(PasteboardFuseManager::ParsePath("/123/", dataId, recordId, fileName),
-        PasteboardFuseManager::PATH_DATA_ID_DIR);
+        PasteboardFuseManager::PATH_DATA_DIR);
     EXPECT_EQ(PasteboardFuseManager::ParsePath("/123/456", dataId, recordId, fileName),
-        PasteboardFuseManager::PATH_DATA_ID_DIR);
+        PasteboardFuseManager::PATH_DATA_DIR);
     EXPECT_EQ(dataId, 123u);
     EXPECT_EQ(recordId, 456u);
 }
 
 /**
  * @tc.name: ParsePath_003
- * @tc.desc: ParsePath returns PATH_RECORD_ID_DIR for /<dataId>/<recordId>/ and PATH_FILE for file path
+ * @tc.desc: ParsePath returns PATH_RECORD_DIR for /<dataId>/<recordId>/ and PATH_FILE for file path
  * @tc.type: FUNC
  */
 HWTEST_F(PasteboardFuseManagerTest, ParsePath_003, TestSize.Level1)
@@ -872,7 +880,7 @@ HWTEST_F(PasteboardFuseManagerTest, ParsePath_003, TestSize.Level1)
     uint32_t recordId = 0;
     std::string fileName;
     EXPECT_EQ(PasteboardFuseManager::ParsePath("/123/456/", dataId, recordId, fileName),
-        PasteboardFuseManager::PATH_RECORD_ID_DIR);
+        PasteboardFuseManager::PATH_RECORD_DIR);
     EXPECT_EQ(dataId, 123u);
     EXPECT_EQ(recordId, 456u);
     EXPECT_EQ(PasteboardFuseManager::ParsePath("/123/456/file.txt", dataId, recordId, fileName),
@@ -898,7 +906,7 @@ HWTEST_F(PasteboardFuseManagerTest, ParsePath_004, TestSize.Level1)
         PasteboardFuseManager::PATH_INVALID);
 }
 
-// ===== StatHandler PATH_RECORD_ID_DIR and DataIdDir NotFound Branches =====
+// ===== StatHandler PATH_RECORD_DIR and DataIdDir NotFound Branches =====
 
 /**
  * @tc.name: StatHandler_RecordIdDir_001
@@ -975,7 +983,7 @@ HWTEST_F(PasteboardFuseManagerTest, OpenHandler_RecordIdDir_001, TestSize.Level1
     EXPECT_EQ(ret, -EISDIR);
 }
 
-// ===== ReaddirHandler PATH_RECORD_ID_DIR Branch Tests =====
+// ===== ReaddirHandler PATH_RECORD_DIR Branch Tests =====
 
 /**
  * @tc.name: ReaddirHandler_RecordIdDir_001

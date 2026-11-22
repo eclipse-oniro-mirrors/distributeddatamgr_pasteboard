@@ -99,6 +99,8 @@ struct fuse_operations {
 struct fuse_context {
     struct fuse *fuse;
     uint64_t fuse_pt;
+    uid_t uid;
+    gid_t gid;
     pid_t pid;
     pid_t owner;
     void *private_data;

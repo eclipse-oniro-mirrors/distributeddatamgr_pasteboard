@@ -5613,7 +5613,7 @@ void PasteboardService::RemoveObserverByPid(int32_t userId, pid_t pid, ObserverM
 
 int32_t PasteboardService::AppExit(pid_t pid, int32_t userId)
 {
-    fuse_->OnAppExit(IPCSkeleton::GetCallingUid(), userId);
+    fuse_->OnAppExit(pid, userId);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "pid %{public}d exit, userId %{public}d.", pid, userId);
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(userId != ERROR_USERID,
         static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR), PASTEBOARD_MODULE_SERVICE, "invalid userId");

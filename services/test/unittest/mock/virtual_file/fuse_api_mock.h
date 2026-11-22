@@ -42,6 +42,13 @@ public:
     virtual struct fuse_session *fuse_get_session(struct fuse *f) = 0;
     virtual int fuse_session_custom_io(struct fuse_session *se, void *io, size_t io_size, int fd) = 0;
     virtual int fuse_session_loop_mt(struct fuse_session *se, struct fuse_loop_config *config) = 0;
+    virtual struct fuse_session *fuse_session_new(struct fuse_args *args,
+        const struct fuse_lowlevel_ops *ops, size_t op_size, void *userdata) = 0;
+    virtual void fuse_session_destroy(struct fuse_session *se) = 0;
+    virtual void fuse_session_exit(struct fuse_session *se) = 0;
+    virtual void fuse_loop_cfg_set_idle_threads(
+        struct fuse_loop_config *config, unsigned int idle_threads) = 0;
+    virtual void fuse_loop_cfg_set_clone_fd(struct fuse_loop_config *config, int clone_fd) = 0;
 };
 
 class FuseApiMock : public IFuseApi {
@@ -67,6 +74,14 @@ public:
         (struct fuse_session * se, void *io, size_t io_size, int fd), (override));
     MOCK_METHOD(int, fuse_session_loop_mt,
         (struct fuse_session * se, struct fuse_loop_config *config), (override));
+    MOCK_METHOD(struct fuse_session *, fuse_session_new,
+        (struct fuse_args * args, const struct fuse_lowlevel_ops *ops, size_t op_size, void *userdata),
+        (override));
+    MOCK_METHOD(void, fuse_session_destroy, (struct fuse_session * se), (override));
+    MOCK_METHOD(void, fuse_session_exit, (struct fuse_session * se), (override));
+    MOCK_METHOD(void, fuse_loop_cfg_set_idle_threads,
+        (struct fuse_loop_config * config, unsigned int idle_threads), (override));
+    MOCK_METHOD(void, fuse_loop_cfg_set_clone_fd, (struct fuse_loop_config * config, int clone_fd), (override));
     static FuseApiMock *GetMock();
 
 private:

@@ -168,4 +168,50 @@ int fuse_session_loop_mt(struct fuse_session *se, struct fuse_loop_config *confi
     }
     return mock->fuse_session_loop_mt(se, config);
 }
+
+struct fuse_session *fuse_session_new(struct fuse_args *args, const struct fuse_lowlevel_ops *ops,
+    size_t op_size, void *userdata)
+{
+    auto mock = FuseApiMock::GetMock();
+    if (mock == nullptr) {
+        return nullptr;
+    }
+    return mock->fuse_session_new(args, ops, op_size, userdata);
+}
+
+void fuse_session_destroy(struct fuse_session *se)
+{
+    auto mock = FuseApiMock::GetMock();
+    if (mock == nullptr) {
+        return;
+    }
+    mock->fuse_session_destroy(se);
+}
+
+void fuse_session_exit(struct fuse_session *se)
+{
+    auto mock = FuseApiMock::GetMock();
+    if (mock == nullptr) {
+        return;
+    }
+    mock->fuse_session_exit(se);
+}
+
+void fuse_loop_cfg_set_idle_threads(struct fuse_loop_config *config, unsigned int idle_threads)
+{
+    auto mock = FuseApiMock::GetMock();
+    if (mock == nullptr) {
+        return;
+    }
+    mock->fuse_loop_cfg_set_idle_threads(config, idle_threads);
+}
+
+void fuse_loop_cfg_set_clone_fd(struct fuse_loop_config *config, int clone_fd)
+{
+    auto mock = FuseApiMock::GetMock();
+    if (mock == nullptr) {
+        return;
+    }
+    mock->fuse_loop_cfg_set_clone_fd(config, clone_fd);
+}
 // NOLINTEND
