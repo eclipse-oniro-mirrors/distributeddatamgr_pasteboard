@@ -1436,11 +1436,12 @@ napi_value PasteboardNapi::JSCreateData(napi_env env, napi_callback_info info)
     if (isArray) {
         return CreateDelayDataFromArray(env, argv, argc);
     }
-    if (IsVirtualFileInfo(env, argv[1])) {
-        if (mimeType != "text/uri") {
-            napi_throw_error(env, "401", "Parameter error: VirtualFile data requires mimeType 'text/uri'");
-            return nullptr;
-        }
+    size_t mimeTypeLen = 0;
+    napi_get_value_string_utf8(env, argv[0], nullptr, 0, &mimeTypeLen);
+    mimeType.resize(mimeTypeLen);
+    napi_get_value_string_utf8(env, argv[0], mimeType.data(), mimeTypeLen + 1, &mimeTypeLen);
+    if (mimeType == MIMETYPE_TEXT_URI && IsVirtualFileInfo(env, argv[1])) {
+        PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "Creating VirtualFile data");
         return CreateVirtualFileData(env, mimeType, argv[1]);
     }
     if (!CheckArgs(env, argv, argc, mimeType)) {

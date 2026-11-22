@@ -655,19 +655,67 @@ public:
     int32_t OnRead(uint32_t recordId, const std::string &id, int64_t offset, int32_t length,
         std::vector<uint8_t> &data) override
     {
-        auto result = provider_->OnRead(recordId, taihe::string(id), offset, length);
-        data.assign(result.begin(), result.end());
+        struct ReadResult {
+            taihe::array<uint8_t> data = taihe::array<uint8_t>(0);
+            bool done = false;
+            std::mutex mtx;
+            std::condition_variable cv;
+        };
+        auto result = std::make_shared<ReadResult>();
+        auto provider = provider_;
+        std::thread([provider, result, recordId, id, offset, length]() {
+            result->data = provider->OnRead(recordId, taihe::string(id), offset, length);
+            {
+                std::lock_guard<std::mutex> lock(result->mtx);
+                result->done = true;
+            }
+            result->cv.notify_one();
+        }).detach();
+        {
+            std::unique_lock<std::mutex> lock(result->mtx);
+            result->cv.wait_for(lock, std::chrono::seconds(TAIHE_CALLBACK_TIMEOUT_S),
+                [&result]() { return result->done; });
+        }
+        if (!result->done) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "OnRead callback timeout, id:%{public}s", id.c_str());
+            return OHOS::ERR_INVALID_VALUE;
+        }
+        data.assign(result->data.begin(), result->data.end());
         return OHOS::ERR_OK;
     }
 
     int32_t OnStat(uint32_t recordId, const std::string &id, FuseFileStat &stat) override
     {
-        auto info = provider_->OnStat(recordId, taihe::string(id));
-        stat.id = std::string(info.id);
-        stat.name = std::string(info.name);
-        stat.size = info.size;
-        stat.modifyTime = info.modifyTime;
-        stat.type = info.fileType;
+        struct StatResult {
+            PasteboardTaihe::VirtualFileInfo info;
+            bool done = false;
+            std::mutex mtx;
+            std::condition_variable cv;
+        };
+        auto result = std::make_shared<StatResult>();
+        auto provider = provider_;
+        std::thread([provider, result, recordId, id]() {
+            result->info = provider->OnStat(recordId, taihe::string(id));
+            {
+                std::lock_guard<std::mutex> lock(result->mtx);
+                result->done = true;
+            }
+            result->cv.notify_one();
+        }).detach();
+        {
+            std::unique_lock<std::mutex> lock(result->mtx);
+            result->cv.wait_for(lock, std::chrono::seconds(TAIHE_CALLBACK_TIMEOUT_S),
+                [&result]() { return result->done; });
+        }
+        if (!result->done) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "OnStat callback timeout, id:%{public}s", id.c_str());
+            return OHOS::ERR_INVALID_VALUE;
+        }
+        stat.id = std::string(result->info.id);
+        stat.name = std::string(result->info.name);
+        stat.size = result->info.size;
+        stat.modifyTime = result->info.modifyTime;
+        stat.type = result->info.fileType;
         return OHOS::ERR_OK;
     }
 
