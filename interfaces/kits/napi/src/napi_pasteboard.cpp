@@ -16,6 +16,7 @@
 #include "napi_pasteboard_common.h"
 #include "pasteboard_hilog.h"
 #include "pasteboard_napi.h"
+#include "pastedata_record_napi.h"
 #include "pasteboard_fuse_getter_client.h"
 #include "paste_data_record.h"
 #include "uri.h"
@@ -819,6 +820,74 @@ static napi_value CreateVirtualFileData(napi_env env, const std::string &mimeTyp
     return BuildVirtualFileResult(env, mimeType, info, onReadRef, onStatRef, onCancelRef);
 }
 constexpr size_t MAX_ARGS = 6;
+static napi_value CreateVirtualFileRecord(napi_env env, const std::string &mimeType, napi_value vfiValue)
+{
+    napi_value itemInfo = nullptr;
+    napi_get_named_property(env, vfiValue, "itemInfo", &itemInfo);
+    napi_value onRead = nullptr;
+    napi_value onStat = nullptr;
+    napi_value onCancel = nullptr;
+    napi_get_named_property(env, vfiValue, "onRead", &onRead);
+    napi_get_named_property(env, vfiValue, "onStat", &onStat);
+    napi_get_named_property(env, vfiValue, "onCancel", &onCancel);
+    napi_valuetype onReadType = napi_undefined;
+    napi_typeof(env, onRead, &onReadType);
+    if (onReadType != napi_function) {
+        napi_throw_error(env, "401", "Parameter error: onRead is required");
+        return nullptr;
+    }
+    napi_valuetype itemInfoType = napi_undefined;
+    napi_typeof(env, itemInfo, &itemInfoType);
+    if (itemInfoType != napi_object) {
+        napi_throw_error(env, "401", "Parameter error: itemInfo is required");
+        return nullptr;
+    }
+    VirtualFileItemInfo info;
+    if (!ParseItemInfo(env, itemInfo, info)) {
+        return nullptr;
+    }
+    napi_ref onReadRef = nullptr;
+    napi_ref onStatRef = nullptr;
+    napi_ref onCancelRef = nullptr;
+    napi_create_reference(env, onRead, 1, &onReadRef);
+    if (onStat != nullptr) {
+        napi_valuetype vt;
+        napi_typeof(env, onStat, &vt);
+        if (vt == napi_function) {
+            napi_create_reference(env, onStat, 1, &onStatRef);
+        }
+    }
+    napi_create_reference(env, onCancel, 1, &onCancelRef);
+
+    auto provider = sptr<NapiFuseGetter>::MakeSptr(env, onReadRef, onStatRef, onCancelRef);
+    if (provider == nullptr) {
+        return nullptr;
+    }
+    auto obj = std::make_shared<UDMF::Object>();
+    obj->value_["id"] = info.fileId;
+    obj->value_["name"] = info.fileName;
+    obj->value_["size"] = info.fileSize;
+    obj->value_["modifyTime"] = static_cast<int64_t>(info.modifyTime);
+    obj->value_["type"] = info.fileType;
+    auto entry = std::make_shared<PasteDataEntry>();
+    entry->SetUtdId("general.virtual-file");
+    entry->SetMimeType(mimeType);
+    entry->SetValue(std::shared_ptr<UDMF::Object>(obj));
+    PasteDataRecord::Builder builder(mimeType);
+    auto record = builder.Build();
+    if (record == nullptr) {
+        return nullptr;
+    }
+    record->AddEntry("general.virtual-file", entry);
+    record->SetFuseGetter(provider);
+
+    napi_value instance = nullptr;
+    if (!PasteDataRecordNapi::NewInstanceByRecord(env, instance, record)) {
+        return nullptr;
+    }
+    return instance;
+}
+
 constexpr size_t ARGC_TYPE_SET1 = 1;
 constexpr size_t ARGC_TYPE_SET2 = 2;
 napi_value PasteboardNapi::CreateHtmlRecord(napi_env env, napi_value in)
@@ -1216,7 +1285,7 @@ napi_value PasteboardNapi::JSCreateRecord(napi_env env, napi_callback_info info)
         napi_get_value_string_utf8(env, argv[0], mimeType.data(), mimeTypeLen + 1, &mimeTypeLen);
         if (mimeType == MIMETYPE_TEXT_URI && IsVirtualFileInfo(env, argv[1])) {
             PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "Creating VirtualFile record");
-            return CreateVirtualFileData(env, mimeType, argv[1]);
+            return CreateVirtualFileRecord(env, mimeType, argv[1]);
         }
         if (!CheckArgs(env, argv, argc, mimeType)) {
             return nullptr;

@@ -218,7 +218,7 @@ HWTEST_F(PasteboardFuseManagerTest, OnProviderDied_001, TestSize.Level1)
     auto *getter = new MockFuseGetter();
     std::vector<FileInfo> infos = {{0, 0, TEST_RECORD_ID, TEST_FILE_ID, TEST_FILE_NAME, 1024, 0, false, nullptr}};
     fuse_->SetProvider(TEST_USER_ID, getter, TEST_DATA_ID, infos);
-    fuse_->fdMap_[1001] = {TEST_PID, std::make_shared<FileInfo>(fuse_->fileInfos_[TEST_USER_ID][0])};
+    fuse_->fdMap_[1001] = {static_cast<uid_t>(TEST_PID), std::make_shared<FileInfo>(fuse_->fileInfos_[TEST_USER_ID][0])};
     fuse_->OnProviderDied(TEST_USER_ID);
     EXPECT_FALSE(fuse_->HasProvider(TEST_USER_ID));
     EXPECT_EQ(fuse_->fdMap_.count(1001), 0u);
@@ -453,7 +453,7 @@ HWTEST_F(PasteboardFuseManagerTest, ReadHandler_NullProvider_001, TestSize.Level
     info->fileId = TEST_FILE_ID;
     info->provider = nullptr;
     int fd = fuse_->nextFd_++;
-    fuse_->fdMap_[fd] = {TEST_PID, info};
+    fuse_->fdMap_[fd] = {static_cast<uid_t>(TEST_PID), info};
     struct fuse_file_info fi{};
     fi.fh = static_cast<uint64_t>(fd);
     char buf[1024];
@@ -476,7 +476,7 @@ HWTEST_F(PasteboardFuseManagerTest, ReadHandler_ProviderError_001, TestSize.Leve
     info->fileId = TEST_FILE_ID;
     info->provider = getter;
     int fd = fuse_->nextFd_++;
-    fuse_->fdMap_[fd] = {TEST_PID, info};
+    fuse_->fdMap_[fd] = {static_cast<uid_t>(TEST_PID), info};
     struct fuse_file_info fi{};
     fi.fh = static_cast<uint64_t>(fd);
     char buf[1024];
@@ -500,7 +500,7 @@ HWTEST_F(PasteboardFuseManagerTest, ReadHandler_Success_001, TestSize.Level1)
     info->fileId = TEST_FILE_ID;
     info->provider = getter;
     int fd = fuse_->nextFd_++;
-    fuse_->fdMap_[fd] = {TEST_PID, info};
+    fuse_->fdMap_[fd] = {static_cast<uid_t>(TEST_PID), info};
     struct fuse_file_info fi{};
     fi.fh = static_cast<uint64_t>(fd);
     char buf[1024] = {0};
@@ -523,7 +523,7 @@ HWTEST_F(PasteboardFuseManagerTest, ReleaseHandler_Success_001, TestSize.Level1)
     SetupAuthorizedContext(TEST_PID);
     auto info = std::make_shared<FileInfo>();
     int fd = fuse_->nextFd_++;
-    fuse_->fdMap_[fd] = {TEST_PID, info};
+    fuse_->fdMap_[fd] = {static_cast<uid_t>(TEST_PID), info};
     struct fuse_file_info fi{};
     fi.fh = static_cast<uint64_t>(fd);
     int ret = PasteboardFuseManager::ReleaseHandler("/test", &fi);
@@ -1087,7 +1087,7 @@ HWTEST_F(PasteboardFuseManagerTest, ReadHandler_ZeroSize_001, TestSize.Level1)
     info->fileId = TEST_FILE_ID;
     info->provider = getter;
     int fd = fuse_->nextFd_++;
-    fuse_->fdMap_[fd] = {TEST_PID, info};
+    fuse_->fdMap_[fd] = {static_cast<uid_t>(TEST_PID), info};
     struct fuse_file_info fi{};
     fi.fh = static_cast<uint64_t>(fd);
     char buf[16];
