@@ -115,7 +115,14 @@ int32_t PasteboardFuseManager::CreateFuseSessionLocked(int32_t userId, const std
     fuse_opt_add_arg(&args, "-o");
     fuse_opt_add_arg(&args, ("max_read=" + std::to_string(MAX_READ_SIZE)).c_str());
     struct fuse_operations ops = {};
-    ops.init = InitHandler;    ops.getattr = StatHandler;
+    ops.init = [](struct fuse_conn_info *conn, struct fuse_config *cfg) -> void * {
+        (void)cfg;
+        if (conn != nullptr) {
+            conn->max_read = MAX_READ_SIZE;
+        }
+        return nullptr;
+    };
+    ops.getattr = StatHandler;
     ops.open = OpenHandler;
     ops.read = ReadHandler;
     ops.release = ReleaseHandler;
@@ -451,15 +458,6 @@ int PasteboardFuseManager::StatDirLocked(const std::vector<FileInfo> &infos, uin
     stbuf->st_mode = S_IFDIR | FUSE_DIR_MODE;
     stbuf->st_nlink = FUSE_DIR_NLINK;
     return 0;
-}
-
-void *PasteboardFuseManager::InitHandler(struct fuse_conn_info *conn, struct fuse_config *cfg)
-{
-    (void)cfg;
-    if (conn != nullptr) {
-        conn->max_read = MAX_READ_SIZE;
-    }
-    return nullptr;
 }
 
 int PasteboardFuseManager::StatHandler(const char *path, struct stat *stbuf, struct fuse_file_info *fi)

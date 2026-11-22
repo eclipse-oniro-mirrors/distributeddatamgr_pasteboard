@@ -20,6 +20,7 @@
 #include "common/pasteboard_common_utils.h"
 #include "pasteboard_hilog.h"
 #include "common/histogram_wrapper.h"
+#include "paste_data_record.h"
 using namespace OHOS::MiscServices;
 using namespace OHOS::Media;
 
@@ -516,7 +517,13 @@ napi_value SystemPasteboardNapi::SetPasteData(napi_env env, napi_callback_info i
     auto exec = [context](AsyncCall::Context *ctx) {
         PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "exec SetPasteData");
         if (context->obj != nullptr) {
-            PasteboardClient::GetInstance()->SetPasteData(*(context->obj));
+            std::map<uint32_t, sptr<IPasteboardFuseGetter>> fuseGetters;
+            for (auto record : context->obj->AllRecords()) {
+                if (record != nullptr && record->GetFuseGetter() != nullptr) {
+                    fuseGetters.emplace(record->GetRecordId(), record->GetFuseGetter());
+                }
+            }
+            PasteboardClient::GetInstance()->SetPasteData(*(context->obj), nullptr, {}, fuseGetters);
             context->obj = nullptr;
         }
         context->status = napi_ok;
@@ -539,12 +546,19 @@ napi_value SystemPasteboardNapi::SetData(napi_env env, napi_callback_info info)
         int32_t ret = static_cast<int32_t>(PasteboardError::INVALID_DATA_ERROR);
         if (context->obj != nullptr) {
             std::map<uint32_t, std::shared_ptr<UDMF::EntryGetter>> entryGetters;
+            std::map<uint32_t, sptr<IPasteboardFuseGetter>> fuseGetters;
             for (auto record : context->obj->AllRecords()) {
-                if (record != nullptr && record->GetEntryGetter() != nullptr) {
+                if (record == nullptr) {
+                    continue;
+                }
+                if (record->GetEntryGetter() != nullptr) {
                     entryGetters.emplace(record->GetRecordId(), record->GetEntryGetter());
                 }
+                if (record->GetFuseGetter() != nullptr) {
+                    fuseGetters.emplace(record->GetRecordId(), record->GetFuseGetter());
+                }
             }
-            ret = PasteboardClient::GetInstance()->SetPasteData(*(context->obj), nullptr, entryGetters);
+            ret = PasteboardClient::GetInstance()->SetPasteData(*(context->obj), nullptr, entryGetters, fuseGetters);
             context->obj = nullptr;
         }
         if (ret == static_cast<int32_t>(PasteboardError::E_OK)) {

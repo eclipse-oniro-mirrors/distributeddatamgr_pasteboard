@@ -729,6 +729,10 @@ static napi_value BuildVirtualFileResult(napi_env env, const std::string &mimeTy
     const VirtualFileItemInfo &info, napi_ref onReadRef, napi_ref onStatRef, napi_ref onCancelRef)
 {
     auto provider = sptr<NapiFuseGetter>::MakeSptr(env, onReadRef, onStatRef, onCancelRef);
+    if (provider == nullptr) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "create NapiFuseGetter failed");
+        return nullptr;
+    }
 
     auto obj = std::make_shared<UDMF::Object>();
     obj->value_["id"] = info.fileId;
@@ -744,17 +748,28 @@ static napi_value BuildVirtualFileResult(napi_env env, const std::string &mimeTy
 
     PasteDataRecord::Builder builder(mimeType);
     auto record = builder.Build();
+    if (record == nullptr) {
+        return nullptr;
+    }
     record->AddEntry("general.virtual-file", entry);
+    record->SetFuseGetter(provider);
 
     auto pasteData = std::make_shared<PasteData>();
     pasteData->AddRecord(record);
 
-    std::map<uint32_t, sptr<IPasteboardFuseGetter>> providers;
-    providers[record->GetRecordId()] = provider;
-
-    napi_value result = nullptr;
-    napi_create_int32(env, 0, &result);
-    return result;
+    napi_value instance = nullptr;
+    napi_status status = PasteDataNapi::NewInstance(env, instance);
+    if (status != napi_ok) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "PasteDataNapi::NewInstance failed");
+        return nullptr;
+    }
+    PasteDataNapi *objNapi = nullptr;
+    napi_unwrap(env, instance, reinterpret_cast<void **>(&objNapi));
+    if (objNapi == nullptr) {
+        return nullptr;
+    }
+    objNapi->value_ = pasteData;
+    return instance;
 }
 
 static napi_value CreateVirtualFileData(napi_env env, const std::string &mimeType, napi_value vfiValue)
@@ -1344,19 +1359,19 @@ napi_value PasteboardNapi::JSCreateData(napi_env env, napi_callback_info info)
     if (isArray) {
         return CreateDelayDataFromArray(env, argv, argc);
     }
-    if (!CheckArgs(env, argv, argc, mimeType)) {
-        return nullptr;
-    }
-    auto it = createDataMap_.find(mimeType);
-    if (it != createDataMap_.end()) {
-        return (it->second)(env, argv[1]);
-    }
     if (IsVirtualFileInfo(env, argv[1])) {
         if (mimeType != "text/uri") {
             napi_throw_error(env, "401", "Parameter error: VirtualFile data requires mimeType 'text/uri'");
             return nullptr;
         }
         return CreateVirtualFileData(env, mimeType, argv[1]);
+    }
+    if (!CheckArgs(env, argv, argc, mimeType)) {
+        return nullptr;
+    }
+    auto it = createDataMap_.find(mimeType);
+    if (it != createDataMap_.end()) {
+        return (it->second)(env, argv[1]);
     }
     void *data = nullptr;
     size_t dataLen = 0;

@@ -265,7 +265,7 @@ PasteDataRecord::PasteDataRecord(const PasteDataRecord &record)
       htmlText_(record.htmlText_), want_(record.want_), plainText_(record.plainText_), uri_(record.uri_),
       pixelMap_(record.pixelMap_), customData_(record.customData_), details_(record.details_),
       systemDefinedContents_(record.systemDefinedContents_), udmfValue_(record.udmfValue_), entries_(record.entries_),
-      entryGetter_(record.entryGetter_)
+      entryGetter_(record.entryGetter_), fuseGetter_(record.fuseGetter_)
 { // LCOV_EXCL_START
     this->isConvertUriFromRemote = record.isConvertUriFromRemote;
 } // LCOV_EXCL_STOP
@@ -1056,6 +1056,16 @@ uint32_t PasteDataRecord::GetFrom() const
 std::shared_ptr<UDMF::EntryGetter> PasteDataRecord::GetEntryGetter()
 { // LCOV_EXCL_START
     return entryGetter_;
+} // LCOV_EXCL_STOP
+
+void PasteDataRecord::SetFuseGetter(const sptr<IPasteboardFuseGetter> fuseGetter)
+{ // LCOV_EXCL_START
+    fuseGetter_ = fuseGetter;
+} // LCOV_EXCL_STOP
+
+sptr<IPasteboardFuseGetter> PasteDataRecord::GetFuseGetter()
+{ // LCOV_EXCL_START
+    return fuseGetter_;
 } // LCOV_EXCL_STOP
 } // namespace MiscServices
 } // namespace OHOS

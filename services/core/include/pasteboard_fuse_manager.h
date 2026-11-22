@@ -86,8 +86,6 @@ private:
     int32_t CreateFuseSessionLocked(int32_t userId, const std::string &mountPath, int32_t fuseFd);
     std::string GetMountPath(int32_t userId);
 
-    static void *InitHandler(struct fuse_conn_info *conn, struct fuse_config *cfg);
-
     static int StatHandler(const char *path, struct stat *stbuf, struct fuse_file_info *fi);
     static int OpenHandler(const char *path, struct fuse_file_info *fi);
     static int ReadHandler(const char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *fi);
