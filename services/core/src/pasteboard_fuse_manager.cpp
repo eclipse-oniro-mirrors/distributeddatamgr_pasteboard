@@ -619,8 +619,47 @@ int PasteboardFuseManager::StatByPath(const HandlerContext &ctx, const std::stri
     if (ctx.self == nullptr) {
         return -EACCES;
     }
-    std::lock_guard<std::mutex> lock(ctx.self->mutex_);
-    return ctx.self->StatLocked(ctx, path, stbuf);
+    auto self = ctx.self;
+    std::shared_ptr<FileInfo> fileInfo;
+    {
+        std::lock_guard<std::mutex> lock(self->mutex_);
+        int ret = self->StatLocked(ctx, path, stbuf);
+        if (ret != 0) {
+            return ret;
+        }
+        // For file paths, grab the fileInfo so we can query dynamic size via OnStat.
+        uint32_t dataId = 0;
+        uint32_t recordId = 0;
+        std::string fileName;
+        if (ParsePath(path.c_str(), dataId, recordId, fileName) == PATH_FILE) {
+            fileInfo = self->GetFileInfoLocked(ctx.userId, dataId, recordId, fileName);
+        }
+    }
+    // Dynamic stat: call provider->OnStat outside the lock (IPC may block).
+    // Pattern aligned with ReadByPath: semaphore + retry.
+    if (fileInfo != nullptr && fileInfo->provider != nullptr) {
+        self->readSemaphore_.acquire();
+        FuseFileStat fuseStat{};
+        int32_t ret = -1;
+        for (int32_t attempt = 0; attempt <= MAX_READ_RETRIES; ++attempt) {
+            if (attempt > 0) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(READ_RETRY_DELAY_MS * attempt));
+            }
+            ret = fileInfo->provider->OnStat(fileInfo->recordId, fileInfo->fileId, fuseStat);
+            if (ret == 0) {
+                break;
+            }
+            PASTEBOARD_HILOGW(PASTEBOARD_MODULE_SERVICE,
+                "OnStat attempt %{public}d failed, ret:%{public}d", attempt + 1, ret);
+        }
+        self->readSemaphore_.release();
+        if (ret == 0) {
+            stbuf->st_size = fuseStat.size;
+            stbuf->st_mtime = static_cast<time_t>(fuseStat.modifyTime / MILLISEC_PER_SEC);
+        }
+        // On failure, keep the static values from StatLocked (fallback).
+    }
+    return 0;
 }
 
 int PasteboardFuseManager::OpenLocked(const HandlerContext &ctx, const std::string &path,
@@ -839,6 +878,8 @@ void PasteboardFuseManager::LookupHandler(struct fuse_req *req, uint64_t parent,
         reqCtx == nullptr ? -1 : reqCtx->uid };
     int32_t err = 0;
     struct fuse_entry_param entry = {};
+    std::string childPath;
+    std::shared_ptr<FileInfo> fileInfo;
     {
         std::lock_guard<std::mutex> lock(self->mutex_);
         auto it = self->fuseSessions_.find(ctx.userId);
@@ -851,7 +892,7 @@ void PasteboardFuseManager::LookupHandler(struct fuse_req *req, uint64_t parent,
                 err = ENOENT;
             } else {
                 const std::string &parentPath = parentIt->second;
-                std::string childPath =
+                childPath =
                     parentPath == "/" ? "/" + std::string(name) : parentPath + "/" + name;
                 int ret = self->StatLocked(ctx, childPath, &entry.attr);
                 if (ret != 0) {
@@ -868,6 +909,13 @@ void PasteboardFuseManager::LookupHandler(struct fuse_req *req, uint64_t parent,
                     entry.attr.st_ino = entry.ino;
                     entry.attr_timeout = ATTR_TIMEOUT_SECONDS;
                     entry.entry_timeout = ATTR_TIMEOUT_SECONDS;
+                    // Grab fileInfo for dynamic OnStat outside the lock.
+                    uint32_t dId = 0;
+                    uint32_t rId = 0;
+                    std::string fn;
+                    if (ParsePath(childPath.c_str(), dId, rId, fn) == PATH_FILE) {
+                        fileInfo = self->GetFileInfoLocked(ctx.userId, dId, rId, fn);
+                    }
                 }
             }
         }
@@ -875,6 +923,26 @@ void PasteboardFuseManager::LookupHandler(struct fuse_req *req, uint64_t parent,
     if (err != 0) {
         fuse_reply_err(req, err);
         return;
+    }
+    // Dynamic stat for files: call OnStat outside the lock (IPC + semaphore + retry).
+    if (fileInfo != nullptr && fileInfo->provider != nullptr) {
+        self->readSemaphore_.acquire();
+        FuseFileStat fuseStat{};
+        int32_t ret = -1;
+        for (int32_t attempt = 0; attempt <= MAX_READ_RETRIES; ++attempt) {
+            if (attempt > 0) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(READ_RETRY_DELAY_MS * attempt));
+            }
+            ret = fileInfo->provider->OnStat(fileInfo->recordId, fileInfo->fileId, fuseStat);
+            if (ret == 0) {
+                break;
+            }
+        }
+        self->readSemaphore_.release();
+        if (ret == 0) {
+            entry.attr.st_size = fuseStat.size;
+            entry.attr.st_mtime = static_cast<time_t>(fuseStat.modifyTime / MILLISEC_PER_SEC);
+        }
     }
     fuse_reply_entry(req, &entry);
 }
@@ -900,6 +968,7 @@ void PasteboardFuseManager::GetAttrHandler(struct fuse_req *req, uint64_t ino, s
         reqCtx == nullptr ? -1 : reqCtx->uid };
     struct stat attr = {};
     int32_t err = 0;
+    std::string path;
     {
         std::lock_guard<std::mutex> lock(self->mutex_);
         auto it = self->fuseSessions_.find(ctx.userId);
@@ -910,12 +979,7 @@ void PasteboardFuseManager::GetAttrHandler(struct fuse_req *req, uint64_t ino, s
             if (inodeIt == it->second.inodePaths.end()) {
                 err = ENOENT;
             } else {
-                int ret = self->StatLocked(ctx, inodeIt->second, &attr);
-                if (ret != 0) {
-                    err = -ret;
-                } else {
-                    attr.st_ino = ino;
-                }
+                path = inodeIt->second;
             }
         }
     }
@@ -923,6 +987,13 @@ void PasteboardFuseManager::GetAttrHandler(struct fuse_req *req, uint64_t ino, s
         fuse_reply_err(req, err);
         return;
     }
+    // StatByPath handles locked stat + dynamic OnStat (for files) outside the lock.
+    int ret = StatByPath(ctx, path, &attr, nullptr);
+    if (ret != 0) {
+        fuse_reply_err(req, -ret);
+        return;
+    }
+    attr.st_ino = ino;
     fuse_reply_attr(req, &attr, ATTR_TIMEOUT_SECONDS);
 }
 
