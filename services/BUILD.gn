@@ -112,6 +112,7 @@ ohos_shared_library("pasteboard_service") {
     "zidl/src/pasteboard_disposable_observer_proxy.cpp",
     "zidl/src/pasteboard_entry_getter_proxy.cpp",
     "zidl/src/pasteboard_fuse_getter_proxy.cpp",
+    "zidl/src/pasteboard_fuse_read_callback_stub.cpp",
     "zidl/src/pasteboard_observer_proxy.cpp",
   ]
 
