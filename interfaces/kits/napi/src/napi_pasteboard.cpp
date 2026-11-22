@@ -1210,6 +1210,14 @@ napi_value PasteboardNapi::JSCreateRecord(napi_env env, napi_callback_info info)
     }
     if (type == napi_string) {
         std::string mimeType;
+        size_t mimeTypeLen = 0;
+        napi_get_value_string_utf8(env, argv[0], nullptr, 0, &mimeTypeLen);
+        mimeType.resize(mimeTypeLen);
+        napi_get_value_string_utf8(env, argv[0], mimeType.data(), mimeTypeLen + 1, &mimeTypeLen);
+        if (mimeType == MIMETYPE_TEXT_URI && IsVirtualFileInfo(env, argv[1])) {
+            PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "Creating VirtualFile record");
+            return CreateVirtualFileData(env, mimeType, argv[1]);
+        }
         if (!CheckArgs(env, argv, argc, mimeType)) {
             return nullptr;
         }

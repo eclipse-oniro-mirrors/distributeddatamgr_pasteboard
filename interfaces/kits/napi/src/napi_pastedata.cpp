@@ -16,6 +16,7 @@
 #include "napi_pasteboard_common.h"
 #include "pasteboard_hilog.h"
 #include "common/histogram_wrapper.h"
+#include "paste_data_record.h"
 using namespace OHOS::MiscServices;
 using namespace OHOS::Media;
 
@@ -600,6 +601,10 @@ std::shared_ptr<MiscServices::PasteDataRecord> PasteDataNapi::ParseRecord(napi_e
         record->value_->GetEntryGetter() != nullptr) {
         result->SetEntryGetter(record->value_->GetEntryGetter());
         result->SetDelayRecordFlag(true);
+    }
+    if (record != nullptr && record->value_ != nullptr &&
+        record->value_->GetFuseGetter() != nullptr) {
+        result->SetFuseGetter(record->value_->GetFuseGetter());
     }
 
     if (record != nullptr && record->value_ != nullptr && !record->value_->GetEntries().empty()) {
