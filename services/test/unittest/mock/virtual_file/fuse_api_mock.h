@@ -39,7 +39,6 @@ public:
     virtual struct fuse_context *fuse_get_context() = 0;
     virtual int fuse_opt_add_arg(struct fuse_args *args, const char *arg) = 0;
     virtual void fuse_opt_free_args(struct fuse_args *args) = 0;
-    virtual struct fuse_session *fuse_get_session(struct fuse *f) = 0;
     virtual int fuse_session_custom_io(struct fuse_session *se, void *io, size_t io_size, int fd) = 0;
     virtual int fuse_session_loop_mt(struct fuse_session *se, struct fuse_loop_config *config) = 0;
     virtual struct fuse_session *fuse_session_new(struct fuse_args *args,
@@ -69,7 +68,6 @@ public:
     MOCK_METHOD(struct fuse_context *, fuse_get_context, (), (override));
     MOCK_METHOD(int, fuse_opt_add_arg, (struct fuse_args * args, const char *arg), (override));
     MOCK_METHOD(void, fuse_opt_free_args, (struct fuse_args * args), (override));
-    MOCK_METHOD(struct fuse_session *, fuse_get_session, (struct fuse * f), (override));
     MOCK_METHOD(int, fuse_session_custom_io,
         (struct fuse_session * se, void *io, size_t io_size, int fd), (override));
     MOCK_METHOD(int, fuse_session_loop_mt,

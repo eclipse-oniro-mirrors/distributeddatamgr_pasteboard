@@ -142,15 +142,6 @@ void fuse_opt_free_args(struct fuse_args *args)
     mock->fuse_opt_free_args(args);
 }
 
-struct fuse_session *fuse_get_session(struct fuse *f)
-{
-    auto mock = FuseApiMock::GetMock();
-    if (mock == nullptr) {
-        return nullptr;
-    }
-    return mock->fuse_get_session(f);
-}
-
 int fuse_session_custom_io(struct fuse_session *se, void *io, size_t io_size, int fd)
 {
     auto mock = FuseApiMock::GetMock();
@@ -213,5 +204,68 @@ void fuse_loop_cfg_set_clone_fd(struct fuse_loop_config *config, int clone_fd)
         return;
     }
     mock->fuse_loop_cfg_set_clone_fd(config, clone_fd);
+}
+
+// ===== Lowlevel stubs (never called in tests — fuse_session_loop_mt is mocked) =====
+
+void *fuse_req_userdata(struct fuse_req *req)
+{
+    (void)req;
+    return nullptr;
+}
+
+const struct fuse_ctx *fuse_req_ctx(struct fuse_req *req)
+{
+    (void)req;
+    return nullptr;
+}
+
+void fuse_reply_entry(struct fuse_req *req, const struct fuse_entry_param *e)
+{
+    (void)req;
+    (void)e;
+}
+
+void fuse_reply_err(struct fuse_req *req, int err)
+{
+    (void)req;
+    (void)err;
+}
+
+void fuse_reply_attr(struct fuse_req *req, const struct stat *attr, double timeout)
+{
+    (void)req;
+    (void)attr;
+    (void)timeout;
+}
+
+void fuse_reply_open(struct fuse_req *req, const struct fuse_file_info *fi)
+{
+    (void)req;
+    (void)fi;
+}
+
+void fuse_reply_buf(struct fuse_req *req, const char *buf, size_t size)
+{
+    (void)req;
+    (void)buf;
+    (void)size;
+}
+
+void fuse_reply_none(struct fuse_req *req)
+{
+    (void)req;
+}
+
+size_t fuse_add_direntry(struct fuse_req *req, char *buf, size_t bufsize,
+    const char *name, const struct stat *stbuf, off_t off)
+{
+    (void)req;
+    (void)buf;
+    (void)bufsize;
+    (void)name;
+    (void)stbuf;
+    (void)off;
+    return 0;
 }
 // NOLINTEND
