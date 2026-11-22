@@ -41,11 +41,15 @@ public:
         int32_t status = -EIO;
         std::vector<uint8_t> data;
     };
-
-    int32_t WaitForResult(std::shared_ptr<Result> result, int32_t timeoutMs);
+    int32_t WaitForResult(int32_t timeoutMs);
+    std::vector<uint8_t> TakeData();
 
 private:
-    std::shared_ptr<Result> result_ = std::make_shared<Result>();
+    std::mutex mutex_;
+    std::condition_variable cv_;
+    bool done_ = false;
+    int32_t status_ = -EIO;
+    std::vector<uint8_t> data_;
 };
 } // namespace MiscServices
 } // namespace OHOS

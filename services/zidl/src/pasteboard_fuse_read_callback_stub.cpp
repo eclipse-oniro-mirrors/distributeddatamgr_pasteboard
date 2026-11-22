@@ -23,6 +23,12 @@ int PasteboardFuseReadCallbackStub::OnRemoteRequest(
     uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
     if (code == static_cast<uint32_t>(FuseReadCallbackCode::ON_RESULT)) {
+        std::u16string localDescriptor = PasteboardFuseReadCallbackStub::GetDescriptor();
+        std::u16string remoteDescriptor = data.ReadInterfaceToken();
+        if (remoteDescriptor != localDescriptor) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CLIENT, "callback descriptor mismatch");
+            return ERR_INVALID_VALUE;
+        }
         int32_t status = data.ReadInt32();
         std::vector<uint8_t> fileData;
         data.ReadUInt8Vector(&fileData);
@@ -33,25 +39,31 @@ int PasteboardFuseReadCallbackStub::OnRemoteRequest(
 
 int32_t PasteboardFuseReadCallbackStub::OnResult(int32_t status, const std::vector<uint8_t> &data)
 {
-    std::lock_guard<std::mutex> lock(result_->mutex);
-    if (result_->done) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (done_) {
         return 0;
     }
-    result_->done = true;
-    result_->status = status;
-    result_->data = data;
-    result_->cv.notify_one();
+    done_ = true;
+    status_ = status;
+    data_ = data;
+    cv_.notify_one();
     return 0;
 }
 
-int32_t PasteboardFuseReadCallbackStub::WaitForResult(std::shared_ptr<Result> result, int32_t timeoutMs)
+int32_t PasteboardFuseReadCallbackStub::WaitForResult(int32_t timeoutMs)
 {
-    std::unique_lock<std::mutex> lock(result->mutex);
-    if (!result->cv.wait_for(lock, std::chrono::milliseconds(timeoutMs), [&result] { return result->done; })) {
+    std::unique_lock<std::mutex> lock(mutex_);
+    if (!cv_.wait_for(lock, std::chrono::milliseconds(timeoutMs), [this] { return done_; })) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "FuseReadCallback timeout");
         return -EIO;
     }
-    return result->status;
+    return status_;
+}
+
+std::vector<uint8_t> PasteboardFuseReadCallbackStub::TakeData()
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return std::move(data_);
 }
 } // namespace MiscServices
 } // namespace OHOS

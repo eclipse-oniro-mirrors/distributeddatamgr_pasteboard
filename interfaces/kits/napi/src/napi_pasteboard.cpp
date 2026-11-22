@@ -368,7 +368,7 @@ private:
         }
         napi_value args[3] = { nullptr };
         napi_create_string_utf8(env, ctx->id.c_str(), NAPI_AUTO_LENGTH, &args[0]);
-        napi_create_bigint_int64(env, ctx->offset, &args[1]);
+        napi_create_int64(env, ctx->offset, &args[1]);
         napi_create_int32(env, ctx->length, &args[READ_ARG_COUNT - 1]);
         napi_value jsResult = nullptr;
         napi_status status = napi_call_function(env, nullptr, onRead, 3, args, &jsResult);
@@ -453,7 +453,7 @@ private:
             size_t maxLen = static_cast<size_t>(ctx->length);
             size_t copyLen = std::min(length, maxLen);
             if (copyLen > 0 && bytes != nullptr) {
-                auto *begin = reinterpret_cast<uint8_t *>(bytes) + offset;
+                auto *begin = reinterpret_cast<uint8_t *>(bytes);
                 ctx->data.assign(begin, begin + copyLen);
             }
             ctx->result = ERR_OK;

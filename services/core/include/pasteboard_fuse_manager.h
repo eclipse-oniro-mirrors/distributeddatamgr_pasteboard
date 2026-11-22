@@ -62,7 +62,7 @@ public:
     PasteboardFuseManager &operator=(PasteboardFuseManager &&) = delete;
 
     int32_t OnGetData(int32_t userId);
-    int32_t OnAppExit(pid_t pid, int32_t userId);
+    int32_t OnAppExit(uid_t uid, int32_t userId);
     void OnAged(int32_t userId);
     void OnRemoveData(int32_t userId);
     void OnProviderDied(int32_t userId);
@@ -76,7 +76,7 @@ private:
     void StartSessionLoop(int32_t userId, struct fuse *fuseHandle);
     void StopSessionLoop(int32_t userId);
     void CleanupCopyAppLocked(int32_t userId);
-    bool CleanupPasteAppLocked(pid_t pid, int32_t userId);
+    bool CleanupPasteAppLocked(uid_t uid, int32_t userId);
     void CleanupLocked(int32_t userId);
     bool CheckAuthorization(int32_t userId);
     bool CheckAuthorizationLocked(int32_t userId, uid_t callerUid);

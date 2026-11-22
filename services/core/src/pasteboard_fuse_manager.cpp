@@ -76,7 +76,11 @@ int32_t PasteboardFuseManager::OnGetData(int32_t userId)
             if (!it->second.running) {
                 PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE,
                     "FUSE session stopped, re-mounting userId:%{public}d", userId);
+                std::thread dead = std::move(it->second.loopThread);
                 fuseSessions_.erase(it);
+                if (dead.joinable()) {
+                    dead.detach();
+                }
             } else {
                 return 0;
             }
@@ -197,7 +201,11 @@ void PasteboardFuseManager::StopSessionLoop(int32_t userId)
         if (it == fuseSessions_.end()) return;
         auto &session = it->second;
         if (!session.running) {
+            std::thread dead = std::move(session.loopThread);
             fuseSessions_.erase(it);
+            if (dead.joinable()) {
+                dead.detach();
+            }
             return;
         }
         session.running = false;
@@ -251,9 +259,9 @@ bool PasteboardFuseManager::HasProvider(int32_t userId)
     return providers_.find(userId) != providers_.end() && providers_[userId] != nullptr;
 }
 
-int32_t PasteboardFuseManager::OnAppExit(pid_t pid, int32_t userId)
+int32_t PasteboardFuseManager::OnAppExit(uid_t uid, int32_t userId)
 {
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnAppExit pid:%{public}d, userId:%{public}d", pid, userId);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnAppExit uid:%{public}u, userId:%{public}d", uid, userId);
     bool needStop = false;
     {
         std::lock_guard<std::mutex> lock(mutex_);
@@ -263,7 +271,7 @@ int32_t PasteboardFuseManager::OnAppExit(pid_t pid, int32_t userId)
             CleanupCopyAppLocked(userId);
             needStop = true;
         } else {
-            needStop = CleanupPasteAppLocked(pid, userId);
+            needStop = CleanupPasteAppLocked(uid, userId);
         }
     }
     if (needStop) {
@@ -279,20 +287,20 @@ void PasteboardFuseManager::CleanupCopyAppLocked(int32_t userId)
     CleanupLocked(userId);
 }
 
-bool PasteboardFuseManager::CleanupPasteAppLocked(pid_t pid, int32_t userId)
+bool PasteboardFuseManager::CleanupPasteAppLocked(uid_t uid, int32_t userId)
 {
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "CleanupPasteAppLocked pid:%{public}d, userId:%{public}d",
-        pid, userId);
-    auto &pidSet = authorizedPastePids_[userId];
-    pidSet.erase(pid);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "CleanupPasteAppLocked uid:%{public}u, userId:%{public}d",
+        uid, userId);
+    auto &uidSet = authorizedPastePids_[userId];
+    uidSet.erase(uid);
     for (auto it = fdMap_.begin(); it != fdMap_.end();) {
-        if (it->second.openerUid == static_cast<uid_t>(pid)) {
+        if (it->second.openerUid == uid) {
             it = fdMap_.erase(it);
         } else {
             ++it;
         }
     }
-    if (pidSet.empty()) {
+    if (uidSet.empty()) {
         PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "No more authorized paste apps, unmounting FUSE");
         return true;
     }

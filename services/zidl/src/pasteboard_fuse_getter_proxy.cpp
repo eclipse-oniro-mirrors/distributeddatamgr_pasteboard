@@ -52,13 +52,12 @@ int32_t PasteboardFuseGetterProxy::OnRead(
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CLIENT, "OnReadAsync SendRequest failed, ret:%{public}d", ret);
         return ret;
     }
-    auto result = std::make_shared<PasteboardFuseReadCallbackStub::Result>();
-    ret = callback->WaitForResult(result, FUSE_IPC_TIMEOUT_MS);
+    ret = callback->WaitForResult(FUSE_IPC_TIMEOUT_MS);
     if (ret != 0) {
         return ret;
     }
-    data = std::move(result->data);
-    return result->status;
+    data = callback->TakeData();
+    return ret;
 }
 
 int32_t PasteboardFuseGetterProxy::OnReadAsync(

@@ -15,12 +15,8 @@
 
 #define LOG_TAG "Pasteboard_Capi_VirtualFile"
 
-#include <chrono>
-#include <condition_variable>
 #include <cstring>
 #include <memory>
-#include <mutex>
-#include <thread>
 #include <vector>
 
 #include "oh_pasteboard_common.h"
@@ -82,46 +78,20 @@ public:
         std::vector<uint8_t> &data) override
     {
         (void)recordId;
-        if (onRead_ == nullptr) {
-            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CAPI, "OnRead callback is null");
+        if (onRead_ == nullptr || length <= 0) {
             return static_cast<int32_t>(PasteboardError::INVALID_RETURN_VALUE_ERROR);
         }
-        struct ReadResult {
-            int ret = -1;
-            std::vector<uint8_t> buffer;
-            uint32_t bytesRead = 0;
-            bool done = false;
-            std::mutex mtx;
-            std::condition_variable cv;
-        };
-        auto result = std::make_shared<ReadResult>();
-        result->buffer.resize(length);
-        auto cb = onRead_;
-        auto ctx = context_;
-        std::thread([cb, ctx, result, id, offset, length]() {
-            result->ret = cb(ctx, id.c_str(), offset, static_cast<uint32_t>(length),
-                result->buffer.data(), &result->bytesRead);
-            {
-                std::lock_guard<std::mutex> lock(result->mtx);
-                result->done = true;
-            }
-            result->cv.notify_one();
-        }).detach();
-        {
-            std::unique_lock<std::mutex> lock(result->mtx);
-            result->cv.wait_for(lock, std::chrono::seconds(CALLBACK_TIMEOUT_S),
-                [&result]() { return result->done; });
+        std::vector<uint8_t> buffer(length);
+        uint32_t bytesRead = 0;
+        int ret = onRead_(context_, id.c_str(), offset, static_cast<uint32_t>(length),
+            buffer.data(), &bytesRead);
+        if (ret != 0) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CAPI, "OnRead callback failed, ret=%{public}d", ret);
+            return ret;
         }
-        if (!result->done) {
-            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CAPI, "OnRead callback timeout, id:%{public}s", id.c_str());
-            return static_cast<int32_t>(PasteboardError::INVALID_RETURN_VALUE_ERROR);
-        }
-        if (result->ret != 0) {
-            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CAPI, "OnRead callback failed, ret=%{public}d", result->ret);
-            return result->ret;
-        }
-        if (result->bytesRead > 0) {
-            data.assign(result->buffer.begin(), result->buffer.begin() + result->bytesRead);
+        uint32_t safeLen = std::min(bytesRead, static_cast<uint32_t>(length));
+        if (safeLen > 0) {
+            data.assign(buffer.begin(), buffer.begin() + safeLen);
         }
         return 0;
     }
@@ -132,33 +102,8 @@ public:
         if (onStat_ == nullptr) {
             return static_cast<int32_t>(PasteboardError::INVALID_RETURN_VALUE_ERROR);
         }
-        struct StatResult {
-            OH_UDMF_VirtualItem *item = nullptr;
-            bool done = false;
-            std::mutex mtx;
-            std::condition_variable cv;
-        };
-        auto result = std::make_shared<StatResult>();
-        auto cb = onStat_;
-        auto ctx = context_;
-        std::thread([cb, ctx, result, id]() {
-            result->item = cb(ctx, id.c_str());
-            {
-                std::lock_guard<std::mutex> lock(result->mtx);
-                result->done = true;
-            }
-            result->cv.notify_one();
-        }).detach();
-        {
-            std::unique_lock<std::mutex> lock(result->mtx);
-            result->cv.wait_for(lock, std::chrono::seconds(CALLBACK_TIMEOUT_S),
-                [&result]() { return result->done; });
-        }
-        if (!result->done) {
-            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CAPI, "OnStat callback timeout, id:%{public}s", id.c_str());
-            return static_cast<int32_t>(PasteboardError::INVALID_RETURN_VALUE_ERROR);
-        }
-        if (result->item == nullptr) {
+        OH_UDMF_VirtualItem *item = onStat_(context_, id.c_str());
+        if (item == nullptr) {
             return static_cast<int32_t>(PasteboardError::INVALID_RETURN_VALUE_ERROR);
         }
         stat.id = id;

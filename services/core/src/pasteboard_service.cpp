@@ -3250,6 +3250,12 @@ void PasteboardService::HandleVirtualFile(PasteData &pasteData,
     if (hasVirtualFile && fuseGetter != nullptr) {
         auto fileInfos = CollectVirtualFileInfos(pasteData, fuseGetter, appInfo, dataId, virtualFileCount);
         fuse_->SetProvider(appInfo.userId, fuseGetter, dataId, fileInfos);
+        fuseGetters_.ComputeIfPresent(appInfo.userId, [&fuseGetter](auto, auto &old) {
+            if (old.first != nullptr && old.second != nullptr && old.first != fuseGetter) {
+                old.first->AsObject()->RemoveDeathRecipient(old.second);
+            }
+            return false;
+        });
         auto deathRecipient = sptr<FuseGetterDeathRecipient>::MakeSptr(appInfo.userId, *this);
         fuseGetter->AsObject()->AddDeathRecipient(deathRecipient);
         fuseGetters_.InsertOrAssign(appInfo.userId, std::make_pair(fuseGetter, deathRecipient));
@@ -3354,15 +3360,22 @@ PasteboardService::FuseGetterDeathRecipient::FuseGetterDeathRecipient(
 
 void PasteboardService::FuseGetterDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
 {
-    (void)remote;
+    auto dying = remote.promote();
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "virtual file provider died, userId:%{public}d", userId_);
-    service_.fuseGetters_.ComputeIfPresent(userId_, [](auto, auto &value) {
-        if (value.first != nullptr && value.second != nullptr) {
+    bool matches = false;
+    service_.fuseGetters_.ComputeIfPresent(userId_, [&dying, &matches](auto, auto &value) {
+        matches = (value.first != nullptr && value.first->AsObject() == dying);
+        if (matches && value.second != nullptr) {
             value.first->AsObject()->RemoveDeathRecipient(value.second);
         }
         return false;
     });
-    service_.fuse_->OnProviderDied(userId_);
+    if (matches) {
+        service_.fuse_->OnProviderDied(userId_);
+    } else {
+        PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE,
+            "stale death recipient fired, ignoring userId:%{public}d", userId_);
+    }
 }
 
 int32_t PasteboardService::GetCurrentAccountId() const
@@ -5600,7 +5613,7 @@ void PasteboardService::RemoveObserverByPid(int32_t userId, pid_t pid, ObserverM
 
 int32_t PasteboardService::AppExit(pid_t pid, int32_t userId)
 {
-    fuse_->OnAppExit(pid, userId);
+    fuse_->OnAppExit(IPCSkeleton::GetCallingUid(), userId);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "pid %{public}d exit, userId %{public}d.", pid, userId);
     PASTEBOARD_CHECK_AND_RETURN_RET_LOGE(userId != ERROR_USERID,
         static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR), PASTEBOARD_MODULE_SERVICE, "invalid userId");

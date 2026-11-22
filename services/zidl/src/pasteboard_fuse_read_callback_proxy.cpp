@@ -24,6 +24,10 @@ int32_t PasteboardFuseReadCallbackProxy::OnResult(int32_t status, const std::vec
     MessageParcel request;
     MessageParcel reply;
     MessageOption option(MessageOption::TF_ASYNC);
+    if (!request.WriteInterfaceToken(GetDescriptor())) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CLIENT, "FuseReadCallbackProxy write token failed");
+        return -EIO;
+    }
     if (!request.WriteInt32(status) || !request.WriteUInt8Vector(data)) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CLIENT, "FuseReadCallbackProxy write failed");
         return -EIO;
