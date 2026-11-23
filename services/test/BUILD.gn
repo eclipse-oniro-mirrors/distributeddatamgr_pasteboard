@@ -670,6 +670,7 @@ ohos_unittest("PasteboardDisposableManagerTest") {
     "init:libbegetutil",
     "ipc:ipc_single",
     "udmf:udmf_client",
+    "samgr:samgr_proxy",
   ]
 }
 
