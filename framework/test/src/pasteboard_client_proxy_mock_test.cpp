@@ -199,5 +199,24 @@ HWTEST_F(PasteboardClientMockTest, DetachPasteboard001, TestSize.Level0)
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "DetachPasteboard001 end");
 }
 
+
+/**
+ * @tc.name: ShowToast001
+ * @tc.desc: ShowToastTest
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.author:
+ */
+HWTEST_F(PasteboardClientMockTest, ShowToast001, TestSize.Level0)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ShowToast001 start");
+    EXPECT_CALL(*systemAbilityManagerClientMock_, GetSystemAbilityManager()).WillRepeatedly(testing::Return(nullptr));
+    PasteboardServiceLoader::GetInstance().pasteboardServiceProxy_ = nullptr;
+    PasteboardServiceLoader::GetInstance().constructing_ = false;
+    PasteboardClient::GetInstance()->ShowToast("testApp", 100, 0);
+    EXPECT_TRUE(PasteboardClient::GetInstance()->isSubscribeSa_ == false);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "ShowToast001 end");
+}
+
 } // namespace MiscServices
 } // namespace OHOS
