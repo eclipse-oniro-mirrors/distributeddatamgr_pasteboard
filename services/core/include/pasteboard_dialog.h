@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -33,10 +33,15 @@ public:
         sptr<IRemoteObject> callerToken { nullptr };
         sptr<IRemoteObject> clientCallback { nullptr };
     };
+    struct ToastMessageInfo {
+        std::string appName{ DEFAULT_LABEL };
+        int32_t displayId { 0 };
+    };
 
     static constexpr const char *DEFAULT_LABEL = "unknown";
 
     static int32_t ShowProgress(const ProgressMessageInfo &message);
+    static int32_t ShowToast(const ToastMessageInfo &message);
 };
 } // namespace OHOS::MiscServices
 #endif // PASTEBOARD_DIALOG_H

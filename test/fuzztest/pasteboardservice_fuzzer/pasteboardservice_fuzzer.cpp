@@ -326,6 +326,14 @@ public:
         return 0;
     }
 
+    int32_t ShowToast(const std::string &appName, int32_t userId, int32_t displayId) override
+    {
+        (void)appName;
+        (void)userId;
+        (void)displayId;
+        return 0;
+    }
+
     int32_t SubscribeDisposableObserver(const sptr<IPasteboardDisposableObserver> &observer,
         int32_t targetWindowId, DisposableType type, uint32_t maxLength) override
     {

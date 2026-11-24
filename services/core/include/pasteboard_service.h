@@ -178,6 +178,7 @@ public:
     virtual int32_t PasteComplete(const std::string &deviceId, const std::string &pasteId) override;
     int32_t GetRemoteDeviceName(std::string &deviceName, bool &isRemote);
     virtual int32_t ShowProgress(const std::string &progressKey, const sptr<IRemoteObject> &observer) override;
+    virtual int32_t ShowToast(const std::string &appName, int32_t userId, int32_t displayId) override;
     virtual int32_t RegisterClientDeathObserver(const sptr<IRemoteObject> &observer) override;
     virtual int32_t DetachPasteboard() override;
     static std::atomic<int32_t> currentUserId_;
@@ -405,6 +406,10 @@ private:
     void GenerateDistributedUri(PasteData &data);
     bool IsBundleOwnUriPermission(const std::string &bundleName, Uri &uri);
     std::string GetAppLabel(uint32_t tokenId);
+    void ShowHintToast(const AppInfo &appInfo, PasteData &pasteData);
+    bool ShouldSkipToast(const AppInfo &appInfo, PasteData &pasteData);
+    bool CheckAndRecordHint(uint32_t tokenId, int32_t userId);
+    static bool IsDefaultIME(const AppInfo &appInfo);
     sptr<OHOS::AppExecFwk::IBundleMgr> GetAppBundleManager();
     void EstablishP2PLink(const std::string &networkId, const std::string &pasteId);
     bool IsContainUri(const Event &evt);
@@ -591,6 +596,8 @@ private:
     std::mutex eventMutex_;
     mutable std::mutex currentEventMutex_;
     std::mutex entityRecognizeMutex_;
+    std::mutex hintMutex_;
+    std::map<int32_t, std::vector<uint32_t>> hints_;
     SecurityLevel securityLevel_;
     class PasteboardDeathRecipient final : public IRemoteObject::DeathRecipient {
     public:

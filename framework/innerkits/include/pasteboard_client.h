@@ -655,6 +655,16 @@ public:
      */
     int32_t SyncDelayedData();
 
+    /**
+     * ShowToast
+     * @description Show toast to remind user that clipboard was read.
+     * @param appName the name of the app that read the clipboard.
+     * @param userId target user id.
+     * @param displayId target display id.
+     * @return void.
+     */
+    void ShowToast(const std::string &appName, int32_t userId, int32_t displayId);
+
 protected:
     friend class PasteboardSaMgrListener;
     void Resubscribe();

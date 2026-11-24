@@ -1,5 +1,6 @@
 {
   "src": [
-    "pages/PasteboardProgress"
+    "pages/PasteboardProgress",
+    "pages/toastIndex"
   ]
 }

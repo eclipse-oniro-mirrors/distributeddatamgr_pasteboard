@@ -61,6 +61,7 @@ interface OHOS.MiscServices.IPasteboardService {
     [ipccode 202] void PasteStart([in] String pasteId);
     [ipccode 203] void PasteComplete([in] String deviceId, [in] String pasteId);
     [ipccode 204] void ShowProgress([in] String progressKey, [in] IRemoteObject observer);
+    [ipccode 205] void ShowToast([in] String appName, [in] int userId, [in] int displayId);
 
     [ipccode 300] void HasPasteData([out] boolean funcResult);
     [ipccode 301] void HasDataType([in] String mimeType, [out] boolean funcResult);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,6 +24,7 @@ using namespace OHOS::AAFwk;
 
 constexpr const char *PASTEBOARD_DIALOG_APP = "com.ohos.pasteboarddialog";
 constexpr const char *PASTEBOARD_PROGRESS_ABILITY = "PasteboardProgressAbility";
+constexpr const char *PASTEBOARD_TOAST_ABILITY = "ToastExtensionAbility";
 
 int32_t PasteboardDialog::ShowProgress(const ProgressMessageInfo &message)
 {
@@ -52,6 +53,32 @@ int32_t PasteboardDialog::ShowProgress(const ProgressMessageInfo &message)
         return static_cast<int32_t>(PasteboardError::PROGRESS_START_ERROR);
     }
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "start pasteboard progress success.");
+    return static_cast<int32_t>(PasteboardError::E_OK);
+}
+
+int32_t PasteboardDialog::ShowToast(const ToastMessageInfo &message)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE,
+        "[TOAST_DBG] ShowToast begin, appName:%{public}s", message.appName.c_str());
+    Want want;
+    want.SetElementName(PASTEBOARD_DIALOG_APP, PASTEBOARD_TOAST_ABILITY);
+    want.SetAction(PASTEBOARD_TOAST_ABILITY);
+    want.SetParam("appName", message.appName);
+    want.SetParam("displayId", message.displayId);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE,
+        "[TOAST_DBG] ShowToast: Want built, app=%{public}s, ability=%{public}s",
+        PASTEBOARD_DIALOG_APP, PASTEBOARD_TOAST_ABILITY);
+
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "[TOAST_DBG] ShowToast: calling StartAbility");
+    int32_t result = PasteboardAbilityManager::StartAbility(want);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE,
+        "[TOAST_DBG] ShowToast: StartAbility returned result=%{public}d", result);
+    if (result != 0) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE,
+            "[TOAST_DBG] ShowToast: FAILED, result:%{public}d", result);
+        return static_cast<int32_t>(PasteboardError::PROGRESS_START_ERROR);
+    }
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "[TOAST_DBG] ShowToast: success");
     return static_cast<int32_t>(PasteboardError::E_OK);
 }
 } // namespace OHOS::MiscServices

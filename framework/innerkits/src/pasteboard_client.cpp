@@ -1364,6 +1364,13 @@ void PasteboardClient::ShowProgress(const std::string &progressKey)
     proxyService->ShowProgress(progressKey, callback);
 }
 
+void PasteboardClient::ShowToast(const std::string &appName, int32_t userId, int32_t displayId)
+{
+    auto proxyService = GetPasteboardService();
+    PASTEBOARD_CHECK_AND_RETURN_LOGE(proxyService != nullptr, PASTEBOARD_MODULE_CLIENT, "proxyService is nullptr");
+    proxyService->ShowToast(appName, userId, displayId);
+}
+
 int32_t PasteboardClient::SyncDelayedData()
 {
     auto proxyService = GetPasteboardService();
