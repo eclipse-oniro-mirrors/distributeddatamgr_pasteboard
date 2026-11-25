@@ -32,6 +32,7 @@
 #include "interop_js/arkts_interop_js_api.h"
 #include "napi/native_api.h"
 #include "pasteboard_client.h"
+#include "pasteboard_virtual_entry.h"
 #include "common/pasteboard_common_utils.h"
 #include "pasteboard_error.h"
 #include "pasteboard_hilog.h"
@@ -670,6 +671,20 @@ struct VirtualFileEntry {
     }
 };
 
+static FuseNode ToFuseNode(const VirtualFileEntry &entry)
+{
+    FuseNode node;
+    node.id = entry.id;
+    node.name = entry.name;
+    node.type = entry.type;
+    node.size = entry.size;
+    node.modifyTime = static_cast<int64_t>(entry.modifyTime);
+    for (const auto &child : entry.subItems) {
+        node.children.push_back(ToFuseNode(child));
+    }
+    return node;
+}
+
 class ScopedAniEnv final {
 public:
     explicit ScopedAniEnv(ani_vm *vm) : vm_(vm)
@@ -1299,6 +1314,7 @@ static bool BuildVirtualFileEntry(const std::string &mimeType, uintptr_t vfiHand
     obj->value_["size"] = rootEntry.size;
     obj->value_["modifyTime"] = static_cast<int64_t>(rootEntry.modifyTime);
     obj->value_["type"] = rootEntry.type;
+    obj->value_["treeBlob"] = SerializeTree(ToFuseNode(rootEntry));
     auto newEntry = std::make_shared<PasteDataEntry>();
     newEntry->SetUtdId(VIRTUAL_FILE_UTD);
     newEntry->SetMimeType(mimeType);

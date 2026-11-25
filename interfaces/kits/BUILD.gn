@@ -57,6 +57,7 @@ defines = []
     "napi/src/napi_pastedata_record.cpp",
     "napi/src/napi_systempasteboard.cpp",
     "${pasteboard_service_path}/dfx/src/pasteboard_app_event_dfx.cpp",
+    "${pasteboard_innerkits_path}/src/pasteboard_virtual_entry.cpp",
   ]
 
   deps = [

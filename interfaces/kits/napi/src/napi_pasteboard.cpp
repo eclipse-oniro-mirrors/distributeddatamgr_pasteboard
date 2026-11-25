@@ -19,6 +19,7 @@
 #include "pastedata_record_napi.h"
 #include "pasteboard_fuse_getter_client.h"
 #include "paste_data_record.h"
+#include "pasteboard_virtual_entry.h"
 #include "uri.h"
 #include <atomic>
 #include <chrono>
@@ -111,6 +112,20 @@ struct VirtualFileEntry {
         return true;
     }
 };
+
+static FuseNode ToFuseNode(const VirtualFileEntry &entry)
+{
+    FuseNode node;
+    node.id = entry.id;
+    node.name = entry.name;
+    node.type = entry.type;
+    node.size = entry.size;
+    node.modifyTime = static_cast<int64_t>(entry.modifyTime);
+    for (const auto &child : entry.subItems) {
+        node.children.push_back(ToFuseNode(child));
+    }
+    return node;
+}
 
 struct FuseReadContext {
     std::string id;
@@ -878,6 +893,7 @@ static napi_value BuildVirtualFileResult(napi_env env, const std::string &mimeTy
     obj->value_["size"] = info.size;
     obj->value_["modifyTime"] = static_cast<int64_t>(info.modifyTime);
     obj->value_["type"] = info.type;
+    obj->value_["treeBlob"] = SerializeTree(ToFuseNode(info));
 
     auto entry = std::make_shared<PasteDataEntry>();
     entry->SetUtdId("general.virtual-file");
@@ -1018,6 +1034,7 @@ static napi_value CreateVirtualFileRecord(napi_env env, const std::string &mimeT
     obj->value_["size"] = rootEntry.size;
     obj->value_["modifyTime"] = static_cast<int64_t>(rootEntry.modifyTime);
     obj->value_["type"] = rootEntry.type;
+    obj->value_["treeBlob"] = SerializeTree(ToFuseNode(rootEntry));
     auto entry = std::make_shared<PasteDataEntry>();
     entry->SetUtdId("general.virtual-file");
     entry->SetMimeType(mimeType);
@@ -1099,6 +1116,7 @@ bool AddVirtualFileEntry(napi_env env, std::shared_ptr<PasteDataRecord> record,
     obj->value_["size"] = rootEntry.size;
     obj->value_["modifyTime"] = static_cast<int64_t>(rootEntry.modifyTime);
     obj->value_["type"] = rootEntry.type;
+    obj->value_["treeBlob"] = SerializeTree(ToFuseNode(rootEntry));
     auto entry = std::make_shared<PasteDataEntry>();
     entry->SetUtdId("general.virtual-file");
     entry->SetMimeType(mimeType);
