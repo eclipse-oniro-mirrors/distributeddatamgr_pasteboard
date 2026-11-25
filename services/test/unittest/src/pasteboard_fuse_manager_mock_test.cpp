@@ -219,9 +219,9 @@ HWTEST_F(PasteboardFuseManagerTest, HasProvider_002, TestSize.Level1)
 HWTEST_F(PasteboardFuseManagerTest, OnProviderDied_001, TestSize.Level1)
 {
     auto *getter = new MockFuseGetter();
-    std::vector<FileInfo> infos = {{0, 0, TEST_RECORD_ID, TEST_FILE_ID, TEST_FILE_NAME, 1024, 0, false, nullptr}};
+    std::vector<FuseNode> infos = {{TEST_FILE_ID, TEST_FILE_NAME, 0, 1024, 0, TEST_RECORD_ID, {}}};
     fuse_->SetProvider(TEST_USER_ID, getter, TEST_DATA_ID, infos);
-    fuse_->fdMap_[1001] = {static_cast<pid_t>(TEST_PID), std::make_shared<FileInfo>(fuse_->fileInfos_[TEST_USER_ID][0])};
+    fuse_->fdMap_[1001] = {static_cast<pid_t>(TEST_PID), TEST_USER_ID, TEST_FILE_ID, TEST_RECORD_ID, 0};
     fuse_->OnProviderDied(TEST_USER_ID);
     EXPECT_FALSE(fuse_->HasProvider(TEST_USER_ID));
     EXPECT_EQ(fuse_->fdMap_.count(1001), 0u);
@@ -247,11 +247,11 @@ HWTEST_F(PasteboardFuseManagerTest, OnAppExit_PasteApp_001, TestSize.Level1)
 HWTEST_F(PasteboardFuseManagerTest, OnAged_001, TestSize.Level1)
 {
     auto *getter = new MockFuseGetter();
-    std::vector<FileInfo> infos = {{0, 0, TEST_RECORD_ID, TEST_FILE_ID, TEST_FILE_NAME, 1024, 0, false, nullptr}};
+    std::vector<FuseNode> infos = {{TEST_FILE_ID, TEST_FILE_NAME, 0, 1024, 0, TEST_RECORD_ID, {}}};
     fuse_->SetProvider(TEST_USER_ID, getter, TEST_DATA_ID, infos);
     fuse_->OnAged(TEST_USER_ID);
     EXPECT_FALSE(fuse_->HasProvider(TEST_USER_ID));
-    EXPECT_EQ(fuse_->fileInfos_.count(TEST_USER_ID), 0u);
+    EXPECT_EQ(fuse_->rootNodes_.count(TEST_USER_ID), 0u);
 }
 
 // ===== CheckAuthorization Tests (AC-04.1, AC-04.2) =====
@@ -340,7 +340,7 @@ HWTEST_F(PasteboardFuseManagerTest, StatHandler_NotFound_001, TestSize.Level1)
 HWTEST_F(PasteboardFuseManagerTest, StatHandler_File_001, TestSize.Level1)
 {
     SetupAuthorizedContext(TEST_PID);
-    std::vector<FileInfo> infos = {{0, 0, TEST_RECORD_ID, TEST_FILE_ID, TEST_FILE_NAME, 1024, 5000, false, nullptr}};
+    std::vector<FuseNode> infos = {{TEST_FILE_ID, TEST_FILE_NAME, 0, 1024, 5000, TEST_RECORD_ID, {}}};
     fuse_->SetProvider(TEST_USER_ID, nullptr, TEST_DATA_ID, infos);
     struct stat stbuf;
     std::string path = "/" + std::to_string(TEST_DATA_ID) + "/" + std::to_string(TEST_RECORD_ID) + "/" + TEST_FILE_NAME;
@@ -358,7 +358,7 @@ HWTEST_F(PasteboardFuseManagerTest, StatHandler_File_001, TestSize.Level1)
 HWTEST_F(PasteboardFuseManagerTest, StatHandler_Dir_001, TestSize.Level1)
 {
     SetupAuthorizedContext(TEST_PID);
-    std::vector<FileInfo> infos = {{0, 0, TEST_RECORD_ID, "dir_001", "mydir", 0, 0, true, nullptr}};
+    std::vector<FuseNode> infos = {{"", "mydir", 1, -1, 0, TEST_RECORD_ID, {}}};
     fuse_->SetProvider(TEST_USER_ID, nullptr, TEST_DATA_ID, infos);
     struct stat stbuf;
     std::string path = "/" + std::to_string(TEST_DATA_ID) + "/" + std::to_string(TEST_RECORD_ID) + "/mydir";
@@ -403,7 +403,7 @@ HWTEST_F(PasteboardFuseManagerTest, OpenHandler_NotFound_001, TestSize.Level1)
 HWTEST_F(PasteboardFuseManagerTest, OpenHandler_Success_001, TestSize.Level1)
 {
     SetupAuthorizedContext(TEST_PID);
-    std::vector<FileInfo> infos = {{0, 0, TEST_RECORD_ID, TEST_FILE_ID, TEST_FILE_NAME, 1024, 0, false, nullptr}};
+    std::vector<FuseNode> infos = {{TEST_FILE_ID, TEST_FILE_NAME, 0, 1024, 0, TEST_RECORD_ID, {}}};
     fuse_->SetProvider(TEST_USER_ID, nullptr, TEST_DATA_ID, infos);
     struct fuse_file_info fi{};
     std::string path = "/" + std::to_string(TEST_DATA_ID) + "/" + std::to_string(TEST_RECORD_ID) + "/" + TEST_FILE_NAME;
@@ -451,12 +451,8 @@ HWTEST_F(PasteboardFuseManagerTest, ReadHandler_InvalidFd_001, TestSize.Level1)
 HWTEST_F(PasteboardFuseManagerTest, ReadHandler_NullProvider_001, TestSize.Level1)
 {
     SetupAuthorizedContext(TEST_PID);
-    auto info = std::make_shared<FileInfo>();
-    info->userId = TEST_USER_ID;
-    info->fileId = TEST_FILE_ID;
-    info->provider = nullptr;
     int fd = fuse_->nextFd_++;
-    fuse_->fdMap_[fd] = {static_cast<pid_t>(TEST_PID), info};
+    fuse_->fdMap_[fd] = {static_cast<pid_t>(TEST_PID), TEST_USER_ID, TEST_FILE_ID, 0, 0};
     struct fuse_file_info fi{};
     fi.fh = static_cast<uint64_t>(fd);
     char buf[1024];
@@ -474,12 +470,9 @@ HWTEST_F(PasteboardFuseManagerTest, ReadHandler_ProviderError_001, TestSize.Leve
     SetupAuthorizedContext(TEST_PID);
     auto *getter = new MockFuseGetter();
     getter->readRet_ = -1;
-    auto info = std::make_shared<FileInfo>();
-    info->userId = TEST_USER_ID;
-    info->fileId = TEST_FILE_ID;
-    info->provider = getter;
+    fuse_->providers_[TEST_USER_ID] = getter;
     int fd = fuse_->nextFd_++;
-    fuse_->fdMap_[fd] = {static_cast<pid_t>(TEST_PID), info};
+    fuse_->fdMap_[fd] = {static_cast<pid_t>(TEST_PID), TEST_USER_ID, TEST_FILE_ID, 0, 0};
     struct fuse_file_info fi{};
     fi.fh = static_cast<uint64_t>(fd);
     char buf[1024];
@@ -498,12 +491,9 @@ HWTEST_F(PasteboardFuseManagerTest, ReadHandler_Success_001, TestSize.Level1)
     auto *getter = new MockFuseGetter();
     getter->readData_ = {10, 20, 30};
     getter->readRet_ = 0;
-    auto info = std::make_shared<FileInfo>();
-    info->userId = TEST_USER_ID;
-    info->fileId = TEST_FILE_ID;
-    info->provider = getter;
+    fuse_->providers_[TEST_USER_ID] = getter;
     int fd = fuse_->nextFd_++;
-    fuse_->fdMap_[fd] = {static_cast<pid_t>(TEST_PID), info};
+    fuse_->fdMap_[fd] = {static_cast<pid_t>(TEST_PID), TEST_USER_ID, TEST_FILE_ID, 0, 0};
     struct fuse_file_info fi{};
     fi.fh = static_cast<uint64_t>(fd);
     char buf[1024] = {0};
@@ -524,9 +514,8 @@ HWTEST_F(PasteboardFuseManagerTest, ReadHandler_Success_001, TestSize.Level1)
 HWTEST_F(PasteboardFuseManagerTest, ReleaseHandler_Success_001, TestSize.Level1)
 {
     SetupAuthorizedContext(TEST_PID);
-    auto info = std::make_shared<FileInfo>();
     int fd = fuse_->nextFd_++;
-    fuse_->fdMap_[fd] = {static_cast<pid_t>(TEST_PID), info};
+    fuse_->fdMap_[fd] = {static_cast<pid_t>(TEST_PID), TEST_USER_ID, "", 0, 0};
     struct fuse_file_info fi{};
     fi.fh = static_cast<uint64_t>(fd);
     int ret = PasteboardFuseManager::ReleaseHandler("/test", &fi);
@@ -571,9 +560,9 @@ HWTEST_F(PasteboardFuseManagerTest, ReaddirHandler_Unauthorized_001, TestSize.Le
 HWTEST_F(PasteboardFuseManagerTest, ReaddirHandler_Root_001, TestSize.Level1)
 {
     SetupAuthorizedContext(TEST_PID);
-    std::vector<FileInfo> infos = {
-        {0, 0, TEST_RECORD_ID, "file_a", "a.txt", 100, 0, false, nullptr},
-        {0, 0, TEST_RECORD_ID, "file_b", "b.txt", 200, 0, false, nullptr}
+    std::vector<FuseNode> infos = {
+        {"file_a", "a.txt", 0, 100, 0, TEST_RECORD_ID, {}},
+        {"file_b", "b.txt", 0, 200, 0, TEST_RECORD_ID, {}}
     };
     fuse_->SetProvider(TEST_USER_ID, nullptr, TEST_DATA_ID, infos);
     int ret = PasteboardFuseManager::ReaddirHandler("/", nullptr,
@@ -686,7 +675,7 @@ HWTEST_F(PasteboardFuseManagerTest, ReaddirHandler_NullContext_001, TestSize.Lev
 HWTEST_F(PasteboardFuseManagerTest, OpenHandler_ToctouSafety_001, TestSize.Level1)
 {
     SetupAuthorizedContext(TEST_PID);
-    std::vector<FileInfo> infos = {{0, 0, TEST_RECORD_ID, TEST_FILE_ID, TEST_FILE_NAME, 1024, 0, false, nullptr}};
+    std::vector<FuseNode> infos = {{TEST_FILE_ID, TEST_FILE_NAME, 0, 1024, 0, TEST_RECORD_ID, {}}};
     fuse_->SetProvider(TEST_USER_ID, nullptr, TEST_DATA_ID, infos);
     struct fuse_file_info fi{};
     std::string path = "/" + std::to_string(TEST_DATA_ID) + "/" + std::to_string(TEST_RECORD_ID) + "/" + TEST_FILE_NAME;
@@ -714,8 +703,8 @@ HWTEST_F(PasteboardFuseManagerTest, MultiUser_Isolation_001, TestSize.Level1)
     constexpr uint32_t DATA_ID_B = 2;
     fuse_->authorizedPastePids_[USER_A].insert(PID_A);
     fuse_->authorizedPastePids_[USER_B].insert(PID_B);
-    std::vector<FileInfo> infosA = {{0, 0, TEST_RECORD_ID, "file_a", "a.txt", 100, 0, false, nullptr}};
-    std::vector<FileInfo> infosB = {{0, 0, TEST_RECORD_ID, "file_b", "b.txt", 200, 0, false, nullptr}};
+    std::vector<FuseNode> infosA = {{"file_a", "a.txt", 0, 100, 0, TEST_RECORD_ID, {}}};
+    std::vector<FuseNode> infosB = {{"file_b", "b.txt", 0, 200, 0, TEST_RECORD_ID, {}}};
     fuse_->SetProvider(USER_A, nullptr, DATA_ID_A, infosA);
     fuse_->SetProvider(USER_B, nullptr, DATA_ID_B, infosB);
     PasteboardFuseManager::SessionContext ctxA{ fuse_, USER_A };
@@ -745,8 +734,8 @@ HWTEST_F(PasteboardFuseManagerTest, GetFileInfo_ScopedByUser_001, TestSize.Level
     constexpr uint32_t DATA_ID_B = 2;
     constexpr uint32_t SHARED_RECORD_ID = 5;
     const std::string SAME_FILE_NAME = "shared.txt";
-    std::vector<FileInfo> infosA = {{0, 0, SHARED_RECORD_ID, "shared_file", SAME_FILE_NAME, 111, 0, false, nullptr}};
-    std::vector<FileInfo> infosB = {{0, 0, SHARED_RECORD_ID, "shared_file", SAME_FILE_NAME, 222, 0, false, nullptr}};
+    std::vector<FuseNode> infosA = {{"shared_file", SAME_FILE_NAME, 0, 111, 0, SHARED_RECORD_ID, {}}};
+    std::vector<FuseNode> infosB = {{"shared_file", SAME_FILE_NAME, 0, 222, 0, SHARED_RECORD_ID, {}}};
     fuse_->SetProvider(USER_A, nullptr, DATA_ID_A, infosA);
     fuse_->SetProvider(USER_B, nullptr, DATA_ID_B, infosB);
     std::lock_guard<std::mutex> lock(fuse_->mutex_);
@@ -762,11 +751,11 @@ HWTEST_F(PasteboardFuseManagerTest, GetFileInfo_ScopedByUser_001, TestSize.Level
     EXPECT_EQ(infoMiss, nullptr);
 }
 
-// ===== SetProvider Populates fileInfos_ Tests =====
+// ===== SetProvider Populates rootNodes_ Tests =====
 
 /**
  * @tc.name: SetProvider_PopulatesFileInfos_001
- * @tc.desc: SetProvider should populate fileInfos_ so handlers find files via /<dataId>/<recordId>/<fileName>
+ * @tc.desc: SetProvider should populate rootNodes_ so handlers find files via /<dataId>/<recordId>/<fileName>
  * @tc.type: FUNC
  */
 HWTEST_F(PasteboardFuseManagerTest, SetProvider_PopulatesFileInfos_001, TestSize.Level1)
@@ -775,13 +764,13 @@ HWTEST_F(PasteboardFuseManagerTest, SetProvider_PopulatesFileInfos_001, TestSize
     auto *getter = new MockFuseGetter();
     getter->stat_.size = 2048;
     getter->stat_.modifyTime = 9000;
-    std::vector<FileInfo> infos = {{0, 0, TEST_RECORD_ID, TEST_FILE_ID, TEST_FILE_NAME, 2048, 9000, false, nullptr}};
+    std::vector<FuseNode> infos = {{TEST_FILE_ID, TEST_FILE_NAME, 0, 2048, 9000, TEST_RECORD_ID, {}}};
     fuse_->SetProvider(TEST_USER_ID, getter, TEST_DATA_ID, infos);
-    EXPECT_EQ(fuse_->fileInfos_.count(TEST_USER_ID), 1u);
-    EXPECT_EQ(fuse_->fileInfos_[TEST_USER_ID].size(), 1u);
-    EXPECT_EQ(fuse_->fileInfos_[TEST_USER_ID][0].dataId, TEST_DATA_ID);
-    EXPECT_EQ(fuse_->fileInfos_[TEST_USER_ID][0].recordId, TEST_RECORD_ID);
-    EXPECT_EQ(fuse_->fileInfos_[TEST_USER_ID][0].fileName, TEST_FILE_NAME);
+    EXPECT_EQ(fuse_->rootNodes_.count(TEST_USER_ID), 1u);
+    EXPECT_EQ(fuse_->rootNodes_[TEST_USER_ID].size(), 1u);
+    EXPECT_EQ(fuse_->rootNodes_[TEST_USER_ID][0].dataId, TEST_DATA_ID);
+    EXPECT_EQ(fuse_->rootNodes_[TEST_USER_ID][0].recordId, TEST_RECORD_ID);
+    EXPECT_EQ(fuse_->rootNodes_[TEST_USER_ID][0].fileName, TEST_FILE_NAME);
     struct stat stbuf;
     std::string path = "/" + std::to_string(TEST_DATA_ID) + "/" + std::to_string(TEST_RECORD_ID) + "/" + TEST_FILE_NAME;
     int ret = PasteboardFuseManager::StatHandler(path.c_str(), &stbuf, nullptr);
@@ -797,7 +786,7 @@ HWTEST_F(PasteboardFuseManagerTest, SetProvider_PopulatesFileInfos_001, TestSize
 HWTEST_F(PasteboardFuseManagerTest, StatHandler_DataIdDir_001, TestSize.Level1)
 {
     SetupAuthorizedContext(TEST_PID);
-    std::vector<FileInfo> infos = {{0, 0, TEST_RECORD_ID, TEST_FILE_ID, TEST_FILE_NAME, 100, 0, false, nullptr}};
+    std::vector<FuseNode> infos = {{TEST_FILE_ID, TEST_FILE_NAME, 0, 100, 0, TEST_RECORD_ID, {}}};
     fuse_->SetProvider(TEST_USER_ID, nullptr, TEST_DATA_ID, infos);
     struct stat stbuf;
     std::string path = "/" + std::to_string(TEST_DATA_ID);
@@ -814,9 +803,9 @@ HWTEST_F(PasteboardFuseManagerTest, StatHandler_DataIdDir_001, TestSize.Level1)
 HWTEST_F(PasteboardFuseManagerTest, ReaddirHandler_DataIdDir_001, TestSize.Level1)
 {
     SetupAuthorizedContext(TEST_PID);
-    std::vector<FileInfo> infos = {
-        {0, 0, TEST_RECORD_ID, "file_a", "a.txt", 100, 0, false, nullptr},
-        {0, 0, TEST_RECORD_ID, "file_b", "b.txt", 200, 0, false, nullptr}
+    std::vector<FuseNode> infos = {
+        {"file_a", "a.txt", 0, 100, 0, TEST_RECORD_ID, {}},
+        {"file_b", "b.txt", 0, 200, 0, TEST_RECORD_ID, {}}
     };
     fuse_->SetProvider(TEST_USER_ID, nullptr, TEST_DATA_ID, infos);
     std::string path = "/" + std::to_string(TEST_DATA_ID);
@@ -913,7 +902,7 @@ HWTEST_F(PasteboardFuseManagerTest, ParsePath_004, TestSize.Level1)
 HWTEST_F(PasteboardFuseManagerTest, StatHandler_RecordIdDir_001, TestSize.Level1)
 {
     SetupAuthorizedContext(TEST_PID);
-    std::vector<FileInfo> infos = {{0, 0, TEST_RECORD_ID, TEST_FILE_ID, TEST_FILE_NAME, 100, 0, false, nullptr}};
+    std::vector<FuseNode> infos = {{TEST_FILE_ID, TEST_FILE_NAME, 0, 100, 0, TEST_RECORD_ID, {}}};
     fuse_->SetProvider(TEST_USER_ID, nullptr, TEST_DATA_ID, infos);
     struct stat stbuf;
     std::string path = "/" + std::to_string(TEST_DATA_ID) + "/" + std::to_string(TEST_RECORD_ID) + "/";
@@ -958,7 +947,7 @@ HWTEST_F(PasteboardFuseManagerTest, StatHandler_DataIdDir_NotFound_001, TestSize
 HWTEST_F(PasteboardFuseManagerTest, OpenHandler_DirPath_001, TestSize.Level1)
 {
     SetupAuthorizedContext(TEST_PID);
-    std::vector<FileInfo> infos = {{0, 0, TEST_RECORD_ID, TEST_FILE_ID, TEST_FILE_NAME, 100, 0, false, nullptr}};
+    std::vector<FuseNode> infos = {{TEST_FILE_ID, TEST_FILE_NAME, 0, 100, 0, TEST_RECORD_ID, {}}};
     fuse_->SetProvider(TEST_USER_ID, nullptr, TEST_DATA_ID, infos);
     struct fuse_file_info fi{};
     std::string path = "/" + std::to_string(TEST_DATA_ID);
@@ -990,9 +979,9 @@ HWTEST_F(PasteboardFuseManagerTest, OpenHandler_RecordIdDir_001, TestSize.Level1
 HWTEST_F(PasteboardFuseManagerTest, ReaddirHandler_RecordIdDir_001, TestSize.Level1)
 {
     SetupAuthorizedContext(TEST_PID);
-    std::vector<FileInfo> infos = {
-        {0, 0, TEST_RECORD_ID, "file_a", "a.txt", 100, 0, false, nullptr},
-        {0, 0, TEST_RECORD_ID, "file_b", "b.txt", 200, 0, false, nullptr}
+    std::vector<FuseNode> infos = {
+        {"file_a", "a.txt", 0, 100, 0, TEST_RECORD_ID, {}},
+        {"file_b", "b.txt", 0, 200, 0, TEST_RECORD_ID, {}}
     };
     fuse_->SetProvider(TEST_USER_ID, nullptr, TEST_DATA_ID, infos);
     std::string path = "/" + std::to_string(TEST_DATA_ID) + "/" + std::to_string(TEST_RECORD_ID) + "/";
@@ -1025,13 +1014,13 @@ HWTEST_F(PasteboardFuseManagerTest, ReaddirHandler_RecordIdDir_NotFound_001, Tes
 HWTEST_F(PasteboardFuseManagerTest, OnAppExit_CopyApp_001, TestSize.Level1)
 {
     auto *getter = new MockFuseGetter();
-    std::vector<FileInfo> infos = {{0, 0, TEST_RECORD_ID, TEST_FILE_ID, TEST_FILE_NAME, 1024, 0, false, nullptr}};
+    std::vector<FuseNode> infos = {{TEST_FILE_ID, TEST_FILE_NAME, 0, 1024, 0, TEST_RECORD_ID, {}}};
     fuse_->SetProvider(TEST_USER_ID, getter, TEST_DATA_ID, infos);
     fuse_->authorizedPastePids_[TEST_USER_ID].insert(TEST_PID);
     fuse_->OnAppExit(TEST_PID, TEST_USER_ID);
     EXPECT_FALSE(fuse_->HasProvider(TEST_USER_ID));
     EXPECT_EQ(fuse_->authorizedPastePids_.count(TEST_USER_ID), 0u);
-    EXPECT_EQ(fuse_->fileInfos_.count(TEST_USER_ID), 0u);
+    EXPECT_EQ(fuse_->rootNodes_.count(TEST_USER_ID), 0u);
 }
 
 /**
@@ -1087,12 +1076,9 @@ HWTEST_F(PasteboardFuseManagerTest, ReadHandler_ZeroSize_001, TestSize.Level1)
 {
     SetupAuthorizedContext(TEST_PID);
     auto *getter = new MockFuseGetter();
-    auto info = std::make_shared<FileInfo>();
-    info->userId = TEST_USER_ID;
-    info->fileId = TEST_FILE_ID;
-    info->provider = getter;
+    fuse_->providers_[TEST_USER_ID] = getter;
     int fd = fuse_->nextFd_++;
-    fuse_->fdMap_[fd] = {static_cast<pid_t>(TEST_PID), info};
+    fuse_->fdMap_[fd] = {static_cast<pid_t>(TEST_PID), TEST_USER_ID, TEST_FILE_ID, 0, 0};
     struct fuse_file_info fi{};
     fi.fh = static_cast<uint64_t>(fd);
     char buf[16];
@@ -1125,7 +1111,7 @@ HWTEST_F(PasteboardFuseManagerTest, GetFileInfo_NoUser_001, TestSize.Level1)
 HWTEST_F(PasteboardFuseManagerTest, ReaddirHandler_RecordIdDir_DataIdNotFound_001, TestSize.Level1)
 {
     SetupAuthorizedContext(TEST_PID);
-    std::vector<FileInfo> infos = {{0, 0, TEST_RECORD_ID, TEST_FILE_ID, TEST_FILE_NAME, 100, 0, false, nullptr}};
+    std::vector<FuseNode> infos = {{TEST_FILE_ID, TEST_FILE_NAME, 0, 100, 0, TEST_RECORD_ID, {}}};
     fuse_->SetProvider(TEST_USER_ID, nullptr, TEST_DATA_ID, infos);
     constexpr uint32_t ABSENT_DATA_ID = 999;
     std::string path = "/" + std::to_string(ABSENT_DATA_ID) + "/" + std::to_string(TEST_RECORD_ID) + "/";
@@ -1143,7 +1129,7 @@ HWTEST_F(PasteboardFuseManagerTest, ReaddirHandler_RecordIdDir_DataIdNotFound_00
 HWTEST_F(PasteboardFuseManagerTest, ReaddirHandler_RecordIdDir_RecordIdNotFound_001, TestSize.Level1)
 {
     SetupAuthorizedContext(TEST_PID);
-    std::vector<FileInfo> infos = {{0, 0, TEST_RECORD_ID, TEST_FILE_ID, TEST_FILE_NAME, 100, 0, false, nullptr}};
+    std::vector<FuseNode> infos = {{TEST_FILE_ID, TEST_FILE_NAME, 0, 100, 0, TEST_RECORD_ID, {}}};
     fuse_->SetProvider(TEST_USER_ID, nullptr, TEST_DATA_ID, infos);
     constexpr uint32_t ABSENT_RECORD_ID = 888;
     std::string path = "/" + std::to_string(TEST_DATA_ID) + "/" + std::to_string(ABSENT_RECORD_ID) + "/";
@@ -1161,7 +1147,7 @@ HWTEST_F(PasteboardFuseManagerTest, ReaddirHandler_RecordIdDir_RecordIdNotFound_
 HWTEST_F(PasteboardFuseManagerTest, ReaddirHandler_DataIdDir_DataIdNotFound_001, TestSize.Level1)
 {
     SetupAuthorizedContext(TEST_PID);
-    std::vector<FileInfo> infos = {{0, 0, TEST_RECORD_ID, TEST_FILE_ID, TEST_FILE_NAME, 100, 0, false, nullptr}};
+    std::vector<FuseNode> infos = {{TEST_FILE_ID, TEST_FILE_NAME, 0, 100, 0, TEST_RECORD_ID, {}}};
     fuse_->SetProvider(TEST_USER_ID, nullptr, TEST_DATA_ID, infos);
     constexpr uint32_t ABSENT_DATA_ID = 999;
     std::string path = "/" + std::to_string(ABSENT_DATA_ID);
@@ -1179,7 +1165,7 @@ HWTEST_F(PasteboardFuseManagerTest, ReaddirHandler_DataIdDir_DataIdNotFound_001,
 HWTEST_F(PasteboardFuseManagerTest, StatHandler_DataIdDir_DataIdNotFound_001, TestSize.Level1)
 {
     SetupAuthorizedContext(TEST_PID);
-    std::vector<FileInfo> infos = {{0, 0, TEST_RECORD_ID, TEST_FILE_ID, TEST_FILE_NAME, 100, 0, false, nullptr}};
+    std::vector<FuseNode> infos = {{TEST_FILE_ID, TEST_FILE_NAME, 0, 100, 0, TEST_RECORD_ID, {}}};
     fuse_->SetProvider(TEST_USER_ID, nullptr, TEST_DATA_ID, infos);
     constexpr uint32_t ABSENT_DATA_ID = 999;
     struct stat stbuf;
@@ -1197,7 +1183,7 @@ HWTEST_F(PasteboardFuseManagerTest, StatHandler_DataIdDir_DataIdNotFound_001, Te
 HWTEST_F(PasteboardFuseManagerTest, StatHandler_RecordIdDir_RecordIdNotFound_001, TestSize.Level1)
 {
     SetupAuthorizedContext(TEST_PID);
-    std::vector<FileInfo> infos = {{0, 0, TEST_RECORD_ID, TEST_FILE_ID, TEST_FILE_NAME, 100, 0, false, nullptr}};
+    std::vector<FuseNode> infos = {{TEST_FILE_ID, TEST_FILE_NAME, 0, 100, 0, TEST_RECORD_ID, {}}};
     fuse_->SetProvider(TEST_USER_ID, nullptr, TEST_DATA_ID, infos);
     constexpr uint32_t ABSENT_RECORD_ID = 888;
     struct stat stbuf;

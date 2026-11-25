@@ -1693,49 +1693,49 @@ HWTEST_F(PasteboardServiceSetDataTest, GenerateVirtualUri_001, TestSize.Level1)
 }
 
 /**
- * @tc.name: CreateFileInfoFromEntry_NullEntry_001
- * @tc.desc: CreateFileInfoFromEntry should return nullptr when entry is null
+ * @tc.name: BuildFuseNodeTree_NullEntry_001
+ * @tc.desc: BuildFuseNodeTree should return nullptr when entry is null
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceSetDataTest, CreateFileInfoFromEntry_NullEntry_001, TestSize.Level1)
+HWTEST_F(PasteboardServiceSetDataTest, BuildFuseNodeTree_NullEntry_001, TestSize.Level1)
 {
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "CreateFileInfoFromEntry_NullEntry_001 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "BuildFuseNodeTree_NullEntry_001 start");
     auto service = std::make_shared<PasteboardService>();
     ASSERT_NE(service, nullptr);
     AppInfo appInfo;
     appInfo.userId = 100;
-    auto info = service->CreateFileInfoFromEntry(nullptr, nullptr, appInfo, 1, 10);
+    auto info = service->BuildFuseNodeTree(nullptr, nullptr, appInfo, 1, 10);
     EXPECT_EQ(info, nullptr);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "CreateFileInfoFromEntry_NullEntry_001 end");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "BuildFuseNodeTree_NullEntry_001 end");
 }
 
 /**
- * @tc.name: CreateFileInfoFromEntry_EmptyIdName_001
- * @tc.desc: CreateFileInfoFromEntry should return nullptr when both fileId and fileName are empty
+ * @tc.name: BuildFuseNodeTree_EmptyIdName_001
+ * @tc.desc: BuildFuseNodeTree should return nullptr when both fileId and fileName are empty
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceSetDataTest, CreateFileInfoFromEntry_EmptyIdName_001, TestSize.Level1)
+HWTEST_F(PasteboardServiceSetDataTest, BuildFuseNodeTree_EmptyIdName_001, TestSize.Level1)
 {
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "CreateFileInfoFromEntry_EmptyIdName_001 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "BuildFuseNodeTree_EmptyIdName_001 start");
     auto service = std::make_shared<PasteboardService>();
     ASSERT_NE(service, nullptr);
     auto obj = BuildVirtualFileObject("", "");
     auto entry = std::make_shared<PasteDataEntry>("general.virtual-file", obj);
     AppInfo appInfo;
     appInfo.userId = 100;
-    auto info = service->CreateFileInfoFromEntry(entry, nullptr, appInfo, 1, 10);
+    auto info = service->BuildFuseNodeTree(entry, nullptr, appInfo, 1, 10);
     EXPECT_EQ(info, nullptr);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "CreateFileInfoFromEntry_EmptyIdName_001 end");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "BuildFuseNodeTree_EmptyIdName_001 end");
 }
 
 /**
- * @tc.name: CreateFileInfoFromEntry_PathSeparator_001
- * @tc.desc: CreateFileInfoFromEntry should return nullptr when fileId or fileName contains path separator
+ * @tc.name: BuildFuseNodeTree_PathSeparator_001
+ * @tc.desc: BuildFuseNodeTree should return nullptr when fileId or fileName contains path separator
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceSetDataTest, CreateFileInfoFromEntry_PathSeparator_001, TestSize.Level1)
+HWTEST_F(PasteboardServiceSetDataTest, BuildFuseNodeTree_PathSeparator_001, TestSize.Level1)
 {
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "CreateFileInfoFromEntry_PathSeparator_001 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "BuildFuseNodeTree_PathSeparator_001 start");
     auto service = std::make_shared<PasteboardService>();
     ASSERT_NE(service, nullptr);
     AppInfo appInfo;
@@ -1743,22 +1743,22 @@ HWTEST_F(PasteboardServiceSetDataTest, CreateFileInfoFromEntry_PathSeparator_001
     // fileId with slash
     auto obj1 = BuildVirtualFileObject("bad/id", "ok.txt");
     auto entry1 = std::make_shared<PasteDataEntry>("general.virtual-file", obj1);
-    EXPECT_EQ(service->CreateFileInfoFromEntry(entry1, nullptr, appInfo, 1, 10), nullptr);
+    EXPECT_EQ(service->BuildFuseNodeTree(entry1, nullptr, appInfo, 1, 10), nullptr);
     // fileName with backslash
     auto obj2 = BuildVirtualFileObject("okId", "bad\\name");
     auto entry2 = std::make_shared<PasteDataEntry>("general.virtual-file", obj2);
-    EXPECT_EQ(service->CreateFileInfoFromEntry(entry2, nullptr, appInfo, 1, 10), nullptr);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "CreateFileInfoFromEntry_PathSeparator_001 end");
+    EXPECT_EQ(service->BuildFuseNodeTree(entry2, nullptr, appInfo, 1, 10), nullptr);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "BuildFuseNodeTree_PathSeparator_001 end");
 }
 
 /**
- * @tc.name: CreateFileInfoFromEntry_LengthOverflow_001
- * @tc.desc: CreateFileInfoFromEntry should return nullptr when fileId or fileName exceeds length limit
+ * @tc.name: BuildFuseNodeTree_LengthOverflow_001
+ * @tc.desc: BuildFuseNodeTree should return nullptr when fileId or fileName exceeds length limit
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceSetDataTest, CreateFileInfoFromEntry_LengthOverflow_001, TestSize.Level1)
+HWTEST_F(PasteboardServiceSetDataTest, BuildFuseNodeTree_LengthOverflow_001, TestSize.Level1)
 {
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "CreateFileInfoFromEntry_LengthOverflow_001 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "BuildFuseNodeTree_LengthOverflow_001 start");
     auto service = std::make_shared<PasteboardService>();
     ASSERT_NE(service, nullptr);
     AppInfo appInfo;
@@ -1766,39 +1766,37 @@ HWTEST_F(PasteboardServiceSetDataTest, CreateFileInfoFromEntry_LengthOverflow_00
     // fileId too long (>1024)
     auto obj1 = BuildVirtualFileObject(std::string(1025, 'x'), "ok.txt");
     auto entry1 = std::make_shared<PasteDataEntry>("general.virtual-file", obj1);
-    EXPECT_EQ(service->CreateFileInfoFromEntry(entry1, nullptr, appInfo, 1, 10), nullptr);
+    EXPECT_EQ(service->BuildFuseNodeTree(entry1, nullptr, appInfo, 1, 10), nullptr);
     // fileName too long (>255)
     auto obj2 = BuildVirtualFileObject("okId", std::string(256, 'y'));
     auto entry2 = std::make_shared<PasteDataEntry>("general.virtual-file", obj2);
-    EXPECT_EQ(service->CreateFileInfoFromEntry(entry2, nullptr, appInfo, 1, 10), nullptr);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "CreateFileInfoFromEntry_LengthOverflow_001 end");
+    EXPECT_EQ(service->BuildFuseNodeTree(entry2, nullptr, appInfo, 1, 10), nullptr);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "BuildFuseNodeTree_LengthOverflow_001 end");
 }
 
 /**
- * @tc.name: CreateFileInfoFromEntry_Success_001
- * @tc.desc: CreateFileInfoFromEntry should return valid FileInfo when entry has valid fileId and fileName
+ * @tc.name: BuildFuseNodeTree_Success_001
+ * @tc.desc: BuildFuseNodeTree should return valid FileInfo when entry has valid fileId and fileName
  * @tc.type: FUNC
  */
-HWTEST_F(PasteboardServiceSetDataTest, CreateFileInfoFromEntry_Success_001, TestSize.Level1)
+HWTEST_F(PasteboardServiceSetDataTest, BuildFuseNodeTree_Success_001, TestSize.Level1)
 {
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "CreateFileInfoFromEntry_Success_001 start");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "BuildFuseNodeTree_Success_001 start");
     auto service = std::make_shared<PasteboardService>();
     ASSERT_NE(service, nullptr);
     auto obj = BuildVirtualFileObject("fileIdA", "alpha.txt", 2048, 5000);
     auto entry = std::make_shared<PasteDataEntry>("general.virtual-file", obj);
     AppInfo appInfo;
     appInfo.userId = 100;
-    auto info = service->CreateFileInfoFromEntry(entry, nullptr, appInfo, 1, 10);
+    auto info = service->BuildFuseNodeTree(entry, nullptr, appInfo, 1, 10);
     ASSERT_NE(info, nullptr);
-    EXPECT_EQ(info->userId, 100);
-    EXPECT_EQ(info->dataId, 1u);
     EXPECT_EQ(info->recordId, 10u);
-    EXPECT_EQ(info->fileId, "fileIdA");
-    EXPECT_EQ(info->fileName, "alpha.txt");
-    EXPECT_EQ(info->fileSize, 2048);
+    EXPECT_EQ(info->id, "fileIdA");
+    EXPECT_EQ(info->name, "alpha.txt");
+    EXPECT_EQ(info->size, 2048);
     EXPECT_EQ(info->modifyTime, 5000);
-    EXPECT_FALSE(info->isDir);
-    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "CreateFileInfoFromEntry_Success_001 end");
+    EXPECT_TRUE(info->IsFile());
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "BuildFuseNodeTree_Success_001 end");
 }
 
 /**
