@@ -53,7 +53,7 @@ namespace OHOS {
 namespace MiscServices {
 
 class PasteboardFuseManager;
-struct FileInfo;
+struct FuseNode;
 
 constexpr int32_t RESULT_OK = 0;
 constexpr int64_t SIZE_K = 1024;
@@ -381,10 +381,10 @@ private:
         const sptr<IPasteboardEntryGetter> entryGetter, const AppInfo &appInfo);
     void HandleVirtualFile(PasteData &pasteData, const sptr<IPasteboardFuseGetter> &fuseGetter,
         const AppInfo &appInfo);
-    std::vector<FileInfo> CollectVirtualFileInfos(const PasteData &pasteData,
+    std::vector<FuseNode> CollectFuseNodeTrees(const PasteData &pasteData,
         const sptr<IPasteboardFuseGetter> &fuseGetter, const AppInfo &appInfo, uint32_t dataId,
         size_t virtualFileCount);
-    std::shared_ptr<FileInfo> CreateFileInfoFromEntry(const std::shared_ptr<PasteDataEntry> &entry,
+    std::shared_ptr<FuseNode> BuildFuseNodeTree(const std::shared_ptr<PasteDataEntry> &entry,
         const sptr<IPasteboardFuseGetter> &fuseGetter, const AppInfo &appInfo,
         uint32_t dataId, uint32_t recordId);
     bool ProcessVirtualFileEntries(PasteDataRecord &record, uint32_t dataId,

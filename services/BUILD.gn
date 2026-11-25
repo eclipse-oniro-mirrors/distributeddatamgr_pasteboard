@@ -94,6 +94,7 @@ ohos_shared_library("pasteboard_service") {
     "core/src/pasteboard_service.cpp",
     "core/src/pasteboard_user_context.cpp",
     "core/src/pasteboard_window_manager.cpp",
+    "${pasteboard_innerkits_path}/src/pasteboard_virtual_entry.cpp",
     "dfx/src/behaviour/pasteboard_behaviour_reporter_impl.cpp",
     "dfx/src/calculate_time_consuming.cpp",
     "dfx/src/command.cpp",

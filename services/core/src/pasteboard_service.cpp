@@ -125,7 +125,6 @@ constexpr float RECALCULATE_DATA_SIZE = 0.9;
 constexpr uint16_t MAX_TRANSFER_SIZE = 1300;
 constexpr size_t MAX_VIRTUAL_FILE_ID_BYTES = 1024;
 constexpr size_t MAX_VIRTUAL_FILE_NAME_BYTES = 255;
-constexpr size_t MAX_VIRTUAL_FILE_COUNT = 4096;
 constexpr const char *FUSE_URI_SCHEME = "file";
 constexpr const char *FUSE_URI_PATH = "/data/service/el2/clipboard_fuse/files";
 
@@ -3249,8 +3248,8 @@ void PasteboardService::HandleVirtualFile(PasteData &pasteData,
         }
     }
     if (hasVirtualFile && fuseGetter != nullptr) {
-        auto fileInfos = CollectVirtualFileInfos(pasteData, fuseGetter, appInfo, dataId, virtualFileCount);
-        fuse_->SetProvider(appInfo.userId, fuseGetter, dataId, fileInfos);
+        auto rootNodes = CollectFuseNodeTrees(pasteData, fuseGetter, appInfo, dataId, virtualFileCount);
+        fuse_->SetProvider(appInfo.userId, fuseGetter, dataId, rootNodes);
         fuseGetters_.ComputeIfPresent(appInfo.userId, [&fuseGetter](auto, auto &old) {
             if (old.first != nullptr && old.second != nullptr && old.first != fuseGetter) {
                 old.first->AsObject()->RemoveDeathRecipient(old.second);
@@ -3265,11 +3264,11 @@ void PasteboardService::HandleVirtualFile(PasteData &pasteData,
     }
 }
 
-std::vector<FileInfo> PasteboardService::CollectVirtualFileInfos(const PasteData &pasteData,
+std::vector<FuseNode> PasteboardService::CollectFuseNodeTrees(const PasteData &pasteData,
     const sptr<IPasteboardFuseGetter> &fuseGetter, const AppInfo &appInfo, uint32_t dataId,
     size_t virtualFileCount)
 {
-    std::vector<FileInfo> fileInfos;
+    std::vector<FuseNode> rootNodes;
     size_t collectedCount = 0;
     for (auto &record : pasteData.AllRecords()) {
         if (collectedCount >= virtualFileCount) {
@@ -3282,17 +3281,17 @@ std::vector<FileInfo> PasteboardService::CollectVirtualFileInfos(const PasteData
             if (collectedCount >= virtualFileCount) {
                 break;
             }
-            auto info = CreateFileInfoFromEntry(entry, fuseGetter, appInfo, dataId, record->GetRecordId());
-            if (info != nullptr) {
-                fileInfos.push_back(*info);
+            auto node = BuildFuseNodeTree(entry, fuseGetter, appInfo, dataId, record->GetRecordId());
+            if (node != nullptr) {
+                rootNodes.push_back(*node);
                 collectedCount++;
             }
         }
     }
-    return fileInfos;
+    return rootNodes;
 }
 
-std::shared_ptr<FileInfo> PasteboardService::CreateFileInfoFromEntry(const std::shared_ptr<PasteDataEntry> &entry,
+std::shared_ptr<FuseNode> PasteboardService::BuildFuseNodeTree(const std::shared_ptr<PasteDataEntry> &entry,
     const sptr<IPasteboardFuseGetter> &fuseGetter, const AppInfo &appInfo,
     uint32_t dataId, uint32_t recordId)
 {
@@ -3306,6 +3305,16 @@ std::shared_ptr<FileInfo> PasteboardService::CreateFileInfoFromEntry(const std::
     auto obj = std::get<std::shared_ptr<UDMF::Object>>(value);
     if (!obj) {
         return nullptr;
+    }
+    int32_t type = 0;
+    obj->GetValue("type", type);
+    std::vector<uint8_t> treeBlob;
+    if (obj->GetValue("treeBlob", treeBlob)) {
+        auto node = DeserializeTree(treeBlob);
+        if (node != nullptr) {
+            node->recordId = recordId;
+            return node;
+        }
     }
     std::string fileId;
     std::string fileName;
@@ -3324,17 +3333,14 @@ std::shared_ptr<FileInfo> PasteboardService::CreateFileInfoFromEntry(const std::
     int64_t modifyTime = 0;
     obj->GetValue("size", fileSize);
     obj->GetValue("modifyTime", modifyTime);
-    auto info = std::make_shared<FileInfo>();
-    info->userId = appInfo.userId;
-    info->dataId = dataId;
-    info->recordId = recordId;
-    info->fileId = fileId;
-    info->fileName = fileName;
-    info->fileSize = fileSize;
-    info->modifyTime = modifyTime;
-    info->isDir = false;
-    info->provider = fuseGetter;
-    return info;
+    auto node = std::make_shared<FuseNode>();
+    node->id = fileId;
+    node->name = fileName;
+    node->type = type;
+    node->size = fileSize;
+    node->modifyTime = modifyTime;
+    node->recordId = recordId;
+    return node;
 }
 
 std::string PasteboardService::GenerateVirtualUri(uint32_t dataId, uint32_t recordId, const std::string &fileName)

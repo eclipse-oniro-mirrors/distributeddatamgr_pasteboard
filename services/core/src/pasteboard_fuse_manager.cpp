@@ -319,9 +319,9 @@ void PasteboardFuseManager::CleanupLocked(int32_t userId)
 {
     providers_.erase(userId);
     dataIds_.erase(userId);
-    fileInfos_.erase(userId);
+    rootNodes_.erase(userId);
     for (auto it = fdMap_.begin(); it != fdMap_.end();) {
-        if (it->second.fileInfo && it->second.fileInfo->userId == userId) {
+        if (it->second.userId == userId) {
             it = fdMap_.erase(it);
         } else {
             ++it;
@@ -418,21 +418,13 @@ void PasteboardFuseManager::OnRemoveData(int32_t userId)
 }
 
 void PasteboardFuseManager::SetProvider(int32_t userId, const sptr<IPasteboardFuseGetter> &provider,
-    uint32_t dataId, const std::vector<FileInfo> &fileInfos)
+    uint32_t dataId, const std::vector<FuseNode> &rootNodes)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetProvider userId:%{public}d, dataId:%{public}u", userId, dataId);
     std::lock_guard<std::mutex> lock(mutex_);
     providers_[userId] = provider;
     dataIds_[userId] = dataId;
-    std::vector<FileInfo> infos;
-    infos.reserve(fileInfos.size());
-    for (auto info : fileInfos) {
-        info.userId = userId;
-        info.dataId = dataId;
-        info.provider = provider;
-        infos.push_back(info);
-    }
-    fileInfos_[userId] = std::move(infos);
+    rootNodes_[userId] = rootNodes;
 }
 
 bool PasteboardFuseManager::CheckAuthorizationLocked(int32_t userId, uid_t callerUid)
@@ -457,16 +449,48 @@ bool PasteboardFuseManager::CheckAuthorizationLocked(int32_t userId, uid_t calle
     return false;
 }
 
+const FuseNode *PasteboardFuseManager::FindNodeByPath(int32_t userId, uint32_t recordId,
+    const std::string &filePath) const
+{
+    auto it = rootNodes_.find(userId);
+    if (it == rootNodes_.end()) {
+        return nullptr;
+    }
+    for (const auto &root : it->second) {
+        if (root.recordId == recordId) {
+            return root.FindByPath(filePath);
+        }
+    }
+    return nullptr;
+}
+
 std::shared_ptr<FileInfo> PasteboardFuseManager::GetFileInfoLocked(int32_t userId, uint32_t dataId,
     uint32_t recordId, const std::string &fileName)
 {
-    auto it = fileInfos_.find(userId);
-    if (it == fileInfos_.end()) {
+    auto it = rootNodes_.find(userId);
+    if (it == rootNodes_.end()) {
         return nullptr;
     }
-    for (auto &info : it->second) {
-        if (info.dataId == dataId && info.recordId == recordId && info.fileName == fileName) {
-            return std::make_shared<FileInfo>(info);
+    for (const auto &root : it->second) {
+        if (root.recordId != recordId) {
+            continue;
+        }
+        const FuseNode *node = root.FindByPath(fileName);
+        if (node != nullptr && node->IsFile()) {
+            auto info = std::make_shared<FileInfo>();
+            info->userId = userId;
+            info->dataId = dataId;
+            info->recordId = recordId;
+            info->fileId = node->id;
+            info->fileName = node->name;
+            info->fileSize = node->size;
+            info->modifyTime = node->modifyTime;
+            info->isDir = false;
+            auto providerIt = providers_.find(userId);
+            if (providerIt != providers_.end()) {
+                info->provider = providerIt->second;
+            }
+            return info;
         }
     }
     return nullptr;
@@ -534,17 +558,17 @@ int PasteboardFuseManager::ParsePath(const char *path, uint32_t &dataId, uint32_
     return PATH_FILE;
 }
 
-void PasteboardFuseManager::FillFileStat(const FileInfo &info, struct stat *stbuf)
+void PasteboardFuseManager::FillFileStat(const FuseNode &node, struct stat *stbuf)
 {
-    if (info.isDir) {
+    if (node.IsDir()) {
         stbuf->st_mode = S_IFDIR | FUSE_DIR_MODE;
         stbuf->st_nlink = FUSE_DIR_NLINK;
     } else {
         stbuf->st_mode = S_IFREG | FUSE_FILE_MODE;
         stbuf->st_nlink = FUSE_FILE_NLINK;
-        stbuf->st_size = info.fileSize;
+        stbuf->st_size = node.size;
     }
-    stbuf->st_mtime = static_cast<time_t>(info.modifyTime / MILLISEC_PER_SEC);
+    stbuf->st_mtime = static_cast<time_t>(node.modifyTime / MILLISEC_PER_SEC);
 }
 
 int PasteboardFuseManager::StatLocked(const HandlerContext &ctx, const std::string &path, struct stat *stbuf)
@@ -583,13 +607,13 @@ int PasteboardFuseManager::StatLocked(const HandlerContext &ctx, const std::stri
         if (dataIt == self->dataIds_.end() || dataIt->second != dataId) {
             return -ENOENT;
         }
-        auto infosIt = self->fileInfos_.find(ctx.userId);
-        if (infosIt == self->fileInfos_.end()) {
+        auto nodesIt = self->rootNodes_.find(ctx.userId);
+        if (nodesIt == self->rootNodes_.end()) {
             return -ENOENT;
         }
         bool recordFound = false;
-        for (auto &info : infosIt->second) {
-            if (info.recordId == recordId) {
+        for (const auto &root : nodesIt->second) {
+            if (root.recordId == recordId) {
                 recordFound = true;
                 break;
             }
@@ -602,11 +626,11 @@ int PasteboardFuseManager::StatLocked(const HandlerContext &ctx, const std::stri
         return 0;
     }
     if (pathType == PATH_FILE) {
-        auto fileInfo = self->GetFileInfoLocked(ctx.userId, dataId, recordId, fileName);
-        if (fileInfo == nullptr) {
+        auto *node = self->FindNodeByPath(ctx.userId, recordId, fileName);
+        if (node == nullptr) {
             return -ENOENT;
         }
-        FillFileStat(*fileInfo, stbuf);
+        FillFileStat(*node, stbuf);
         return 0;
     }
     return -ENOENT;
@@ -682,10 +706,14 @@ int PasteboardFuseManager::OpenLocked(const HandlerContext &ctx, const std::stri
     }
     auto fileInfo = self->GetFileInfoLocked(ctx.userId, dataId, recordId, fileName);
     if (fileInfo == nullptr) {
+        const FuseNode *node = self->FindNodeByPath(ctx.userId, recordId, fileName);
+        if (node != nullptr && node->IsDir()) {
+            return -EISDIR;
+        }
         return -ENOENT;
     }
     int32_t fd = self->nextFd_++;
-    self->fdMap_[fd] = { ctx.pid, fileInfo };
+    self->fdMap_[fd] = { ctx.pid, ctx.userId, fileInfo->fileId, fileInfo->recordId, 0 };
     fi->fh = static_cast<uint64_t>(fd);
     PASTEBOARD_HILOGD(PASTEBOARD_MODULE_SERVICE, "OpenLocked path:%{public}s, fd:%{public}d", path.c_str(), fd);
     return 0;
@@ -706,7 +734,8 @@ int PasteboardFuseManager::ReadByPath(const HandlerContext &ctx, const std::stri
 {
     auto self = ctx.self;
     int32_t fd = static_cast<int32_t>(fi->fh);
-    std::shared_ptr<FileInfo> fileInfo;
+    FdEntry fdEntry;
+    sptr<IPasteboardFuseGetter> provider;
     {
         std::lock_guard<std::mutex> lock(self->mutex_);
         if (!self->CheckAuthorizationLocked(ctx.userId, ctx.uid)) {
@@ -719,9 +748,16 @@ int PasteboardFuseManager::ReadByPath(const HandlerContext &ctx, const std::stri
             PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "ReadByPath fd not found, fd:%{public}d", fd);
             return -ENOENT;
         }
-        fileInfo = it->second.fileInfo;
+        fdEntry = it->second;
+        auto providerIt = self->providers_.find(ctx.userId);
+        if (providerIt != self->providers_.end()) {
+            provider = providerIt->second;
+        }
     }
-    if (fileInfo == nullptr || fileInfo->provider == nullptr) {
+    if (fdEntry.type != 0) {
+        return -EISDIR;
+    }
+    if (provider == nullptr) {
         return -EIO;
     }
     if (size == 0) {
@@ -736,7 +772,7 @@ int PasteboardFuseManager::ReadByPath(const HandlerContext &ctx, const std::stri
             std::this_thread::sleep_for(std::chrono::milliseconds(READ_RETRY_DELAY_MS * attempt));
         }
         data.clear();
-        ret = fileInfo->provider->OnRead(fileInfo->recordId, fileInfo->fileId, offset, readLen, data);
+        ret = provider->OnRead(fdEntry.recordId, fdEntry.fileId, offset, readLen, data);
         if (ret == 0) {
             break;
         }
@@ -784,13 +820,13 @@ int PasteboardFuseManager::ListRecordDirLocked(const HandlerContext &ctx, uint32
     if (dataIt == dataIds_.end() || dataIt->second != dataId) {
         return -ENOENT;
     }
-    auto it = fileInfos_.find(ctx.userId);
-    if (it == fileInfos_.end()) {
+    auto it = rootNodes_.find(ctx.userId);
+    if (it == rootNodes_.end()) {
         return -ENOENT;
     }
     bool recordFound = false;
-    for (auto &info : it->second) {
-        if (info.recordId != recordId) {
+    for (const auto &root : it->second) {
+        if (root.recordId != recordId) {
             continue;
         }
         if (!recordFound) {
@@ -798,7 +834,7 @@ int PasteboardFuseManager::ListRecordDirLocked(const HandlerContext &ctx, uint32
             names.push_back(".");
             names.push_back("..");
         }
-        names.push_back(info.fileName);
+        names.push_back(root.name);
     }
     if (!recordFound) {
         return -ENOENT;
@@ -836,12 +872,12 @@ int PasteboardFuseManager::ListDirLocked(const HandlerContext &ctx, const std::s
         }
         names.push_back(".");
         names.push_back("..");
-        auto infosIt = self->fileInfos_.find(ctx.userId);
-        if (infosIt != self->fileInfos_.end()) {
+        auto nodesIt = self->rootNodes_.find(ctx.userId);
+        if (nodesIt != self->rootNodes_.end()) {
             std::set<uint32_t> listedRecords;
-            for (auto &info : infosIt->second) {
-                if (listedRecords.insert(info.recordId).second) {
-                    names.push_back(std::to_string(info.recordId));
+            for (const auto &root : nodesIt->second) {
+                if (listedRecords.insert(root.recordId).second) {
+                    names.push_back(std::to_string(root.recordId));
                 }
             }
         }
@@ -849,6 +885,21 @@ int PasteboardFuseManager::ListDirLocked(const HandlerContext &ctx, const std::s
     }
     if (pathType == PATH_RECORD_DIR) {
         return self->ListRecordDirLocked(ctx, dataId, recordId, names);
+    }
+    if (pathType == PATH_FILE) {
+        const FuseNode *node = self->FindNodeByPath(ctx.userId, recordId, fileName);
+        if (node == nullptr) {
+            return -ENOENT;
+        }
+        if (!node->IsDir()) {
+            return -ENOTDIR;
+        }
+        names.push_back(".");
+        names.push_back("..");
+        for (const auto &child : node->children) {
+            names.push_back(child.name);
+        }
+        return 0;
     }
     return -ENOENT;
 }

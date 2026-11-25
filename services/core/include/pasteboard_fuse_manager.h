@@ -32,6 +32,7 @@
 #include "ipasteboard_fuse_getter.h"
 #include "paste_data_record.h"
 #include "pasteboard_hilog.h"
+#include "pasteboard_virtual_entry.h"
 
 struct fuse_req;
 struct fuse_session;
@@ -71,7 +72,7 @@ public:
     void OnProviderDied(int32_t userId);
     bool HasProvider(int32_t userId);
     void SetProvider(int32_t userId, const sptr<IPasteboardFuseGetter> &provider,
-        uint32_t dataId, const std::vector<FileInfo> &fileInfos);
+        uint32_t dataId, const std::vector<FuseNode> &rootNodes);
 
 private:
     int32_t MountFuse(int32_t userId, const std::string &path, int32_t &fuseFd);
@@ -85,6 +86,8 @@ private:
     bool CheckAuthorizationLocked(int32_t userId, uid_t callerUid);
     std::shared_ptr<FileInfo> GetFileInfoLocked(int32_t userId, uint32_t dataId,
         uint32_t recordId, const std::string &fileName);
+    const FuseNode *FindNodeByPath(int32_t userId, uint32_t recordId,
+        const std::string &filePath) const;
     static int ParsePath(const char *path, uint32_t &dataId, uint32_t &recordId, std::string &fileName);
     static bool ParseNumericSegment(const char *begin, size_t len, uint32_t &value);
     std::string GetMountPath(int32_t userId);
@@ -113,7 +116,7 @@ private:
     int ListDirLocked(const HandlerContext &ctx, const std::string &path, std::vector<std::string> &names);
     int ListRecordDirLocked(const HandlerContext &ctx, uint32_t dataId, uint32_t recordId,
         std::vector<std::string> &names);
-    static void FillFileStat(const FileInfo &info, struct stat *stbuf);
+    static void FillFileStat(const FuseNode &node, struct stat *stbuf);
 
     // libfuse lowlevel callbacks invoked by the session loop.
     static void LookupHandler(struct fuse_req *req, uint64_t parent, const char *name);
@@ -198,10 +201,13 @@ private:
     std::map<int32_t, std::set<uid_t>> authorizedPasteUids_;
     std::map<int32_t, sptr<IPasteboardFuseGetter>> providers_;
     std::map<int32_t, uint32_t> dataIds_;
-    std::map<int32_t, std::vector<FileInfo>> fileInfos_;
+    std::map<int32_t, std::vector<FuseNode>> rootNodes_;
     struct FdEntry {
         pid_t openerPid = 0;
-        std::shared_ptr<FileInfo> fileInfo;
+        int32_t userId = 0;
+        std::string fileId;
+        uint32_t recordId = 0;
+        int32_t type = 0;
     };
     std::map<int32_t, FdEntry> fdMap_;
     std::counting_semaphore<SEMAPHORE_MAX_COUNT> readSemaphore_{ SEMAPHORE_MAX_COUNT };
