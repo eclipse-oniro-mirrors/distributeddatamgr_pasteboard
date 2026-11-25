@@ -2215,7 +2215,7 @@ HWTEST_F(PasteboardCapiTest, OH_Pasteboard_HasTypeTest003, TestSize.Level2)
     OH_UdsPlainText_SetContent(plainText, content);
     OH_UdmfRecord_AddPlainText(record, plainText);
     OH_UdmfData_AddRecord(setData, record);
-    OH_Pasteboard_SetData(pasteboard, setData);
+    OH_Pasteboard_SetData(validPasteboard, setData);
     const char* existingType = "text/plain";
     bool ret = OH_Pasteboard_HasType(validPasteboard, existingType);
     EXPECT_TRUE(ret);
@@ -2234,7 +2234,7 @@ HWTEST_F(PasteboardCapiTest, OH_Pasteboard_HasTypeTest004, TestSize.Level2)
     ASSERT_TRUE(validPasteboard != nullptr);
     OH_Pasteboard_ClearData(validPasteboard);
     const char* nonExistingType = "non/existing";
-    bool ret = OH_Pasteboard_HasType(&validPasteboard, nonExistingType);
+    bool ret = OH_Pasteboard_HasType(validPasteboard, nonExistingType);
     EXPECT_FALSE(ret);
     OH_Pasteboard_Destroy(validPasteboard);
 }
