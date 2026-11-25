@@ -68,6 +68,50 @@ static bool ParseVirtualFileSize(napi_env env, napi_value value, int64_t &size)
     return true;
 }
 
+constexpr uint32_t MAX_VIRTUAL_FILE_DEPTH = 64;
+constexpr size_t MAX_VIRTUAL_FILE_COUNT = 4096;
+
+struct VirtualFileEntry {
+    std::string id;
+    std::string name;
+    int64_t size = -1;
+    double modifyTime = 0;
+    int32_t type = 0;
+    std::vector<VirtualFileEntry> subItems;
+
+    bool IsFile() const { return type == 0; }
+    bool IsDir() const { return type == 1; }
+
+    const VirtualFileEntry *FindById(const std::string &targetId) const
+    {
+        if (IsFile() && id == targetId) {
+            return this;
+        }
+        for (const auto &child : subItems) {
+            if (auto *found = child.FindById(targetId); found != nullptr) {
+                return found;
+            }
+        }
+        return nullptr;
+    }
+
+    bool HasValidFileSizes(uint32_t depth = 0) const
+    {
+        if (depth > MAX_VIRTUAL_FILE_DEPTH) {
+            return false;
+        }
+        if (IsFile()) {
+            return size >= 0;
+        }
+        for (const auto &child : subItems) {
+            if (!child.HasValidFileSizes(depth + 1)) {
+                return false;
+            }
+        }
+        return true;
+    }
+};
+
 struct FuseReadContext {
     std::string id;
     int64_t offset;
@@ -152,8 +196,9 @@ static void FuseTsfnFinalizer(napi_env env, void *finalizeData, void *finalizeHi
 
 class NapiFuseGetter final : public PasteboardFuseGetterClient {
 public:
-    NapiFuseGetter(napi_env env, napi_ref onRead, napi_ref onStat, napi_ref onCancel)
-        : PasteboardFuseGetterClient({}), env_(env)
+    NapiFuseGetter(napi_env env, napi_ref onRead, napi_ref onStat, napi_ref onCancel,
+        const VirtualFileEntry &rootEntry)
+        : PasteboardFuseGetterClient({}), env_(env), rootEntry_(rootEntry)
     {
         auto *tsfnCtx = new FuseTsfnContext{env, onRead, onStat, onCancel};
         napi_value name = nullptr;
@@ -220,6 +265,15 @@ public:
     int32_t OnStat(uint32_t recordId, const std::string &id, FuseFileStat &stat) override
     {
         (void)recordId;
+        const auto *entry = rootEntry_.FindById(id);
+        if (entry != nullptr) {
+            stat.id = entry->id;
+            stat.name = entry->name;
+            stat.size = entry->size;
+            stat.modifyTime = static_cast<int64_t>(entry->modifyTime);
+            stat.type = entry->type;
+            return ERR_OK;
+        }
         if (tsfn_ == nullptr) {
             return ERR_INVALID_VALUE;
         }
@@ -438,6 +492,21 @@ private:
         }
         napi_value promise = nullptr;
         napi_call_function(env, nullptr, onCancel, 1, &jsIdList, &promise);
+        if (promise != nullptr) {
+            bool isPromise = false;
+            napi_is_promise(env, promise, &isPromise);
+            if (isPromise) {
+                napi_value catchValue = nullptr;
+                napi_get_named_property(env, promise, "catch", &catchValue);
+                napi_value catchFunc = nullptr;
+                napi_create_function(env, "onRejected", NAPI_AUTO_LENGTH,
+                    [](napi_env env, napi_callback_info info) -> napi_value {
+                        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "onCancel Promise rejected");
+                        return nullptr;
+                    }, nullptr, &catchFunc);
+                napi_call_function(env, promise, catchValue, 1, &catchFunc, nullptr);
+            }
+        }
         delete cancelCtx;
         callData->cancelCtx = nullptr;
     }
@@ -513,7 +582,11 @@ private:
         if (jsType != nullptr) {
             napi_valuetype vt;
             napi_typeof(env, jsType, &vt);
-            if (vt == napi_string) {
+            if (vt == napi_number) {
+                int32_t typeVal = 0;
+                napi_get_value_int32(env, jsType, &typeVal);
+                ctx->stat.type = typeVal;
+            } else if (vt == napi_string) {
                 size_t len = 0;
                 constexpr size_t typeStrLen = 8;
                 char typeStr[typeStrLen] = {0};
@@ -627,9 +700,10 @@ private:
 
     napi_env env_ = nullptr;
     napi_threadsafe_function tsfn_ = nullptr;
+    VirtualFileEntry rootEntry_;
 };
 
-static bool IsVirtualFileInfo(napi_env env, napi_value value)
+bool IsVirtualFileInfo(napi_env env, napi_value value)
 {
     napi_valuetype type = napi_undefined;
     napi_typeof(env, value, &type);
@@ -642,14 +716,6 @@ static bool IsVirtualFileInfo(napi_env env, napi_value value)
     napi_has_named_property(env, value, "itemInfo", &hasItemInfo);
     return hasOnRead && hasItemInfo;
 }
-
-struct VirtualFileItemInfo {
-    std::string fileId;
-    std::string fileName;
-    int64_t fileSize = 0;
-    double modifyTime = 0;
-    int32_t fileType = 0;
-};
 
 static std::string ReadStringProperty(napi_env env, napi_value obj, const char *name)
 {
@@ -698,49 +764,120 @@ static void ReadIntProperty(napi_env env, napi_value obj, const char *name, int3
     }
 }
 
-static bool ParseItemInfo(napi_env env, napi_value itemInfo, VirtualFileItemInfo &info)
+static bool ParseVirtualFile(napi_env env, napi_value obj, VirtualFileEntry &entry)
 {
-    info.fileId = ReadStringProperty(env, itemInfo, "id");
-    info.fileName = ReadStringProperty(env, itemInfo, "name");
-    if (!IsValidFileId(info.fileId)) {
+    entry.type = 0;
+    entry.id = ReadStringProperty(env, obj, "id");
+    if (!IsValidFileId(entry.id)) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "fileId is invalid");
         napi_throw_error(env, "401", "Parameter error: fileId is invalid");
         return false;
     }
-    if (!IsValidFileName(info.fileName)) {
+    napi_value jsSize = nullptr;
+    napi_get_named_property(env, obj, "size", &jsSize);
+    if (jsSize != nullptr) {
+        napi_valuetype vt;
+        napi_typeof(env, jsSize, &vt);
+        if (vt == napi_number || vt == napi_bigint) {
+            if (!ParseVirtualFileSize(env, jsSize, entry.size)) {
+                PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "fileSize is invalid");
+                napi_throw_error(env, "401", "Parameter error: fileSize is invalid");
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+static bool ParseVirtualItem(napi_env env, napi_value obj, VirtualFileEntry &entry,
+    uint32_t depth, uint32_t &itemCount);
+
+static bool ParseVirtualDirectory(napi_env env, napi_value obj, VirtualFileEntry &entry,
+    uint32_t depth, uint32_t &itemCount)
+{
+    entry.type = 1;
+    napi_value subItems = nullptr;
+    napi_get_named_property(env, obj, "subItems", &subItems);
+    if (subItems == nullptr) {
+        return true;
+    }
+    napi_valuetype vt;
+    napi_typeof(env, subItems, &vt);
+    if (vt == napi_undefined || vt == napi_null) {
+        return true;
+    }
+    bool isArray = false;
+    napi_is_array(env, subItems, &isArray);
+    if (!isArray) {
+        return false;
+    }
+    uint32_t length = 0;
+    napi_get_array_length(env, subItems, &length);
+    if (length > MAX_VIRTUAL_FILE_COUNT - itemCount) {
+        return false;
+    }
+    entry.subItems.reserve(length);
+    for (uint32_t i = 0; i < length; ++i) {
+        napi_value item;
+        napi_get_element(env, subItems, i, &item);
+        VirtualFileEntry child;
+        if (!ParseVirtualItem(env, item, child, depth + 1, itemCount)) {
+            return false;
+        }
+        entry.subItems.emplace_back(std::move(child));
+    }
+    return true;
+}
+
+static bool ParseVirtualItem(napi_env env, napi_value obj, VirtualFileEntry &entry,
+    uint32_t depth, uint32_t &itemCount)
+{
+    if (depth > MAX_VIRTUAL_FILE_DEPTH || itemCount >= MAX_VIRTUAL_FILE_COUNT) {
+        return false;
+    }
+    ++itemCount;
+    entry.name = ReadStringProperty(env, obj, "name");
+    if (!IsValidFileName(entry.name)) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "fileName is invalid");
         napi_throw_error(env, "401", "Parameter error: fileName is invalid");
         return false;
     }
-    napi_value jsSize = nullptr;
-    napi_get_named_property(env, itemInfo, "size", &jsSize);
-    if (jsSize != nullptr) {
-        if (!ParseVirtualFileSize(env, jsSize, info.fileSize)) {
-            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "fileSize is invalid");
-            napi_throw_error(env, "401", "Parameter error: fileSize is invalid");
-            return false;
+    ReadDateProperty(env, obj, "modifyTime", entry.modifyTime);
+    napi_value jsType = nullptr;
+    napi_get_named_property(env, obj, "type", &jsType);
+    if (jsType != nullptr) {
+        napi_valuetype vt;
+        napi_typeof(env, jsType, &vt);
+        if (vt == napi_number) {
+            napi_get_value_int32(env, jsType, &entry.type);
+        } else if (vt == napi_string) {
+            char typeStr[8] = {0};
+            size_t len = 0;
+            napi_get_value_string_utf8(env, jsType, typeStr, 7, &len);
+            entry.type = (strcmp(typeStr, "dir") == 0) ? 1 : 0;
         }
     }
-    ReadDateProperty(env, itemInfo, "modifyTime", info.modifyTime);
-    ReadIntProperty(env, itemInfo, "type", info.fileType);
-    return true;
+    if (entry.type == 0) {
+        return ParseVirtualFile(env, obj, entry);
+    }
+    return entry.type == 1 && ParseVirtualDirectory(env, obj, entry, depth, itemCount);
 }
 
 static napi_value BuildVirtualFileResult(napi_env env, const std::string &mimeType,
-    const VirtualFileItemInfo &info, napi_ref onReadRef, napi_ref onStatRef, napi_ref onCancelRef)
+    const VirtualFileEntry &info, napi_ref onReadRef, napi_ref onStatRef, napi_ref onCancelRef)
 {
-    auto provider = sptr<NapiFuseGetter>::MakeSptr(env, onReadRef, onStatRef, onCancelRef);
+    auto provider = sptr<NapiFuseGetter>::MakeSptr(env, onReadRef, onStatRef, onCancelRef, info);
     if (provider == nullptr) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "create NapiFuseGetter failed");
         return nullptr;
     }
 
     auto obj = std::make_shared<UDMF::Object>();
-    obj->value_["id"] = info.fileId;
-    obj->value_["name"] = info.fileName;
-    obj->value_["size"] = info.fileSize;
+    obj->value_["id"] = info.id;
+    obj->value_["name"] = info.name;
+    obj->value_["size"] = info.size;
     obj->value_["modifyTime"] = static_cast<int64_t>(info.modifyTime);
-    obj->value_["type"] = info.fileType;
+    obj->value_["type"] = info.type;
 
     auto entry = std::make_shared<PasteDataEntry>();
     entry->SetUtdId("general.virtual-file");
@@ -799,8 +936,14 @@ static napi_value CreateVirtualFileData(napi_env env, const std::string &mimeTyp
         return nullptr;
     }
 
-    VirtualFileItemInfo info;
-    if (!ParseItemInfo(env, itemInfo, info)) {
+    VirtualFileEntry rootEntry;
+    uint32_t itemCount = 0;
+    if (!ParseVirtualItem(env, itemInfo, rootEntry, 0, itemCount)) {
+        return nullptr;
+    }
+    if (!rootEntry.HasValidFileSizes()) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "fileSize is invalid");
+        napi_throw_error(env, "401", "Parameter error: fileSize is invalid");
         return nullptr;
     }
 
@@ -817,7 +960,7 @@ static napi_value CreateVirtualFileData(napi_env env, const std::string &mimeTyp
     }
     napi_create_reference(env, onCancel, 1, &onCancelRef);
 
-    return BuildVirtualFileResult(env, mimeType, info, onReadRef, onStatRef, onCancelRef);
+    return BuildVirtualFileResult(env, mimeType, rootEntry, onReadRef, onStatRef, onCancelRef);
 }
 constexpr size_t MAX_ARGS = 6;
 static napi_value CreateVirtualFileRecord(napi_env env, const std::string &mimeType, napi_value vfiValue)
@@ -842,8 +985,14 @@ static napi_value CreateVirtualFileRecord(napi_env env, const std::string &mimeT
         napi_throw_error(env, "401", "Parameter error: itemInfo is required");
         return nullptr;
     }
-    VirtualFileItemInfo info;
-    if (!ParseItemInfo(env, itemInfo, info)) {
+    VirtualFileEntry rootEntry;
+    uint32_t itemCount = 0;
+    if (!ParseVirtualItem(env, itemInfo, rootEntry, 0, itemCount)) {
+        return nullptr;
+    }
+    if (!rootEntry.HasValidFileSizes()) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "fileSize is invalid");
+        napi_throw_error(env, "401", "Parameter error: fileSize is invalid");
         return nullptr;
     }
     napi_ref onReadRef = nullptr;
@@ -859,16 +1008,16 @@ static napi_value CreateVirtualFileRecord(napi_env env, const std::string &mimeT
     }
     napi_create_reference(env, onCancel, 1, &onCancelRef);
 
-    auto provider = sptr<NapiFuseGetter>::MakeSptr(env, onReadRef, onStatRef, onCancelRef);
+    auto provider = sptr<NapiFuseGetter>::MakeSptr(env, onReadRef, onStatRef, onCancelRef, rootEntry);
     if (provider == nullptr) {
         return nullptr;
     }
     auto obj = std::make_shared<UDMF::Object>();
-    obj->value_["id"] = info.fileId;
-    obj->value_["name"] = info.fileName;
-    obj->value_["size"] = info.fileSize;
-    obj->value_["modifyTime"] = static_cast<int64_t>(info.modifyTime);
-    obj->value_["type"] = info.fileType;
+    obj->value_["id"] = rootEntry.id;
+    obj->value_["name"] = rootEntry.name;
+    obj->value_["size"] = rootEntry.size;
+    obj->value_["modifyTime"] = static_cast<int64_t>(rootEntry.modifyTime);
+    obj->value_["type"] = rootEntry.type;
     auto entry = std::make_shared<PasteDataEntry>();
     entry->SetUtdId("general.virtual-file");
     entry->SetMimeType(mimeType);
@@ -886,6 +1035,77 @@ static napi_value CreateVirtualFileRecord(napi_env env, const std::string &mimeT
         return nullptr;
     }
     return instance;
+}
+
+bool AddVirtualFileEntry(napi_env env, std::shared_ptr<PasteDataRecord> record,
+    const std::string &mimeType, napi_value vfiValue)
+{
+    if (record == nullptr) {
+        return false;
+    }
+    napi_value itemInfo = nullptr;
+    napi_get_named_property(env, vfiValue, "itemInfo", &itemInfo);
+    napi_value onRead = nullptr;
+    napi_value onStat = nullptr;
+    napi_value onCancel = nullptr;
+    napi_get_named_property(env, vfiValue, "onRead", &onRead);
+    napi_get_named_property(env, vfiValue, "onStat", &onStat);
+    napi_get_named_property(env, vfiValue, "onCancel", &onCancel);
+
+    napi_valuetype onReadType = napi_undefined;
+    napi_typeof(env, onRead, &onReadType);
+    if (onReadType != napi_function) {
+        napi_throw_error(env, "401", "Parameter error: onRead is required");
+        return false;
+    }
+    napi_valuetype itemInfoType = napi_undefined;
+    napi_typeof(env, itemInfo, &itemInfoType);
+    if (itemInfoType != napi_object) {
+        napi_throw_error(env, "401", "Parameter error: itemInfo is required");
+        return false;
+    }
+
+    VirtualFileEntry rootEntry;
+    uint32_t itemCount = 0;
+    if (!ParseVirtualItem(env, itemInfo, rootEntry, 0, itemCount)) {
+        return false;
+    }
+    if (!rootEntry.HasValidFileSizes()) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "fileSize is invalid");
+        napi_throw_error(env, "401", "Parameter error: fileSize is invalid");
+        return false;
+    }
+
+    napi_ref onReadRef = nullptr;
+    napi_ref onStatRef = nullptr;
+    napi_ref onCancelRef = nullptr;
+    napi_create_reference(env, onRead, 1, &onReadRef);
+    if (onStat != nullptr) {
+        napi_valuetype vt;
+        napi_typeof(env, onStat, &vt);
+        if (vt == napi_function) {
+            napi_create_reference(env, onStat, 1, &onStatRef);
+        }
+    }
+    napi_create_reference(env, onCancel, 1, &onCancelRef);
+
+    auto provider = sptr<NapiFuseGetter>::MakeSptr(env, onReadRef, onStatRef, onCancelRef, rootEntry);
+    if (provider == nullptr) {
+        return false;
+    }
+    auto obj = std::make_shared<UDMF::Object>();
+    obj->value_["id"] = rootEntry.id;
+    obj->value_["name"] = rootEntry.name;
+    obj->value_["size"] = rootEntry.size;
+    obj->value_["modifyTime"] = static_cast<int64_t>(rootEntry.modifyTime);
+    obj->value_["type"] = rootEntry.type;
+    auto entry = std::make_shared<PasteDataEntry>();
+    entry->SetUtdId("general.virtual-file");
+    entry->SetMimeType(mimeType);
+    entry->SetValue(std::shared_ptr<UDMF::Object>(obj));
+    record->AddEntry("general.virtual-file", entry);
+    record->SetFuseGetter(provider);
+    return true;
 }
 
 constexpr size_t ARGC_TYPE_SET1 = 1;

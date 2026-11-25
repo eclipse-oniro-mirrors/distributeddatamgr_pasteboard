@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -370,13 +370,21 @@ napi_value PasteDataRecordNapi::AddEntry(napi_env env, napi_callback_info info)
     napi_value argv[ARGC_TYPE_SET2] = { 0 };
     napi_value thisVar = nullptr;
     NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, &thisVar, NULL));
-    std::string mimeType;
-    if (!CheckArgs(env, argv, argc, mimeType)) {
+    if (argc < ARGC_TYPE_SET2) {
+        napi_throw_error(env, "401", "Parameter error. The number of arguments cannot be less than two.");
         return nullptr;
     }
-    int32_t mimeTypeEnum = MiscServices::GetHistogramMimeTypeEnum(mimeType);
-    HISTOGRAM_ENUMERATION_SAMPLED(
-        "Pasteboard.MimeType.addEntry", mimeTypeEnum, MiscServices::HISTOGRAM_MIMETYPE_BOUNDARY);
+    napi_valuetype mimeTypeType = napi_undefined;
+    napi_typeof(env, argv[0], &mimeTypeType);
+    if (mimeTypeType != napi_string) {
+        napi_throw_error(env, "401", "Parameter error. The type of mimeType must be string.");
+        return nullptr;
+    }
+    size_t mimeTypeLen = 0;
+    napi_get_value_string_utf8(env, argv[0], nullptr, 0, &mimeTypeLen);
+    std::string mimeType;
+    mimeType.resize(mimeTypeLen);
+    napi_get_value_string_utf8(env, argv[0], mimeType.data(), mimeTypeLen + 1, &mimeTypeLen);
 
     PasteDataRecordNapi *obj = nullptr;
     napi_status status = napi_unwrap(env, thisVar, reinterpret_cast<void **>(&obj));
@@ -384,7 +392,20 @@ napi_value PasteDataRecordNapi::AddEntry(napi_env env, napi_callback_info info)
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "Get AddEntry object failed");
         return nullptr;
     }
-    
+
+    if (mimeType == MIMETYPE_TEXT_URI && IsVirtualFileInfo(env, argv[1])) {
+        PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "AddEntry VirtualFile");
+        AddVirtualFileEntry(env, obj->value_, mimeType, argv[1]);
+        return nullptr;
+    }
+
+    if (!CheckArgs(env, argv, argc, mimeType)) {
+        return nullptr;
+    }
+    int32_t mimeTypeEnum = MiscServices::GetHistogramMimeTypeEnum(mimeType);
+    HISTOGRAM_ENUMERATION_SAMPLED(
+        "Pasteboard.MimeType.addEntry", mimeTypeEnum, MiscServices::HISTOGRAM_MIMETYPE_BOUNDARY);
+
     EntryValue entryValue;
     if (!GetNativeValue(env, mimeType, argv[1], entryValue)) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "GetNativeValue failed");

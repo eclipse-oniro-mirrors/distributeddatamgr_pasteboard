@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -372,6 +372,44 @@ napi_status ConvertEntryValue(napi_env env, napi_value *result, std::string &mim
     if (value == nullptr) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "failed to find dataEntry, type=%{public}s", mimeType.c_str());
         return napi_generic_failure;
+    }
+    if (value->GetUtdId() == "general.virtual-file") {
+        napi_create_object(env, result);
+        auto entryValue = value->GetValue();
+        auto obj = std::get_if<std::shared_ptr<UDMF::Object>>(&entryValue);
+        if (obj != nullptr && *obj != nullptr) {
+            std::string id;
+            std::string name;
+            int64_t size = 0;
+            int64_t modifyTime = 0;
+            int32_t type = 0;
+            if ((*obj)->GetValue<std::string>("id", id)) {
+                napi_value idVal = nullptr;
+                napi_create_string_utf8(env, id.c_str(), NAPI_AUTO_LENGTH, &idVal);
+                napi_set_named_property(env, *result, "id", idVal);
+            }
+            if ((*obj)->GetValue<std::string>("name", name)) {
+                napi_value nameVal = nullptr;
+                napi_create_string_utf8(env, name.c_str(), NAPI_AUTO_LENGTH, &nameVal);
+                napi_set_named_property(env, *result, "name", nameVal);
+            }
+            if ((*obj)->GetValue<int64_t>("size", size)) {
+                napi_value sizeVal = nullptr;
+                napi_create_int64(env, size, &sizeVal);
+                napi_set_named_property(env, *result, "size", sizeVal);
+            }
+            if ((*obj)->GetValue<int64_t>("modifyTime", modifyTime)) {
+                napi_value modifyTimeVal = nullptr;
+                napi_create_int64(env, modifyTime, &modifyTimeVal);
+                napi_set_named_property(env, *result, "modifyTime", modifyTimeVal);
+            }
+            if ((*obj)->GetValue<int32_t>("type", type)) {
+                napi_value typeVal = nullptr;
+                napi_create_int32(env, type, &typeVal);
+                napi_set_named_property(env, *result, "type", typeVal);
+            }
+        }
+        return napi_ok;
     }
     if (mimeType == MIMETYPE_TEXT_URI) {
         std::shared_ptr<Uri> uri = value->ConvertToUri();
