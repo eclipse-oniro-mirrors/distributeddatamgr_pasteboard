@@ -57,6 +57,7 @@ union ValueType {
     string: String;
     arrayBuffer: @arraybuffer Array<u8>;
     pixelMapOrWant: @sts_type("(image.PixelMap | Want)") Opaque;
+    virtualFile: @sts_type("VirtualFileInfo") Opaque;
 }
 
 struct PasteDataProperty {
@@ -151,19 +152,68 @@ struct GetDataParams {
     progressSignal: Optional<ProgressSignal>;
 }
 
-struct VirtualFileInfo {
-    id: String;
-    name: String;
-    size: i64;
-    modifyTime: i64;
-    fileType: i32;
+enum VirtualItemType: i32 {
+    FILE = 0,
+    DIR = 1
 }
 
-interface VirtualFileProvider {
-    OnRead(recordId: u32, id: String, offset: i64, length: i32): @arraybuffer Array<u8>;
-    OnStat(recordId: u32, id: String): VirtualFileInfo;
-    OnCancel(recordId: u32, idList: Array<String>): void;
+struct VirtualBaseItem {
+    name: String;
+    @readonly type: VirtualItemType;
+    modifyTime: @sts_type("Date") Opaque;
 }
+
+struct VirtualFileItem {
+    @extends base: VirtualBaseItem;
+    id: String;
+    size: Optional<i64>;
+}
+
+union VirtualItem {
+    file: VirtualFileItem;
+    dir: VirtualDirItem;
+}
+
+struct VirtualDirItem {
+    @extends base: VirtualBaseItem;
+    subItems: Optional<Array<VirtualItem>>;
+}
+
+@!sts_inject("""
+export interface VirtualFileInfo {
+    itemInfo: VirtualFileItem | VirtualDirItem;
+    onStat?: VirtualFileOnStat;
+    onRead: VirtualFileOnRead;
+    onCancel: VirtualFileOnCancel;
+}
+export type VirtualFileOnStat = (id: string) => Promise<VirtualFileItem>;
+export type VirtualFileOnRead = (id: string, offset: long, length: int) => Promise<Uint8Array>;
+export type VirtualFileOnCancel = (idList: Array<string>) => Promise<void>;
+async function virtualFileOnStatAsync(handler: VirtualFileOnStat, id: string): Promise<VirtualFileItem> {
+    return handler(id);
+}
+function virtualFileOnStatFunc(handler: VirtualFileOnStat, id: string): VirtualFileItem {
+    return waitForCompletion(async () => {
+        return await virtualFileOnStatAsync(handler, id);
+    });
+}
+async function virtualFileOnReadAsync(handler: VirtualFileOnRead, id: string, offset: long, length: int): Promise<Uint8Array> {
+    return handler(id, offset, length);
+}
+function virtualFileOnReadFunc(handler: VirtualFileOnRead, id: string, offset: long, length: int): Uint8Array {
+    return waitForCompletion(async () => {
+        return await virtualFileOnReadAsync(handler, id, offset, length);
+    });
+}
+async function virtualFileOnCancelAsync(handler: VirtualFileOnCancel, idList: Array<string>): Promise<void> {
+    return handler(idList);
+}
+function virtualFileOnCancelFunc(handler: VirtualFileOnCancel, idList: Array<string>): void {
+    waitForCompletion(async () => {
+        await virtualFileOnCancelAsync(handler, idList);
+    });
+}
+""")
 
 interface SystemPasteboard {
     OnUpdate(callback: () => void): void;
@@ -217,10 +267,6 @@ interface SystemPasteboard {
 
     @gen_promise("getDataWithProgress")
     GetDataWithProgressImpl(params: GetDataParams): PasteData;
-
-    @gen_promise("setVirtualFileData")
-    SetVirtualFileDataImpl(fileInfos: Array<VirtualFileInfo>, provider: VirtualFileProvider): void;
-    SetVirtualFileDataSync(fileInfos: Array<VirtualFileInfo>, provider: VirtualFileProvider): void;
 }
 
 @overload("createData")
