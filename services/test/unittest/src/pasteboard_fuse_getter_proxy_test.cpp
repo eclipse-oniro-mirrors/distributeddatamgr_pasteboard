@@ -35,7 +35,7 @@ namespace {
     const int32_t INT32_LENGTH = 4096;
     const int32_t SENDREQUEST_FAIL = 1;
     const int32_t REMOTE_RESULT_ERROR = 12900020;
-    const int32_t DATA_SIZE_POSITIVE = 100;
+    const int32_t DATA_SIZE_POSITIVE = 4;
     const int32_t DATA_SIZE_ZERO = 0;
     const int64_t STAT_SIZE = 2048;
     const int64_t STAT_MODIFY_TIME = 1700000000;
@@ -63,6 +63,7 @@ public:
     virtual const std::string ReadString() = 0;
     virtual int64_t ReadInt64() = 0;
     virtual bool ReadUInt8Vector(std::vector<uint8_t> *val) = 0;
+    virtual const uint8_t *ReadUnpadBuffer(size_t length) = 0;
 };
 
 class PasteboardFuseGetterProxyMock : public PasteboardFuseGetterProxyInterface {
@@ -80,6 +81,7 @@ public:
     MOCK_METHOD0(ReadString, const std::string());
     MOCK_METHOD0(ReadInt64, int64_t());
     MOCK_METHOD1(ReadUInt8Vector, bool(std::vector<uint8_t> *val));
+    MOCK_METHOD1(ReadUnpadBuffer, const uint8_t *(size_t length));
 };
 
 static void *g_interface = nullptr;
@@ -220,6 +222,15 @@ extern "C" {
         }
         return interface->ReadUInt8Vector(val);
     }
+
+    const uint8_t *Parcel::ReadUnpadBuffer(size_t length)
+    {
+        auto *interface = GetFuseGetterProxyInterface();
+        if (interface == nullptr) {
+            return nullptr;
+        }
+        return interface->ReadUnpadBuffer(length);
+    }
 };
 
 class PasteboardFuseGetterProxyTest : public testing::Test {
@@ -355,11 +366,6 @@ HWTEST_F(PasteboardFuseGetterProxyTest, OnReadTest006, TestSize.Level1)
     sptr<IRemoteObject> rObject = nullptr;
     PasteboardFuseGetterProxy proxy(rObject);
     NiceMock<PasteboardFuseGetterProxyMock> mock;
-    EXPECT_CALL(mock, WriteInterfaceToken(testing::_)).WillOnce(Return(true));
-    EXPECT_CALL(mock, WriteUint32(testing::_)).WillOnce(Return(true));
-    EXPECT_CALL(mock, WriteString(testing::_)).WillOnce(Return(true));
-    EXPECT_CALL(mock, WriteInt64(testing::_)).WillOnce(Return(true));
-    EXPECT_CALL(mock, WriteInt32(testing::_)).WillOnce(Return(true));
     std::vector<uint8_t> data;
     int32_t result = proxy.OnRead(UINT32_RANDOM, STRING_ID, INT64_OFFSET, INT32_LENGTH, data);
     EXPECT_EQ(result, ERR_INVALID_VALUE);
@@ -414,7 +420,7 @@ HWTEST_F(PasteboardFuseGetterProxyTest, OnReadTest008, TestSize.Level1)
 
 /**
  * @tc.name: OnReadTest009
- * @tc.desc: Test OnRead when dataSize > 0 but ReadUInt8Vector fails
+ * @tc.desc: Test OnRead when dataSize > 0 but ReadRawData fails (ReadUnpadBuffer returns null)
  * @tc.type: FUNC
  */
 HWTEST_F(PasteboardFuseGetterProxyTest, OnReadTest009, TestSize.Level1)
@@ -428,8 +434,11 @@ HWTEST_F(PasteboardFuseGetterProxyTest, OnReadTest009, TestSize.Level1)
     EXPECT_CALL(mock, WriteString(testing::_)).WillOnce(Return(true));
     EXPECT_CALL(mock, WriteInt64(testing::_)).WillOnce(Return(true));
     EXPECT_CALL(mock, WriteInt32(testing::_)).WillOnce(Return(true));
-    EXPECT_CALL(mock, ReadInt32()).WillOnce(Return(ERR_OK)).WillOnce(Return(DATA_SIZE_POSITIVE));
-    EXPECT_CALL(mock, ReadUInt8Vector(testing::_)).WillOnce(Return(false));
+    EXPECT_CALL(mock, ReadInt32())
+        .WillOnce(Return(ERR_OK))
+        .WillOnce(Return(DATA_SIZE_POSITIVE))
+        .WillOnce(Return(DATA_SIZE_POSITIVE));
+    EXPECT_CALL(mock, ReadUnpadBuffer(testing::_)).WillOnce(Return(nullptr));
     std::vector<uint8_t> data;
     int32_t result = proxy.OnRead(UINT32_RANDOM, STRING_ID, INT64_OFFSET, INT32_LENGTH, data);
     EXPECT_EQ(result, ERR_INVALID_VALUE);
@@ -438,7 +447,7 @@ HWTEST_F(PasteboardFuseGetterProxyTest, OnReadTest009, TestSize.Level1)
 
 /**
  * @tc.name: OnReadTest010
- * @tc.desc: Test OnRead success when dataSize > 0 and ReadUInt8Vector succeeds
+ * @tc.desc: Test OnRead success when dataSize > 0 and ReadRawData succeeds
  * @tc.type: FUNC
  */
 HWTEST_F(PasteboardFuseGetterProxyTest, OnReadTest010, TestSize.Level1)
@@ -453,9 +462,11 @@ HWTEST_F(PasteboardFuseGetterProxyTest, OnReadTest010, TestSize.Level1)
     EXPECT_CALL(mock, WriteString(testing::_)).WillOnce(Return(true));
     EXPECT_CALL(mock, WriteInt64(testing::_)).WillOnce(Return(true));
     EXPECT_CALL(mock, WriteInt32(testing::_)).WillOnce(Return(true));
-    EXPECT_CALL(mock, ReadInt32()).WillOnce(Return(ERR_OK)).WillOnce(Return(DATA_SIZE_POSITIVE));
-    EXPECT_CALL(mock, ReadUInt8Vector(testing::_))
-        .WillOnce(DoAll(SetArgPointee<0>(expected), Return(true)));
+    EXPECT_CALL(mock, ReadInt32())
+        .WillOnce(Return(ERR_OK))
+        .WillOnce(Return(DATA_SIZE_POSITIVE))
+        .WillOnce(Return(DATA_SIZE_POSITIVE));
+    EXPECT_CALL(mock, ReadUnpadBuffer(testing::_)).WillOnce(Return(expected.data()));
     std::vector<uint8_t> data;
     int32_t result = proxy.OnRead(UINT32_RANDOM, STRING_ID, INT64_OFFSET, INT32_LENGTH, data);
     EXPECT_EQ(result, ERR_OK);
@@ -465,7 +476,7 @@ HWTEST_F(PasteboardFuseGetterProxyTest, OnReadTest010, TestSize.Level1)
 
 /**
  * @tc.name: OnReadTest011
- * @tc.desc: Test OnRead success when dataSize == 0 (no data vector read)
+ * @tc.desc: Test OnRead success when dataSize == 0 (no ReadRawData call)
  * @tc.type: FUNC
  */
 HWTEST_F(PasteboardFuseGetterProxyTest, OnReadTest011, TestSize.Level1)
@@ -485,6 +496,34 @@ HWTEST_F(PasteboardFuseGetterProxyTest, OnReadTest011, TestSize.Level1)
     EXPECT_EQ(result, ERR_OK);
     EXPECT_TRUE(data.empty());
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnReadTest011 end");
+}
+
+/**
+ * @tc.name: OnReadTest012
+ * @tc.desc: Test OnRead when ReadRawData internal size check fails (WriteRawData size != expected size)
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardFuseGetterProxyTest, OnReadTest012, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnReadTest012 start");
+    sptr<IRemoteObject> rObject = sptr<TestIRemoteObject>::MakeSptr();
+    PasteboardFuseGetterProxy proxy(rObject);
+    NiceMock<PasteboardFuseGetterProxyMock> mock;
+    EXPECT_CALL(mock, WriteInterfaceToken(testing::_)).WillOnce(Return(true));
+    EXPECT_CALL(mock, WriteUint32(testing::_)).WillOnce(Return(true));
+    EXPECT_CALL(mock, WriteString(testing::_)).WillOnce(Return(true));
+    EXPECT_CALL(mock, WriteInt64(testing::_)).WillOnce(Return(true));
+    EXPECT_CALL(mock, WriteInt32(testing::_)).WillOnce(Return(true));
+    // reply: result(OK), size(4), ReadRawData internal size(999 != 4) -> nullptr
+    EXPECT_CALL(mock, ReadInt32())
+        .WillOnce(Return(ERR_OK))
+        .WillOnce(Return(DATA_SIZE_POSITIVE))
+        .WillOnce(Return(999));
+    std::vector<uint8_t> data;
+    int32_t result = proxy.OnRead(UINT32_RANDOM, STRING_ID, INT64_OFFSET, INT32_LENGTH, data);
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+    EXPECT_TRUE(data.empty());
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnReadTest012 end");
 }
 
 // ============================ OnStat ============================

@@ -79,7 +79,7 @@ int32_t PasteboardFuseGetterStub::HandleRead(MessageParcel &data, MessageParcel 
     std::string id = data.ReadString();
     int64_t offset = data.ReadInt64();
     int32_t length = data.ReadInt32();
-    if (length < 0 || length > 5 * 1024 * 1024 || offset < 0) {
+    if (length < 0 || length > MAX_READ_SIZE || offset < 0) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CLIENT, "HandleRead invalid params, length:%{public}d, offset:%{public}lld",
             length, static_cast<long long>(offset));
         return ERR_INVALID_VALUE;
@@ -95,7 +95,7 @@ int32_t PasteboardFuseGetterStub::HandleRead(MessageParcel &data, MessageParcel 
         return ERR_INVALID_VALUE;
     }
     if (!fileData.empty()) {
-        if (!reply.WriteUInt8Vector(fileData)) {
+        if (!reply.WriteRawData(fileData.data(), fileData.size())) {
             PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CLIENT, "Failed to write file data");
             return ERR_INVALID_VALUE;
         }

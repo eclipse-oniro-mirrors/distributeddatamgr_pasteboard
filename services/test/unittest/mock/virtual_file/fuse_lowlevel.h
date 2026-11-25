@@ -25,9 +25,7 @@
 #include <sys/types.h>
 #include <sys/uio.h>
 
-// Forward declarations from fuse.h (mock version provides full definitions)
-struct fuse_file_info;
-struct fuse_loop_config;
+#include "fuse.h"
 
 // ===== Lowlevel types =====
 
@@ -38,6 +36,7 @@ struct fuse_ctx {
     uid_t uid;
     gid_t gid;
     pid_t pid;
+    mode_t umask;
 };
 
 struct fuse_conn_info {

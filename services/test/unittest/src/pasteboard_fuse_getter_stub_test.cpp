@@ -341,8 +341,10 @@ HWTEST_F(PasteboardFuseGetterStubTest, HandleReadTest002, TestSize.Level1)
     EXPECT_EQ(reply.ReadInt32(), 0); // result
     int32_t dataSize = reply.ReadInt32();
     EXPECT_EQ(dataSize, static_cast<int32_t>(fileData.size()));
-    std::vector<uint8_t> out;
-    ASSERT_TRUE(reply.ReadUInt8Vector(&out));
+    const void *rawData = reply.ReadRawData(dataSize);
+    ASSERT_NE(rawData, nullptr);
+    std::vector<uint8_t> out(static_cast<const uint8_t *>(rawData),
+                             static_cast<const uint8_t *>(rawData) + dataSize);
     EXPECT_EQ(out, fileData);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "HandleReadTest002 end");
 }

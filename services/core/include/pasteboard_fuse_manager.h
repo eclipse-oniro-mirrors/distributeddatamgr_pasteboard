@@ -166,7 +166,6 @@ private:
         uint64_t nextInode = 0;
     };
 
-    static constexpr int32_t MAX_READ_SIZE = 5 * 1024 * 1024;
     static constexpr int32_t MAX_THREADS = 5;
     static constexpr int32_t MAX_READ_RETRIES = 2;
     static constexpr int32_t READ_RETRY_DELAY_MS = 50;

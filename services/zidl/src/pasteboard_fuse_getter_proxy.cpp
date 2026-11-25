@@ -52,9 +52,14 @@ int32_t PasteboardFuseGetterProxy::OnRead(
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CLIENT, "OnRead remote failed, ret:%{public}d", ret);
         return ret;
     }
-    uint32_t size = reply.ReadUint32();
+    int32_t size = reply.ReadInt32();
     if (size > 0) {
-        reply.ReadUInt8Vector(&data);
+        const void *rawData = reply.ReadRawData(static_cast<size_t>(size));
+        if (rawData == nullptr) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_CLIENT, "ReadRawData failed, size:%{public}d", size);
+            return ERR_INVALID_VALUE;
+        }
+        data.assign(static_cast<const uint8_t *>(rawData), static_cast<const uint8_t *>(rawData) + size);
     }
     return ERR_OK;
 }

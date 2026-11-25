@@ -199,73 +199,94 @@ void fuse_loop_cfg_set_idle_threads(struct fuse_loop_config *config, unsigned in
 
 void fuse_loop_cfg_set_clone_fd(struct fuse_loop_config *config, int clone_fd)
 {
-    auto mock = FuseApiMock::GetMock();
+    FuseApiMock *mock = FuseApiMock::GetMock();
     if (mock == nullptr) {
         return;
     }
     mock->fuse_loop_cfg_set_clone_fd(config, clone_fd);
 }
 
-// ===== Lowlevel stubs (never called in tests — fuse_session_loop_mt is mocked) =====
+// ===== Lowlevel request/reply functions =====
 
 void *fuse_req_userdata(struct fuse_req *req)
 {
-    (void)req;
-    return nullptr;
+    FuseApiMock *mock = FuseApiMock::GetMock();
+    if (mock == nullptr) {
+        return nullptr;
+    }
+    return mock->fuse_req_userdata(req);
 }
 
 const struct fuse_ctx *fuse_req_ctx(struct fuse_req *req)
 {
-    (void)req;
-    return nullptr;
+    FuseApiMock *mock = FuseApiMock::GetMock();
+    if (mock == nullptr) {
+        return nullptr;
+    }
+    return mock->fuse_req_ctx(req);
 }
 
 void fuse_reply_entry(struct fuse_req *req, const struct fuse_entry_param *e)
 {
-    (void)req;
-    (void)e;
+    FuseApiMock *mock = FuseApiMock::GetMock();
+    if (mock == nullptr) {
+        return;
+    }
+    mock->fuse_reply_entry(req, e);
 }
 
 void fuse_reply_err(struct fuse_req *req, int err)
 {
-    (void)req;
-    (void)err;
+    FuseApiMock *mock = FuseApiMock::GetMock();
+    if (mock == nullptr) {
+        return;
+    }
+    mock->fuse_reply_err(req, err);
 }
 
 void fuse_reply_attr(struct fuse_req *req, const struct stat *attr, double timeout)
 {
-    (void)req;
-    (void)attr;
-    (void)timeout;
+    FuseApiMock *mock = FuseApiMock::GetMock();
+    if (mock == nullptr) {
+        return;
+    }
+    mock->fuse_reply_attr(req, attr, timeout);
 }
 
 void fuse_reply_open(struct fuse_req *req, const struct fuse_file_info *fi)
 {
-    (void)req;
-    (void)fi;
+    FuseApiMock *mock = FuseApiMock::GetMock();
+    if (mock == nullptr) {
+        return;
+    }
+    mock->fuse_reply_open(req, fi);
 }
 
 void fuse_reply_buf(struct fuse_req *req, const char *buf, size_t size)
 {
-    (void)req;
-    (void)buf;
-    (void)size;
+    FuseApiMock *mock = FuseApiMock::GetMock();
+    if (mock == nullptr) {
+        return;
+    }
+    mock->fuse_reply_buf(req, buf, size);
 }
 
 void fuse_reply_none(struct fuse_req *req)
 {
-    (void)req;
+    FuseApiMock *mock = FuseApiMock::GetMock();
+    if (mock == nullptr) {
+        return;
+    }
+    mock->fuse_reply_none(req);
 }
 
 size_t fuse_add_direntry(struct fuse_req *req, char *buf, size_t bufsize,
     const char *name, const struct stat *stbuf, off_t off)
 {
-    (void)req;
-    (void)buf;
-    (void)bufsize;
-    (void)name;
-    (void)stbuf;
-    (void)off;
-    return 0;
+    FuseApiMock *mock = FuseApiMock::GetMock();
+    if (mock == nullptr) {
+        return 0;
+    }
+    return mock->fuse_add_direntry(req, buf, bufsize, name, stbuf, off);
 }
 // NOLINTEND

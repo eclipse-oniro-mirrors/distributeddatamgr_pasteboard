@@ -20,6 +20,8 @@
 
 namespace OHOS {
 namespace MiscServices {
+inline constexpr int32_t MAX_READ_SIZE = 1 * 1024 * 1024;
+
 struct FuseFileStat {
     std::string id;
     std::string name;
