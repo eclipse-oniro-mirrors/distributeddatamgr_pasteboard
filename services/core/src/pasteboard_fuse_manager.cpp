@@ -131,30 +131,39 @@ int32_t PasteboardFuseManager::CreateFuseSessionLocked(int32_t userId, const std
     return 0;
 }
 
+int32_t PasteboardFuseManager::RegisterPasteCallerLocked(int32_t userId, pid_t pid, uid_t callingUid)
+{
+    authorizedPastePids_[userId].insert(pid);
+    authorizedPasteUids_[userId].insert(callingUid);
+    auto it = fuseSessions_.find(userId);
+    if (it == fuseSessions_.end()) {
+        return NO_SESSION;
+    }
+    if (it->second.running.load()) {
+        PASTEBOARD_HILOGD(PASTEBOARD_MODULE_SERVICE,
+            "FUSE session exists for userId:%{public}d, running:%{public}d", userId,
+            it->second.running.load());
+        return SESSION_RUNNING;
+    }
+    PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE,
+        "FUSE loop died previously for userId:%{public}d, cleaning up stale session", userId);
+    return SESSION_DEAD;
+}
+
 int32_t PasteboardFuseManager::OnGetData(int32_t userId)
 {
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "OnGetData userId:%{public}d", userId);
     pid_t pid = IPCSkeleton::GetCallingPid();
     uid_t callingUid = static_cast<uid_t>(IPCSkeleton::GetCallingUid());
-    bool hasDeadSession = false;
+    int32_t sessionState = 0;
     {
         std::lock_guard<std::mutex> lock(mutex_);
-        authorizedPastePids_[userId].insert(pid);
-        authorizedPasteUids_[userId].insert(callingUid);
-        auto it = fuseSessions_.find(userId);
-        if (it != fuseSessions_.end()) {
-            if (it->second.running.load()) {
-                PASTEBOARD_HILOGD(PASTEBOARD_MODULE_SERVICE,
-                    "FUSE session exists for userId:%{public}d, running:%{public}d", userId,
-                    it->second.running.load());
-                return 0;
-            }
-            hasDeadSession = true;
-            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE,
-                "FUSE loop died previously for userId:%{public}d, cleaning up stale session", userId);
-        }
+        sessionState = RegisterPasteCallerLocked(userId, pid, callingUid);
     }
-    if (hasDeadSession) {
+    if (sessionState == SESSION_RUNNING) {
+        return 0;
+    }
+    if (sessionState == SESSION_DEAD) {
         // The loop thread has already exited; StopSessionLoop joins it, destroys the dead
         // session and unmounts the stale fuse mount so a fresh one can be created below.
         StopSessionLoop(userId);
@@ -294,10 +303,10 @@ ssize_t PasteboardFuseManager::ReadFuseFd(int fd, void *buf, size_t len, void *u
         return -1;
     }
     int32_t wakeFd = sessionCtx->wakeFd;
-    struct pollfd pollFds[2] = { { fd, POLLIN, 0 }, { wakeFd, POLLIN, 0 } };
+    struct pollfd pollFds[FUSE_POLL_FD_COUNT] = { { fd, POLLIN, 0 }, { wakeFd, POLLIN, 0 } };
     int32_t pollRet = 0;
     do {
-        pollRet = poll(pollFds, wakeFd >= 0 ? 2 : 1, -1);
+        pollRet = poll(pollFds, wakeFd >= 0 ? FUSE_POLL_FD_COUNT : 1, -1);
     } while (pollRet < 0 && errno == EINTR);
     if (pollRet < 0) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_SERVICE, "poll fuse fd failed, errno:%{public}d", errno);
@@ -521,7 +530,7 @@ bool PasteboardFuseManager::ParseNumericSegment(const char *begin, size_t len, u
         if (c < '0' || c > '9') {
             return false;
         }
-        result = result * 10 + static_cast<uint64_t>(c - '0');
+        result = result * DECIMAL_BASE + static_cast<uint64_t>(c - '0');
         if (result > UINT32_MAX) {
             return false;
         }
@@ -1141,6 +1150,26 @@ void PasteboardFuseManager::OpendirHandler(struct fuse_req *req, uint64_t ino, s
     fuse_reply_open(req, fi);
 }
 
+static size_t EncodeDirentEntries(fuse_req_t req, const std::vector<std::string> &names, size_t start,
+    size_t bufferSize, char *buffer)
+{
+    size_t used = 0;
+    for (size_t index = start; index < names.size(); ++index) {
+        struct stat entryStat = {};
+        entryStat.st_ino = 0;
+        entryStat.st_mode = (names[index] == "." || names[index] == "..") ? S_IFDIR : S_IFREG;
+        size_t needed = fuse_add_direntry(req, nullptr, 0, names[index].c_str(), &entryStat,
+            static_cast<off_t>(index + 1));
+        if (needed > bufferSize - used) {
+            break;
+        }
+        (void)fuse_add_direntry(req, buffer + used, bufferSize - used, names[index].c_str(), &entryStat,
+            static_cast<off_t>(index + 1));
+        used += needed;
+    }
+    return used;
+}
+
 void PasteboardFuseManager::ReaddirHandler(struct fuse_req *req, uint64_t ino, size_t size, off_t offset,
     struct fuse_file_info *fi)
 {
@@ -1179,21 +1208,8 @@ void PasteboardFuseManager::ReaddirHandler(struct fuse_req *req, uint64_t ino, s
     }
     size_t bufferSize = std::min(size, static_cast<size_t>(MAX_READDIR_SIZE));
     std::vector<char> buffer(bufferSize);
-    size_t used = 0;
     size_t start = offset < 0 ? 0 : static_cast<size_t>(offset);
-    for (size_t index = start; index < names.size(); ++index) {
-        struct stat entryStat = {};
-        entryStat.st_ino = 0;
-        entryStat.st_mode = (names[index] == "." || names[index] == "..") ? S_IFDIR : S_IFREG;
-        size_t needed = fuse_add_direntry(req, nullptr, 0, names[index].c_str(), &entryStat,
-            static_cast<off_t>(index + 1));
-        if (needed > bufferSize - used) {
-            break;
-        }
-        (void)fuse_add_direntry(req, buffer.data() + used, bufferSize - used, names[index].c_str(), &entryStat,
-            static_cast<off_t>(index + 1));
-        used += needed;
-    }
+    size_t used = EncodeDirentEntries(req, names, start, bufferSize, buffer.data());
     fuse_reply_buf(req, buffer.data(), used);
 }
 

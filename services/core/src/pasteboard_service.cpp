@@ -123,8 +123,6 @@ constexpr int32_t SET_VALUE_SUCCESS = 1;
 constexpr uid_t ANCO_SERVICE_BROKER_UID = 5557;
 constexpr float RECALCULATE_DATA_SIZE = 0.9;
 constexpr uint16_t MAX_TRANSFER_SIZE = 1300;
-constexpr size_t MAX_VIRTUAL_FILE_ID_BYTES = 1024;
-constexpr size_t MAX_VIRTUAL_FILE_NAME_BYTES = 255;
 constexpr const char *FUSE_URI_SCHEME = "file";
 constexpr const char *FUSE_URI_PATH = "/data/service/el2/clipboard_fuse/files";
 

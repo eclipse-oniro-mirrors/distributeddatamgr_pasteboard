@@ -107,8 +107,8 @@ void FuseMountTest::TearDown(void)
  */
 HWTEST_F(FuseMountTest, MountUdmfClipFuse_001, TestSize.Level1)
 {
-    EXPECT_CALL(*sysMock_, mkdir(_, _)).WillOnce(Return(0));
-    EXPECT_CALL(*sysMock_, lstat(_, _)).Times(0);
+    EXPECT_CALL(*sysMock_, Mkdir(_, _)).WillOnce(Return(0));
+    EXPECT_CALL(*sysMock_, Lstat(_, _)).Times(0);
     EXPECT_CALL(*samgrClientMock_, GetSystemAbilityManager()).WillRepeatedly(Return(nullptr));
 
     int32_t fuseFd = FUSE_FD_SENTINEL;
@@ -128,12 +128,12 @@ HWTEST_F(FuseMountTest, MountUdmfClipFuse_001, TestSize.Level1)
  */
 HWTEST_F(FuseMountTest, MountUdmfClipFuse_002, TestSize.Level1)
 {
-    EXPECT_CALL(*sysMock_, mkdir(_, _))
+    EXPECT_CALL(*sysMock_, Mkdir(_, _))
         .WillOnce(Invoke([](const char *, mode_t) {
             errno = EACCES;
             return -1;
         }));
-    EXPECT_CALL(*sysMock_, lstat(_, _)).Times(0);
+    EXPECT_CALL(*sysMock_, Lstat(_, _)).Times(0);
     EXPECT_CALL(*samgrClientMock_, GetSystemAbilityManager()).Times(0);
 
     int32_t fuseFd = FUSE_FD_SENTINEL;
@@ -153,12 +153,12 @@ HWTEST_F(FuseMountTest, MountUdmfClipFuse_002, TestSize.Level1)
  */
 HWTEST_F(FuseMountTest, MountUdmfClipFuse_003, TestSize.Level1)
 {
-    EXPECT_CALL(*sysMock_, mkdir(_, _))
+    EXPECT_CALL(*sysMock_, Mkdir(_, _))
         .WillOnce(Invoke([](const char *, mode_t) {
             errno = EEXIST;
             return -1;
         }));
-    EXPECT_CALL(*sysMock_, lstat(_, _))
+    EXPECT_CALL(*sysMock_, Lstat(_, _))
         .WillOnce(Invoke([](const char *, struct stat *buf) {
             memset_s(buf, sizeof(*buf), 0, sizeof(*buf));
             buf->st_mode = S_IFDIR;
@@ -184,12 +184,12 @@ HWTEST_F(FuseMountTest, MountUdmfClipFuse_003, TestSize.Level1)
  */
 HWTEST_F(FuseMountTest, MountUdmfClipFuse_004, TestSize.Level1)
 {
-    EXPECT_CALL(*sysMock_, mkdir(_, _))
+    EXPECT_CALL(*sysMock_, Mkdir(_, _))
         .WillOnce(Invoke([](const char *, mode_t) {
             errno = EEXIST;
             return -1;
         }));
-    EXPECT_CALL(*sysMock_, lstat(_, _))
+    EXPECT_CALL(*sysMock_, Lstat(_, _))
         .WillOnce(Invoke([](const char *, struct stat *buf) {
             memset_s(buf, sizeof(*buf), 0, sizeof(*buf));
             buf->st_mode = S_IFREG;
@@ -214,12 +214,12 @@ HWTEST_F(FuseMountTest, MountUdmfClipFuse_004, TestSize.Level1)
  */
 HWTEST_F(FuseMountTest, MountUdmfClipFuse_005, TestSize.Level1)
 {
-    EXPECT_CALL(*sysMock_, mkdir(_, _))
+    EXPECT_CALL(*sysMock_, Mkdir(_, _))
         .WillOnce(Invoke([](const char *, mode_t) {
             errno = EEXIST;
             return -1;
         }));
-    EXPECT_CALL(*sysMock_, lstat(_, _))
+    EXPECT_CALL(*sysMock_, Lstat(_, _))
         .WillOnce(Invoke([](const char *, struct stat *) {
             errno = ENOENT;
             return -1;
@@ -245,8 +245,8 @@ HWTEST_F(FuseMountTest, MountUdmfClipFuse_005, TestSize.Level1)
  */
 HWTEST_F(FuseMountTest, UMountUdmfClipFuse_001, TestSize.Level1)
 {
-    EXPECT_CALL(*sysMock_, mkdir(_, _)).Times(0);
-    EXPECT_CALL(*sysMock_, lstat(_, _)).Times(0);
+    EXPECT_CALL(*sysMock_, Mkdir(_, _)).Times(0);
+    EXPECT_CALL(*sysMock_, Lstat(_, _)).Times(0);
     EXPECT_CALL(*samgrClientMock_, GetSystemAbilityManager()).WillRepeatedly(Return(nullptr));
 
     int32_t ret = UMountUdmfClipFuse(TEST_USER_ID, TEST_MOUNT_PATH);

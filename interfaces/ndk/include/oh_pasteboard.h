@@ -516,9 +516,9 @@ void OH_Pasteboard_SyncDelayedDataAsync(OH_Pasteboard* pasteboard, void (*callba
 /**
  * @brief Writes virtual file data to the Pasteboard.
  *
- * Use UDMF NDK APIs ({@link OH_UdmfData_Create}, {@link OH_UdmfRecord_AddFileUri}, etc.)
+ * Use UDMF C APIs ({@link OH_UdmfData_Create}, {@link OH_UdmfRecord_AddFileUri}, etc.)
  * to build the data. The {@code callbacks} provide file content on demand when a paste
- * target reads the virtual file through the FUSE filesystem.
+ * target reads the virtual file.
  *
  * @param pasteboard Pointer to the {@link OH_Pasteboard} instance.
  * @param data Pointer to the {@link OH_UdmfData} instance containing FileUri records.

@@ -17,6 +17,8 @@
 
 #include <cstring>
 
+#include "securec.h"
+
 namespace OHOS {
 namespace MiscServices {
 
@@ -64,7 +66,9 @@ bool ReadU32(const std::vector<uint8_t> &buf, size_t &offset, uint32_t &val)
     if (offset + sizeof(uint32_t) > buf.size()) {
         return false;
     }
-    std::memcpy(&val, buf.data() + offset, sizeof(uint32_t));
+    if (memcpy_s(&val, sizeof(val), buf.data() + offset, sizeof(uint32_t)) != EOK) {
+        return false;
+    }
     offset += sizeof(uint32_t);
     return true;
 }
@@ -74,7 +78,9 @@ bool ReadI32(const std::vector<uint8_t> &buf, size_t &offset, int32_t &val)
     if (offset + sizeof(int32_t) > buf.size()) {
         return false;
     }
-    std::memcpy(&val, buf.data() + offset, sizeof(int32_t));
+    if (memcpy_s(&val, sizeof(val), buf.data() + offset, sizeof(int32_t)) != EOK) {
+        return false;
+    }
     offset += sizeof(int32_t);
     return true;
 }
@@ -84,7 +90,9 @@ bool ReadI64(const std::vector<uint8_t> &buf, size_t &offset, int64_t &val)
     if (offset + sizeof(int64_t) > buf.size()) {
         return false;
     }
-    std::memcpy(&val, buf.data() + offset, sizeof(int64_t));
+    if (memcpy_s(&val, sizeof(val), buf.data() + offset, sizeof(int64_t)) != EOK) {
+        return false;
+    }
     offset += sizeof(int64_t);
     return true;
 }

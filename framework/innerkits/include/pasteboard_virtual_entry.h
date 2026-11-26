@@ -26,6 +26,21 @@ namespace MiscServices {
 
 constexpr uint32_t MAX_VIRTUAL_FILE_DEPTH = 64;
 constexpr size_t MAX_VIRTUAL_FILE_COUNT = 4096;
+constexpr size_t MAX_VIRTUAL_FILE_ID_BYTES = 1024;
+constexpr size_t MAX_VIRTUAL_FILE_NAME_BYTES = 255;
+
+inline bool IsValidFileId(const std::string &id)
+{
+    return !id.empty() && id.size() <= MAX_VIRTUAL_FILE_ID_BYTES &&
+           id.find_first_of("/\\") == std::string::npos && id.find('\0') == std::string::npos;
+}
+
+inline bool IsValidFileName(const std::string &name)
+{
+    return !name.empty() && name.size() <= MAX_VIRTUAL_FILE_NAME_BYTES &&
+           name != "." && name != ".." &&
+           name.find_first_of("/\\") == std::string::npos && name.find('\0') == std::string::npos;
+}
 
 struct FuseNode {
     std::string id;

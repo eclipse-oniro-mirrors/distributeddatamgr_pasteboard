@@ -34,8 +34,6 @@ using namespace OHOS::Media;
 namespace OHOS {
 namespace MiscServicesNapi {
 
-constexpr size_t MAX_VIRTUAL_FILE_ID_BYTES = 1024;
-constexpr size_t MAX_VIRTUAL_FILE_NAME_BYTES = 255;
 constexpr size_t MAX_CONCURRENT_FUSE_READS = 8;
 constexpr size_t READ_ARG_COUNT = 3;
 constexpr size_t PROMISE_HANDLER_COUNT = 2;
@@ -67,64 +65,6 @@ static bool ParseVirtualFileSize(napi_env env, napi_value value, int64_t &size)
     }
     size = static_cast<int64_t>(number);
     return true;
-}
-
-constexpr uint32_t MAX_VIRTUAL_FILE_DEPTH = 64;
-constexpr size_t MAX_VIRTUAL_FILE_COUNT = 4096;
-
-struct VirtualFileEntry {
-    std::string id;
-    std::string name;
-    int64_t size = -1;
-    double modifyTime = 0;
-    int32_t type = 0;
-    std::vector<VirtualFileEntry> subItems;
-
-    bool IsFile() const { return type == 0; }
-    bool IsDir() const { return type == 1; }
-
-    const VirtualFileEntry *FindById(const std::string &targetId) const
-    {
-        if (IsFile() && id == targetId) {
-            return this;
-        }
-        for (const auto &child : subItems) {
-            if (auto *found = child.FindById(targetId); found != nullptr) {
-                return found;
-            }
-        }
-        return nullptr;
-    }
-
-    bool HasValidFileSizes(uint32_t depth = 0) const
-    {
-        if (depth > MAX_VIRTUAL_FILE_DEPTH) {
-            return false;
-        }
-        if (IsFile()) {
-            return size >= 0;
-        }
-        for (const auto &child : subItems) {
-            if (!child.HasValidFileSizes(depth + 1)) {
-                return false;
-            }
-        }
-        return true;
-    }
-};
-
-static FuseNode ToFuseNode(const VirtualFileEntry &entry)
-{
-    FuseNode node;
-    node.id = entry.id;
-    node.name = entry.name;
-    node.type = entry.type;
-    node.size = entry.size;
-    node.modifyTime = static_cast<int64_t>(entry.modifyTime);
-    for (const auto &child : entry.subItems) {
-        node.children.push_back(ToFuseNode(child));
-    }
-    return node;
 }
 
 struct FuseReadContext {
@@ -212,7 +152,7 @@ static void FuseTsfnFinalizer(napi_env env, void *finalizeData, void *finalizeHi
 class NapiFuseGetter final : public PasteboardFuseGetterClient {
 public:
     NapiFuseGetter(napi_env env, napi_ref onRead, napi_ref onStat, napi_ref onCancel,
-        const VirtualFileEntry &rootEntry)
+        const FuseNode &rootEntry)
         : PasteboardFuseGetterClient({}), env_(env), rootEntry_(rootEntry)
     {
         auto *tsfnCtx = new FuseTsfnContext{env, onRead, onStat, onCancel};
@@ -720,7 +660,7 @@ private:
 
     napi_env env_ = nullptr;
     napi_threadsafe_function tsfn_ = nullptr;
-    VirtualFileEntry rootEntry_;
+    FuseNode rootEntry_;
 };
 
 bool IsVirtualFileInfo(napi_env env, napi_value value)
@@ -784,7 +724,7 @@ static void ReadIntProperty(napi_env env, napi_value obj, const char *name, int3
     }
 }
 
-static bool ParseVirtualFile(napi_env env, napi_value obj, VirtualFileEntry &entry)
+static bool ParseVirtualFile(napi_env env, napi_value obj, FuseNode &entry)
 {
     entry.type = 0;
     entry.id = ReadStringProperty(env, obj, "id");
@@ -809,10 +749,10 @@ static bool ParseVirtualFile(napi_env env, napi_value obj, VirtualFileEntry &ent
     return true;
 }
 
-static bool ParseVirtualItem(napi_env env, napi_value obj, VirtualFileEntry &entry,
+static bool ParseVirtualItem(napi_env env, napi_value obj, FuseNode &entry,
     uint32_t depth, uint32_t &itemCount);
 
-static bool ParseVirtualDirectory(napi_env env, napi_value obj, VirtualFileEntry &entry,
+static bool ParseVirtualDirectory(napi_env env, napi_value obj, FuseNode &entry,
     uint32_t depth, uint32_t &itemCount)
 {
     entry.type = 1;
@@ -836,20 +776,20 @@ static bool ParseVirtualDirectory(napi_env env, napi_value obj, VirtualFileEntry
     if (length > MAX_VIRTUAL_FILE_COUNT - itemCount) {
         return false;
     }
-    entry.subItems.reserve(length);
+    entry.children.reserve(length);
     for (uint32_t i = 0; i < length; ++i) {
         napi_value item;
         napi_get_element(env, subItems, i, &item);
-        VirtualFileEntry child;
+        FuseNode child;
         if (!ParseVirtualItem(env, item, child, depth + 1, itemCount)) {
             return false;
         }
-        entry.subItems.emplace_back(std::move(child));
+        entry.children.emplace_back(std::move(child));
     }
     return true;
 }
 
-static bool ParseVirtualItem(napi_env env, napi_value obj, VirtualFileEntry &entry,
+static bool ParseVirtualItem(napi_env env, napi_value obj, FuseNode &entry,
     uint32_t depth, uint32_t &itemCount)
 {
     if (depth > MAX_VIRTUAL_FILE_DEPTH || itemCount >= MAX_VIRTUAL_FILE_COUNT) {
@@ -862,7 +802,9 @@ static bool ParseVirtualItem(napi_env env, napi_value obj, VirtualFileEntry &ent
         napi_throw_error(env, "401", "Parameter error: fileName is invalid");
         return false;
     }
-    ReadDateProperty(env, obj, "modifyTime", entry.modifyTime);
+    double modifyTime = 0;
+    ReadDateProperty(env, obj, "modifyTime", modifyTime);
+    entry.modifyTime = static_cast<int64_t>(modifyTime);
     napi_value jsType = nullptr;
     napi_get_named_property(env, obj, "type", &jsType);
     if (jsType != nullptr) {
@@ -871,9 +813,10 @@ static bool ParseVirtualItem(napi_env env, napi_value obj, VirtualFileEntry &ent
         if (vt == napi_number) {
             napi_get_value_int32(env, jsType, &entry.type);
         } else if (vt == napi_string) {
-            char typeStr[8] = {0};
+            constexpr size_t TYPE_STR_LEN = 8;
+            char typeStr[TYPE_STR_LEN] = {0};
             size_t len = 0;
-            napi_get_value_string_utf8(env, jsType, typeStr, 7, &len);
+            napi_get_value_string_utf8(env, jsType, typeStr, TYPE_STR_LEN - 1, &len);
             entry.type = (strcmp(typeStr, "dir") == 0) ? 1 : 0;
         }
     }
@@ -884,7 +827,7 @@ static bool ParseVirtualItem(napi_env env, napi_value obj, VirtualFileEntry &ent
 }
 
 static napi_value BuildVirtualFileResult(napi_env env, const std::string &mimeType,
-    const VirtualFileEntry &info, napi_ref onReadRef, napi_ref onStatRef, napi_ref onCancelRef)
+    const FuseNode &info, napi_ref onReadRef, napi_ref onStatRef, napi_ref onCancelRef)
 {
     auto provider = sptr<NapiFuseGetter>::MakeSptr(env, onReadRef, onStatRef, onCancelRef, info);
     if (provider == nullptr) {
@@ -896,9 +839,9 @@ static napi_value BuildVirtualFileResult(napi_env env, const std::string &mimeTy
     obj->value_["id"] = info.id;
     obj->value_["name"] = info.name;
     obj->value_["size"] = info.size;
-    obj->value_["modifyTime"] = static_cast<int64_t>(info.modifyTime);
+    obj->value_["modifyTime"] = info.modifyTime;
     obj->value_["type"] = info.type;
-    obj->value_["treeBlob"] = SerializeTree(ToFuseNode(info));
+    obj->value_["treeBlob"] = SerializeTree(info);
 
     auto entry = std::make_shared<PasteDataEntry>();
     entry->SetUtdId("general.virtual-file");
@@ -949,7 +892,7 @@ static bool BuildVirtualFileEntry(napi_env env, napi_value itemInfo, napi_value 
     napi_value onCancel, const std::string &mimeType, std::shared_ptr<PasteDataEntry> &entry,
     sptr<NapiFuseGetter> &provider)
 {
-    VirtualFileEntry rootEntry;
+    FuseNode rootEntry;
     uint32_t itemCount = 0;
     if (!ParseVirtualItem(env, itemInfo, rootEntry, 0, itemCount)) {
         return false;
@@ -971,9 +914,9 @@ static bool BuildVirtualFileEntry(napi_env env, napi_value itemInfo, napi_value 
     obj->value_["id"] = rootEntry.id;
     obj->value_["name"] = rootEntry.name;
     obj->value_["size"] = rootEntry.size;
-    obj->value_["modifyTime"] = static_cast<int64_t>(rootEntry.modifyTime);
+    obj->value_["modifyTime"] = rootEntry.modifyTime;
     obj->value_["type"] = rootEntry.type;
-    obj->value_["treeBlob"] = SerializeTree(ToFuseNode(rootEntry));
+    obj->value_["treeBlob"] = SerializeTree(rootEntry);
     entry = std::make_shared<PasteDataEntry>();
     entry->SetUtdId("general.virtual-file");
     entry->SetMimeType(mimeType);
@@ -981,33 +924,41 @@ static bool BuildVirtualFileEntry(napi_env env, napi_value itemInfo, napi_value 
     return true;
 }
 
-static napi_value CreateVirtualFileData(napi_env env, const std::string &mimeType, napi_value vfiValue)
+static bool ExtractVirtualFileCallbacks(napi_env env, napi_value vfiValue, napi_value &itemInfo,
+    napi_value &onRead, napi_value &onStat, napi_value &onCancel)
 {
-    napi_value itemInfo = nullptr;
     napi_get_named_property(env, vfiValue, "itemInfo", &itemInfo);
-    napi_value onRead = nullptr;
-    napi_value onStat = nullptr;
-    napi_value onCancel = nullptr;
     napi_get_named_property(env, vfiValue, "onRead", &onRead);
     napi_get_named_property(env, vfiValue, "onStat", &onStat);
     napi_get_named_property(env, vfiValue, "onCancel", &onCancel);
-
     napi_valuetype onReadType = napi_undefined;
     napi_typeof(env, onRead, &onReadType);
     if (onReadType != napi_function) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "onRead is required and must be a function");
         napi_throw_error(env, "401", "Parameter error: onRead is required");
-        return nullptr;
+        return false;
     }
     napi_valuetype itemInfoType = napi_undefined;
     napi_typeof(env, itemInfo, &itemInfoType);
     if (itemInfoType != napi_object) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "itemInfo is required and must be an object");
         napi_throw_error(env, "401", "Parameter error: itemInfo is required");
+        return false;
+    }
+    return true;
+}
+
+static napi_value CreateVirtualFileData(napi_env env, const std::string &mimeType, napi_value vfiValue)
+{
+    napi_value itemInfo = nullptr;
+    napi_value onRead = nullptr;
+    napi_value onStat = nullptr;
+    napi_value onCancel = nullptr;
+    if (!ExtractVirtualFileCallbacks(env, vfiValue, itemInfo, onRead, onStat, onCancel)) {
         return nullptr;
     }
 
-    VirtualFileEntry rootEntry;
+    FuseNode rootEntry;
     uint32_t itemCount = 0;
     if (!ParseVirtualItem(env, itemInfo, rootEntry, 0, itemCount)) {
         return nullptr;
@@ -1029,23 +980,10 @@ constexpr size_t MAX_ARGS = 6;
 static napi_value CreateVirtualFileRecord(napi_env env, const std::string &mimeType, napi_value vfiValue)
 {
     napi_value itemInfo = nullptr;
-    napi_get_named_property(env, vfiValue, "itemInfo", &itemInfo);
     napi_value onRead = nullptr;
     napi_value onStat = nullptr;
     napi_value onCancel = nullptr;
-    napi_get_named_property(env, vfiValue, "onRead", &onRead);
-    napi_get_named_property(env, vfiValue, "onStat", &onStat);
-    napi_get_named_property(env, vfiValue, "onCancel", &onCancel);
-    napi_valuetype onReadType = napi_undefined;
-    napi_typeof(env, onRead, &onReadType);
-    if (onReadType != napi_function) {
-        napi_throw_error(env, "401", "Parameter error: onRead is required");
-        return nullptr;
-    }
-    napi_valuetype itemInfoType = napi_undefined;
-    napi_typeof(env, itemInfo, &itemInfoType);
-    if (itemInfoType != napi_object) {
-        napi_throw_error(env, "401", "Parameter error: itemInfo is required");
+    if (!ExtractVirtualFileCallbacks(env, vfiValue, itemInfo, onRead, onStat, onCancel)) {
         return nullptr;
     }
     std::shared_ptr<PasteDataEntry> entry;
@@ -1075,24 +1013,10 @@ bool AddVirtualFileEntry(napi_env env, std::shared_ptr<PasteDataRecord> record,
         return false;
     }
     napi_value itemInfo = nullptr;
-    napi_get_named_property(env, vfiValue, "itemInfo", &itemInfo);
     napi_value onRead = nullptr;
     napi_value onStat = nullptr;
     napi_value onCancel = nullptr;
-    napi_get_named_property(env, vfiValue, "onRead", &onRead);
-    napi_get_named_property(env, vfiValue, "onStat", &onStat);
-    napi_get_named_property(env, vfiValue, "onCancel", &onCancel);
-
-    napi_valuetype onReadType = napi_undefined;
-    napi_typeof(env, onRead, &onReadType);
-    if (onReadType != napi_function) {
-        napi_throw_error(env, "401", "Parameter error: onRead is required");
-        return false;
-    }
-    napi_valuetype itemInfoType = napi_undefined;
-    napi_typeof(env, itemInfo, &itemInfoType);
-    if (itemInfoType != napi_object) {
-        napi_throw_error(env, "401", "Parameter error: itemInfo is required");
+    if (!ExtractVirtualFileCallbacks(env, vfiValue, itemInfo, onRead, onStat, onCancel)) {
         return false;
     }
 

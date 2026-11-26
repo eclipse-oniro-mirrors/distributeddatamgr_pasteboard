@@ -40,23 +40,23 @@ FuseMountSysMock *FuseMountSysMock::GetMock()
 // is registered they return a safe failure (ENOENT) so PrepareMountPoint can
 // never accidentally fall through to the proxy with a stale fd.
 extern "C" {
-int mkdir(const char *path, mode_t mode)
+int mkdir(const char *path, mode_t mode) // NOLINT(readability-identifier-naming)
 {
     auto *mock = FuseMountSysMock::GetMock();
     if (mock == nullptr) {
         errno = ENOENT;
         return -1;
     }
-    return mock->mkdir(path, mode);
+    return mock->Mkdir(path, mode);
 }
 
-int lstat(const char *path, struct stat *buf)
+int lstat(const char *path, struct stat *buf) // NOLINT(readability-identifier-naming)
 {
     auto *mock = FuseMountSysMock::GetMock();
     if (mock == nullptr) {
         errno = ENOENT;
         return -1;
     }
-    return mock->lstat(path, buf);
+    return mock->Lstat(path, buf);
 }
 }

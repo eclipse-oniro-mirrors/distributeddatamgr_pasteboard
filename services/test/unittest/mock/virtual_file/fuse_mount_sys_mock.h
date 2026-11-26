@@ -28,16 +28,16 @@
 class IFuseMountSysApi {
 public:
     virtual ~IFuseMountSysApi() = default;
-    virtual int mkdir(const char *path, mode_t mode) = 0;
-    virtual int lstat(const char *path, struct stat *buf) = 0;
+    virtual int Mkdir(const char *path, mode_t mode) = 0;
+    virtual int Lstat(const char *path, struct stat *buf) = 0;
 };
 
 class FuseMountSysMock : public IFuseMountSysApi {
 public:
     FuseMountSysMock();
     ~FuseMountSysMock() override;
-    MOCK_METHOD(int, mkdir, (const char *path, mode_t mode), (override));
-    MOCK_METHOD(int, lstat, (const char *path, struct stat *buf), (override));
+    MOCK_METHOD(int, Mkdir, (const char *path, mode_t mode), (override));
+    MOCK_METHOD(int, Lstat, (const char *path, struct stat *buf), (override));
     static FuseMountSysMock *GetMock();
 
 private:

@@ -51,6 +51,39 @@ using EntryValueMap = std::map<std::string, std::shared_ptr<EntryValue>>;
 using ObserverList = std::vector<std::pair<::taihe::callback_view<void()>, OHOS::sptr<PasteboardTaiheObserver>>>;
 using CreatePasteDataFn = napi_value (*)(napi_env, std::shared_ptr<PasteData>);
 using CreateRecordFn = napi_value (*)(napi_env, std::shared_ptr<PasteDataRecord>);
+
+template<typename CreateFn, typename T>
+static uintptr_t MakeNapiInstance(const std::shared_ptr<T> &nativeValue, const char *symbolName)
+{
+    napi_env jsenv;
+    if (!arkts_napi_scope_open(taihe::get_env(), &jsenv)) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "arkts_napi_scope_open failed");
+        return 0;
+    }
+    auto handle = dlopen("libpasteboard_napi.z.so", RTLD_NOW);
+    if (handle == nullptr) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "dlopen failed");
+        arkts_napi_scope_close_n(jsenv, 0, nullptr, nullptr);
+        return 0;
+    }
+    auto createFn = reinterpret_cast<CreateFn>(dlsym(handle, symbolName));
+    if (createFn == nullptr) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "dlsym get func failed, %{public}s", dlerror());
+        arkts_napi_scope_close_n(jsenv, 0, nullptr, nullptr);
+        dlclose(handle);
+        return 0;
+    }
+    napi_value instance = createFn(jsenv, nativeValue);
+    dlclose(handle);
+    if (instance == nullptr) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "%{public}s failed", symbolName);
+        arkts_napi_scope_close_n(jsenv, 0, nullptr, nullptr);
+        return 0;
+    }
+    uintptr_t result = 0;
+    arkts_napi_scope_close_n(jsenv, 1, &instance, reinterpret_cast<ani_ref *>(&result));
+    return result;
+}
 namespace PasteboardTaihe = ohos::pasteboard::pasteboard;
 constexpr int32_t MIMETYPE_MAX_SIZE = 1024;
 constexpr int32_t PROGRESS_MAX_PERCENT = 100;
@@ -59,10 +92,6 @@ namespace {
 constexpr uint32_t SYNC_TIMEOUT = 3500;
 constexpr const char *VIRTUAL_FILE_UTD = "general.virtual-file";
 constexpr const char *VIRTUAL_FILE_MIMETYPE = "text/uri";
-constexpr size_t MAX_VIRTUAL_FILE_ID_BYTES = 1024;
-constexpr size_t MAX_VIRTUAL_FILE_NAME_BYTES = 255;
-constexpr size_t MAX_VIRTUAL_FILE_COUNT = 4096;
-constexpr uint32_t MAX_VIRTUAL_FILE_DEPTH = 64;
 constexpr int TAIHE_CALLBACK_TIMEOUT_S = 5;
 constexpr char PASTEBOARD_TAIHE_NAMESPACE[] = "@ohos.pasteboard.pasteboard";
 
@@ -630,61 +659,6 @@ private:
     std::shared_ptr<PasteData> pasteData_;
 };
 
-struct VirtualFileEntry {
-    std::string id;
-    std::string name;
-    int64_t size = -1;
-    double modifyTime = 0;
-    int32_t type = 0;
-    std::vector<VirtualFileEntry> subItems;
-
-    bool IsFile() const { return type == 0; }
-    bool IsDir() const { return type == 1; }
-
-    const VirtualFileEntry *FindById(const std::string &targetId) const
-    {
-        if (IsFile() && id == targetId) {
-            return this;
-        }
-        for (const auto &child : subItems) {
-            if (auto *found = child.FindById(targetId); found != nullptr) {
-                return found;
-            }
-        }
-        return nullptr;
-    }
-
-    bool HasValidFileSizes(uint32_t depth = 0) const
-    {
-        if (depth > MAX_VIRTUAL_FILE_DEPTH) {
-            return false;
-        }
-        if (IsFile()) {
-            return size >= 0;
-        }
-        for (const auto &child : subItems) {
-            if (!child.HasValidFileSizes(depth + 1)) {
-                return false;
-            }
-        }
-        return true;
-    }
-};
-
-static FuseNode ToFuseNode(const VirtualFileEntry &entry)
-{
-    FuseNode node;
-    node.id = entry.id;
-    node.name = entry.name;
-    node.type = entry.type;
-    node.size = entry.size;
-    node.modifyTime = static_cast<int64_t>(entry.modifyTime);
-    for (const auto &child : entry.subItems) {
-        node.children.push_back(ToFuseNode(child));
-    }
-    return node;
-}
-
 class ScopedAniEnv final {
 public:
     explicit ScopedAniEnv(ani_vm *vm) : vm_(vm)
@@ -801,20 +775,7 @@ static bool GetAniUint8Array(ani_env *env, ani_object object, std::vector<uint8_
     return true;
 }
 
-static bool IsValidFileId(const std::string &id)
-{
-    return !id.empty() && id.size() <= MAX_VIRTUAL_FILE_ID_BYTES &&
-           id.find_first_of("/\\") == std::string::npos && id.find('\0') == std::string::npos;
-}
-
-static bool IsValidFileName(const std::string &name)
-{
-    return !name.empty() && name.size() <= MAX_VIRTUAL_FILE_NAME_BYTES &&
-           name != "." && name != ".." &&
-           name.find_first_of("/\\") == std::string::npos && name.find('\0') == std::string::npos;
-}
-
-static bool ParseVirtualFile(ani_env *env, ani_object object, VirtualFileEntry &entry)
+static bool ParseVirtualFile(ani_env *env, ani_object object, FuseNode &entry)
 {
     entry.type = 0;
     if (!GetAniStringProperty(env, object, "id", entry.id) || !IsValidFileId(entry.id)) {
@@ -830,10 +791,10 @@ static bool ParseVirtualFile(ani_env *env, ani_object object, VirtualFileEntry &
     return true;
 }
 
-static bool ParseVirtualDirectory(ani_env *env, ani_object object, VirtualFileEntry &entry,
+static bool ParseVirtualDirectory(ani_env *env, ani_object object, FuseNode &entry,
     uint32_t depth, uint32_t &itemCount);
 
-static bool ParseVirtualItem(ani_env *env, ani_object object, VirtualFileEntry &entry,
+static bool ParseVirtualItem(ani_env *env, ani_object object, FuseNode &entry,
     uint32_t depth, uint32_t &itemCount)
 {
     if (env == nullptr || object == nullptr || depth > MAX_VIRTUAL_FILE_DEPTH ||
@@ -846,7 +807,7 @@ static bool ParseVirtualItem(ani_env *env, ani_object object, VirtualFileEntry &
     }
     int64_t modifyTime = 0;
     if (GetAniLongProperty(env, object, "modifyTime", modifyTime)) {
-        entry.modifyTime = static_cast<double>(modifyTime);
+        entry.modifyTime = modifyTime;
     }
     int64_t typeVal = 0;
     if (GetAniLongProperty(env, object, "type", typeVal)) {
@@ -858,7 +819,7 @@ static bool ParseVirtualItem(ani_env *env, ani_object object, VirtualFileEntry &
     return entry.type == 1 && ParseVirtualDirectory(env, object, entry, depth, itemCount);
 }
 
-static bool ParseVirtualDirectory(ani_env *env, ani_object object, VirtualFileEntry &entry,
+static bool ParseVirtualDirectory(ani_env *env, ani_object object, FuseNode &entry,
     uint32_t depth, uint32_t &itemCount)
 {
     entry.type = 1;
@@ -873,15 +834,15 @@ static bool ParseVirtualDirectory(ani_env *env, ani_object object, VirtualFileEn
         length > MAX_VIRTUAL_FILE_COUNT - itemCount) {
         return false;
     }
-    entry.subItems.reserve(length);
+    entry.children.reserve(length);
     for (ani_size index = 0; index < length; ++index) {
         ani_ref item = nullptr;
-        VirtualFileEntry child;
+        FuseNode child;
         if (env->Array_Get(array, index, &item) != ANI_OK ||
             !ParseVirtualItem(env, static_cast<ani_object>(item), child, depth + 1, itemCount)) {
             return false;
         }
-        entry.subItems.emplace_back(std::move(child));
+        entry.children.emplace_back(std::move(child));
     }
     return true;
 }
@@ -889,7 +850,7 @@ static bool ParseVirtualDirectory(ani_env *env, ani_object object, VirtualFileEn
 class PasteboardFuseGetterTaihe final : public PasteboardFuseGetterClient {
 public:
     static OHOS::sptr<PasteboardFuseGetterTaihe> Create(ani_env *env, ani_object provider,
-        const VirtualFileEntry &rootEntry)
+        const FuseNode &rootEntry)
     {
         if (env == nullptr || provider == nullptr) {
             return nullptr;
@@ -943,16 +904,21 @@ public:
         return ret;
     }
 
+    static void FillStatFromNode(const FuseNode &node, FuseFileStat &stat)
+    {
+        stat.id = node.id;
+        stat.name = node.name;
+        stat.size = node.size;
+        stat.modifyTime = node.modifyTime;
+        stat.type = node.type;
+    }
+
     int32_t OnStat(uint32_t recordId, const std::string &id, FuseFileStat &stat) override
     {
         (void)recordId;
         const auto *entry = rootEntry_.FindById(id);
         if (entry != nullptr) {
-            stat.id = entry->id;
-            stat.name = entry->name;
-            stat.size = entry->size;
-            stat.modifyTime = static_cast<int64_t>(entry->modifyTime);
-            stat.type = entry->type;
+            FillStatFromNode(*entry, stat);
             return OHOS::ERR_OK;
         }
         if (!IsValidFileId(id)) {
@@ -963,11 +929,7 @@ public:
         request->id = id;
         int32_t ret = Invoke(request);
         if (ret == OHOS::ERR_OK) {
-            stat.id = request->entry.id;
-            stat.name = request->entry.name;
-            stat.size = request->entry.size;
-            stat.modifyTime = static_cast<int64_t>(request->entry.modifyTime);
-            stat.type = request->entry.type;
+            FillStatFromNode(request->entry, stat);
         }
         return ret;
     }
@@ -1001,7 +963,7 @@ private:
         int64_t offset{ 0 };
         int32_t length{ 0 };
         std::vector<std::string> ids;
-        VirtualFileEntry entry;
+        FuseNode entry;
         std::vector<uint8_t> bytes;
         ani_vm *vm{ nullptr };
         ani_ref providerRef{ nullptr };
@@ -1070,7 +1032,7 @@ private:
 
         std::unique_lock<std::mutex> lock(request->mutex);
         if (!request->condition.wait_for(lock, std::chrono::seconds(TAIHE_CALLBACK_TIMEOUT_S),
-                [&request] { return request->done; })) {
+            [&request] { return request->done; })) {
             request->done = true;
             request->status = OHOS::ERR_INVALID_VALUE;
             PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Virtual file callback timed out, operation=%{public}s",
@@ -1114,22 +1076,31 @@ private:
         }
     }
 
+    static bool PrepareCallbackWithId(ani_env *env, const std::shared_ptr<Request> &request, const char *propName,
+        const char *helperName, const char *opName, CallbackFunction &callbackFunction, ani_string &aniId)
+    {
+        if (!FindCallbackFunction(env, request->providerRef, propName, helperName, callbackFunction)) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Find virtual file %{public}s callback failed", opName);
+            return false;
+        }
+        ani_status status = env->String_NewUTF8(request->id.data(), request->id.size(), &aniId);
+        if (status != ANI_OK) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Create virtual file %{public}s id failed, status=%{public}d",
+                opName, static_cast<int>(status));
+            return false;
+        }
+        return true;
+    }
+
     static int32_t ExecuteStat(ani_env *env, const std::shared_ptr<Request> &request)
     {
         CallbackFunction callbackFunction;
         ani_string aniId = nullptr;
         ani_ref result = nullptr;
-        if (!FindCallbackFunction(env, request->providerRef, "onStat", "virtualFileOnStatFunc", callbackFunction)) {
-            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Find virtual file stat callback failed");
+        if (!PrepareCallbackWithId(env, request, "onStat", "virtualFileOnStatFunc", "stat", callbackFunction, aniId)) {
             return OHOS::ERR_INVALID_VALUE;
         }
-        ani_status status = env->String_NewUTF8(request->id.data(), request->id.size(), &aniId);
-        if (status != ANI_OK) {
-            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Create virtual file stat id failed, status=%{public}d",
-                static_cast<int>(status));
-            return OHOS::ERR_INVALID_VALUE;
-        }
-        status = env->Function_Call_Ref(callbackFunction.function, &result, callbackFunction.callback, aniId);
+        ani_status status = env->Function_Call_Ref(callbackFunction.function, &result, callbackFunction.callback, aniId);
         if (status != ANI_OK) {
             PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Invoke virtual file stat callback failed, status=%{public}d",
                 static_cast<int>(status));
@@ -1150,17 +1121,10 @@ private:
         CallbackFunction callbackFunction;
         ani_string aniId = nullptr;
         ani_ref result = nullptr;
-        if (!FindCallbackFunction(env, request->providerRef, "onRead", "virtualFileOnReadFunc", callbackFunction)) {
-            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Find virtual file read callback failed");
+        if (!PrepareCallbackWithId(env, request, "onRead", "virtualFileOnReadFunc", "read", callbackFunction, aniId)) {
             return OHOS::ERR_INVALID_VALUE;
         }
-        ani_status status = env->String_NewUTF8(request->id.data(), request->id.size(), &aniId);
-        if (status != ANI_OK) {
-            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Create virtual file read id failed, status=%{public}d",
-                static_cast<int>(status));
-            return OHOS::ERR_INVALID_VALUE;
-        }
-        status = env->Function_Call_Ref(
+        ani_status status = env->Function_Call_Ref(
             callbackFunction.function, &result, callbackFunction.callback, aniId, request->offset, request->length);
         if (status != ANI_OK) {
             PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Invoke virtual file read callback failed, status=%{public}d",
@@ -1268,7 +1232,7 @@ private:
     ani_vm *vm_ = nullptr;
     ani_ref providerRef_ = nullptr;
     arkts::concurrency_helpers::AniWorkerId workerId_{ -1 };
-    VirtualFileEntry rootEntry_;
+    FuseNode rootEntry_;
 };
 
 static bool GetProviderProperties(ani_env *env, ani_object provider, ani_ref &itemInfoRef)
@@ -1298,7 +1262,7 @@ static bool BuildVirtualFileEntry(const std::string &mimeType, uintptr_t vfiHand
     if (!GetProviderProperties(env, provider, itemInfoRef)) {
         return false;
     }
-    VirtualFileEntry rootEntry;
+    FuseNode rootEntry;
     uint32_t itemCount = 0;
     if (!ParseVirtualItem(env, static_cast<ani_object>(itemInfoRef), rootEntry, 0, itemCount)) {
         taihe::set_business_error(static_cast<int>(JSErrorCode::INVALID_PARAMETERS),
@@ -1320,9 +1284,9 @@ static bool BuildVirtualFileEntry(const std::string &mimeType, uintptr_t vfiHand
     obj->value_["id"] = rootEntry.id;
     obj->value_["name"] = rootEntry.name;
     obj->value_["size"] = rootEntry.size;
-    obj->value_["modifyTime"] = static_cast<int64_t>(rootEntry.modifyTime);
+    obj->value_["modifyTime"] = rootEntry.modifyTime;
     obj->value_["type"] = rootEntry.type;
-    obj->value_["treeBlob"] = SerializeTree(ToFuseNode(rootEntry));
+    obj->value_["treeBlob"] = SerializeTree(rootEntry);
     auto newEntry = std::make_shared<PasteDataEntry>();
     newEntry->SetUtdId(VIRTUAL_FILE_UTD);
     newEntry->SetMimeType(mimeType);
@@ -1330,6 +1294,19 @@ static bool BuildVirtualFileEntry(const std::string &mimeType, uintptr_t vfiHand
     entry = newEntry;
     fuseGetter = fuseGetterPtr;
     return true;
+}
+
+static std::shared_ptr<PasteDataRecord> MakeVirtualFileRecord(const std::string &mimeType,
+    const std::shared_ptr<PasteDataEntry> &entry, const OHOS::sptr<IPasteboardFuseGetter> &fuseGetter)
+{
+    PasteDataRecord::Builder builder(mimeType);
+    auto record = builder.Build();
+    if (record == nullptr) {
+        return nullptr;
+    }
+    record->AddEntry(VIRTUAL_FILE_UTD, entry);
+    record->SetFuseGetter(fuseGetter);
+    return record;
 }
 
 static PasteboardTaihe::PasteData CreateVirtualFileData(const std::string &mimeType, uintptr_t vfiHandle)
@@ -1344,13 +1321,10 @@ static PasteboardTaihe::PasteData CreateVirtualFileData(const std::string &mimeT
     if (!BuildVirtualFileEntry(mimeType, vfiHandle, entry, fuseGetterPtr)) {
         return data;
     }
-    PasteDataRecord::Builder builder(mimeType);
-    auto record = builder.Build();
+    auto record = MakeVirtualFileRecord(mimeType, entry, fuseGetterPtr);
     if (record == nullptr) {
         return data;
     }
-    record->AddEntry(VIRTUAL_FILE_UTD, entry);
-    record->SetFuseGetter(fuseGetterPtr);
     auto pasteData = std::make_shared<PasteData>();
     pasteData->AddRecord(record);
     dataImpl->SetPasteData(pasteData);
@@ -1364,13 +1338,10 @@ static PasteboardTaihe::PasteDataRecord CreateVirtualFileRecord(const std::strin
     if (!BuildVirtualFileEntry(mimeType, vfiHandle, entry, fuseGetterPtr)) {
         return taihe::make_holder<PasteDataRecordImpl, PasteboardTaihe::PasteDataRecord>();
     }
-    PasteDataRecord::Builder builder(mimeType);
-    auto record = builder.Build();
+    auto record = MakeVirtualFileRecord(mimeType, entry, fuseGetterPtr);
     if (record == nullptr) {
         return taihe::make_holder<PasteDataRecordImpl, PasteboardTaihe::PasteDataRecord>();
     }
-    record->AddEntry(VIRTUAL_FILE_UTD, entry);
-    record->SetFuseGetter(fuseGetterPtr);
     return taihe::make_holder<PasteDataRecordImpl, PasteboardTaihe::PasteDataRecord>(record);
 }
 
@@ -2087,34 +2058,7 @@ uintptr_t PasteDataTransferDynamicImpl(PasteboardTaihe::PasteData pasteDataTH)
     }
     std::shared_ptr<PasteData> pasteData = implPtr->GetPasteData();
     implPtr = nullptr;
-    napi_env jsenv;
-    if (!arkts_napi_scope_open(taihe::get_env(), &jsenv)) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "arkts_napi_scope_open failed");
-        return 0;
-    }
-    auto handle = dlopen("libpasteboard_napi.z.so", RTLD_NOW);
-    if (handle == nullptr) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "dlopen failed");
-        arkts_napi_scope_close_n(jsenv, 0, nullptr, nullptr);
-        return 0;
-    }
-    CreatePasteDataFn GetEtsPasteData = reinterpret_cast<CreatePasteDataFn>(dlsym(handle, "GetEtsPasteData"));
-    if (GetEtsPasteData == nullptr) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "dlsym get func failed, %{public}s", dlerror());
-        arkts_napi_scope_close_n(jsenv, 0, nullptr, nullptr);
-        dlclose(handle);
-        return 0;
-    }
-    napi_value instance = GetEtsPasteData(jsenv, pasteData);
-    dlclose(handle);
-    if (instance == nullptr) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "GetEtsPasteData failed");
-        arkts_napi_scope_close_n(jsenv, 0, nullptr, nullptr);
-        return 0;
-    }
-    uintptr_t result = 0;
-    arkts_napi_scope_close_n(jsenv, 1, &instance, reinterpret_cast<ani_ref*>(&result));
-    return result;
+    return MakeNapiInstance<CreatePasteDataFn>(pasteData, "GetEtsPasteData");
 }
 
 PasteboardTaihe::PasteDataRecord PasteDataRecordTransferStaticImpl(uintptr_t input)
@@ -2143,34 +2087,7 @@ uintptr_t PasteDataRecordTransferDynamicImpl(PasteboardTaihe::PasteDataRecord re
     }
     std::shared_ptr<PasteDataRecord> record = implPtr->GetRecord();
     implPtr = nullptr;
-    napi_env jsenv;
-    if (!arkts_napi_scope_open(taihe::get_env(), &jsenv)) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "arkts_napi_scope_open failed");
-        return 0;
-    }
-    auto handle = dlopen("libpasteboard_napi.z.so", RTLD_NOW);
-    if (handle == nullptr) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "dlopen failed");
-        arkts_napi_scope_close_n(jsenv, 0, nullptr, nullptr);
-        return 0;
-    }
-    CreateRecordFn GetEtsPasteDataRecord = reinterpret_cast<CreateRecordFn>(dlsym(handle, "GetEtsPasteDataRecord"));
-    if (GetEtsPasteDataRecord == nullptr) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "dlsym get func failed, %{public}s", dlerror());
-        arkts_napi_scope_close_n(jsenv, 0, nullptr, nullptr);
-        dlclose(handle);
-        return 0;
-    }
-    napi_value instance = GetEtsPasteDataRecord(jsenv, record);
-    dlclose(handle);
-    if (instance == nullptr) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "GetEtsPasteDataRecord failed");
-        arkts_napi_scope_close_n(jsenv, 0, nullptr, nullptr);
-        return 0;
-    }
-    uintptr_t result = 0;
-    arkts_napi_scope_close_n(jsenv, 1, &instance, reinterpret_cast<ani_ref*>(&result));
-    return result;
+    return MakeNapiInstance<CreateRecordFn>(record, "GetEtsPasteDataRecord");
 }
 
 ohos::pasteboard::pasteboard::PasteDataRecord CreateRecord(

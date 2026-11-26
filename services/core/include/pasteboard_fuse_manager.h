@@ -77,11 +77,17 @@ public:
         uint32_t dataId, const std::vector<FuseNode> &rootNodes);
 
 private:
+    enum SessionState {
+        NO_SESSION = 0,
+        SESSION_RUNNING,
+        SESSION_DEAD,
+    };
     int32_t MountFuse(int32_t userId, const std::string &path, int32_t &fuseFd);
     int32_t UMountFuse(int32_t userId, const std::string &path);
     void StartSessionLoop(int32_t userId);
     void StopSessionLoop(int32_t userId);
     void LoopMain(int32_t userId);
+    int32_t RegisterPasteCallerLocked(int32_t userId, pid_t pid, uid_t callingUid);
     void CleanupCopyAppLocked(int32_t userId);
     bool CleanupPasteAppLocked(pid_t pid, int32_t userId);
     void CleanupLocked(int32_t userId);
@@ -185,6 +191,8 @@ private:
     };
 
     static constexpr int32_t MAX_THREADS = 5;
+    static constexpr uint32_t FUSE_POLL_FD_COUNT = 2;
+    static constexpr uint64_t DECIMAL_BASE = 10;
     static constexpr int32_t MAX_READ_RETRIES = 2;
     static constexpr int32_t READ_RETRY_DELAY_MS = 50;
     static constexpr int32_t MAX_READDIR_SIZE = 64 * 1024;
