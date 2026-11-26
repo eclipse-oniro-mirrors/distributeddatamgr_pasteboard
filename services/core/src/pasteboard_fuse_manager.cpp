@@ -457,9 +457,18 @@ const FuseNode *PasteboardFuseManager::FindNodeByPath(int32_t userId, uint32_t r
         return nullptr;
     }
     for (const auto &root : it->second) {
-        if (root.recordId == recordId) {
-            return root.FindByPath(filePath);
+        if (root.recordId != recordId) {
+            continue;
         }
+        if (filePath == root.name) {
+            return &root;
+        }
+        if (filePath.size() > root.name.size() + 1 &&
+            filePath.compare(0, root.name.size(), root.name) == 0 &&
+            filePath[root.name.size()] == '/') {
+            return root.FindByPath(filePath.substr(root.name.size() + 1));
+        }
+        return nullptr;
     }
     return nullptr;
 }
@@ -467,31 +476,22 @@ const FuseNode *PasteboardFuseManager::FindNodeByPath(int32_t userId, uint32_t r
 std::shared_ptr<FileInfo> PasteboardFuseManager::GetFileInfoLocked(int32_t userId, uint32_t dataId,
     uint32_t recordId, const std::string &fileName)
 {
-    auto it = rootNodes_.find(userId);
-    if (it == rootNodes_.end()) {
-        return nullptr;
-    }
-    for (const auto &root : it->second) {
-        if (root.recordId != recordId) {
-            continue;
+    const FuseNode *node = FindNodeByPath(userId, recordId, fileName);
+    if (node != nullptr && node->IsFile()) {
+        auto info = std::make_shared<FileInfo>();
+        info->userId = userId;
+        info->dataId = dataId;
+        info->recordId = recordId;
+        info->fileId = node->id;
+        info->fileName = node->name;
+        info->fileSize = node->size;
+        info->modifyTime = node->modifyTime;
+        info->isDir = false;
+        auto providerIt = providers_.find(userId);
+        if (providerIt != providers_.end()) {
+            info->provider = providerIt->second;
         }
-        const FuseNode *node = root.FindByPath(fileName);
-        if (node != nullptr && node->IsFile()) {
-            auto info = std::make_shared<FileInfo>();
-            info->userId = userId;
-            info->dataId = dataId;
-            info->recordId = recordId;
-            info->fileId = node->id;
-            info->fileName = node->name;
-            info->fileSize = node->size;
-            info->modifyTime = node->modifyTime;
-            info->isDir = false;
-            auto providerIt = providers_.find(userId);
-            if (providerIt != providers_.end()) {
-                info->provider = providerIt->second;
-            }
-            return info;
-        }
+        return info;
     }
     return nullptr;
 }
