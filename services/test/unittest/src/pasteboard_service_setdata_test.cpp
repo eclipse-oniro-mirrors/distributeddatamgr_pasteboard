@@ -211,7 +211,8 @@ HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataTest001, TestSize.Level1)
 
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
-    int32_t result = tempPasteboard->SetPasteData(ERROR_USERID, dup(fd), rawDataSize, buffer, delayGetter, entryGetter);
+    int32_t result = tempPasteboard->SetPasteData(ERROR_USERID, dup(fd), rawDataSize, buffer, delayGetter,
+        entryGetter);
     EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::INVALID_PARAM_ERROR));
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetPasteDataTest001 end");
 }
@@ -234,7 +235,8 @@ HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataTest002, TestSize.Level1)
 
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
-    int32_t result = tempPasteboard->SetPasteData(ERROR_USERID, dup(fd), rawDataSize, buffer, delayGetter, entryGetter);
+    int32_t result = tempPasteboard->SetPasteData(ERROR_USERID, dup(fd), rawDataSize, buffer, delayGetter,
+        entryGetter);
     EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::INVALID_PARAM_ERROR));
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetPasteDataTest002 end");
 }
@@ -257,7 +259,8 @@ HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataTest003, TestSize.Level1)
 
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
-    int32_t result = tempPasteboard->SetPasteData(ERROR_USERID, dup(fd), rawDataSize, buffer, delayGetter, entryGetter);
+    int32_t result = tempPasteboard->SetPasteData(ERROR_USERID, dup(fd), rawDataSize, buffer, delayGetter,
+        entryGetter);
     EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::INVALID_DATA_ERROR));
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetPasteDataTest003 end");
 }
@@ -280,7 +283,8 @@ HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataTest004, TestSize.Level1)
 
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
-    int32_t result = tempPasteboard->SetPasteData(ERROR_USERID, dup(fd), rawDataSize, buffer, delayGetter, entryGetter);
+    int32_t result = tempPasteboard->SetPasteData(ERROR_USERID, dup(fd), rawDataSize, buffer, delayGetter,
+        entryGetter);
     EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::NO_DATA_ERROR));
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetPasteDataTest004 end");
 }

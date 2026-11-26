@@ -1271,12 +1271,8 @@ private:
     VirtualFileEntry rootEntry_;
 };
 
-static bool BuildVirtualFileEntry(const std::string &mimeType, uintptr_t vfiHandle,
-    std::shared_ptr<PasteDataEntry> &entry, OHOS::sptr<IPasteboardFuseGetter> &fuseGetter)
+static bool GetProviderProperties(ani_env *env, ani_object provider, ani_ref &itemInfoRef)
 {
-    ani_env *env = taihe::get_env();
-    auto provider = reinterpret_cast<ani_object>(vfiHandle);
-    ani_ref itemInfoRef = nullptr;
     if (!GetAniProperty(env, provider, "itemInfo", itemInfoRef) ||
         IsAniNullOrUndefined(env, static_cast<ani_object>(itemInfoRef))) {
         taihe::set_business_error(static_cast<int>(JSErrorCode::INVALID_PARAMETERS),
@@ -1288,6 +1284,18 @@ static bool BuildVirtualFileEntry(const std::string &mimeType, uintptr_t vfiHand
         IsAniNullOrUndefined(env, static_cast<ani_object>(onReadRef))) {
         taihe::set_business_error(static_cast<int>(JSErrorCode::INVALID_PARAMETERS),
             "Parameter error: onRead is required");
+        return false;
+    }
+    return true;
+}
+
+static bool BuildVirtualFileEntry(const std::string &mimeType, uintptr_t vfiHandle,
+    std::shared_ptr<PasteDataEntry> &entry, OHOS::sptr<IPasteboardFuseGetter> &fuseGetter)
+{
+    ani_env *env = taihe::get_env();
+    auto provider = reinterpret_cast<ani_object>(vfiHandle);
+    ani_ref itemInfoRef = nullptr;
+    if (!GetProviderProperties(env, provider, itemInfoRef)) {
         return false;
     }
     VirtualFileEntry rootEntry;

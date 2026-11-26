@@ -1468,6 +1468,16 @@ int32_t PasteboardService::GetPasteDataInner(const AppInfo &appInfo, int &fd, in
         return static_cast<int32_t>(PasteboardError::PERMISSION_VERIFICATION_ERROR);
     }
 
+    HandleDelayDataAndFuse(appInfo, data);
+
+    ret = DealData(fd, size, rawData, data);
+    radarReportInfo.commonInfo = GetCommonState(size);
+    PASTE_RADAR_REPORT(DFX_GET_PASTEBOARD, DFX_GET_DATA_INFO, radarReportInfo);
+    return ret;
+}
+
+void PasteboardService::HandleDelayDataAndFuse(const AppInfo &appInfo, const PasteData &data)
+{
     delayDataId_ = data.GetDataId();
     delayTokenId_ = appInfo.tokenId;
     if (HasVirtualFileData()) {
@@ -1477,11 +1487,6 @@ int32_t PasteboardService::GetPasteDataInner(const AppInfo &appInfo, int &fd, in
                 fuseRet, appInfo.userId);
         }
     }
-
-    ret = DealData(fd, size, rawData, data);
-    radarReportInfo.commonInfo = GetCommonState(size);
-    PASTE_RADAR_REPORT(DFX_GET_PASTEBOARD, DFX_GET_DATA_INFO, radarReportInfo);
-    return ret;
 }
 
 int32_t PasteboardService::DealData(int &fd, int64_t &size, std::vector<uint8_t> &rawData, PasteData &data)
@@ -3291,31 +3296,10 @@ std::vector<FuseNode> PasteboardService::CollectFuseNodeTrees(const PasteData &p
     return rootNodes;
 }
 
-std::shared_ptr<FuseNode> PasteboardService::BuildFuseNodeTree(const std::shared_ptr<PasteDataEntry> &entry,
-    const sptr<IPasteboardFuseGetter> &fuseGetter, const AppInfo &appInfo,
-    uint32_t dataId, uint32_t recordId)
+static std::shared_ptr<FuseNode> BuildFlatFallbackNode(const std::shared_ptr<UDMF::Object> &obj, uint32_t recordId)
 {
-    if (!entry) {
-        return nullptr;
-    }
-    auto value = entry->GetValue();
-    if (!std::holds_alternative<std::shared_ptr<UDMF::Object>>(value)) {
-        return nullptr;
-    }
-    auto obj = std::get<std::shared_ptr<UDMF::Object>>(value);
-    if (!obj) {
-        return nullptr;
-    }
     int32_t type = 0;
     obj->GetValue("type", type);
-    std::vector<uint8_t> treeBlob;
-    if (obj->GetValue("treeBlob", treeBlob)) {
-        auto node = DeserializeTree(treeBlob);
-        if (node != nullptr) {
-            node->recordId = recordId;
-            return node;
-        }
-    }
     std::string fileId;
     std::string fileName;
     obj->GetValue("id", fileId);
@@ -3341,6 +3325,32 @@ std::shared_ptr<FuseNode> PasteboardService::BuildFuseNodeTree(const std::shared
     node->modifyTime = modifyTime;
     node->recordId = recordId;
     return node;
+}
+
+std::shared_ptr<FuseNode> PasteboardService::BuildFuseNodeTree(const std::shared_ptr<PasteDataEntry> &entry,
+    const sptr<IPasteboardFuseGetter> &fuseGetter, const AppInfo &appInfo,
+    uint32_t dataId, uint32_t recordId)
+{
+    if (!entry) {
+        return nullptr;
+    }
+    auto value = entry->GetValue();
+    if (!std::holds_alternative<std::shared_ptr<UDMF::Object>>(value)) {
+        return nullptr;
+    }
+    auto obj = std::get<std::shared_ptr<UDMF::Object>>(value);
+    if (!obj) {
+        return nullptr;
+    }
+    std::vector<uint8_t> treeBlob;
+    if (obj->GetValue("treeBlob", treeBlob)) {
+        auto node = DeserializeTree(treeBlob);
+        if (node != nullptr) {
+            node->recordId = recordId;
+            return node;
+        }
+    }
+    return BuildFlatFallbackNode(obj, recordId);
 }
 
 std::string PasteboardService::GenerateVirtualUri(uint32_t dataId, uint32_t recordId, const std::string &fileName)

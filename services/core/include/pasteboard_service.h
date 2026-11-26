@@ -415,6 +415,7 @@ private:
         UeReportInfo &ueReportInfo, const std::string &peerNetId);
     int32_t GetPasteDataInner(const AppInfo &appInfo, int &fd, int64_t &size, std::vector<uint8_t> &rawData,
         const std::string &pasteId, int32_t &syncTime, UeReportInfo &ueReportInfo);
+    void HandleDelayDataAndFuse(const AppInfo &appInfo, const PasteData &data);
     void GetPasteDataDot(PasteData &pasteData, const std::string &bundleName, const int32_t &userId);
     int32_t GetLocalData(const AppInfo &appInfo, PasteData &data);
     void UpdateClipOnRead(int32_t userId, const PasteData &data,

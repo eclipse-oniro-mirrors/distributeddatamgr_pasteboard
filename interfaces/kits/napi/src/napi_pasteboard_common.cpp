@@ -366,6 +366,71 @@ bool UnifiedContextSetErr(const std::shared_ptr<GetUnifiedContextInfo> context, 
     return false;
 }
 
+static napi_status ConvertVirtualFileEntryValue(napi_env env, napi_value *result,
+    std::shared_ptr<PasteDataEntry> value)
+{
+    napi_create_object(env, result);
+    auto entryValue = value->GetValue();
+    auto obj = std::get_if<std::shared_ptr<UDMF::Object>>(&entryValue);
+    if (obj != nullptr && *obj != nullptr) {
+        std::string id;
+        std::string name;
+        int64_t size = 0;
+        int64_t modifyTime = 0;
+        int32_t type = 0;
+        if ((*obj)->GetValue<std::string>("id", id)) {
+            napi_value idVal = nullptr;
+            napi_create_string_utf8(env, id.c_str(), NAPI_AUTO_LENGTH, &idVal);
+            napi_set_named_property(env, *result, "id", idVal);
+        }
+        if ((*obj)->GetValue<std::string>("name", name)) {
+            napi_value nameVal = nullptr;
+            napi_create_string_utf8(env, name.c_str(), NAPI_AUTO_LENGTH, &nameVal);
+            napi_set_named_property(env, *result, "name", nameVal);
+        }
+        if ((*obj)->GetValue<int64_t>("size", size)) {
+            napi_value sizeVal = nullptr;
+            napi_create_int64(env, size, &sizeVal);
+            napi_set_named_property(env, *result, "size", sizeVal);
+        }
+        if ((*obj)->GetValue<int64_t>("modifyTime", modifyTime)) {
+            napi_value modifyTimeVal = nullptr;
+            napi_create_int64(env, modifyTime, &modifyTimeVal);
+            napi_set_named_property(env, *result, "modifyTime", modifyTimeVal);
+        }
+        if ((*obj)->GetValue<int32_t>("type", type)) {
+            napi_value typeVal = nullptr;
+            napi_create_int32(env, type, &typeVal);
+            napi_set_named_property(env, *result, "type", typeVal);
+        }
+    }
+    return napi_ok;
+}
+
+static napi_status ConvertCustomEntryValue(napi_env env, napi_value *result, const std::string &mimeType,
+    std::shared_ptr<PasteDataEntry> value)
+{
+    std::shared_ptr<MineCustomData> customData = value->ConvertToCustomData();
+    if (customData == nullptr) {
+        return napi_generic_failure;
+    }
+    auto itemData = customData->GetItemData();
+    auto item = itemData.find(mimeType);
+    if (item == itemData.end()) {
+        return napi_generic_failure;
+    }
+    std::vector<uint8_t> dataArray = item->second;
+    void *data = nullptr;
+    size_t len = dataArray.size();
+    PASTEBOARD_CALL_BASE(napi_create_arraybuffer(env, len, &data, result), napi_generic_failure);
+    if (memcpy_s(data, len, reinterpret_cast<const void *>(dataArray.data()), len) != 0) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "memcpy customData %{public}s failed, size=%{public}zu",
+            mimeType.c_str(), len);
+        return napi_generic_failure;
+    }
+    return napi_ok;
+}
+
 napi_status ConvertEntryValue(napi_env env, napi_value *result, std::string &mimeType,
     std::shared_ptr<PasteDataEntry> value)
 {
@@ -374,42 +439,7 @@ napi_status ConvertEntryValue(napi_env env, napi_value *result, std::string &mim
         return napi_generic_failure;
     }
     if (value->GetUtdId() == "general.virtual-file") {
-        napi_create_object(env, result);
-        auto entryValue = value->GetValue();
-        auto obj = std::get_if<std::shared_ptr<UDMF::Object>>(&entryValue);
-        if (obj != nullptr && *obj != nullptr) {
-            std::string id;
-            std::string name;
-            int64_t size = 0;
-            int64_t modifyTime = 0;
-            int32_t type = 0;
-            if ((*obj)->GetValue<std::string>("id", id)) {
-                napi_value idVal = nullptr;
-                napi_create_string_utf8(env, id.c_str(), NAPI_AUTO_LENGTH, &idVal);
-                napi_set_named_property(env, *result, "id", idVal);
-            }
-            if ((*obj)->GetValue<std::string>("name", name)) {
-                napi_value nameVal = nullptr;
-                napi_create_string_utf8(env, name.c_str(), NAPI_AUTO_LENGTH, &nameVal);
-                napi_set_named_property(env, *result, "name", nameVal);
-            }
-            if ((*obj)->GetValue<int64_t>("size", size)) {
-                napi_value sizeVal = nullptr;
-                napi_create_int64(env, size, &sizeVal);
-                napi_set_named_property(env, *result, "size", sizeVal);
-            }
-            if ((*obj)->GetValue<int64_t>("modifyTime", modifyTime)) {
-                napi_value modifyTimeVal = nullptr;
-                napi_create_int64(env, modifyTime, &modifyTimeVal);
-                napi_set_named_property(env, *result, "modifyTime", modifyTimeVal);
-            }
-            if ((*obj)->GetValue<int32_t>("type", type)) {
-                napi_value typeVal = nullptr;
-                napi_create_int32(env, type, &typeVal);
-                napi_set_named_property(env, *result, "type", typeVal);
-            }
-        }
-        return napi_ok;
+        return ConvertVirtualFileEntryValue(env, result, value);
     }
     if (mimeType == MIMETYPE_TEXT_URI) {
         std::shared_ptr<Uri> uri = value->ConvertToUri();
@@ -445,25 +475,7 @@ napi_status ConvertEntryValue(napi_env env, napi_value *result, std::string &mim
         *result = AppExecFwk::WrapWant(env, *want);
         return napi_ok;
     } else {
-        std::shared_ptr<MineCustomData> customData = value->ConvertToCustomData();
-        if (customData == nullptr) {
-            return napi_generic_failure;
-        }
-        auto itemData = customData->GetItemData();
-        auto item = itemData.find(mimeType);
-        if (item == itemData.end()) {
-            return napi_generic_failure;
-        }
-        std::vector<uint8_t> dataArray = item->second;
-        void *data = nullptr;
-        size_t len = dataArray.size();
-        PASTEBOARD_CALL_BASE(napi_create_arraybuffer(env, len, &data, result), napi_generic_failure);
-        if (memcpy_s(data, len, reinterpret_cast<const void *>(dataArray.data()), len) != 0) {
-            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "memcpy customData %{public}s failed, size=%{public}zu",
-                mimeType.c_str(), len);
-            return napi_generic_failure;
-        }
-        return napi_ok;
+        return ConvertCustomEntryValue(env, result, mimeType, value);
     }
 }
 

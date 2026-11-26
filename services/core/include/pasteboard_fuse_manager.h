@@ -38,6 +38,8 @@ struct fuse_req;
 struct fuse_session;
 struct fuse_file_info;
 struct fuse_conn_info;
+struct fuse_lowlevel_ops;
+struct fuse_entry_param;
 
 namespace OHOS {
 namespace MiscServices {
@@ -88,6 +90,10 @@ private:
         uint32_t recordId, const std::string &fileName);
     const FuseNode *FindNodeByPath(int32_t userId, uint32_t recordId,
         const std::string &filePath) const;
+    static void FillFuseOps(struct fuse_lowlevel_ops &ops);
+    int32_t CreateFuseSessionLocked(int32_t userId, const std::string &mountPath, int32_t fuseFd);
+    static int InvokeOnReadWithRetry(PasteboardFuseManager *self, const sptr<IPasteboardFuseGetter> &provider,
+        const std::string &fileId, uint32_t recordId, const std::string &path, off_t offset, size_t size, char *buf);
     static int ParsePath(const char *path, uint32_t &dataId, uint32_t &recordId, std::string &fileName);
     static bool ParseNumericSegment(const char *begin, size_t len, uint32_t &value);
     std::string GetMountPath(int32_t userId);
@@ -99,6 +105,15 @@ private:
         pid_t pid = 0;
         uid_t uid = 0;
     };
+
+    int FillDirStatLocked(const HandlerContext &ctx, uint32_t dataId, uint32_t recordId,
+        int pathType, struct stat *stbuf);
+    int ListDataDirLocked(const HandlerContext &ctx, uint32_t dataId, std::vector<std::string> &names);
+    int ListTreeDirLocked(const HandlerContext &ctx, uint32_t recordId, const std::string &fileName,
+        std::vector<std::string> &names);
+    int32_t ResolveLookupEntryLocked(const HandlerContext &ctx, uint64_t parent, const char *name,
+        std::string &childPath, struct fuse_entry_param &entry, std::shared_ptr<FileInfo> &fileInfo);
+    void RefreshEntryStat(const std::shared_ptr<FileInfo> &fileInfo, struct fuse_entry_param &entry);
 
     // Path based helpers, usable both from the lowlevel callbacks and tests.
     static int StatByPath(const HandlerContext &ctx, const std::string &path, struct stat *stbuf,

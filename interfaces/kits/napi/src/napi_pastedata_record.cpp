@@ -362,6 +362,34 @@ napi_value PasteDataRecordNapi::ToPlainText(napi_env env, napi_callback_info inf
     return result;
 }
 
+static napi_value AddEntryValue(napi_env env, napi_value *argv, size_t argc, std::string &mimeType,
+    PasteDataRecordNapi *obj)
+{
+    if (mimeType == MIMETYPE_TEXT_URI && IsVirtualFileInfo(env, argv[1])) {
+        PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "AddEntry VirtualFile");
+        AddVirtualFileEntry(env, obj->value_, mimeType, argv[1]);
+        return nullptr;
+    }
+
+    if (!CheckArgs(env, argv, argc, mimeType)) {
+        return nullptr;
+    }
+    int32_t mimeTypeEnum = MiscServices::GetHistogramMimeTypeEnum(mimeType);
+    HISTOGRAM_ENUMERATION_SAMPLED(
+        "Pasteboard.MimeType.addEntry", mimeTypeEnum, MiscServices::HISTOGRAM_MIMETYPE_BOUNDARY);
+
+    EntryValue entryValue;
+    if (!GetNativeValue(env, mimeType, argv[1], entryValue)) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "GetNativeValue failed");
+        return nullptr;
+    }
+
+    auto utdType = CommonUtils::Convert2UtdId(UDMF::UD_BUTT, mimeType);
+    std::shared_ptr<PasteDataEntry> pasteDataEntry = std::make_shared<PasteDataEntry>(utdType, entryValue);
+    obj->value_->AddEntry(utdType, pasteDataEntry);
+    return nullptr;
+}
+
 napi_value PasteDataRecordNapi::AddEntry(napi_env env, napi_callback_info info)
 {
     HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.addEntry", true);
@@ -393,29 +421,7 @@ napi_value PasteDataRecordNapi::AddEntry(napi_env env, napi_callback_info info)
         return nullptr;
     }
 
-    if (mimeType == MIMETYPE_TEXT_URI && IsVirtualFileInfo(env, argv[1])) {
-        PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "AddEntry VirtualFile");
-        AddVirtualFileEntry(env, obj->value_, mimeType, argv[1]);
-        return nullptr;
-    }
-
-    if (!CheckArgs(env, argv, argc, mimeType)) {
-        return nullptr;
-    }
-    int32_t mimeTypeEnum = MiscServices::GetHistogramMimeTypeEnum(mimeType);
-    HISTOGRAM_ENUMERATION_SAMPLED(
-        "Pasteboard.MimeType.addEntry", mimeTypeEnum, MiscServices::HISTOGRAM_MIMETYPE_BOUNDARY);
-
-    EntryValue entryValue;
-    if (!GetNativeValue(env, mimeType, argv[1], entryValue)) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "GetNativeValue failed");
-        return nullptr;
-    }
-
-    auto utdType = CommonUtils::Convert2UtdId(UDMF::UD_BUTT, mimeType);
-    std::shared_ptr<PasteDataEntry> pasteDataEntry = std::make_shared<PasteDataEntry>(utdType, entryValue);
-    obj->value_->AddEntry(utdType, pasteDataEntry);
-    return nullptr;
+    return AddEntryValue(env, argv, argc, mimeType, obj);
 }
 
 napi_value PasteDataRecordNapi::GetValidTypes(napi_env env, napi_callback_info info)

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (C) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -546,6 +546,39 @@ bool PasteDataNapi::SetStringProp(
     return true;
 }
 
+static std::shared_ptr<PasteDataRecord> BuildRecordWithEntries(napi_env env, napi_value &recordNapi,
+    PasteDataRecord::Builder &builder)
+{
+    std::shared_ptr<PasteDataRecord> result = builder.Build();
+    if (result == nullptr) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "ParseRecord result is nullptr");
+        return nullptr;
+    }
+
+    PasteDataRecordNapi *record = nullptr;
+    napi_unwrap(env, recordNapi, reinterpret_cast<void **>(&record));
+    if (record != nullptr && record->value_ != nullptr &&
+        record->value_->GetEntryGetter() != nullptr) {
+        result->SetEntryGetter(record->value_->GetEntryGetter());
+        result->SetDelayRecordFlag(true);
+    }
+    if (record != nullptr && record->value_ != nullptr &&
+        record->value_->GetFuseGetter() != nullptr) {
+        result->SetFuseGetter(record->value_->GetFuseGetter());
+    }
+
+    if (record != nullptr && record->value_ != nullptr && !record->value_->GetEntries().empty()) {
+        for (const auto& pasteDataEntry : record->value_->GetEntries()) {
+            if (pasteDataEntry == nullptr) {
+                continue;
+            }
+            result->AddEntry(pasteDataEntry->GetUtdId(), pasteDataEntry);
+        }
+    }
+
+    return result;
+}
+
 std::shared_ptr<MiscServices::PasteDataRecord> PasteDataNapi::ParseRecord(napi_env env, napi_value &recordNapi)
 {
     napi_value propNames = nullptr;
@@ -589,34 +622,7 @@ std::shared_ptr<MiscServices::PasteDataRecord> PasteDataNapi::ParseRecord(napi_e
             builder.SetCustomData(customData);
         }
     }
-    std::shared_ptr<PasteDataRecord> result = builder.Build();
-    if (result == nullptr) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "ParseRecord result is nullptr");
-        return nullptr;
-    }
-
-    PasteDataRecordNapi *record = nullptr;
-    napi_unwrap(env, recordNapi, reinterpret_cast<void **>(&record));
-    if (record != nullptr && record->value_ != nullptr &&
-        record->value_->GetEntryGetter() != nullptr) {
-        result->SetEntryGetter(record->value_->GetEntryGetter());
-        result->SetDelayRecordFlag(true);
-    }
-    if (record != nullptr && record->value_ != nullptr &&
-        record->value_->GetFuseGetter() != nullptr) {
-        result->SetFuseGetter(record->value_->GetFuseGetter());
-    }
-
-    if (record != nullptr && record->value_ != nullptr && !record->value_->GetEntries().empty()) {
-        for (const auto& pasteDataEntry : record->value_->GetEntries()) {
-            if (pasteDataEntry == nullptr) {
-                continue;
-            }
-            result->AddEntry(pasteDataEntry->GetUtdId(), pasteDataEntry);
-        }
-    }
-
-    return result;
+    return BuildRecordWithEntries(env, recordNapi, builder);
 }
 
 void PasteDataNapi::AddRecord(napi_env env, napi_value argv, PasteDataNapi *obj)
