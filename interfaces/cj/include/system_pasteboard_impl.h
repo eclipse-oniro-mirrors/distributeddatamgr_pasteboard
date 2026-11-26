@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,6 +15,8 @@
 
 #ifndef SYSTEM_PASTEBOARD_IMPL_H
 #define SYSTEM_PASTEBOARD_IMPL_H
+
+#include <mutex>
 
 #include "paste_data_impl.h"
 
@@ -39,6 +41,9 @@ public:
     std::string GetDataSource();
 
 private:
+    // Guards value_ and pasteData_. Multiple Cangjie worker threads may share one
+    // SystemPasteboardImpl instance, and sptr/shared_ptr assignment is not atomic.
+    std::mutex mutex_;
     sptr<PasteDataImpl> value_;
     std::shared_ptr<MiscServices::PasteData> pasteData_;
 };
