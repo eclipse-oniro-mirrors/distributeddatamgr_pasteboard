@@ -573,7 +573,7 @@ void PasteboardFuseManager::FillFileStat(const FuseNode &node, struct stat *stbu
 
 int PasteboardFuseManager::StatLocked(const HandlerContext &ctx, const std::string &path, struct stat *stbuf)
 {
-    if (ctx.self == nullptr) {
+    if (ctx.self == nullptr || stbuf == nullptr) {
         return -EACCES;
     }
     auto self = ctx.self;
@@ -640,7 +640,7 @@ int PasteboardFuseManager::StatByPath(const HandlerContext &ctx, const std::stri
     struct fuse_file_info *fi)
 {
     (void)fi;
-    if (ctx.self == nullptr) {
+    if (ctx.self == nullptr || stbuf == nullptr) {
         return -EACCES;
     }
     auto self = ctx.self;
