@@ -1128,12 +1128,15 @@ void PasteboardFuseManager::ReaddirHandler(struct fuse_req *req, uint64_t ino, s
     size_t used = 0;
     size_t start = offset < 0 ? 0 : static_cast<size_t>(offset);
     for (size_t index = start; index < names.size(); ++index) {
-        size_t needed = fuse_add_direntry(req, nullptr, 0, names[index].c_str(), nullptr,
+        struct stat entryStat = {};
+        entryStat.st_ino = 0;
+        entryStat.st_mode = (names[index] == "." || names[index] == "..") ? S_IFDIR : S_IFREG;
+        size_t needed = fuse_add_direntry(req, nullptr, 0, names[index].c_str(), &entryStat,
             static_cast<off_t>(index + 1));
         if (needed > bufferSize - used) {
             break;
         }
-        (void)fuse_add_direntry(req, buffer.data() + used, bufferSize - used, names[index].c_str(), nullptr,
+        (void)fuse_add_direntry(req, buffer.data() + used, bufferSize - used, names[index].c_str(), &entryStat,
             static_cast<off_t>(index + 1));
         used += needed;
     }
@@ -1290,7 +1293,10 @@ int PasteboardFuseManager::ReaddirHandler(const char *path, void *buf, void *fil
     auto fillFunc = reinterpret_cast<fuse_fill_dir_t>(filler);
     if (fillFunc != nullptr) {
         for (const auto &name : names) {
-            fillFunc(buf, name.c_str(), nullptr, 0, FUSE_FILL_DIR_DEFAULTS);
+            struct stat entryStat = {};
+            entryStat.st_ino = 0;
+            entryStat.st_mode = (name == "." || name == "..") ? S_IFDIR : S_IFREG;
+            fillFunc(buf, name.c_str(), &entryStat, 0, FUSE_FILL_DIR_DEFAULTS);
         }
     }
     return 0;
