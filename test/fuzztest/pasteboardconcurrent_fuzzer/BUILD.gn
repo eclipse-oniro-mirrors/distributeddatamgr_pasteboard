@@ -69,6 +69,7 @@ ohos_fuzztest("PasteboardConcurrentFuzzTest") {
   ]
   sources += [
     "${pasteboard_innerkits_path}/src/paste_data_info.cpp",
+    "${pasteboard_innerkits_path}/src/pasteboard_virtual_entry.cpp",
     "${pasteboard_root_path}/adapter/data_share/datashare_delegate.cpp",
     "${pasteboard_service_path}/account/src/account_manager.cpp",
     "${pasteboard_service_path}/core/src/fuse_mount.cpp",
