@@ -1150,7 +1150,7 @@ void PasteboardFuseManager::OpendirHandler(struct fuse_req *req, uint64_t ino, s
     fuse_reply_open(req, fi);
 }
 
-static size_t EncodeDirentEntries(fuse_req_t req, const std::vector<std::string> &names, size_t start,
+static size_t EncodeDirentEntries(struct fuse_req *req, const std::vector<std::string> &names, size_t start,
     size_t bufferSize, char *buffer)
 {
     size_t used = 0;

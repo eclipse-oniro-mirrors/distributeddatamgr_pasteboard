@@ -768,9 +768,9 @@ HWTEST_F(PasteboardFuseManagerTest, SetProvider_PopulatesFileInfos_001, TestSize
     fuse_->SetProvider(TEST_USER_ID, getter, TEST_DATA_ID, infos);
     EXPECT_EQ(fuse_->rootNodes_.count(TEST_USER_ID), 1u);
     EXPECT_EQ(fuse_->rootNodes_[TEST_USER_ID].size(), 1u);
-    EXPECT_EQ(fuse_->rootNodes_[TEST_USER_ID][0].dataId, TEST_DATA_ID);
+    EXPECT_EQ(fuse_->rootNodes_[TEST_USER_ID][0].id, TEST_FILE_ID);
     EXPECT_EQ(fuse_->rootNodes_[TEST_USER_ID][0].recordId, TEST_RECORD_ID);
-    EXPECT_EQ(fuse_->rootNodes_[TEST_USER_ID][0].fileName, TEST_FILE_NAME);
+    EXPECT_EQ(fuse_->rootNodes_[TEST_USER_ID][0].name, TEST_FILE_NAME);
     struct stat stbuf;
     std::string path = "/" + std::to_string(TEST_DATA_ID) + "/" + std::to_string(TEST_RECORD_ID) + "/" + TEST_FILE_NAME;
     int ret = PasteboardFuseManager::StatHandler(path.c_str(), &stbuf, nullptr);
