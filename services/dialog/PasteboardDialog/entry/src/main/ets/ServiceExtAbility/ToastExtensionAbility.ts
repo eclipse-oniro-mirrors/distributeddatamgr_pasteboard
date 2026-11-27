@@ -30,6 +30,12 @@ interface ToastStorageItem {
   bottomPadding: number;
 }
 
+interface ToastLifecycle {
+  win: window.Window | null;
+  isDestroyed: boolean;
+  displayChangeCallback: (id: number) => void;
+}
+
 function truncateAppName(name: string): string {
   let width = 0;
   let result = '';
@@ -57,12 +63,19 @@ export default class ToastExtensionAbility extends ServiceExtensionAbility {
     }
     appName = truncateAppName(appName);
     hilog.info(0, TAG, `${DBG} onRequest appName after truncate = ${appName}`);
-    const toastText: string =
-      this.context.resourceManager.getStringByNameSync('pasteboard_access_tip', appName);
+    let toastText = '';
+    try {
+      toastText = this.context.resourceManager.getStringByNameSync('pasteboard_access_tip', appName);
+    } catch (e) {
+      hilog.warn(0, TAG, `${DBG} getStringByNameSync failed, err=${JSON.stringify(e)}`);
+      return;
+    }
     hilog.info(0, TAG, `${DBG} onRequest toastText = ${toastText}`);
     this.createToastWindow(`PasteboardToast${startId}`, {
       toastText: toastText,
       bottomPadding: TOAST_BOTTOM_PADDING
+    }).catch((err) => {
+      hilog.error(0, TAG, `${DBG} createToastWindow failed err=${JSON.stringify(err)}`);
     });
   }
 
@@ -76,7 +89,7 @@ export default class ToastExtensionAbility extends ServiceExtensionAbility {
       storageItem.bottomPadding = TOAST_BOTTOM_PADDING + navBarHeightVp;
       hilog.info(0, TAG, `${DBG} navBarHeight=${avoidArea.bottomRect.height}`);
     } catch (e) {
-      hilog.warn(0, TAG, `${DBG} getWindowAvoidArea failed`);
+      hilog.warn(0, TAG, `${DBG} getWindowAvoidArea failed, err=${JSON.stringify(e)}`);
     }
   }
 
@@ -96,47 +109,95 @@ export default class ToastExtensionAbility extends ServiceExtensionAbility {
     name: string, storageItem: ToastStorageItem
   ): Promise<void> {
     hilog.info(0, TAG, `${DBG} createToastWindow begin, name=${name}`);
-    let win: window.Window | null = null;
-    let isDestroyed = false;
-    const destroyToast = async () => {
-      if (isDestroyed) {
+    const lifecycle: ToastLifecycle = {
+      win: null,
+      isDestroyed: false,
+      displayChangeCallback: () => {}
+    };
+    const destroyToast = async (): Promise<void> => {
+      if (lifecycle.isDestroyed) {
         return;
       }
-      isDestroyed = true;
-      display.off('change', displayChangeCallback);
-      if (win) {
-        await win.destroyWindow();
+      lifecycle.isDestroyed = true;
+      try {
+        display.off('change', lifecycle.displayChangeCallback);
+      } catch (e) {
+        hilog.warn(0, TAG, `${DBG} off failed, err=${JSON.stringify(e)}`);
       }
-      this.context.terminateSelf();
+      try {
+        if (lifecycle.win) {
+          await lifecycle.win.destroyWindow();
+        }
+      } catch (e) {
+        hilog.warn(0, TAG, `${DBG} destroyWindow failed, err=${JSON.stringify(e)}`);
+      }
+      try {
+        await this.context.terminateSelf();
+      } catch (e) {
+        hilog.warn(0, TAG, `${DBG} terminateSelf failed, err=${JSON.stringify(e)}`);
+      }
     };
-    const initialW = display.getDefaultDisplaySync().width;
-    const initialH = display.getDefaultDisplaySync().height;
-    const displayChangeCallback = (id: number) => {
-      const curr = display.getDefaultDisplaySync();
+    let initialW = 0;
+    let initialH = 0;
+    try {
+      initialW = display.getDefaultDisplaySync().width;
+      initialH = display.getDefaultDisplaySync().height;
+    } catch (e) {
+      hilog.error(0, TAG, `${DBG} getDefaultDisplaySync failed, fallback to default, err=${JSON.stringify(e)}`);
+      destroyToast().catch(() => {
+        hilog.error(0, TAG, `${DBG} destroyToast failed`);
+      });
+      return;
+    }
+    await this.showToastWindow(name, storageItem, lifecycle, destroyToast, initialW, initialH);
+  }
+
+  private async showToastWindow(
+    name: string,
+    storageItem: ToastStorageItem,
+    lifecycle: ToastLifecycle,
+    destroyToast: () => Promise<void>,
+    initialW: number,
+    initialH: number
+  ): Promise<void> {
+    lifecycle.displayChangeCallback = (id: number) => {
+      let curr: display.Display | null = null;
+      try {
+        curr = display.getDefaultDisplaySync();
+      } catch (e) {
+        hilog.warn(0, TAG, `${DBG} getDefaultDisplaySync in displayChangeCallback failed, err=${JSON.stringify(e)}`);
+        return;
+      }
       if (curr.width !== initialW || curr.height !== initialH) {
         hilog.info(0, TAG, `${DBG} display rotated, destroying toast`);
-        destroyToast();
+        destroyToast().catch(() => {
+          hilog.error(0, TAG, `${DBG} destroyToast failed`);
+        });
       }
     };
     try {
       const d = display.getDefaultDisplaySync();
       hilog.info(0, TAG, `${DBG} display w=${d.width} h=${d.height}`);
-      win = await window.createWindow({
+      lifecycle.win = await window.createWindow({
         ctx: this.context,
         name,
         windowType: window.WindowType.TYPE_SYSTEM_TOAST
       });
-      await this.updateBottomPadding(win, d, storageItem);
+      await this.updateBottomPadding(lifecycle.win, d, storageItem);
       const storage: LocalStorage = new LocalStorage(storageItem);
-      await this.setupWindow(win, d, storage);
-      display.on('change', displayChangeCallback);
+      await this.setupWindow(lifecycle.win, d, storage);
+      display.on('change', lifecycle.displayChangeCallback);
       setTimeout(() => {
         hilog.info(0, TAG, `${DBG} setTimeout fired`);
-        destroyToast();
+        destroyToast().catch(() => {
+          hilog.error(0, TAG, `${DBG} destroyToast failed`);
+        });
       }, SHOW_TOAST_TIME);
     } catch (err) {
       hilog.error(0, TAG, `${DBG} FAILED err=${JSON.stringify(err)}`);
-      destroyToast();
+      destroyToast().catch(() => {
+        hilog.error(0, TAG, `${DBG} destroyToast failed`);
+      });
     }
   }
 
