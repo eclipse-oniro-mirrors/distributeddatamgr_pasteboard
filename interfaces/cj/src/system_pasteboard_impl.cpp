@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -66,6 +66,7 @@ int32_t SystemPasteboardImpl::SetData(sptr<PasteDataImpl> dataImpl, std::shared_
     int32_t ret = PasteboardClient::GetInstance()->SetPasteData(*data);
     int32_t res = ERR_OK;
     if (ret == static_cast<int>(PasteboardError::E_OK)) {
+        std::lock_guard<std::mutex> lock(mutex_);
         value_ = dataImpl;
         pasteData_ = data;
         LOGI("[SystemPasteboardImpl] SetData OK");
@@ -82,6 +83,7 @@ int32_t SystemPasteboardImpl::SetData(sptr<PasteDataImpl> dataImpl, std::shared_
 
 sptr<PasteDataImpl> SystemPasteboardImpl::GetSystemPasteboardPasteDataImpl()
 {
+    std::lock_guard<std::mutex> lock(mutex_);
     if (value_ == nullptr) {
         return nullptr;
     }
@@ -104,6 +106,7 @@ bool SystemPasteboardImpl::HasData()
 void SystemPasteboardImpl::ClearData()
 {
     PasteboardClient::GetInstance()->Clear();
+    std::lock_guard<std::mutex> lock(mutex_);
     value_ = nullptr;
     pasteData_ = nullptr;
 }
