@@ -34,13 +34,17 @@ FuseMountSysMock *FuseMountSysMock::GetMock()
 }
 
 // Link-time overrides of the libc symbols consumed by PrepareMountPoint in
-// fuse_mount.cpp. They carry C linkage so the symbol name matches the libc
-// declaration from <sys/stat.h>, which lets the locally compiled definition
-// take precedence over the shared libc for this test binary only. When no mock
-// is registered they return a safe failure (ENOENT) so PrepareMountPoint can
-// never accidentally fall through to the proxy with a stale fd.
+// fuse_mount.cpp. The C++ names use CamelCase for the naming check, while the
+// asm labels keep the emitted symbols equal to the libc names (mkdir/lstat),
+// which lets the locally compiled definition take precedence over the shared
+// libc for this test binary only. When no mock is registered they return a
+// safe failure (ENOENT) so PrepareMountPoint can never accidentally fall
+// through to the proxy with a stale fd.
 extern "C" {
-int mkdir(const char *path, mode_t mode) // NOLINT(readability-identifier-naming)
+int Mkdir(const char *path, mode_t mode) __asm__("mkdir");
+int Lstat(const char *path, struct stat *buf) __asm__("lstat");
+
+int Mkdir(const char *path, mode_t mode)
 {
     auto *mock = FuseMountSysMock::GetMock();
     if (mock == nullptr) {
@@ -50,7 +54,7 @@ int mkdir(const char *path, mode_t mode) // NOLINT(readability-identifier-naming
     return mock->Mkdir(path, mode);
 }
 
-int lstat(const char *path, struct stat *buf) // NOLINT(readability-identifier-naming)
+int Lstat(const char *path, struct stat *buf)
 {
     auto *mock = FuseMountSysMock::GetMock();
     if (mock == nullptr) {

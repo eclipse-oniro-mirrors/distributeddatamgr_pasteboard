@@ -813,10 +813,10 @@ static bool ParseVirtualItem(napi_env env, napi_value obj, FuseNode &entry,
         if (vt == napi_number) {
             napi_get_value_int32(env, jsType, &entry.type);
         } else if (vt == napi_string) {
-            constexpr size_t TYPE_STR_LEN = 8;
-            char typeStr[TYPE_STR_LEN] = {0};
+            constexpr size_t typeStrLen = 8;
+            char typeStr[typeStrLen] = {0};
             size_t len = 0;
-            napi_get_value_string_utf8(env, jsType, typeStr, TYPE_STR_LEN - 1, &len);
+            napi_get_value_string_utf8(env, jsType, typeStr, typeStrLen - 1, &len);
             entry.type = (strcmp(typeStr, "dir") == 0) ? 1 : 0;
         }
     }

@@ -1100,7 +1100,8 @@ private:
         if (!PrepareCallbackWithId(env, request, "onStat", "virtualFileOnStatFunc", "stat", callbackFunction, aniId)) {
             return OHOS::ERR_INVALID_VALUE;
         }
-        ani_status status = env->Function_Call_Ref(callbackFunction.function, &result, callbackFunction.callback, aniId);
+        ani_status status = env->Function_Call_Ref(
+            callbackFunction.function, &result, callbackFunction.callback, aniId);
         if (status != ANI_OK) {
             PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Invoke virtual file stat callback failed, status=%{public}d",
                 static_cast<int>(status));

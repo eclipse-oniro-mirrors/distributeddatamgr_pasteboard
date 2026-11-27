@@ -2468,10 +2468,10 @@ static int VirtualFileReadCallback(void* context, const char* id, int64_t offset
 
 static OH_UDMF_VirtualItem* VirtualFileStatCallback(void* context, const char* id)
 {
-    constexpr int64_t STAT_FILE_SIZE = 100;
+    constexpr int64_t statFileSize = 100;
     OH_UDMF_VirtualItem* item = OH_UDMF_CreateVirtualFileItem("test.txt", id, 1000);
     if (item != nullptr) {
-        OH_UDMF_SetVirtualFileSize(item, STAT_FILE_SIZE);
+        OH_UDMF_SetVirtualFileSize(item, statFileSize);
     }
     return item;
 }
