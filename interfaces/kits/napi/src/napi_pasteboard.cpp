@@ -221,7 +221,9 @@ public:
     {
         (void)recordId;
         const auto *entry = rootEntry_.FindById(id);
-        if (entry != nullptr) {
+        // Use the local tree only when the size is already known; otherwise fall
+        // through to the onStat callback so it can return the size at runtime.
+        if (entry != nullptr && (entry->IsDir() || entry->size >= 0)) {
             stat.id = entry->id;
             stat.name = entry->name;
             stat.size = entry->size;
@@ -897,7 +899,10 @@ static bool BuildVirtualFileEntry(napi_env env, napi_value itemInfo, napi_value 
     if (!ParseVirtualItem(env, itemInfo, rootEntry, 0, itemCount)) {
         return false;
     }
-    if (!rootEntry.HasValidFileSizes()) {
+    // size is optional when onStat is provided (returned at runtime through the callback).
+    napi_valuetype onStatType = napi_undefined;
+    napi_typeof(env, onStat, &onStatType);
+    if (onStatType != napi_function && !rootEntry.HasValidFileSizes()) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "fileSize is invalid");
         napi_throw_error(env, "401", "Parameter error: fileSize is invalid");
         return false;
@@ -963,7 +968,10 @@ static napi_value CreateVirtualFileData(napi_env env, const std::string &mimeTyp
     if (!ParseVirtualItem(env, itemInfo, rootEntry, 0, itemCount)) {
         return nullptr;
     }
-    if (!rootEntry.HasValidFileSizes()) {
+    // size is optional when onStat is provided (returned at runtime through the callback).
+    napi_valuetype onStatType = napi_undefined;
+    napi_typeof(env, onStat, &onStatType);
+    if (onStatType != napi_function && !rootEntry.HasValidFileSizes()) {
         PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_NAPI, "fileSize is invalid");
         napi_throw_error(env, "401", "Parameter error: fileSize is invalid");
         return nullptr;
