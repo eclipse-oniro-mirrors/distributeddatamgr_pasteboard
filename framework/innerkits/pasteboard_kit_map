@@ -23,6 +23,7 @@
         *PasteboardSaDeathRecipient*;
         *PasteboardServiceLoader*;
         *PasteboardClient*;
+        *PasteboardFuseGetter*;
         *PasteboardDisposableObserver*;
         *PasteboardObserver*;
         *ProgressSignalClient*;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -45,6 +45,9 @@ bool UnifiedContextSetErr(const std::shared_ptr<GetUnifiedContextInfo> context, 
 napi_status ConvertEntryValue(napi_env env, napi_value *result, std::string &udtType,
     std::shared_ptr<MiscServices::PasteDataEntry> value);
 bool GetNativeValue(napi_env env, const std::string &type, napi_value valueNapi, MiscServices::EntryValue &value);
+bool IsVirtualFileInfo(napi_env env, napi_value value);
+bool AddVirtualFileEntry(napi_env env, std::shared_ptr<MiscServices::PasteDataRecord> record,
+    const std::string &mimeType, napi_value vfiValue);
 } // namespace MiscServicesNapi
 } // namespace OHOS
 #endif

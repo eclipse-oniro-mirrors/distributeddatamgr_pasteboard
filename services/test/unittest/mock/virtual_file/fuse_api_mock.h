@@ -1,0 +1,116 @@
+/*
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#ifndef FUSE_API_MOCK_H
+#define FUSE_API_MOCK_H
+
+// This file mocks the libfuse C API; snake_case names match the real ABI.
+// NOLINTBEGIN
+#include <gmock/gmock.h>
+
+#include <fuse.h>
+#include <fuse_lowlevel.h>
+
+class IFuseApi {
+public:
+    virtual ~IFuseApi() = default;
+    virtual struct fuse *fuse_new(struct fuse_args *args, const struct fuse_operations *op,
+        size_t op_size, void *user_data) = 0;
+    virtual int fuse_mount(struct fuse *f, const char *mountpoint) = 0;
+    virtual void fuse_unmount(struct fuse *f) = 0;
+    virtual int fuse_loop_mt(struct fuse *f, struct fuse_loop_config *config) = 0;
+    virtual struct fuse_loop_config *fuse_loop_cfg_create() = 0;
+    virtual void fuse_loop_cfg_set_max_threads(struct fuse_loop_config *config, unsigned int max_threads) = 0;
+    virtual void fuse_loop_cfg_destroy(struct fuse_loop_config *config) = 0;
+    virtual void fuse_destroy(struct fuse *f) = 0;
+    virtual void fuse_exit(struct fuse *f) = 0;
+    virtual struct fuse_context *fuse_get_context() = 0;
+    virtual int fuse_opt_add_arg(struct fuse_args *args, const char *arg) = 0;
+    virtual void fuse_opt_free_args(struct fuse_args *args) = 0;
+    virtual int fuse_session_custom_io(struct fuse_session *se, void *io, size_t io_size, int fd) = 0;
+    virtual int fuse_session_loop_mt(struct fuse_session *se, struct fuse_loop_config *config) = 0;
+    virtual struct fuse_session *fuse_session_new(struct fuse_args *args,
+        const struct fuse_lowlevel_ops *ops, size_t op_size, void *userdata) = 0;
+    virtual void fuse_session_destroy(struct fuse_session *se) = 0;
+    virtual void fuse_session_exit(struct fuse_session *se) = 0;
+    virtual void fuse_loop_cfg_set_idle_threads(
+        struct fuse_loop_config *config, unsigned int idle_threads) = 0;
+    virtual void fuse_loop_cfg_set_clone_fd(struct fuse_loop_config *config, int clone_fd) = 0;
+    virtual void *fuse_req_userdata(struct fuse_req *req) = 0;
+    virtual const struct fuse_ctx *fuse_req_ctx(struct fuse_req *req) = 0;
+    virtual void fuse_reply_entry(struct fuse_req *req, const struct fuse_entry_param *e) = 0;
+    virtual void fuse_reply_err(struct fuse_req *req, int err) = 0;
+    virtual void fuse_reply_attr(struct fuse_req *req, const struct stat *attr, double timeout) = 0;
+    virtual void fuse_reply_open(struct fuse_req *req, const struct fuse_file_info *fi) = 0;
+    virtual void fuse_reply_buf(struct fuse_req *req, const char *buf, size_t size) = 0;
+    virtual void fuse_reply_none(struct fuse_req *req) = 0;
+    virtual size_t fuse_add_direntry(struct fuse_req *req, char *buf, size_t bufsize,
+        const char *name, const struct stat *stbuf, off_t off) = 0;
+};
+
+class FuseApiMock : public IFuseApi {
+public:
+    FuseApiMock();
+    ~FuseApiMock() override;
+    MOCK_METHOD(struct fuse *, fuse_new,
+        (struct fuse_args * args, const struct fuse_operations *op, size_t op_size, void *user_data), (override));
+    MOCK_METHOD(int, fuse_mount, (struct fuse * f, const char *mountpoint), (override));
+    MOCK_METHOD(void, fuse_unmount, (struct fuse * f), (override));
+    MOCK_METHOD(int, fuse_loop_mt, (struct fuse * f, struct fuse_loop_config *config), (override));
+    MOCK_METHOD(struct fuse_loop_config *, fuse_loop_cfg_create, (), (override));
+    MOCK_METHOD(void, fuse_loop_cfg_set_max_threads,
+        (struct fuse_loop_config * config, unsigned int max_threads), (override));
+    MOCK_METHOD(void, fuse_loop_cfg_destroy, (struct fuse_loop_config * config), (override));
+    MOCK_METHOD(void, fuse_destroy, (struct fuse * f), (override));
+    MOCK_METHOD(void, fuse_exit, (struct fuse * f), (override));
+    MOCK_METHOD(struct fuse_context *, fuse_get_context, (), (override));
+    MOCK_METHOD(int, fuse_opt_add_arg, (struct fuse_args * args, const char *arg), (override));
+    MOCK_METHOD(void, fuse_opt_free_args, (struct fuse_args * args), (override));
+    MOCK_METHOD(int, fuse_session_custom_io,
+        (struct fuse_session * se, void *io, size_t io_size, int fd), (override));
+    MOCK_METHOD(int, fuse_session_loop_mt,
+        (struct fuse_session * se, struct fuse_loop_config *config), (override));
+    MOCK_METHOD(struct fuse_session *, fuse_session_new,
+        (struct fuse_args * args, const struct fuse_lowlevel_ops *ops, size_t op_size, void *userdata),
+        (override));
+    MOCK_METHOD(void, fuse_session_destroy, (struct fuse_session * se), (override));
+    MOCK_METHOD(void, fuse_session_exit, (struct fuse_session * se), (override));
+    MOCK_METHOD(void, fuse_loop_cfg_set_idle_threads,
+        (struct fuse_loop_config * config, unsigned int idle_threads), (override));
+    MOCK_METHOD(void, fuse_loop_cfg_set_clone_fd, (struct fuse_loop_config * config, int clone_fd), (override));
+    MOCK_METHOD(void *, fuse_req_userdata, (struct fuse_req * req), (override));
+    MOCK_METHOD(const struct fuse_ctx *, fuse_req_ctx, (struct fuse_req * req), (override));
+    MOCK_METHOD(void, fuse_reply_entry,
+        (struct fuse_req * req, const struct fuse_entry_param *e), (override));
+    MOCK_METHOD(void, fuse_reply_err, (struct fuse_req * req, int err), (override));
+    MOCK_METHOD(void, fuse_reply_attr,
+        (struct fuse_req * req, const struct stat *attr, double timeout), (override));
+    MOCK_METHOD(void, fuse_reply_open,
+        (struct fuse_req * req, const struct fuse_file_info *fi), (override));
+    MOCK_METHOD(void, fuse_reply_buf,
+        (struct fuse_req * req, const char *buf, size_t size), (override));
+    MOCK_METHOD(void, fuse_reply_none, (struct fuse_req * req), (override));
+    MOCK_METHOD(size_t, fuse_add_direntry,
+        (struct fuse_req * req, char *buf, size_t bufsize, const char *name,
+            const struct stat *stbuf, off_t off),
+        (override));
+    static FuseApiMock *GetMock();
+
+private:
+    static inline FuseApiMock *mock_ = nullptr;
+    struct fuse_context mockContext_{};
+};
+// NOLINTEND
+#endif // FUSE_API_MOCK_H

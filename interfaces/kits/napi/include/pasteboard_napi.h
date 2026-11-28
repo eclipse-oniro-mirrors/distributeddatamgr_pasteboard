@@ -47,6 +47,7 @@ private:
     static napi_value JScreateHtmlTextRecord(napi_env env, napi_callback_info info);
     static napi_value JScreateWantRecord(napi_env env, napi_callback_info info);
     static napi_value JScreateShareOption(napi_env env, napi_callback_info info);
+    static napi_value JScreateVirtualItemType(napi_env env, napi_callback_info info);
     static napi_value JScreatePattern(napi_env env, napi_callback_info info);
     static napi_value JScreateFileConflictOptions(napi_env env, napi_callback_info info);
     static napi_value JScreateProgressIndicator(napi_env env, napi_callback_info info);
@@ -63,6 +64,7 @@ private:
     static napi_value JSCreateKvData(
         napi_env env, const std::string &mimeType, const std::vector<uint8_t> &arrayBuffer);
     static napi_value JSCreateData(napi_env env, napi_callback_info info);
+    static napi_value CreateDelayDataFromArray(napi_env env, napi_value argv[], size_t argc);
     static napi_value JSgetSystemPasteboard(napi_env env, napi_callback_info info);
 };
 } // namespace MiscServicesNapi

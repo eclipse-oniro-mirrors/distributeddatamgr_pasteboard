@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -548,5 +548,49 @@ HWTEST_F(PasteDataEntryTest, EntryTest003, TestSize.Level0)
     mimeType = "test";
     EXPECT_EQ(utils.Convert(uDType, mimeType), UDMF::APPLICATION_DEFINED_RECORD);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "EntryTest003 end");
+}
+
+/**
+ * @tc.name: IsFileUri_001
+ * @tc.desc: IsFileUri returns true for the streaming virtual-file utd "general.virtual-file"
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteDataEntryTest, IsFileUri_001, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "IsFileUri_001 start");
+    EXPECT_TRUE(CommonUtils::IsFileUri("general.virtual-file"));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "IsFileUri_001 end");
+}
+
+/**
+ * @tc.name: IsFileUri_002
+ * @tc.desc: IsFileUri returns true for all known file-type UTD enum ids
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteDataEntryTest, IsFileUri_002, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "IsFileUri_002 start");
+    EXPECT_TRUE(CommonUtils::IsFileUri(UDMF::UtdUtils::GetUtdIdFromUtdEnum(UDMF::FILE_URI)));
+    EXPECT_TRUE(CommonUtils::IsFileUri(UDMF::UtdUtils::GetUtdIdFromUtdEnum(UDMF::FILE)));
+    EXPECT_TRUE(CommonUtils::IsFileUri(UDMF::UtdUtils::GetUtdIdFromUtdEnum(UDMF::AUDIO)));
+    EXPECT_TRUE(CommonUtils::IsFileUri(UDMF::UtdUtils::GetUtdIdFromUtdEnum(UDMF::IMAGE)));
+    EXPECT_TRUE(CommonUtils::IsFileUri(UDMF::UtdUtils::GetUtdIdFromUtdEnum(UDMF::FOLDER)));
+    EXPECT_TRUE(CommonUtils::IsFileUri(UDMF::UtdUtils::GetUtdIdFromUtdEnum(UDMF::VIDEO)));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "IsFileUri_002 end");
+}
+
+/**
+ * @tc.name: IsFileUri_003
+ * @tc.desc: IsFileUri returns false for non-file UTD ids, empty string and unknown ids
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteDataEntryTest, IsFileUri_003, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "IsFileUri_003 start");
+    EXPECT_FALSE(CommonUtils::IsFileUri(UDMF::UtdUtils::GetUtdIdFromUtdEnum(UDMF::PLAIN_TEXT)));
+    EXPECT_FALSE(CommonUtils::IsFileUri(UDMF::UtdUtils::GetUtdIdFromUtdEnum(UDMF::HTML)));
+    EXPECT_FALSE(CommonUtils::IsFileUri(""));
+    EXPECT_FALSE(CommonUtils::IsFileUri("unknown.utd.id"));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_CLIENT, "IsFileUri_003 end");
 }
 } // namespace OHOS::MiscServices

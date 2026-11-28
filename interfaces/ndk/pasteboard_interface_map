@@ -43,6 +43,7 @@
         OH_Pasteboard_ProgressCancel;
         OH_Pasteboard_GetDataWithProgress;
         OH_Pasteboard_SyncDelayedDataAsync;
+        OH_Pasteboard_SetVirtualFileData;
     };
     local:
         *;

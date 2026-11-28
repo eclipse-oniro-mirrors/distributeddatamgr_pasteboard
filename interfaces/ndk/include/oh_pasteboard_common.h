@@ -44,6 +44,7 @@ enum PasteboardNdkStructId : std::int64_t {
     SUBSCRIBER_STRUCT_ID = 1002950,
     PASTEBOARD_STRUCT_ID,
     PARAMS_STRUCT_ID,
+    VIRTUAL_FILE_PROVIDER_STRUCT_ID,
 };
 
 struct OH_Pasteboard {

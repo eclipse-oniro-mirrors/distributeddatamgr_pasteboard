@@ -16,6 +16,7 @@ sequenceable OHOS.IRemoteObject;
 sequenceable OHOS.MiscServices.PasteDataInfo;
 interface OHOS.MiscServices.IPasteboardDelayGetter;
 interface OHOS.MiscServices.IPasteboardEntryGetter;
+interface OHOS.MiscServices.IPasteboardFuseGetter;
 interface OHOS.MiscServices.IPasteboardChangedObserver;
 interface OHOS.MiscServices.IPasteboardDisposableObserver;
 interface OHOS.MiscServices.IEntityRecognitionObserver;
@@ -51,6 +52,8 @@ interface OHOS.MiscServices.IPasteboardService {
         [in] int userId, [in] FileDescriptor fd, [in] long memSize, [in] unsigned char[] buffer,
         [in] IPasteboardDelayGetter delayGetter, [in] IPasteboardEntryGetter entryGetter);
     [ipccode 105] void SyncDelayedData();
+    [ipccode 107] void SetPasteDataVirtualFile([in] int userId, [in] FileDescriptor fd, [in] long memSize,
+        [in] unsigned char[] buffer, [in] IPasteboardFuseGetter fuseGetter);
 
     [ipccode 200] void GetPasteData(
         [in] int userId, [out] FileDescriptorSan fd, [out] long memSize, [out] unsigned char[] buffer,

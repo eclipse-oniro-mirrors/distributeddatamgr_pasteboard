@@ -23,6 +23,7 @@
 #include "pasteboard_delay_getter_client.h"
 #include "pasteboard_disposable_observer.h"
 #include "pasteboard_entry_getter_client.h"
+#include "pasteboard_fuse_getter_client.h"
 #include "pasteboard_hilog.h"
 #include "pasteboard_observer.h"
 #include "pasteboard_progress_signal.h"
@@ -309,7 +310,8 @@ public:
      * @return int32_t.
      */
     int32_t SetPasteData(PasteData &pasteData, std::shared_ptr<PasteboardDelayGetter> delayGetter = nullptr,
-        std::map<uint32_t, std::shared_ptr<UDMF::EntryGetter>> entryGetters = {});
+        std::map<uint32_t, std::shared_ptr<UDMF::EntryGetter>> entryGetters = {},
+        std::map<uint32_t, sptr<IPasteboardFuseGetter>> fuseGetters = {});
 
     /**
      * SetPasteData
@@ -687,8 +689,9 @@ private:
        PasteDataFromServiceInfo &pasteDataFromServiceInfo, std::string progressKey,
        std::shared_ptr<GetDataParams> params);
     int32_t SetPasteDataInner(int32_t userId, PasteData &pasteData,
-       std::shared_ptr<PasteboardDelayGetter> delayGetter,
-       std::map<uint32_t, std::shared_ptr<UDMF::EntryGetter>> entryGetters);
+        std::shared_ptr<PasteboardDelayGetter> delayGetter,
+        std::map<uint32_t, std::shared_ptr<UDMF::EntryGetter>> entryGetters,
+        std::map<uint32_t, sptr<IPasteboardFuseGetter>> fuseGetters = {});
     int32_t GetDataWithProgressInner(int32_t userId, PasteData &pasteData,
        std::shared_ptr<GetDataParams> params, const std::string &traceName);
     int32_t DispatchSetProxy(int32_t userId, const sptr<IPasteboardService> &proxy,

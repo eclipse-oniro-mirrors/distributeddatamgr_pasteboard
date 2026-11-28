@@ -17,6 +17,7 @@
 #define PASTE_BOARD_RECORD_H
 
 #include "common/constant.h"
+#include "ipasteboard_fuse_getter.h"
 #include "paste_data_entry.h"
 #include "uri.h"
 
@@ -129,6 +130,8 @@ public:
 
     void SetEntryGetter(const std::shared_ptr<UDMF::EntryGetter> entryGetter);
     std::shared_ptr<UDMF::EntryGetter> GetEntryGetter();
+    void SetFuseGetter(const sptr<IPasteboardFuseGetter> fuseGetter);
+    sptr<IPasteboardFuseGetter> GetFuseGetter();
 
     void SetFrom(uint32_t from);
     uint32_t GetFrom() const;
@@ -179,6 +182,7 @@ private:
     std::shared_ptr<EntryValue> udmfValue_;
     std::vector<std::shared_ptr<PasteDataEntry>> entries_;
     std::shared_ptr<UDMF::EntryGetter> entryGetter_;
+    sptr<IPasteboardFuseGetter> fuseGetter_;
 };
 } // namespace MiscServices
 } // namespace OHOS

@@ -14,18 +14,22 @@
  */
 
 #include <gtest/gtest.h>
+#include <algorithm>
 #include <thread>
 #include <unistd.h>
 
 #include "fd_san.h"
 #include "ipc_skeleton.h"
 #include "message_parcel_warp.h"
+#include "paste_data.h"
+#include "paste_data_entry.h"
+#include "paste_data_record.h"
 #include "pasteboard_error.h"
 #include "pasteboard_hilog.h"
 #include "pasteboard_observer_stub.h"
 #include "pasteboard_service.h"
 #include "pasteboard_time.h"
-#include "paste_data_entry.h"
+#include "unified_meta.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -207,7 +211,8 @@ HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataTest001, TestSize.Level1)
 
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
-    int32_t result = tempPasteboard->SetPasteData(dup(fd), rawDataSize, buffer, delayGetter, entryGetter);
+    int32_t result = tempPasteboard->SetPasteData(ERROR_USERID, dup(fd), rawDataSize, buffer, delayGetter,
+        entryGetter);
     EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::INVALID_PARAM_ERROR));
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetPasteDataTest001 end");
 }
@@ -230,7 +235,8 @@ HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataTest002, TestSize.Level1)
 
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
-    int32_t result = tempPasteboard->SetPasteData(dup(fd), rawDataSize, buffer, delayGetter, entryGetter);
+    int32_t result = tempPasteboard->SetPasteData(ERROR_USERID, dup(fd), rawDataSize, buffer, delayGetter,
+        entryGetter);
     EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::INVALID_PARAM_ERROR));
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetPasteDataTest002 end");
 }
@@ -253,7 +259,8 @@ HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataTest003, TestSize.Level1)
 
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
-    int32_t result = tempPasteboard->SetPasteData(dup(fd), rawDataSize, buffer, delayGetter, entryGetter);
+    int32_t result = tempPasteboard->SetPasteData(ERROR_USERID, dup(fd), rawDataSize, buffer, delayGetter,
+        entryGetter);
     EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::INVALID_DATA_ERROR));
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetPasteDataTest003 end");
 }
@@ -276,7 +283,8 @@ HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataTest004, TestSize.Level1)
 
     auto tempPasteboard = std::make_shared<PasteboardService>();
     EXPECT_NE(tempPasteboard, nullptr);
-    int32_t result = tempPasteboard->SetPasteData(dup(fd), rawDataSize, buffer, delayGetter, entryGetter);
+    int32_t result = tempPasteboard->SetPasteData(ERROR_USERID, dup(fd), rawDataSize, buffer, delayGetter,
+        entryGetter);
     EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::NO_DATA_ERROR));
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetPasteDataTest004 end");
 }
@@ -296,7 +304,7 @@ HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataTest005, TestSize.Level1)
     int fd = -1;
     int64_t rawDataSize = 0;
     std::vector<uint8_t> recvTLV;
-    auto ret = tempPasteboard->SetPasteData(dup(fd), rawDataSize, recvTLV, nullptr, nullptr);
+    auto ret = tempPasteboard->SetPasteData(ERROR_USERID, dup(fd), rawDataSize, recvTLV, nullptr, nullptr);
     EXPECT_EQ(static_cast<int32_t>(PasteboardError::INVALID_PARAM_ERROR), ret);
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetPasteDataTest005 end");
 }
@@ -459,7 +467,7 @@ HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataOnlyTest001, TestSize.Level1)
     std::vector<uint8_t> buffer;
     int fd = mpw->CreateTmpFd();
     fdsan_exchange_owner_tag(fd, 0, PASTEBOARD_FD_TAG);
-    int32_t result = service->SetPasteDataOnly(dup(fd), rawDataSize, buffer);
+    int32_t result = service->SetPasteDataOnly(ERROR_USERID, dup(fd), rawDataSize, buffer);
     EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::INVALID_PARAM_ERROR));
     mpw->writeRawDataFd_ = -1;
     fdsan_close_with_tag(fd, PASTEBOARD_FD_TAG);
@@ -1398,6 +1406,185 @@ HWTEST_F(PasteboardServiceSetDataTest, WritePasteDataTest009, TestSize.Level1)
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "WritePasteDataTest009 end");
 }
 
+static std::shared_ptr<PasteDataRecord> BuildVirtualFileRecord(const std::string &fileId,
+    const std::string &fileName, int32_t fileType)
+{
+    auto obj = std::make_shared<UDMF::Object>();
+    obj->value_["id"] = fileId;
+    obj->value_["name"] = fileName;
+    obj->value_["type"] = fileType;
+    constexpr const char *VIRTUAL_FILE_UTD = "general.virtual-file";
+    auto record = std::make_shared<PasteDataRecord>();
+    record->AddEntry(VIRTUAL_FILE_UTD, std::make_shared<PasteDataEntry>(VIRTUAL_FILE_UTD, obj));
+    return record;
+}
+
+/**
+ * @tc.name: HandleVirtualFile_LongFileId_Skipped
+ * @tc.desc: A virtual file record whose fileId exceeds MAX_VIRTUAL_FILE_ID_BYTES is skipped.
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceSetDataTest, HandleVirtualFile_LongFileId_Skipped, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "HandleVirtualFile_LongFileId_Skipped start");
+    auto service = std::make_shared<PasteboardService>();
+    ASSERT_NE(service, nullptr);
+    PasteData pasteData;
+    std::string longFileId(1025, 'a');
+    pasteData.AddRecord(BuildVirtualFileRecord(longFileId, "valid.txt", 0));
+    pasteData.AddRecord(BuildVirtualFileRecord("validId", "ok.txt", 0));
+    AppInfo appInfo;
+    appInfo.userId = 100;
+    service->HandleVirtualFile(pasteData, nullptr, appInfo);
+    auto records = pasteData.AllRecords();
+    ASSERT_EQ(records.size(), 2u);
+    EXPECT_EQ(records[0]->GetUri(), nullptr);
+    ASSERT_NE(records[1]->GetUri(), nullptr);
+    std::string uriStr = records[1]->GetUri()->ToString();
+    EXPECT_EQ(uriStr.find("file:///data/service/el2/"), 0u);
+    EXPECT_NE(uriStr.find("/clipboard_fuse/files/"), std::string::npos);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "HandleVirtualFile_LongFileId_Skipped end");
+}
+
+/**
+ * @tc.name: HandleVirtualFile_LongFileName_Skipped
+ * @tc.desc: A virtual file record whose fileName exceeds MAX_VIRTUAL_FILE_NAME_BYTES is skipped.
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceSetDataTest, HandleVirtualFile_LongFileName_Skipped, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "HandleVirtualFile_LongFileName_Skipped start");
+    auto service = std::make_shared<PasteboardService>();
+    ASSERT_NE(service, nullptr);
+    PasteData pasteData;
+    std::string longFileName(256, 'b');
+    pasteData.AddRecord(BuildVirtualFileRecord("id1", longFileName, 0));
+    pasteData.AddRecord(BuildVirtualFileRecord("id2", "ok.txt", 0));
+    AppInfo appInfo;
+    appInfo.userId = 100;
+    service->HandleVirtualFile(pasteData, nullptr, appInfo);
+    auto records = pasteData.AllRecords();
+    ASSERT_EQ(records.size(), 2u);
+    EXPECT_EQ(records[0]->GetUri(), nullptr);
+    ASSERT_NE(records[1]->GetUri(), nullptr);
+    std::string uriStr = records[1]->GetUri()->ToString();
+    EXPECT_EQ(uriStr.find("file:///data/service/el2/"), 0u);
+    EXPECT_NE(uriStr.find("/clipboard_fuse/files/"), std::string::npos);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "HandleVirtualFile_LongFileName_Skipped end");
+}
+
+/**
+ * @tc.name: HandleVirtualFile_PathSeparator_Rejected
+ * @tc.desc: A virtual file record whose fileId or fileName contains a path separator is skipped.
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceSetDataTest, HandleVirtualFile_PathSeparator_Rejected, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "HandleVirtualFile_PathSeparator_Rejected start");
+    auto service = std::make_shared<PasteboardService>();
+    ASSERT_NE(service, nullptr);
+    PasteData pasteData;
+    pasteData.AddRecord(BuildVirtualFileRecord("bad/id", "ok1.txt", 0));
+    pasteData.AddRecord(BuildVirtualFileRecord("id2", "bad/name.txt", 0));
+    pasteData.AddRecord(BuildVirtualFileRecord("id3", "ok3.txt", 0));
+    AppInfo appInfo;
+    appInfo.userId = 100;
+    service->HandleVirtualFile(pasteData, nullptr, appInfo);
+    auto records = pasteData.AllRecords();
+    ASSERT_EQ(records.size(), 3u);
+    EXPECT_EQ(records[0]->GetUri(), nullptr);
+    EXPECT_EQ(records[1]->GetUri(), nullptr);
+    ASSERT_NE(records[2]->GetUri(), nullptr);
+    std::string uriStr = records[2]->GetUri()->ToString();
+    EXPECT_EQ(uriStr.find("file:///data/service/el2/"), 0u);
+    EXPECT_NE(uriStr.find("/clipboard_fuse/files/"), std::string::npos);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "HandleVirtualFile_PathSeparator_Rejected end");
+}
+
+/**
+ * @tc.name: HandleVirtualFile_TooManyFiles_Capped
+ * @tc.desc: Only the first MAX_VIRTUAL_FILE_COUNT virtual file records are processed.
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceSetDataTest, HandleVirtualFile_TooManyFiles_Capped, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "HandleVirtualFile_TooManyFiles_Capped start");
+    auto service = std::make_shared<PasteboardService>();
+    ASSERT_NE(service, nullptr);
+    PasteData pasteData;
+    constexpr size_t EXPECTED_PROCESSED = 4096;
+    for (size_t i = 0; i <= EXPECTED_PROCESSED; ++i) {
+        pasteData.AddRecord(
+            BuildVirtualFileRecord("id" + std::to_string(i), "f" + std::to_string(i) + ".txt", 0));
+    }
+    AppInfo appInfo;
+    appInfo.userId = 100;
+    service->HandleVirtualFile(pasteData, nullptr, appInfo);
+    auto records = pasteData.AllRecords();
+    ASSERT_EQ(records.size(), EXPECTED_PROCESSED + 1);
+    size_t withUri = 0;
+    bool formatChecked = false;
+    for (const auto &record : records) {
+        if (record && record->GetUri() != nullptr) {
+            withUri++;
+            if (!formatChecked) {
+                std::string uriStr = record->GetUri()->ToString();
+                EXPECT_EQ(uriStr.find("file:///data/service/el2/"), 0u);
+                EXPECT_NE(uriStr.find("/clipboard_fuse/files/"), std::string::npos);
+                formatChecked = true;
+            }
+        }
+    }
+    EXPECT_EQ(withUri, EXPECTED_PROCESSED);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "HandleVirtualFile_TooManyFiles_Capped end");
+}
+
+/**
+ * @tc.name: HandleVirtualFile_UriFormat_001
+ * @tc.desc: Generated URI should use file:// scheme with FUSE path and numeric dataId/recordId.
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceSetDataTest, HandleVirtualFile_UriFormat_001, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "HandleVirtualFile_UriFormat_001 start");
+    auto service = std::make_shared<PasteboardService>();
+    ASSERT_NE(service, nullptr);
+    PasteData pasteData;
+    pasteData.AddRecord(BuildVirtualFileRecord("fileIdA", "alpha.txt", 0));
+    pasteData.AddRecord(BuildVirtualFileRecord("fileIdB", "beta.txt", 0));
+    AppInfo appInfo;
+    appInfo.userId = 100;
+    service->HandleVirtualFile(pasteData, nullptr, appInfo);
+    auto records = pasteData.AllRecords();
+    ASSERT_EQ(records.size(), 2u);
+    ASSERT_NE(records[0]->GetUri(), nullptr);
+    ASSERT_NE(records[1]->GetUri(), nullptr);
+    std::string firstUri = records[0]->GetUri()->ToString();
+    std::string secondUri = records[1]->GetUri()->ToString();
+    // URI should use file:// scheme with the FUSE mount path
+    constexpr const char *URI_PREFIX = "file:///data/service/el2/clipboard_fuse/files/";
+    EXPECT_EQ(firstUri.find(URI_PREFIX), 0u);
+    EXPECT_EQ(secondUri.find(URI_PREFIX), 0u);
+    // Extract suffix after the base path: <dataId>/<recordId>/<fileName>
+    std::string firstSuffix = firstUri.substr(std::string(URI_PREFIX).size());
+    std::string secondSuffix = secondUri.substr(std::string(URI_PREFIX).size());
+    // Both records share the same dataId (from the same PasteData)
+    size_t firstSlash = firstSuffix.find('/');
+    size_t secondSlash = secondSuffix.find('/');
+    ASSERT_NE(firstSlash, std::string::npos);
+    ASSERT_NE(secondSlash, std::string::npos);
+    std::string firstDataId = firstSuffix.substr(0, firstSlash);
+    std::string secondDataId = secondSuffix.substr(0, secondSlash);
+    EXPECT_EQ(firstDataId, secondDataId);
+    // Suffix has format <dataId>/<recordId>/<fileName> — two slashes total
+    EXPECT_EQ(std::count(firstSuffix.begin(), firstSuffix.end(), '/'), 2);
+    EXPECT_EQ(std::count(secondSuffix.begin(), secondSuffix.end(), '/'), 2);
+    // File names should be preserved at the end
+    EXPECT_EQ(firstSuffix.substr(firstSuffix.rfind('/') + 1), "alpha.txt");
+    EXPECT_EQ(secondSuffix.substr(secondSuffix.rfind('/') + 1), "beta.txt");
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "HandleVirtualFile_UriFormat_001 end");
+}
+
 /**
  * @tc.name: SetPasteDataByUserTest001
  * @tc.desc: SetPasteData rejects invalid userId (0) via SA path
@@ -1476,6 +1663,206 @@ HWTEST_F(PasteboardServiceSetDataTest, SetPasteDataEntryDataByUserTest001, TestS
     int32_t result = tempPasteboard->SetPasteDataEntryData(0, -1, 0, buffer, nullptr);
     EXPECT_EQ(result, static_cast<int32_t>(PasteboardError::INVALID_USERID_ERROR));
     PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "SetPasteDataEntryDataByUserTest001 end");
+}
+
+// ===== Virtual-File Helper Function Branch Tests =====
+
+static std::shared_ptr<UDMF::Object> BuildVirtualFileObject(const std::string &fileId,
+    const std::string &fileName, int64_t fileSize = 0, int64_t modifyTime = 0)
+{
+    auto obj = std::make_shared<UDMF::Object>();
+    obj->value_["id"] = fileId;
+    obj->value_["name"] = fileName;
+    obj->value_["size"] = fileSize;
+    obj->value_["modifyTime"] = modifyTime;
+    return obj;
+}
+
+/**
+ * @tc.name: GenerateVirtualUri_001
+ * @tc.desc: GenerateVirtualUri should produce file:// scheme with dataId/recordId/fileName path
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceSetDataTest, GenerateVirtualUri_001, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GenerateVirtualUri_001 start");
+    auto service = std::make_shared<PasteboardService>();
+    ASSERT_NE(service, nullptr);
+    std::string uri = service->GenerateVirtualUri(1, 10, "test.txt");
+    EXPECT_EQ(uri.find("file://"), 0u);
+    EXPECT_NE(uri.find("/1/"), std::string::npos);
+    EXPECT_NE(uri.find("/10/"), std::string::npos);
+    EXPECT_NE(uri.find("test.txt"), std::string::npos);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "GenerateVirtualUri_001 end");
+}
+
+/**
+ * @tc.name: BuildFuseNodeTree_NullEntry_001
+ * @tc.desc: BuildFuseNodeTree should return nullptr when entry is null
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceSetDataTest, BuildFuseNodeTree_NullEntry_001, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "BuildFuseNodeTree_NullEntry_001 start");
+    auto service = std::make_shared<PasteboardService>();
+    ASSERT_NE(service, nullptr);
+    AppInfo appInfo;
+    appInfo.userId = 100;
+    auto info = service->BuildFuseNodeTree(nullptr, nullptr, appInfo, 1, 10);
+    EXPECT_EQ(info, nullptr);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "BuildFuseNodeTree_NullEntry_001 end");
+}
+
+/**
+ * @tc.name: BuildFuseNodeTree_EmptyIdName_001
+ * @tc.desc: BuildFuseNodeTree should return nullptr when both fileId and fileName are empty
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceSetDataTest, BuildFuseNodeTree_EmptyIdName_001, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "BuildFuseNodeTree_EmptyIdName_001 start");
+    auto service = std::make_shared<PasteboardService>();
+    ASSERT_NE(service, nullptr);
+    auto obj = BuildVirtualFileObject("", "");
+    auto entry = std::make_shared<PasteDataEntry>("general.virtual-file", obj);
+    AppInfo appInfo;
+    appInfo.userId = 100;
+    auto info = service->BuildFuseNodeTree(entry, nullptr, appInfo, 1, 10);
+    EXPECT_EQ(info, nullptr);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "BuildFuseNodeTree_EmptyIdName_001 end");
+}
+
+/**
+ * @tc.name: BuildFuseNodeTree_PathSeparator_001
+ * @tc.desc: BuildFuseNodeTree should return nullptr when fileId or fileName contains path separator
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceSetDataTest, BuildFuseNodeTree_PathSeparator_001, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "BuildFuseNodeTree_PathSeparator_001 start");
+    auto service = std::make_shared<PasteboardService>();
+    ASSERT_NE(service, nullptr);
+    AppInfo appInfo;
+    appInfo.userId = 100;
+    // fileId with slash
+    auto obj1 = BuildVirtualFileObject("bad/id", "ok.txt");
+    auto entry1 = std::make_shared<PasteDataEntry>("general.virtual-file", obj1);
+    EXPECT_EQ(service->BuildFuseNodeTree(entry1, nullptr, appInfo, 1, 10), nullptr);
+    // fileName with backslash
+    auto obj2 = BuildVirtualFileObject("okId", "bad\\name");
+    auto entry2 = std::make_shared<PasteDataEntry>("general.virtual-file", obj2);
+    EXPECT_EQ(service->BuildFuseNodeTree(entry2, nullptr, appInfo, 1, 10), nullptr);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "BuildFuseNodeTree_PathSeparator_001 end");
+}
+
+/**
+ * @tc.name: BuildFuseNodeTree_LengthOverflow_001
+ * @tc.desc: BuildFuseNodeTree should return nullptr when fileId or fileName exceeds length limit
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceSetDataTest, BuildFuseNodeTree_LengthOverflow_001, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "BuildFuseNodeTree_LengthOverflow_001 start");
+    auto service = std::make_shared<PasteboardService>();
+    ASSERT_NE(service, nullptr);
+    AppInfo appInfo;
+    appInfo.userId = 100;
+    // fileId too long (>1024)
+    auto obj1 = BuildVirtualFileObject(std::string(1025, 'x'), "ok.txt");
+    auto entry1 = std::make_shared<PasteDataEntry>("general.virtual-file", obj1);
+    EXPECT_EQ(service->BuildFuseNodeTree(entry1, nullptr, appInfo, 1, 10), nullptr);
+    // fileName too long (>255)
+    auto obj2 = BuildVirtualFileObject("okId", std::string(256, 'y'));
+    auto entry2 = std::make_shared<PasteDataEntry>("general.virtual-file", obj2);
+    EXPECT_EQ(service->BuildFuseNodeTree(entry2, nullptr, appInfo, 1, 10), nullptr);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "BuildFuseNodeTree_LengthOverflow_001 end");
+}
+
+/**
+ * @tc.name: BuildFuseNodeTree_Success_001
+ * @tc.desc: BuildFuseNodeTree should return valid FileInfo when entry has valid fileId and fileName
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceSetDataTest, BuildFuseNodeTree_Success_001, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "BuildFuseNodeTree_Success_001 start");
+    auto service = std::make_shared<PasteboardService>();
+    ASSERT_NE(service, nullptr);
+    auto obj = BuildVirtualFileObject("fileIdA", "alpha.txt", 2048, 5000);
+    auto entry = std::make_shared<PasteDataEntry>("general.virtual-file", obj);
+    AppInfo appInfo;
+    appInfo.userId = 100;
+    auto info = service->BuildFuseNodeTree(entry, nullptr, appInfo, 1, 10);
+    ASSERT_NE(info, nullptr);
+    EXPECT_EQ(info->recordId, 10u);
+    EXPECT_EQ(info->id, "fileIdA");
+    EXPECT_EQ(info->name, "alpha.txt");
+    EXPECT_EQ(info->size, 2048);
+    EXPECT_EQ(info->modifyTime, 5000);
+    EXPECT_TRUE(info->IsFile());
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "BuildFuseNodeTree_Success_001 end");
+}
+
+/**
+ * @tc.name: HandleVirtualFile_EmptyPasteData_001
+ * @tc.desc: HandleVirtualFile should not register a provider when pasteData has no records
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceSetDataTest, HandleVirtualFile_EmptyPasteData_001, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "HandleVirtualFile_EmptyPasteData_001 start");
+    auto service = std::make_shared<PasteboardService>();
+    ASSERT_NE(service, nullptr);
+    PasteData pasteData;
+    AppInfo appInfo;
+    appInfo.userId = 100;
+    service->HandleVirtualFile(pasteData, nullptr, appInfo);
+    EXPECT_FALSE(service->fuse_->HasProvider(appInfo.userId));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "HandleVirtualFile_EmptyPasteData_001 end");
+}
+
+/**
+ * @tc.name: HandleVirtualFile_NullFuseGetter_001
+ * @tc.desc: HandleVirtualFile with virtual files but null fuseGetter should generate URIs but not register provider
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceSetDataTest, HandleVirtualFile_NullFuseGetter_001, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "HandleVirtualFile_NullFuseGetter_001 start");
+    auto service = std::make_shared<PasteboardService>();
+    ASSERT_NE(service, nullptr);
+    PasteData pasteData;
+    pasteData.AddRecord(BuildVirtualFileRecord("fileIdX", "x.txt", 0));
+    AppInfo appInfo;
+    appInfo.userId = 100;
+    service->HandleVirtualFile(pasteData, nullptr, appInfo);
+    auto records = pasteData.AllRecords();
+    ASSERT_EQ(records.size(), 1u);
+    ASSERT_NE(records[0]->GetUri(), nullptr);
+    EXPECT_FALSE(service->fuse_->HasProvider(appInfo.userId));
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "HandleVirtualFile_NullFuseGetter_001 end");
+}
+
+/**
+ * @tc.name: HandleVirtualFile_OnlyIdEmpty_001
+ * @tc.desc: entry with empty fileName but non-empty fileId should still be processed (only both-empty is rejected)
+ * @tc.type: FUNC
+ */
+HWTEST_F(PasteboardServiceSetDataTest, HandleVirtualFile_OnlyIdEmpty_001, TestSize.Level1)
+{
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "HandleVirtualFile_OnlyIdEmpty_001 start");
+    auto service = std::make_shared<PasteboardService>();
+    ASSERT_NE(service, nullptr);
+    PasteData pasteData;
+    // fileName empty but fileId non-empty → should be processed
+    pasteData.AddRecord(BuildVirtualFileRecord("onlyId", "", 0));
+    AppInfo appInfo;
+    appInfo.userId = 100;
+    service->HandleVirtualFile(pasteData, nullptr, appInfo);
+    auto records = pasteData.AllRecords();
+    ASSERT_EQ(records.size(), 1u);
+    ASSERT_NE(records[0]->GetUri(), nullptr);
+    PASTEBOARD_HILOGI(PASTEBOARD_MODULE_SERVICE, "HandleVirtualFile_OnlyIdEmpty_001 end");
 }
 } // namespace MiscServices
 } // namespace OHOS

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -57,6 +57,7 @@ union ValueType {
     string: String;
     arrayBuffer: @arraybuffer Array<u8>;
     pixelMapOrWant: @sts_type("(image.PixelMap | Want)") Opaque;
+    virtualFile: @sts_type("VirtualFileInfo") Opaque;
 }
 
 struct PasteDataProperty {
@@ -150,6 +151,69 @@ struct GetDataParams {
     progressListener: Optional<(progress: ProgressInfo) => void>;
     progressSignal: Optional<ProgressSignal>;
 }
+
+enum VirtualItemType: i32 {
+    FILE = 0,
+    DIR = 1
+}
+
+struct VirtualBaseItem {
+    name: String;
+    @readonly type: VirtualItemType;
+    modifyTime: @sts_type("Date") Opaque;
+}
+
+struct VirtualFileItem {
+    @extends base: VirtualBaseItem;
+    id: String;
+    size: Optional<i64>;
+}
+
+union VirtualItem {
+    file: VirtualFileItem;
+    dir: VirtualDirItem;
+}
+
+struct VirtualDirItem {
+    @extends base: VirtualBaseItem;
+    subItems: Optional<Array<VirtualItem>>;
+}
+
+@!sts_inject("""
+export interface VirtualFileInfo {
+    itemInfo: VirtualFileItem | VirtualDirItem;
+    onStat?: VirtualFileOnStat;
+    onRead: VirtualFileOnRead;
+    onCancel: VirtualFileOnCancel;
+}
+export type VirtualFileOnStat = (id: string) => Promise<VirtualFileItem>;
+export type VirtualFileOnRead = (id: string, offset: long, length: int) => Promise<Uint8Array>;
+export type VirtualFileOnCancel = (idList: Array<string>) => Promise<void>;
+async function virtualFileOnStatAsync(handler: VirtualFileOnStat, id: string): Promise<VirtualFileItem> {
+    return handler(id);
+}
+function virtualFileOnStatFunc(handler: VirtualFileOnStat, id: string): VirtualFileItem {
+    return waitForCompletion(async () => {
+        return await virtualFileOnStatAsync(handler, id);
+    });
+}
+async function virtualFileOnReadAsync(handler: VirtualFileOnRead, id: string, offset: long, length: int): Promise<Uint8Array> {
+    return handler(id, offset, length);
+}
+function virtualFileOnReadFunc(handler: VirtualFileOnRead, id: string, offset: long, length: int): Uint8Array {
+    return waitForCompletion(async () => {
+        return await virtualFileOnReadAsync(handler, id, offset, length);
+    });
+}
+async function virtualFileOnCancelAsync(handler: VirtualFileOnCancel, idList: Array<string>): Promise<void> {
+    return handler(idList);
+}
+function virtualFileOnCancelFunc(handler: VirtualFileOnCancel, idList: Array<string>): void {
+    waitForCompletion(async () => {
+        await virtualFileOnCancelAsync(handler, idList);
+    });
+}
+""")
 
 interface SystemPasteboard {
     OnUpdate(callback: () => void): void;

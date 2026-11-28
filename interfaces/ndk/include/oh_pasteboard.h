@@ -82,6 +82,8 @@ extern "C" {
  * @since 13
  */
 struct OH_UdmfData;
+struct OH_UDMF_VirtualFileCallbacks;
+typedef void (*OH_UDMF_VirtualFileFinalize)(void* context);
 
 /**
  * @brief Enumerates the types of data changes that can be observed.
@@ -510,6 +512,27 @@ OH_UdmfData* OH_Pasteboard_GetDataWithProgress(OH_Pasteboard* pasteboard, Pasteb
  * @since 21
  */
 void OH_Pasteboard_SyncDelayedDataAsync(OH_Pasteboard* pasteboard, void (*callback)(int errorCode));
+
+/**
+ * @brief Writes virtual file data to the Pasteboard.
+ *
+ * Use UDMF C APIs ({@link OH_UdmfData_Create}, {@link OH_UdmfRecord_AddFileUri}, etc.)
+ * to build the data. The {@code callbacks} provide file content on demand when a paste
+ * target reads the virtual file.
+ *
+ * @param pasteboard Pointer to the {@link OH_Pasteboard} instance.
+ * @param data Pointer to the {@link OH_UdmfData} instance containing FileUri records.
+ * @param callbacks Pointer to virtual file callbacks. {@code onRead} is required.
+ * @param context User context passed as the first parameter to each callback.
+ * @param finalize Optional callback invoked when the pasteboard releases the provider.
+ * @return Returns the status code of the execution. For details, see {@link PASTEBOARD_ErrCode}.
+ *         Returns {@link ERR_OK} if the operation is successful.
+ *         Returns {@link ERR_INVALID_PARAMETER} if invalid args are detected.
+ * @since 26
+ */
+int OH_Pasteboard_SetVirtualFileData(OH_Pasteboard* pasteboard, OH_UdmfData* data,
+    const OH_UDMF_VirtualFileCallbacks* callbacks, void* context,
+    OH_UDMF_VirtualFileFinalize finalize);
 
 #ifdef __cplusplus
 };

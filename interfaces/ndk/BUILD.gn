@@ -35,6 +35,7 @@ ohos_shared_library("libpasteboard") {
   sources = [
     "${pasteboard_interfaces_path}/ndk/src/oh_pasteboard.cpp",
     "${pasteboard_interfaces_path}/ndk/src/oh_pasteboard_observer_impl.cpp",
+    "${pasteboard_interfaces_path}/ndk/src/oh_pasteboard_virtual_file.cpp",
   ]
 
   version_script = "pasteboard_interface_map"
@@ -46,6 +47,7 @@ ohos_shared_library("libpasteboard") {
   deps = [
     "${pasteboard_framework_path}:pasteboard_framework",
     "${pasteboard_innerkits_path}:pasteboard_client",
+    "${pasteboard_innerkits_path}:pasteboard_data",
   ]
 
   external_deps = [

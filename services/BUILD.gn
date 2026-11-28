@@ -82,16 +82,19 @@ ohos_shared_library("pasteboard_service") {
     "${pasteboard_utils_path}/native/src/pasteboard_time.cpp",
     "../adapter/data_share/datashare_delegate.cpp",
     "account/src/account_manager.cpp",
+    "core/src/fuse_mount.cpp",
     "core/src/pasteboard_ability_manager.cpp",
-    "core/src/pasteboard_dialog.cpp",
     "core/src/pasteboard_delay_manager.cpp",
+    "core/src/pasteboard_dialog.cpp",
     "core/src/pasteboard_disposable_manager.cpp",
+    "core/src/pasteboard_fuse_manager.cpp",
     "core/src/pasteboard_hml_manager.cpp",
     "core/src/p2p_link_manager.cpp",
     "core/src/pasteboard_pattern.cpp",
     "core/src/pasteboard_service.cpp",
     "core/src/pasteboard_user_context.cpp",
     "core/src/pasteboard_window_manager.cpp",
+    "${pasteboard_innerkits_path}/src/pasteboard_virtual_entry.cpp",
     "dfx/src/behaviour/pasteboard_behaviour_reporter_impl.cpp",
     "dfx/src/calculate_time_consuming.cpp",
     "dfx/src/command.cpp",
@@ -109,13 +112,12 @@ ohos_shared_library("pasteboard_service") {
     "zidl/src/pasteboard_delay_getter_proxy.cpp",
     "zidl/src/pasteboard_disposable_observer_proxy.cpp",
     "zidl/src/pasteboard_entry_getter_proxy.cpp",
+    "zidl/src/pasteboard_fuse_getter_proxy.cpp",
     "zidl/src/pasteboard_observer_proxy.cpp",
   ]
 
   if (pasteboard_cockpit_platform_enabled) {
-    sources += [
-      "core/src/pasteboard_subprofile_subscriber.cpp",
-    ]
+    sources += [ "core/src/pasteboard_subprofile_subscriber.cpp" ]
   }
 
   public_configs = [ ":pasteboard_service_config" ]
@@ -164,12 +166,14 @@ ohos_shared_library("pasteboard_service") {
     "input:libmmi-client",
     "ipc:ipc_single",
     "json:nlohmann_json_static",
+    "libfuse:libfuse",
     "libxml2:libxml2",
     "memmgr:memmgrclient",
     "os_account:os_account_innerkits",
     "resource_schedule_service:ressched_client",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
+    "storage_service:storage_manager_sa_proxy",
     "udmf:udmf_client",
   ]
   if (window_manager_use_sceneboard) {
@@ -210,9 +214,12 @@ ohos_shared_library("pasteboard_service") {
 
   if (pasteboard_dataclassification_enabled) {
     external_deps += [ "dataclassification:data_transit_mgr" ]
-    sources += [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
+    sources +=
+        [ "${pasteboard_adapter_path}/security_level/security_level.cpp" ]
   } else {
-    sources += [ "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp" ]
+    sources += [
+      "${pasteboard_adapter_path}/security_level/security_level_virtual.cpp",
+    ]
   }
 
   if (pasteboard_cockpit_platform_enabled) {
@@ -268,7 +275,8 @@ ohos_source_set("pasteboard_client_idl") {
   sources = []
   sources += filter_include(output_values, [ "*pasteboard_types.cpp" ])
   sources += filter_include(output_values, [ "*pasteboard_service_proxy.cpp" ])
-  sources += filter_include(output_values, [ "*pasteboard_client_death_observer_stub.cpp" ])
+  sources += filter_include(output_values,
+                            [ "*pasteboard_client_death_observer_stub.cpp" ])
   sources += filter_include(output_values, [ "*pasteboard_signal_stub.cpp" ])
 
   deps = [ ":pasteboard_service_interface" ]
@@ -277,8 +285,8 @@ ohos_source_set("pasteboard_client_idl") {
     "ability_base:zuri",
     "c_utils:utils",
     "hilog:libhilog",
-    "ipc:ipc_single",
     "image_framework:image",
+    "ipc:ipc_single",
     "samgr:samgr_proxy",
     "udmf:udmf_client",
   ]
@@ -304,7 +312,8 @@ ohos_source_set("pasteboard_service_idl") {
   sources = []
   sources += filter_include(output_values, [ "*pasteboard_types.cpp" ])
   sources += filter_include(output_values, [ "*pasteboard_service_stub.cpp" ])
-  sources += filter_include(output_values, [ "*pasteboard_client_death_observer_proxy.cpp" ])
+  sources += filter_include(output_values,
+                            [ "*pasteboard_client_death_observer_proxy.cpp" ])
   sources += filter_include(output_values, [ "*pasteboard_signal_proxy.cpp" ])
 
   deps = [ ":pasteboard_service_interface" ]
@@ -313,8 +322,8 @@ ohos_source_set("pasteboard_service_idl") {
     "ability_base:zuri",
     "c_utils:utils",
     "hilog:libhilog",
-    "ipc:ipc_single",
     "image_framework:image",
+    "ipc:ipc_single",
     "samgr:samgr_proxy",
     "udmf:udmf_client",
   ]

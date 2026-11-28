@@ -20,6 +20,7 @@
 #include "common/pasteboard_common_utils.h"
 #include "pasteboard_hilog.h"
 #include "common/histogram_wrapper.h"
+#include "paste_data_record.h"
 using namespace OHOS::MiscServices;
 using namespace OHOS::Media;
 
@@ -506,6 +507,28 @@ void SystemPasteboardNapi::SetDataCommon(std::shared_ptr<SetContextInfo> &contex
     context->SetAction(std::move(input));
 }
 
+static std::map<uint32_t, sptr<IPasteboardFuseGetter>> CollectFuseGetters(const PasteData &pasteData)
+{
+    std::map<uint32_t, sptr<IPasteboardFuseGetter>> fuseGetters;
+    for (auto record : pasteData.AllRecords()) {
+        if (record != nullptr && record->GetFuseGetter() != nullptr) {
+            fuseGetters.emplace(record->GetRecordId(), record->GetFuseGetter());
+        }
+    }
+    return fuseGetters;
+}
+
+static std::map<uint32_t, std::shared_ptr<UDMF::EntryGetter>> CollectEntryGetters(const PasteData &pasteData)
+{
+    std::map<uint32_t, std::shared_ptr<UDMF::EntryGetter>> entryGetters;
+    for (auto record : pasteData.AllRecords()) {
+        if (record != nullptr && record->GetEntryGetter() != nullptr) {
+            entryGetters.emplace(record->GetRecordId(), record->GetEntryGetter());
+        }
+    }
+    return entryGetters;
+}
+
 napi_value SystemPasteboardNapi::SetPasteData(napi_env env, napi_callback_info info)
 {
     HISTOGRAM_BOOLEAN_SAMPLED("Pasteboard.APICall.setPasteData", true);
@@ -516,7 +539,8 @@ napi_value SystemPasteboardNapi::SetPasteData(napi_env env, napi_callback_info i
     auto exec = [context](AsyncCall::Context *ctx) {
         PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "exec SetPasteData");
         if (context->obj != nullptr) {
-            PasteboardClient::GetInstance()->SetPasteData(*(context->obj));
+            auto fuseGetters = CollectFuseGetters(*(context->obj));
+            PasteboardClient::GetInstance()->SetPasteData(*(context->obj), nullptr, {}, fuseGetters);
             context->obj = nullptr;
         }
         context->status = napi_ok;
@@ -538,13 +562,9 @@ napi_value SystemPasteboardNapi::SetData(napi_env env, napi_callback_info info)
         PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "exec SetPasteData");
         int32_t ret = static_cast<int32_t>(PasteboardError::INVALID_DATA_ERROR);
         if (context->obj != nullptr) {
-            std::map<uint32_t, std::shared_ptr<UDMF::EntryGetter>> entryGetters;
-            for (auto record : context->obj->AllRecords()) {
-                if (record != nullptr && record->GetEntryGetter() != nullptr) {
-                    entryGetters.emplace(record->GetRecordId(), record->GetEntryGetter());
-                }
-            }
-            ret = PasteboardClient::GetInstance()->SetPasteData(*(context->obj), nullptr, entryGetters);
+            auto entryGetters = CollectEntryGetters(*(context->obj));
+            auto fuseGetters = CollectFuseGetters(*(context->obj));
+            ret = PasteboardClient::GetInstance()->SetPasteData(*(context->obj), nullptr, entryGetters, fuseGetters);
             context->obj = nullptr;
         }
         if (ret == static_cast<int32_t>(PasteboardError::E_OK)) {

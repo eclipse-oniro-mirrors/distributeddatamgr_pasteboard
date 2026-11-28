@@ -29,7 +29,7 @@ config("pasteboard_client_config") {
     "${pasteboard_utils_path}/native/include",
     "${root_out_dir}/gen/foundation/distributeddatamgr/pasteboard/services",
   ]
-  ldflags = ["-lc++"]
+  ldflags = [ "-lc++" ]
 }
 
 config("pasteboard_data_config") {
@@ -67,6 +67,7 @@ ohos_shared_library("pasteboard_data") {
     "src/paste_data_info.cpp",
     "src/paste_data_record.cpp",
     "src/pasteboard_img_extractor.cpp",
+    "src/pasteboard_virtual_entry.cpp",
     "src/pasteboard_load_callback.cpp",
     "src/pasteboard_service_loader.cpp",
     "src/pasteboard_web_controller.cpp",
@@ -137,6 +138,8 @@ ohos_shared_library("pasteboard_client") {
     "${pasteboard_service_path}/zidl/src/pasteboard_disposable_observer_stub.cpp",
     "${pasteboard_service_path}/zidl/src/pasteboard_entry_getter_client.cpp",
     "${pasteboard_service_path}/zidl/src/pasteboard_entry_getter_stub.cpp",
+    "${pasteboard_service_path}/zidl/src/pasteboard_fuse_getter_client.cpp",
+    "${pasteboard_service_path}/zidl/src/pasteboard_fuse_getter_stub.cpp",
     "${pasteboard_service_path}/zidl/src/pasteboard_observer_stub.cpp",
     "${pasteboard_utils_path}/native/src/pasteboard_time.cpp",
     "src/entity_recognition_observer.cpp",
@@ -171,6 +174,7 @@ ohos_shared_library("pasteboard_client") {
     "ability_runtime:ability_manager",
     "ability_runtime:uri_permission_mgr",
     "ability_runtime:wantagent_innerkits",
+    "access_token:libaccesstoken_sdk",
     "app_file_service:fileuri_native",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",

@@ -17,15 +17,22 @@
 #include "ohos.pasteboard.pasteboard.proj.hpp"
 #include "stdexcept"
 #include "taihe/runtime.hpp"
+#include <chrono>
+#include <condition_variable>
+#include <memory>
+#include <mutex>
 #include <thread>
 
+#include "ani_common_utils.h"
 #include "ani_common_want.h"
 #include "common/block_object.h"
+#include "concurrency_helpers.h"
 #include "ffrt_inner.h"
 #include "interop_js/arkts_esvalue.h"
 #include "interop_js/arkts_interop_js_api.h"
 #include "napi/native_api.h"
 #include "pasteboard_client.h"
+#include "pasteboard_virtual_entry.h"
 #include "common/pasteboard_common_utils.h"
 #include "pasteboard_error.h"
 #include "pasteboard_hilog.h"
@@ -44,12 +51,52 @@ using EntryValueMap = std::map<std::string, std::shared_ptr<EntryValue>>;
 using ObserverList = std::vector<std::pair<::taihe::callback_view<void()>, OHOS::sptr<PasteboardTaiheObserver>>>;
 using CreatePasteDataFn = napi_value (*)(napi_env, std::shared_ptr<PasteData>);
 using CreateRecordFn = napi_value (*)(napi_env, std::shared_ptr<PasteDataRecord>);
+
+template<typename CreateFn, typename T>
+static uintptr_t MakeNapiInstance(const std::shared_ptr<T> &nativeValue, const char *symbolName)
+{
+    napi_env jsenv;
+    if (!arkts_napi_scope_open(taihe::get_env(), &jsenv)) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "arkts_napi_scope_open failed");
+        return 0;
+    }
+    auto handle = dlopen("libpasteboard_napi.z.so", RTLD_NOW);
+    if (handle == nullptr) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "dlopen failed");
+        arkts_napi_scope_close_n(jsenv, 0, nullptr, nullptr);
+        return 0;
+    }
+    auto createFn = reinterpret_cast<CreateFn>(dlsym(handle, symbolName));
+    if (createFn == nullptr) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "dlsym get func failed, %{public}s", dlerror());
+        arkts_napi_scope_close_n(jsenv, 0, nullptr, nullptr);
+        dlclose(handle);
+        return 0;
+    }
+    napi_value instance = createFn(jsenv, nativeValue);
+    dlclose(handle);
+    if (instance == nullptr) {
+        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "%{public}s failed", symbolName);
+        arkts_napi_scope_close_n(jsenv, 0, nullptr, nullptr);
+        return 0;
+    }
+    uintptr_t result = 0;
+    arkts_napi_scope_close_n(jsenv, 1, &instance, reinterpret_cast<ani_ref *>(&result));
+    return result;
+}
 namespace PasteboardTaihe = ohos::pasteboard::pasteboard;
 constexpr int32_t MIMETYPE_MAX_SIZE = 1024;
 constexpr int32_t PROGRESS_MAX_PERCENT = 100;
 
 namespace {
 constexpr uint32_t SYNC_TIMEOUT = 3500;
+constexpr const char *VIRTUAL_FILE_UTD = "general.virtual-file";
+constexpr const char *VIRTUAL_FILE_MIMETYPE = "text/uri";
+constexpr int TAIHE_CALLBACK_TIMEOUT_S = 5;
+constexpr char PASTEBOARD_TAIHE_NAMESPACE[] = "@ohos.pasteboard.pasteboard";
+
+static bool BuildVirtualFileEntry(const std::string &mimeType, uintptr_t vfiHandle,
+    std::shared_ptr<PasteDataEntry> &entry, OHOS::sptr<IPasteboardFuseGetter> &fuseGetter);
 class PasteDataRecordImpl {
 public:
     PasteDataRecordImpl()
@@ -187,6 +234,15 @@ public:
         if (mimeType.size() > MIMETYPE_MAX_SIZE) {
             taihe::set_business_error(static_cast<int>(JSErrorCode::INVALID_PARAMETERS),
                 "Parameter error. The length of mimeType cannot be greater than 1024 bytes.");
+            return;
+        }
+        if (mimeType == VIRTUAL_FILE_MIMETYPE && value.holds_virtualFile()) {
+            std::shared_ptr<PasteDataEntry> vfEntry;
+            OHOS::sptr<IPasteboardFuseGetter> vfGetter;
+            if (BuildVirtualFileEntry(mimeType, value.get_virtualFile_ref(), vfEntry, vfGetter)) {
+                this->record_->AddEntry(VIRTUAL_FILE_UTD, vfEntry);
+                this->record_->SetFuseGetter(vfGetter);
+            }
             return;
         }
         auto strategy = StrategyFactory::CreateStrategyForEntry(mimeType);
@@ -602,6 +658,693 @@ public:
 private:
     std::shared_ptr<PasteData> pasteData_;
 };
+
+class ScopedAniEnv final {
+public:
+    explicit ScopedAniEnv(ani_vm *vm) : vm_(vm)
+    {
+        if (vm_ == nullptr) {
+            return;
+        }
+        if (vm_->GetEnv(ANI_VERSION_1, &env_) == ANI_OK) {
+            return;
+        }
+        ani_options options{ 0, nullptr };
+        attached_ = vm_->AttachCurrentThread(&options, ANI_VERSION_1, &env_) == ANI_OK;
+        if (!attached_) {
+            env_ = nullptr;
+        }
+    }
+
+    ~ScopedAniEnv()
+    {
+        if (attached_ && vm_ != nullptr) {
+            vm_->DetachCurrentThread();
+        }
+    }
+
+    ani_env *Get() const
+    {
+        return env_;
+    }
+
+private:
+    ani_vm *vm_ = nullptr;
+    ani_env *env_ = nullptr;
+    bool attached_ = false;
+};
+
+static bool GetAniProperty(ani_env *env, ani_object object, const char *name, ani_ref &value)
+{
+    return env->Object_GetPropertyByName_Ref(object, name, &value) == ANI_OK;
+}
+
+static bool IsAniNullOrUndefined(ani_env *env, ani_object object)
+{
+    ani_boolean isNullOrUndefined = ANI_FALSE;
+    ani_status status = env->Reference_IsUndefined(object, &isNullOrUndefined);
+    if (status != ANI_OK || isNullOrUndefined) {
+        return true;
+    }
+    status = env->Reference_IsNull(object, &isNullOrUndefined);
+    if (status != ANI_OK || isNullOrUndefined) {
+        return true;
+    }
+    return false;
+}
+
+static bool GetAniStringProperty(ani_env *env, ani_object object, const char *name, std::string &value)
+{
+    ani_ref property = nullptr;
+    if (!GetAniProperty(env, object, name, property)) {
+        return false;
+    }
+    ani_string aniStr = static_cast<ani_string>(property);
+    ani_size sz = 0;
+    ani_status status = env->String_GetUTF8Size(aniStr, &sz);
+    if (status != ANI_OK) {
+        return false;
+    }
+    value.resize(sz + 1, 0);
+    status = env->String_GetUTF8(aniStr, value.data(), value.size(), &sz);
+    if (status != ANI_OK) {
+        return false;
+    }
+    value.resize(sz);
+    return true;
+}
+
+static bool GetAniLongProperty(ani_env *env, ani_object object, const char *name, int64_t &value)
+{
+    return env->Object_GetPropertyByName_Long(object, name, &value) == ANI_OK;
+}
+
+static bool GetAniUint8Array(ani_env *env, ani_object object, std::vector<uint8_t> &out)
+{
+    ani_int len = 0;
+    ani_int byteOffset = 0;
+    ani_arraybuffer buffer = nullptr;
+    auto status = env->Object_GetPropertyByName_Int(object, "byteLength", &len);
+    if (status != ANI_OK) {
+        return false;
+    }
+    status = env->Object_GetPropertyByName_Int(object, "byteOffset", &byteOffset);
+    if (status != ANI_OK) {
+        return false;
+    }
+    status = env->Object_GetPropertyByName_Ref(object, "buffer", reinterpret_cast<ani_ref *>(&buffer));
+    if (status != ANI_OK) {
+        return false;
+    }
+    void *data = nullptr;
+    ani_size dataLen = 0;
+    status = env->ArrayBuffer_GetInfo(buffer, &data, &dataLen);
+    if (status != ANI_OK) {
+        return false;
+    }
+    if (len < 0 || byteOffset < 0 || static_cast<ani_size>(byteOffset) > dataLen ||
+        static_cast<ani_size>(len) > dataLen - static_cast<ani_size>(byteOffset)) {
+        return false;
+    }
+    if (len > 0) {
+        auto *begin = reinterpret_cast<uint8_t *>(data) + byteOffset;
+        out = std::vector<uint8_t>(begin, begin + len);
+    } else {
+        out.clear();
+    }
+    return true;
+}
+
+static bool ParseVirtualFile(ani_env *env, ani_object object, FuseNode &entry)
+{
+    entry.type = 0;
+    if (!GetAniStringProperty(env, object, "id", entry.id) || !IsValidFileId(entry.id)) {
+        return false;
+    }
+    ani_ref sizeRef = nullptr;
+    if (GetAniProperty(env, object, "size", sizeRef) &&
+        !IsAniNullOrUndefined(env, static_cast<ani_object>(sizeRef))) {
+        if (!GetAniLongProperty(env, object, "size", entry.size) || entry.size < 0) {
+            return false;
+        }
+    }
+    return true;
+}
+
+static bool ParseVirtualDirectory(ani_env *env, ani_object object, FuseNode &entry,
+    uint32_t depth, uint32_t &itemCount);
+
+static bool ParseVirtualItem(ani_env *env, ani_object object, FuseNode &entry,
+    uint32_t depth, uint32_t &itemCount)
+{
+    if (env == nullptr || object == nullptr || depth > MAX_VIRTUAL_FILE_DEPTH ||
+        itemCount >= MAX_VIRTUAL_FILE_COUNT) {
+        return false;
+    }
+    ++itemCount;
+    if (!GetAniStringProperty(env, object, "name", entry.name) || !IsValidFileName(entry.name)) {
+        return false;
+    }
+    int64_t modifyTime = 0;
+    if (GetAniLongProperty(env, object, "modifyTime", modifyTime)) {
+        entry.modifyTime = modifyTime;
+    }
+    int64_t typeVal = 0;
+    if (GetAniLongProperty(env, object, "type", typeVal)) {
+        entry.type = static_cast<int32_t>(typeVal);
+    }
+    if (entry.type == 0) {
+        return ParseVirtualFile(env, object, entry);
+    }
+    return entry.type == 1 && ParseVirtualDirectory(env, object, entry, depth, itemCount);
+}
+
+static bool ParseVirtualDirectory(ani_env *env, ani_object object, FuseNode &entry,
+    uint32_t depth, uint32_t &itemCount)
+{
+    entry.type = 1;
+    ani_ref subItemsRef = nullptr;
+    if (!GetAniProperty(env, object, "subItems", subItemsRef) ||
+        IsAniNullOrUndefined(env, static_cast<ani_object>(subItemsRef))) {
+        return true;
+    }
+    auto array = static_cast<ani_array>(subItemsRef);
+    ani_size length = 0;
+    if (env->Array_GetLength(array, &length) != ANI_OK ||
+        length > MAX_VIRTUAL_FILE_COUNT - itemCount) {
+        return false;
+    }
+    entry.children.reserve(length);
+    for (ani_size index = 0; index < length; ++index) {
+        ani_ref item = nullptr;
+        FuseNode child;
+        if (env->Array_Get(array, index, &item) != ANI_OK ||
+            !ParseVirtualItem(env, static_cast<ani_object>(item), child, depth + 1, itemCount)) {
+            return false;
+        }
+        entry.children.emplace_back(std::move(child));
+    }
+    return true;
+}
+
+class PasteboardFuseGetterTaihe final : public PasteboardFuseGetterClient {
+public:
+    static OHOS::sptr<PasteboardFuseGetterTaihe> Create(ani_env *env, ani_object provider,
+        const FuseNode &rootEntry)
+    {
+        if (env == nullptr || provider == nullptr) {
+            return nullptr;
+        }
+        ani_vm *vm = nullptr;
+        ani_ref providerRef = nullptr;
+        if (env->GetVM(&vm) != ANI_OK || vm == nullptr ||
+            env->GlobalReference_Create(provider, &providerRef) != ANI_OK) {
+            return nullptr;
+        }
+        auto workerId = arkts::concurrency_helpers::GetWorkerId(env);
+        if (workerId < 0) {
+            env->GlobalReference_Delete(providerRef);
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Get virtual file provider worker id failed");
+            return nullptr;
+        }
+        auto *stub = new (std::nothrow) PasteboardFuseGetterTaihe(vm, providerRef, workerId);
+        if (stub == nullptr) {
+            env->GlobalReference_Delete(providerRef);
+            return nullptr;
+        }
+        stub->rootEntry_ = rootEntry;
+        return stub;
+    }
+
+    ~PasteboardFuseGetterTaihe() override
+    {
+        ScopedAniEnv scopedEnv(vm_);
+        ani_env *env = scopedEnv.Get();
+        if (env != nullptr && providerRef_ != nullptr) {
+            env->GlobalReference_Delete(providerRef_);
+        }
+    }
+
+    int32_t OnRead(uint32_t recordId, const std::string &id, int64_t offset, int32_t length,
+        std::vector<uint8_t> &data) override
+    {
+        (void)recordId;
+        if (!IsValidFileId(id) || offset < 0 || length < 0 || length > MAX_READ_SIZE) {
+            return OHOS::ERR_INVALID_VALUE;
+        }
+        auto request = std::make_shared<Request>();
+        request->operation = Operation::READ;
+        request->id = id;
+        request->offset = offset;
+        request->length = length;
+        int32_t ret = Invoke(request);
+        if (ret == OHOS::ERR_OK) {
+            data = std::move(request->bytes);
+        }
+        return ret;
+    }
+
+    static void FillStatFromNode(const FuseNode &node, FuseFileStat &stat)
+    {
+        stat.id = node.id;
+        stat.name = node.name;
+        stat.size = node.size;
+        stat.modifyTime = node.modifyTime;
+        stat.type = node.type;
+    }
+
+    int32_t OnStat(uint32_t recordId, const std::string &id, FuseFileStat &stat) override
+    {
+        (void)recordId;
+        const auto *entry = rootEntry_.FindById(id);
+        if (entry != nullptr) {
+            FillStatFromNode(*entry, stat);
+            return OHOS::ERR_OK;
+        }
+        if (!IsValidFileId(id)) {
+            return OHOS::ERR_INVALID_VALUE;
+        }
+        auto request = std::make_shared<Request>();
+        request->operation = Operation::STAT;
+        request->id = id;
+        int32_t ret = Invoke(request);
+        if (ret == OHOS::ERR_OK) {
+            FillStatFromNode(request->entry, stat);
+        }
+        return ret;
+    }
+
+    int32_t OnCancel(uint32_t recordId, const std::vector<std::string> &idList) override
+    {
+        (void)recordId;
+        if (idList.empty()) {
+            return OHOS::ERR_OK;
+        }
+        if (idList.size() > MAX_VIRTUAL_FILE_COUNT) {
+            return OHOS::ERR_INVALID_VALUE;
+        }
+        for (const auto &id : idList) {
+            if (!IsValidFileId(id)) {
+                return OHOS::ERR_INVALID_VALUE;
+            }
+        }
+        auto request = std::make_shared<Request>();
+        request->operation = Operation::CANCEL;
+        request->ids = idList;
+        return Invoke(request);
+    }
+
+private:
+    enum class Operation : uint8_t { STAT, READ, CANCEL };
+
+    struct Request {
+        Operation operation{ Operation::READ };
+        std::string id;
+        int64_t offset{ 0 };
+        int32_t length{ 0 };
+        std::vector<std::string> ids;
+        FuseNode entry;
+        std::vector<uint8_t> bytes;
+        ani_vm *vm{ nullptr };
+        ani_ref providerRef{ nullptr };
+        std::mutex mutex;
+        std::condition_variable condition;
+        bool done{ false };
+        int32_t status{ OHOS::ERR_INVALID_VALUE };
+    };
+
+    struct RequestContext {
+        std::shared_ptr<Request> request;
+    };
+
+    PasteboardFuseGetterTaihe(ani_vm *vm, ani_ref providerRef,
+        arkts::concurrency_helpers::AniWorkerId workerId)
+        : PasteboardFuseGetterClient({}), vm_(vm), providerRef_(providerRef), workerId_(workerId) {}
+
+    struct CallbackFunction {
+        ani_ref callback = nullptr;
+        ani_function function = nullptr;
+    };
+
+    static bool FindCallbackFunction(ani_env *env, ani_ref providerRef, const char *callbackName,
+        const char *functionName, CallbackFunction &result)
+    {
+        ani_namespace nameSpace = nullptr;
+        return GetAniProperty(env, static_cast<ani_object>(providerRef), callbackName, result.callback) &&
+               !IsAniNullOrUndefined(env, static_cast<ani_object>(result.callback)) &&
+               env->FindNamespace(PASTEBOARD_TAIHE_NAMESPACE, &nameSpace) == ANI_OK &&
+               env->Namespace_FindFunction(nameSpace, functionName, nullptr, &result.function) == ANI_OK;
+    }
+
+    int32_t Invoke(const std::shared_ptr<Request> &request)
+    {
+        ScopedAniEnv scopedEnv(vm_);
+        ani_env *env = scopedEnv.Get();
+        if (env == nullptr) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Get ANI environment for virtual file callback failed");
+            return OHOS::ERR_INVALID_VALUE;
+        }
+        ani_ref requestProviderRef = nullptr;
+        if (env->GlobalReference_Create(static_cast<ani_object>(providerRef_), &requestProviderRef) != ANI_OK) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Create virtual file provider request reference failed");
+            return OHOS::ERR_INVALID_VALUE;
+        }
+        request->vm = vm_;
+        request->providerRef = requestProviderRef;
+        auto *holder = new (std::nothrow) RequestContext{ request };
+        if (holder == nullptr) {
+            env->GlobalReference_Delete(requestProviderRef);
+            request->providerRef = nullptr;
+            return OHOS::ERR_INVALID_VALUE;
+        }
+
+        auto currentWorkerId = arkts::concurrency_helpers::GetWorkerId(env);
+        if (currentWorkerId == workerId_) {
+            ExecuteCallback(holder);
+        } else if (arkts::concurrency_helpers::SendEvent(env, workerId_, ExecuteCallback, holder) !=
+                   arkts::concurrency_helpers::WorkStatus::OK) {
+            delete holder;
+            env->GlobalReference_Delete(requestProviderRef);
+            request->providerRef = nullptr;
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Dispatch virtual file callback to ArkTS worker failed");
+            return OHOS::ERR_INVALID_VALUE;
+        }
+
+        std::unique_lock<std::mutex> lock(request->mutex);
+        if (!request->condition.wait_for(lock, std::chrono::seconds(TAIHE_CALLBACK_TIMEOUT_S),
+            [&request] { return request->done; })) {
+            request->done = true;
+            request->status = OHOS::ERR_INVALID_VALUE;
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Virtual file callback timed out, operation=%{public}s",
+                GetOperationName(request->operation));
+            return OHOS::ERR_INVALID_VALUE;
+        }
+        return request->status;
+    }
+
+    static void ExecuteCallback(void *data)
+    {
+        std::unique_ptr<RequestContext> holder(static_cast<RequestContext *>(data));
+        auto request = holder->request;
+        bool expired = false;
+        {
+            std::lock_guard<std::mutex> lock(request->mutex);
+            expired = request->done;
+        }
+        if (expired) {
+            DeleteRequestReference(request);
+            return;
+        }
+        ScopedAniEnv scopedEnv(request->vm);
+        ani_env *env = scopedEnv.Get();
+        int32_t status = env == nullptr ? OHOS::ERR_INVALID_VALUE : ExecuteRequest(env, request);
+        DeleteRequestReference(request);
+        Complete(request, status);
+    }
+
+    static int32_t ExecuteRequest(ani_env *env, const std::shared_ptr<Request> &request)
+    {
+        switch (request->operation) {
+            case Operation::STAT:
+                return ExecuteStat(env, request);
+            case Operation::READ:
+                return ExecuteRead(env, request);
+            case Operation::CANCEL:
+                return ExecuteCancel(env, request);
+            default:
+                return OHOS::ERR_INVALID_VALUE;
+        }
+    }
+
+    static bool PrepareCallbackWithId(ani_env *env, const std::shared_ptr<Request> &request, const char *propName,
+        const char *helperName, const char *opName, CallbackFunction &callbackFunction, ani_string &aniId)
+    {
+        if (!FindCallbackFunction(env, request->providerRef, propName, helperName, callbackFunction)) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Find virtual file %{public}s callback failed", opName);
+            return false;
+        }
+        ani_status status = env->String_NewUTF8(request->id.data(), request->id.size(), &aniId);
+        if (status != ANI_OK) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Create virtual file %{public}s id failed, status=%{public}d",
+                opName, static_cast<int>(status));
+            return false;
+        }
+        return true;
+    }
+
+    static int32_t ExecuteStat(ani_env *env, const std::shared_ptr<Request> &request)
+    {
+        CallbackFunction callbackFunction;
+        ani_string aniId = nullptr;
+        ani_ref result = nullptr;
+        if (!PrepareCallbackWithId(env, request, "onStat", "virtualFileOnStatFunc", "stat", callbackFunction, aniId)) {
+            return OHOS::ERR_INVALID_VALUE;
+        }
+        ani_status status = env->Function_Call_Ref(
+            callbackFunction.function, &result, callbackFunction.callback, aniId);
+        if (status != ANI_OK) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Invoke virtual file stat callback failed, status=%{public}d",
+                static_cast<int>(status));
+            env->ResetError();
+            return OHOS::ERR_INVALID_VALUE;
+        }
+        uint32_t itemCount = 0;
+        if (!ParseVirtualItem(env, static_cast<ani_object>(result), request->entry, 0, itemCount) ||
+            !request->entry.IsFile()) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Parse virtual file stat result failed");
+            return OHOS::ERR_INVALID_VALUE;
+        }
+        return OHOS::ERR_OK;
+    }
+
+    static int32_t ExecuteRead(ani_env *env, const std::shared_ptr<Request> &request)
+    {
+        CallbackFunction callbackFunction;
+        ani_string aniId = nullptr;
+        ani_ref result = nullptr;
+        if (!PrepareCallbackWithId(env, request, "onRead", "virtualFileOnReadFunc", "read", callbackFunction, aniId)) {
+            return OHOS::ERR_INVALID_VALUE;
+        }
+        ani_status status = env->Function_Call_Ref(
+            callbackFunction.function, &result, callbackFunction.callback, aniId, request->offset, request->length);
+        if (status != ANI_OK) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Invoke virtual file read callback failed, status=%{public}d",
+                static_cast<int>(status));
+            env->ResetError();
+            return OHOS::ERR_INVALID_VALUE;
+        }
+        if (!GetAniUint8Array(env, static_cast<ani_object>(result), request->bytes)) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Parse virtual file read result failed");
+            return OHOS::ERR_INVALID_VALUE;
+        }
+        if (request->bytes.size() > static_cast<size_t>(request->length)) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Virtual file read result exceeds requested length");
+            return OHOS::ERR_INVALID_VALUE;
+        }
+        return OHOS::ERR_OK;
+    }
+
+    static int32_t ExecuteCancel(ani_env *env, const std::shared_ptr<Request> &request)
+    {
+        ani_ref cancelCallback = nullptr;
+        if (!GetAniProperty(env, static_cast<ani_object>(request->providerRef), "onCancel", cancelCallback)) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Get virtual file cancel callback failed");
+            return OHOS::ERR_INVALID_VALUE;
+        }
+        if (IsAniNullOrUndefined(env, static_cast<ani_object>(cancelCallback))) {
+            return OHOS::ERR_OK;
+        }
+        CallbackFunction callbackFunction;
+        ani_array aniIds = nullptr;
+        if (!FindCallbackFunction(env, request->providerRef, "onCancel", "virtualFileOnCancelFunc",
+            callbackFunction)) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Find virtual file cancel callback failed");
+            return OHOS::ERR_INVALID_VALUE;
+        }
+        if (!CreateStringArray(env, request->ids, aniIds)) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Create virtual file cancel id array failed");
+            return OHOS::ERR_INVALID_VALUE;
+        }
+        ani_status status = env->Function_Call_Void(callbackFunction.function, callbackFunction.callback, aniIds);
+        if (status != ANI_OK) {
+            PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "Invoke virtual file cancel callback failed, status=%{public}d",
+                static_cast<int>(status));
+            env->ResetError();
+            return OHOS::ERR_INVALID_VALUE;
+        }
+        return OHOS::ERR_OK;
+    }
+
+    static void DeleteRequestReference(const std::shared_ptr<Request> &request)
+    {
+        if (request->providerRef == nullptr) {
+            return;
+        }
+        ScopedAniEnv scopedEnv(request->vm);
+        ani_env *env = scopedEnv.Get();
+        if (env != nullptr) {
+            env->GlobalReference_Delete(request->providerRef);
+        }
+        request->providerRef = nullptr;
+    }
+
+    static void Complete(const std::shared_ptr<Request> &request, int32_t status)
+    {
+        std::lock_guard<std::mutex> lock(request->mutex);
+        if (request->done) {
+            return;
+        }
+        request->status = status;
+        request->done = true;
+        request->condition.notify_all();
+    }
+
+    static const char *GetOperationName(Operation operation)
+    {
+        switch (operation) {
+            case Operation::STAT:
+                return "stat";
+            case Operation::READ:
+                return "read";
+            case Operation::CANCEL:
+                return "cancel";
+            default:
+                return "unknown";
+        }
+    }
+
+    static bool CreateStringArray(ani_env *env, const std::vector<std::string> &ids, ani_array &result)
+    {
+        ani_ref initialValue = nullptr;
+        if (env->GetUndefined(&initialValue) != ANI_OK ||
+            env->Array_New(ids.size(), initialValue, &result) != ANI_OK) {
+            return false;
+        }
+        for (ani_size index = 0; index < ids.size(); ++index) {
+            ani_string id = nullptr;
+            if (env->String_NewUTF8(ids[index].data(), ids[index].size(), &id) != ANI_OK ||
+                env->Array_Set(result, index, id) != ANI_OK) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    ani_vm *vm_ = nullptr;
+    ani_ref providerRef_ = nullptr;
+    arkts::concurrency_helpers::AniWorkerId workerId_{ -1 };
+    FuseNode rootEntry_;
+};
+
+static bool GetProviderProperties(ani_env *env, ani_object provider, ani_ref &itemInfoRef)
+{
+    if (!GetAniProperty(env, provider, "itemInfo", itemInfoRef) ||
+        IsAniNullOrUndefined(env, static_cast<ani_object>(itemInfoRef))) {
+        taihe::set_business_error(static_cast<int>(JSErrorCode::INVALID_PARAMETERS),
+            "Parameter error: itemInfo is required");
+        return false;
+    }
+    ani_ref onReadRef = nullptr;
+    if (!GetAniProperty(env, provider, "onRead", onReadRef) ||
+        IsAniNullOrUndefined(env, static_cast<ani_object>(onReadRef))) {
+        taihe::set_business_error(static_cast<int>(JSErrorCode::INVALID_PARAMETERS),
+            "Parameter error: onRead is required");
+        return false;
+    }
+    return true;
+}
+
+static bool BuildVirtualFileEntry(const std::string &mimeType, uintptr_t vfiHandle,
+    std::shared_ptr<PasteDataEntry> &entry, OHOS::sptr<IPasteboardFuseGetter> &fuseGetter)
+{
+    ani_env *env = taihe::get_env();
+    auto provider = reinterpret_cast<ani_object>(vfiHandle);
+    ani_ref itemInfoRef = nullptr;
+    if (!GetProviderProperties(env, provider, itemInfoRef)) {
+        return false;
+    }
+    FuseNode rootEntry;
+    uint32_t itemCount = 0;
+    if (!ParseVirtualItem(env, static_cast<ani_object>(itemInfoRef), rootEntry, 0, itemCount)) {
+        taihe::set_business_error(static_cast<int>(JSErrorCode::INVALID_PARAMETERS),
+            "Parameter error: itemInfo is invalid");
+        return false;
+    }
+    if (!rootEntry.HasValidFileSizes()) {
+        taihe::set_business_error(static_cast<int>(JSErrorCode::INVALID_PARAMETERS),
+            "Parameter error: fileSize is invalid");
+        return false;
+    }
+    auto fuseGetterPtr = PasteboardFuseGetterTaihe::Create(env, provider, rootEntry);
+    if (fuseGetterPtr == nullptr) {
+        taihe::set_business_error(static_cast<int>(JSErrorCode::INVALID_PARAMETERS),
+            "Parameter error: failed to create fuse getter");
+        return false;
+    }
+    auto obj = std::make_shared<OHOS::UDMF::Object>();
+    obj->value_["id"] = rootEntry.id;
+    obj->value_["name"] = rootEntry.name;
+    obj->value_["size"] = rootEntry.size;
+    obj->value_["modifyTime"] = rootEntry.modifyTime;
+    obj->value_["type"] = rootEntry.type;
+    obj->value_["treeBlob"] = SerializeTree(rootEntry);
+    auto newEntry = std::make_shared<PasteDataEntry>();
+    newEntry->SetUtdId(VIRTUAL_FILE_UTD);
+    newEntry->SetMimeType(mimeType);
+    newEntry->SetValue(obj);
+    entry = newEntry;
+    fuseGetter = fuseGetterPtr;
+    return true;
+}
+
+static std::shared_ptr<PasteDataRecord> MakeVirtualFileRecord(const std::string &mimeType,
+    const std::shared_ptr<PasteDataEntry> &entry, const OHOS::sptr<IPasteboardFuseGetter> &fuseGetter)
+{
+    PasteDataRecord::Builder builder(mimeType);
+    auto record = builder.Build();
+    if (record == nullptr) {
+        return nullptr;
+    }
+    record->AddEntry(VIRTUAL_FILE_UTD, entry);
+    record->SetFuseGetter(fuseGetter);
+    return record;
+}
+
+static PasteboardTaihe::PasteData CreateVirtualFileData(const std::string &mimeType, uintptr_t vfiHandle)
+{
+    PasteboardTaihe::PasteData data = taihe::make_holder<PasteDataImpl, PasteboardTaihe::PasteData>();
+    PasteDataImpl *dataImpl = reinterpret_cast<PasteDataImpl *>(data->GetPasteDataImpl());
+    if (dataImpl == nullptr) {
+        return data;
+    }
+    std::shared_ptr<PasteDataEntry> entry;
+    OHOS::sptr<IPasteboardFuseGetter> fuseGetterPtr;
+    if (!BuildVirtualFileEntry(mimeType, vfiHandle, entry, fuseGetterPtr)) {
+        return data;
+    }
+    auto record = MakeVirtualFileRecord(mimeType, entry, fuseGetterPtr);
+    if (record == nullptr) {
+        return data;
+    }
+    auto pasteData = std::make_shared<PasteData>();
+    pasteData->AddRecord(record);
+    dataImpl->SetPasteData(pasteData);
+    return data;
+}
+
+static PasteboardTaihe::PasteDataRecord CreateVirtualFileRecord(const std::string &mimeType, uintptr_t vfiHandle)
+{
+    std::shared_ptr<PasteDataEntry> entry;
+    OHOS::sptr<IPasteboardFuseGetter> fuseGetterPtr;
+    if (!BuildVirtualFileEntry(mimeType, vfiHandle, entry, fuseGetterPtr)) {
+        return taihe::make_holder<PasteDataRecordImpl, PasteboardTaihe::PasteDataRecord>();
+    }
+    auto record = MakeVirtualFileRecord(mimeType, entry, fuseGetterPtr);
+    if (record == nullptr) {
+        return taihe::make_holder<PasteDataRecordImpl, PasteboardTaihe::PasteDataRecord>();
+    }
+    return taihe::make_holder<PasteDataRecordImpl, PasteboardTaihe::PasteDataRecord>(record);
+}
 
 class SystemPasteboardImpl {
 public:
@@ -1214,6 +1957,9 @@ PasteboardTaihe::PasteData CreateDataByValue(
             "Parameter error. The length of mimeType cannot be greater than 1024 bytes.");
         return data;
     }
+    if (mimeTypeStr == VIRTUAL_FILE_MIMETYPE && value.holds_virtualFile()) {
+        return CreateVirtualFileData(mimeTypeStr, value.get_virtualFile_ref());
+    }
     std::shared_ptr<PasteData> pasteData;
     auto strategy = StrategyFactory::CreateStrategyForData(mimeTypeStr);
     if (strategy == nullptr) {
@@ -1313,34 +2059,7 @@ uintptr_t PasteDataTransferDynamicImpl(PasteboardTaihe::PasteData pasteDataTH)
     }
     std::shared_ptr<PasteData> pasteData = implPtr->GetPasteData();
     implPtr = nullptr;
-    napi_env jsenv;
-    if (!arkts_napi_scope_open(taihe::get_env(), &jsenv)) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "arkts_napi_scope_open failed");
-        return 0;
-    }
-    auto handle = dlopen("libpasteboard_napi.z.so", RTLD_NOW);
-    if (handle == nullptr) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "dlopen failed");
-        arkts_napi_scope_close_n(jsenv, 0, nullptr, nullptr);
-        return 0;
-    }
-    CreatePasteDataFn GetEtsPasteData = reinterpret_cast<CreatePasteDataFn>(dlsym(handle, "GetEtsPasteData"));
-    if (GetEtsPasteData == nullptr) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "dlsym get func failed, %{public}s", dlerror());
-        arkts_napi_scope_close_n(jsenv, 0, nullptr, nullptr);
-        dlclose(handle);
-        return 0;
-    }
-    napi_value instance = GetEtsPasteData(jsenv, pasteData);
-    dlclose(handle);
-    if (instance == nullptr) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "GetEtsPasteData failed");
-        arkts_napi_scope_close_n(jsenv, 0, nullptr, nullptr);
-        return 0;
-    }
-    uintptr_t result = 0;
-    arkts_napi_scope_close_n(jsenv, 1, &instance, reinterpret_cast<ani_ref*>(&result));
-    return result;
+    return MakeNapiInstance<CreatePasteDataFn>(pasteData, "GetEtsPasteData");
 }
 
 PasteboardTaihe::PasteDataRecord PasteDataRecordTransferStaticImpl(uintptr_t input)
@@ -1369,34 +2088,7 @@ uintptr_t PasteDataRecordTransferDynamicImpl(PasteboardTaihe::PasteDataRecord re
     }
     std::shared_ptr<PasteDataRecord> record = implPtr->GetRecord();
     implPtr = nullptr;
-    napi_env jsenv;
-    if (!arkts_napi_scope_open(taihe::get_env(), &jsenv)) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "arkts_napi_scope_open failed");
-        return 0;
-    }
-    auto handle = dlopen("libpasteboard_napi.z.so", RTLD_NOW);
-    if (handle == nullptr) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "dlopen failed");
-        arkts_napi_scope_close_n(jsenv, 0, nullptr, nullptr);
-        return 0;
-    }
-    CreateRecordFn GetEtsPasteDataRecord = reinterpret_cast<CreateRecordFn>(dlsym(handle, "GetEtsPasteDataRecord"));
-    if (GetEtsPasteDataRecord == nullptr) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "dlsym get func failed, %{public}s", dlerror());
-        arkts_napi_scope_close_n(jsenv, 0, nullptr, nullptr);
-        dlclose(handle);
-        return 0;
-    }
-    napi_value instance = GetEtsPasteDataRecord(jsenv, record);
-    dlclose(handle);
-    if (instance == nullptr) {
-        PASTEBOARD_HILOGE(PASTEBOARD_MODULE_JS_ANI, "GetEtsPasteDataRecord failed");
-        arkts_napi_scope_close_n(jsenv, 0, nullptr, nullptr);
-        return 0;
-    }
-    uintptr_t result = 0;
-    arkts_napi_scope_close_n(jsenv, 1, &instance, reinterpret_cast<ani_ref*>(&result));
-    return result;
+    return MakeNapiInstance<CreateRecordFn>(record, "GetEtsPasteDataRecord");
 }
 
 ohos::pasteboard::pasteboard::PasteDataRecord CreateRecord(
@@ -1418,6 +2110,9 @@ ohos::pasteboard::pasteboard::PasteDataRecord CreateRecord(
         taihe::set_business_error(static_cast<int>(JSErrorCode::INVALID_PARAMETERS),
             "Parameter error. The length of mimeType cannot be greater than 1024 bytes.");
         return record;
+    }
+    if (mimeTypeStr == VIRTUAL_FILE_MIMETYPE && value.holds_virtualFile()) {
+        return CreateVirtualFileRecord(mimeTypeStr, value.get_virtualFile_ref());
     }
     auto strategy = StrategyFactory::CreateStrategyForData(mimeTypeStr);
     if (strategy == nullptr) {

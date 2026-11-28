@@ -54,6 +54,7 @@ taihe_shared_library("pasteboard_taihe_native") {
     "src/ohos.pasteboard.pasteboard.impl.cpp",
     "src/pasteboard_taihe_observer.cpp",
     "src/pasteboard_taihe_utils.cpp",
+    "${pasteboard_innerkits_path}/src/pasteboard_virtual_entry.cpp",
   ]
   deps = [
     ":run_pasteboard_taihe",

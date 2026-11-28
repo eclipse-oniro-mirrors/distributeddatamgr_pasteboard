@@ -373,9 +373,14 @@ ohos_unittest("PasteboardClientProxyMockTest") {
     "${pasteboard_utils_path}/native/src/pasteboard_time.cpp",
     "mock/system_ability_manager_client_mock.cpp",
     "src/pasteboard_client_proxy_mock_test.cpp",
+    "src/pasteboard_client_virtual_file_test.cpp",
   ]
   configs = [ ":module_private_config" ]
   cflags = [ "-fno-access-control" ]
+  include_dirs = [
+    "${pasteboard_service_path}/core/include",
+    "${pasteboard_service_path}/zidl/include",
+  ]
   external_deps = [
     "ability_base:base",
     "ability_base:want",
@@ -383,6 +388,7 @@ ohos_unittest("PasteboardClientProxyMockTest") {
     "ability_runtime:ability_manager",
     "ability_runtime:uri_permission_mgr",
     "ability_runtime:wantagent_innerkits",
+    "access_token:libaccesstoken_sdk",
     "app_file_service:fileuri_native",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",

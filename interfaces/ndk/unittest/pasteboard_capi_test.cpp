@@ -20,6 +20,7 @@
 #include <chrono>
 #include <thread>
 #include <unistd.h>
+#include <cstring>
 
 #include "token_setproc.h"
 #include "accesstoken_kit.h"
@@ -2447,6 +2448,152 @@ HWTEST_F(PasteboardCapiTest, OH_Pasteboard_SetData_SetUdsdDataFailed, TestSize.L
     OH_UdmfData* invalidData = nullptr;
     int ret = OH_Pasteboard_SetData(pasteboard, invalidData);
     EXPECT_EQ(ret, ERR_INVALID_PARAMETER);
+    OH_Pasteboard_Destroy(pasteboard);
+}
+
+static int VirtualFileReadCallback(void* context, const char* id, int64_t offset, uint32_t length,
+    uint8_t* data, uint32_t* bytesRead)
+{
+    if (data == nullptr || bytesRead == nullptr) {
+        return -1;
+    }
+    static const uint8_t buf[] = "test data";
+    uint32_t copyLen = std::min(static_cast<uint32_t>(sizeof(buf) - 1), length);
+    if (memcpy_s(data, length, buf, copyLen) != EOK) {
+        return -1;
+    }
+    *bytesRead = copyLen;
+    return 0;
+}
+
+static OH_UDMF_VirtualItem* VirtualFileStatCallback(void* context, const char* id)
+{
+    constexpr int64_t statFileSize = 100;
+    OH_UDMF_VirtualItem* item = OH_UDMF_CreateVirtualFileItem("test.txt", id, 1000);
+    if (item != nullptr) {
+        OH_UDMF_SetVirtualFileSize(item, statFileSize);
+    }
+    return item;
+}
+
+static int VirtualFileCancelCallback(void* context, const char* const* idList, uint32_t count)
+{
+    return 0;
+}
+
+static void VirtualFileFinalize(void* context)
+{
+}
+
+/**
+ * @tc.name: OH_Pasteboard_SetVirtualFileData_Invalid_001
+ * @tc.desc: null pasteboard / null data / null callbacks returns ERR_INVALID_PARAMETER
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PasteboardCapiTest, OH_Pasteboard_SetVirtualFileData_Invalid_001, TestSize.Level1)
+{
+    OH_Pasteboard* pasteboard = OH_Pasteboard_Create();
+    ASSERT_NE(pasteboard, nullptr);
+
+    OH_UdmfData* data = OH_UdmfData_Create();
+    ASSERT_NE(data, nullptr);
+    OH_UdmfRecord* record = OH_UdmfRecord_Create();
+    OH_UdsFileUri* fileUri = OH_UdsFileUri_Create();
+    OH_UdmfRecord_AddFileUri(record, fileUri);
+    OH_UdmfData_AddRecord(data, record);
+
+    OH_UDMF_VirtualFileCallbacks callbacks = {};
+    callbacks.onRead = VirtualFileReadCallback;
+    callbacks.onStat = VirtualFileStatCallback;
+    callbacks.onCancel = VirtualFileCancelCallback;
+
+    int ret = OH_Pasteboard_SetVirtualFileData(nullptr, data, &callbacks, nullptr, nullptr);
+    EXPECT_EQ(ret, ERR_INVALID_PARAMETER);
+
+    ret = OH_Pasteboard_SetVirtualFileData(pasteboard, nullptr, &callbacks, nullptr, nullptr);
+    EXPECT_EQ(ret, ERR_INVALID_PARAMETER);
+
+    ret = OH_Pasteboard_SetVirtualFileData(pasteboard, data, nullptr, nullptr, nullptr);
+    EXPECT_EQ(ret, ERR_INVALID_PARAMETER);
+
+    OH_UDMF_VirtualFileCallbacks emptyCallbacks = {};
+    ret = OH_Pasteboard_SetVirtualFileData(pasteboard, data, &emptyCallbacks, nullptr, nullptr);
+    EXPECT_EQ(ret, ERR_INVALID_PARAMETER);
+
+    OH_UdmfRecord_Destroy(record);
+    OH_UdsFileUri_Destroy(fileUri);
+    OH_UdmfData_Destroy(data);
+    OH_Pasteboard_Destroy(pasteboard);
+}
+
+/**
+ * @tc.name: OH_Pasteboard_SetVirtualFileData_001
+ * @tc.desc: build UDMF data with FileUri, set callbacks, call SetVirtualFileData
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PasteboardCapiTest, OH_Pasteboard_SetVirtualFileData_001, TestSize.Level1)
+{
+    OH_Pasteboard* pasteboard = OH_Pasteboard_Create();
+    ASSERT_NE(pasteboard, nullptr);
+
+    OH_UdmfData* data = OH_UdmfData_Create();
+    ASSERT_NE(data, nullptr);
+    OH_UdmfRecord* record = OH_UdmfRecord_Create();
+    OH_UdsFileUri* fileUri = OH_UdsFileUri_Create();
+    OH_UdmfRecord_AddFileUri(record, fileUri);
+    OH_UdmfData_AddRecord(data, record);
+
+    OH_UDMF_VirtualFileCallbacks callbacks = {};
+    callbacks.onRead = VirtualFileReadCallback;
+    callbacks.onStat = VirtualFileStatCallback;
+    callbacks.onCancel = VirtualFileCancelCallback;
+
+    int ret = OH_Pasteboard_SetVirtualFileData(pasteboard, data, &callbacks, nullptr, VirtualFileFinalize);
+    EXPECT_TRUE(ret == ERR_OK || ret == ERR_INNER_ERROR || ret == ERR_PERMISSION_ERROR);
+
+    OH_UdmfRecord_Destroy(record);
+    OH_UdsFileUri_Destroy(fileUri);
+    OH_UdmfData_Destroy(data);
+    OH_Pasteboard_Destroy(pasteboard);
+}
+
+/**
+ * @tc.name: OH_Pasteboard_SetVirtualFileData_002
+ * @tc.desc: build UDMF data with multiple FileUri records, set callbacks, call SetVirtualFileData
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(PasteboardCapiTest, OH_Pasteboard_SetVirtualFileData_002, TestSize.Level1)
+{
+    OH_Pasteboard* pasteboard = OH_Pasteboard_Create();
+    ASSERT_NE(pasteboard, nullptr);
+
+    OH_UdmfData* data = OH_UdmfData_Create();
+    ASSERT_NE(data, nullptr);
+    OH_UdmfRecord* record1 = OH_UdmfRecord_Create();
+    OH_UdsFileUri* fileUri1 = OH_UdsFileUri_Create();
+    OH_UdmfRecord_AddFileUri(record1, fileUri1);
+    OH_UdmfData_AddRecord(data, record1);
+    OH_UdmfRecord* record2 = OH_UdmfRecord_Create();
+    OH_UdsFileUri* fileUri2 = OH_UdsFileUri_Create();
+    OH_UdmfRecord_AddFileUri(record2, fileUri2);
+    OH_UdmfData_AddRecord(data, record2);
+
+    OH_UDMF_VirtualFileCallbacks callbacks = {};
+    callbacks.onRead = VirtualFileReadCallback;
+    callbacks.onStat = VirtualFileStatCallback;
+    callbacks.onCancel = VirtualFileCancelCallback;
+
+    int ret = OH_Pasteboard_SetVirtualFileData(pasteboard, data, &callbacks, nullptr, VirtualFileFinalize);
+    EXPECT_TRUE(ret == ERR_OK || ret == ERR_INNER_ERROR || ret == ERR_PERMISSION_ERROR);
+
+    OH_UdmfRecord_Destroy(record1);
+    OH_UdsFileUri_Destroy(fileUri1);
+    OH_UdmfRecord_Destroy(record2);
+    OH_UdsFileUri_Destroy(fileUri2);
+    OH_UdmfData_Destroy(data);
     OH_Pasteboard_Destroy(pasteboard);
 }
 } // namespace Test

@@ -260,7 +260,7 @@ HWTEST_F(PasteboardServiceCheckTest, IsDataValidTest002, TestSize.Level1)
     sptr<IPasteboardEntryGetter> entryGetter = nullptr;
 
     int32_t ret = WritePasteData(pasteData, pasteDataTlv, fd, tlvSize, messageData, parcelPata);
-    ret = tempPasteboard->SetPasteData(dup(fd), tlvSize, pasteDataTlv, delayGetter, entryGetter);
+    ret = tempPasteboard->SetPasteData(ERROR_USERID, dup(fd), tlvSize, pasteDataTlv, delayGetter, entryGetter);
 
     uint32_t tokenId = 0x123456;
     ret = tempPasteboard->IsDataValid(pasteData, tokenId, RESOLVED_USER_ID);
@@ -300,7 +300,7 @@ HWTEST_F(PasteboardServiceCheckTest, IsDataValidTest003, TestSize.Level1)
     sptr<IPasteboardEntryGetter> entryGetter = nullptr;
 
     int32_t ret = WritePasteData(pasteData, pasteDataTlv, fd, tlvSize, messageData, parcelPata);
-    ret = tempPasteboard->SetPasteData(dup(fd), tlvSize, pasteDataTlv, delayGetter, entryGetter);
+    ret = tempPasteboard->SetPasteData(ERROR_USERID, dup(fd), tlvSize, pasteDataTlv, delayGetter, entryGetter);
 
     ret = tempPasteboard->IsDataValid(pasteData, tokenId, RESOLVED_USER_ID);
     EXPECT_EQ(ret, static_cast<int32_t>(PasteboardError::E_OK));
