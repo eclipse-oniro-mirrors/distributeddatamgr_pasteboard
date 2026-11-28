@@ -2181,7 +2181,7 @@ HWTEST_F(PasteboardCapiTest, OH_Pasteboard_HasTypeTest001, TestSize.Level2)
     OH_Pasteboard invalidPasteboard;
     const char* type = "text/plain";
     bool ret = OH_Pasteboard_HasType(&invalidPasteboard, type);
-    EXPECT_TRUE(ret);
+    EXPECT_FALSE(ret);
 }
 
 /**
@@ -2192,9 +2192,11 @@ HWTEST_F(PasteboardCapiTest, OH_Pasteboard_HasTypeTest001, TestSize.Level2)
  */
 HWTEST_F(PasteboardCapiTest, OH_Pasteboard_HasTypeTest002, TestSize.Level2)
 {
-    OH_Pasteboard validPasteboard;
-    bool ret = OH_Pasteboard_HasType(&validPasteboard, nullptr);
+    OH_Pasteboard* validPasteboard = OH_Pasteboard_Create();
+    ASSERT_TRUE(validPasteboard != nullptr);
+    bool ret = OH_Pasteboard_HasType(validPasteboard, nullptr);
     EXPECT_FALSE(ret);
+    OH_Pasteboard_Destroy(validPasteboard);
 }
 
 /**
@@ -2205,10 +2207,20 @@ HWTEST_F(PasteboardCapiTest, OH_Pasteboard_HasTypeTest002, TestSize.Level2)
  */
 HWTEST_F(PasteboardCapiTest, OH_Pasteboard_HasTypeTest003, TestSize.Level2)
 {
-    OH_Pasteboard validPasteboard;
+    OH_Pasteboard* validPasteboard = OH_Pasteboard_Create();
+    ASSERT_TRUE(validPasteboard != nullptr);
+    OH_UdmfData* setData = OH_UdmfData_Create();
+    OH_UdmfRecord* record = OH_UdmfRecord_Create();
+    OH_UdsPlainText* plainText = OH_UdsPlainText_Create();
+    char content[] = "hello world";
+    OH_UdsPlainText_SetContent(plainText, content);
+    OH_UdmfRecord_AddPlainText(record, plainText);
+    OH_UdmfData_AddRecord(setData, record);
+    OH_Pasteboard_SetData(validPasteboard, setData);
     const char* existingType = "text/plain";
-    bool ret = OH_Pasteboard_HasType(&validPasteboard, existingType);
+    bool ret = OH_Pasteboard_HasType(validPasteboard, existingType);
     EXPECT_TRUE(ret);
+    OH_Pasteboard_Destroy(validPasteboard);
 }
 
 /**
@@ -2219,10 +2231,13 @@ HWTEST_F(PasteboardCapiTest, OH_Pasteboard_HasTypeTest003, TestSize.Level2)
  */
 HWTEST_F(PasteboardCapiTest, OH_Pasteboard_HasTypeTest004, TestSize.Level2)
 {
-    OH_Pasteboard validPasteboard;
+    OH_Pasteboard* validPasteboard = OH_Pasteboard_Create();
+    ASSERT_TRUE(validPasteboard != nullptr);
+    OH_Pasteboard_ClearData(validPasteboard);
     const char* nonExistingType = "non/existing";
-    bool ret = OH_Pasteboard_HasType(&validPasteboard, nonExistingType);
+    bool ret = OH_Pasteboard_HasType(validPasteboard, nonExistingType);
     EXPECT_FALSE(ret);
+    OH_Pasteboard_Destroy(validPasteboard);
 }
 
 /**
