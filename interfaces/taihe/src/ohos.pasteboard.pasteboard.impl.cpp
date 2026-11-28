@@ -917,7 +917,9 @@ public:
     {
         (void)recordId;
         const auto *entry = rootEntry_.FindById(id);
-        if (entry != nullptr) {
+        // Use the local tree only when the size is already known; otherwise fall
+        // through to the onStat callback so it can return the size at runtime.
+        if (entry != nullptr && (entry->IsDir() || entry->size >= 0)) {
             FillStatFromNode(*entry, stat);
             return OHOS::ERR_OK;
         }
@@ -1270,7 +1272,11 @@ static bool BuildVirtualFileEntry(const std::string &mimeType, uintptr_t vfiHand
             "Parameter error: itemInfo is invalid");
         return false;
     }
-    if (!rootEntry.HasValidFileSizes()) {
+    // size is optional when onStat is provided (returned at runtime through the callback).
+    ani_ref onStatRef = nullptr;
+    bool hasOnStat = GetAniProperty(env, provider, "onStat", onStatRef) &&
+        !IsAniNullOrUndefined(env, static_cast<ani_object>(onStatRef));
+    if (!hasOnStat && !rootEntry.HasValidFileSizes()) {
         taihe::set_business_error(static_cast<int>(JSErrorCode::INVALID_PARAMETERS),
             "Parameter error: fileSize is invalid");
         return false;
