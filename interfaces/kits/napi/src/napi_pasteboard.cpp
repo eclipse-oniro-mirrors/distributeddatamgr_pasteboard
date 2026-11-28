@@ -1310,6 +1310,22 @@ napi_value PasteboardNapi::JScreateShareOption(napi_env env, napi_callback_info 
     return jsShareOption;
 }
 
+napi_value PasteboardNapi::JScreateVirtualItemType(napi_env env, napi_callback_info info)
+{
+    PASTEBOARD_HILOGD(PASTEBOARD_MODULE_JS_NAPI, "JScreateVirtualItemType is called!");
+
+    napi_value jsVirtualItemType = nullptr;
+    napi_create_object(env, &jsVirtualItemType);
+
+    napi_value jsFILE = CreateNapiNumber(env, 0);
+    NAPI_CALL(env, napi_set_named_property(env, jsVirtualItemType, "FILE", jsFILE));
+
+    napi_value jsDIR = CreateNapiNumber(env, 1);
+    NAPI_CALL(env, napi_set_named_property(env, jsVirtualItemType, "DIR", jsDIR));
+
+    return jsVirtualItemType;
+}
+
 napi_value PasteboardNapi::JScreatePattern(napi_env env, napi_callback_info info)
 {
     napi_value jsPattern = nullptr;
@@ -1651,6 +1667,7 @@ napi_value PasteboardNapi::PasteBoardInit(napi_env env, napi_value exports)
         DECLARE_NAPI_WRITABLE_FUNCTION("createDelayRecord", JSCreateRecord),
         DECLARE_NAPI_WRITABLE_FUNCTION("getSystemPasteboard", JSgetSystemPasteboard),
         DECLARE_NAPI_GETTER("ShareOption", JScreateShareOption),
+        DECLARE_NAPI_GETTER("VirtualItemType", JScreateVirtualItemType),
         DECLARE_NAPI_GETTER("Pattern", JScreatePattern),
         DECLARE_NAPI_GETTER("FileConflictOptions", JScreateFileConflictOptions),
         DECLARE_NAPI_GETTER("ProgressIndicator", JScreateProgressIndicator),
